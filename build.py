@@ -39,8 +39,6 @@ DEAD_AFTER_DAYS = 14  # a feed failing this long gets reported
 BATCH = 20            # stories per repeat check
 SCORE_WORKERS = 6     # parallel scoring calls (each is a CLI process)
 UA = "upshot/1.0 (+https://github.com/davelevine/upshot)"
-# The site's edge blocks non-browser user agents, so its own reader endpoint is called as a browser.
-BROWSER_UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
 WORDS_PER_MINUTE = 230
 MIN_ARTICLE_WORDS = 300  # less than this in a feed or page is probably a teaser, not the article
 TRACKING = re.compile(r"^(utm_|ref$|source$|fbclid$|gclid$)")
@@ -314,45 +312,34 @@ def feed_minutes(fetched):
     return out
 
 
-def page_words(url):
-    """Words in a page's <article>, fetched directly: some sites block the reader's host but not this one. 0 if blocked,
-    or if there's no <article> to tell the story from the page around it."""
-    try:
-        with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": BROWSER_UA}), timeout=20) as resp:
-            html = resp.read(3_000_000).decode("utf-8", "replace")
-    except Exception:
-        return 0
-    article = re.search(r"<article[\s\S]*?</article>", html)
-    if not article:
-        return 0
-    words = words_in(re.sub(r"<(script|style|nav|footer|header|aside)[\s\S]*?</\1>", " ", article.group(0)))
-    return words if words >= MIN_ARTICLE_WORDS else 0
+def full_text_feeds(fetched):
+    """{publisher: feed url} for feeds that publish whole articles. extract.mjs falls back to these when a page is blocked."""
+    return {res[0]: url for url, res in fetched.items()
+            if res and any(max([words_in(c.get("value")) for c in e.get("content", [])] + [words_in(e.get("summary"))]) >= MIN_ARTICLE_WORDS for e in res[1])}
 
 
-def add_reading_times(items, known=None, limit=30):
-    """Fill in "minutes" for articles that lack it: from whole articles in feeds (`known`), else the site's own reader
-    (/api/read only serves articles already on the site, so new ones get theirs on the next run), else the page itself.
-    Only the number is kept. 0 means nothing worked: shown as nothing, and retried, since some sources block only some
-    requests. Never estimated from a summary, which would make every article about a minute."""
+def add_reading_times(items, known=None, feeds=None):
+    """Runs extract.mjs, which stores each new story's article for the reader, and fills in "minutes" from it or from whole
+    articles in feeds (`known`). Only the number is kept here. 0 means blocked: shown as nothing, and retried. Never estimated
+    from a summary, which would make every article about a minute. Returns an error if the reader's store couldn't be updated."""
     for i in items:
         if not i.get("minutes") and (known or {}).get(i["url"]):
             i["minutes"] = known[i["url"]]
-    todo = [i for i in items if not i.get("minutes")][:limit]  # newest first, so old blocked items can't crowd out new ones
-
-    def one(item):
-        url = f"{SITE_URL}/api/read?url={urllib.parse.quote(item['url'], safe='')}"
-        try:
-            with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": BROWSER_UA}), timeout=30) as resp:
-                content = json.loads(resp.read()).get("content")
-        except Exception:  # not live yet, or a transient failure: try again next run
-            return item, None
-        words = words_in(content) or page_words(item["url"])
-        return item, max(1, round(words / WORDS_PER_MINUTE)) if words else 0
-
-    with ThreadPoolExecutor(6) as ex:
-        for item, minutes in ex.map(one, todo):
-            if minutes is not None:
-                item["minutes"] = minutes
+    payload = {"items": [{k: i.get(k) for k in ("url", "publisher", "minutes")} for i in items], "feeds": feeds or {}}
+    try:
+        r = subprocess.run(["node", str(ROOT / "extract.mjs")], input=json.dumps(payload), capture_output=True, text=True, timeout=1800)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        return str(e)
+    if r.stderr:
+        print(r.stderr, end="")
+    if r.returncode:
+        return f"extract.mjs exited {r.returncode}"
+    out = json.loads(r.stdout)
+    for i in items:
+        words = out["words"].get(i["url"])
+        if not i.get("minutes") and words is not None:
+            i["minutes"] = max(1, round(words / WORDS_PER_MINUTE)) if words else 0
+    return out.get("error")
 
 
 def run_summary(feeds, feeds_failed, new, scores, kept, repeated, dead):
@@ -480,7 +467,7 @@ def main():
         except Exception as e:
             print(f"::warning::weekly pick failed: {e}")
 
-    add_reading_times(data["items"], feed_minutes(fetched))
+    reader_error = add_reading_times(data["items"], feed_minutes(fetched), full_text_feeds(fetched))
     data["generated_at"] = now().isoformat(timespec="seconds")
     SITE.mkdir(exist_ok=True)
     data_path.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n")
@@ -492,6 +479,8 @@ def main():
 
     if new and failed == len(new):
         sys.exit("every scoring call failed; check CLAUDE_CODE_OAUTH_TOKEN and the Claude Code CLI")
+    if reader_error:
+        sys.exit(f"couldn't update the reader's articles: {reader_error}")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 # Fetches feeds, scores and summarizes new items with Claude (Haiku, through the Claude Code CLI on the
 # subscription), and commits site/data.json. Cloudflare Pages deploys site/ on every push to main.
-# Secrets: CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`; about a year's life).
+# Secrets: CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`; about a year's life), and CF_API_TOKEN, CF_ACCOUNT_ID and
+# CF_KV_NAMESPACE_ID for the reader's articles.
 name: Build
 
 on:
@@ -41,8 +42,9 @@ jobs:
         with:
           node-version: 26
           cache: npm
+      - run: npm ci
       - if: github.event_name == 'pull_request'
-        run: npm ci && node --test 'tests/*.test.js'
+        run: node --test 'tests/*.test.js'
       - if: github.event_name != 'pull_request'
         run: npm install -g @anthropic-ai/claude-code@2.1.319
 
@@ -50,6 +52,9 @@ jobs:
         run: python build.py
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}  # the three CF_ secrets let extract.mjs store articles for the reader
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_KV_NAMESPACE_ID: ${{ secrets.CF_KV_NAMESPACE_ID }}
           SITE_URL: ${{ vars.SITE_URL }}  # optional; build.py has a default
           FRESH_DAYS: ${{ inputs.backfill_days || 3 }}
           PER_FEED: ${{ inputs.backfill_days && 100 || 10 }}

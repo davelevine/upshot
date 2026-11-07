@@ -1,6 +1,6 @@
 """Browser smoke test: the feed, reader, palette and swipe work under the real CSP, with no CSP violations,
 console errors or page errors. Runs against `wrangler pages dev site` (CI starts one); skipped without SMOKE_URL.
-/api/read is stubbed so the test doesn't depend on outside sites; tests/read.test.js covers the function."""
+/api/read is stubbed because it needs the articles the build stores; tests/read.test.js covers the function."""
 import json
 import os
 import re
@@ -322,13 +322,37 @@ def test_reader_keeps_the_card_when_the_article_is_blocked(browser):
             break
         pg.wait_for_timeout(20)
     url = urllib.parse.parse_qs(urllib.parse.urlsplit(held[0].request.url).query)["url"][0]
-    held[0].fulfill(content_type="application/json", body=json.dumps({"url": url, "frameable": False}))
+    held[0].fulfill(content_type="application/json", body=json.dumps({"url": url, "frameable": False, "reason": "challenge"}))
     frame.locator(".status", has_text="doesn\u2019t allow a reader view").wait_for()
     assert frame.locator("h1").inner_text() == title and frame.locator(".todo").count() == 1
     assert frame.locator("a.pill").get_attribute("href") == url
     assert frame.locator(".late").count() == 0  # no second hold-back once it's the final state
     # Pinned to the top of the pane, not centred in it.
     assert frame.locator("h1").bounding_box()["y"] < 120
+
+
+def test_reader_message_follows_the_reason(browser):
+    pg, held, _, frame = held_reader(browser, viewport={"width": 1300, "height": 900})
+    frame.locator("h1").wait_for()
+    for _ in range(50):
+        if held:
+            break
+        pg.wait_for_timeout(20)
+    url = urllib.parse.parse_qs(urllib.parse.urlsplit(held[0].request.url).query)["url"][0]
+    held[0].fulfill(content_type="application/json", body=json.dumps({"url": url, "frameable": False, "reason": "not_html"}))
+    frame.locator(".status", has_text="needs the original site").wait_for()
+
+
+def test_reader_says_when_an_article_isnt_stored_yet(browser):
+    pg, held, _, frame = held_reader(browser, viewport={"width": 1300, "height": 900})
+    frame.locator("h1").wait_for()
+    for _ in range(50):
+        if held:
+            break
+        pg.wait_for_timeout(20)
+    url = urllib.parse.parse_qs(urllib.parse.urlsplit(held[0].request.url).query)["url"][0]
+    held[0].fulfill(content_type="application/json", body=json.dumps({"url": url, "frameable": False, "reason": "pending"}))
+    frame.locator(".status", has_text="ready yet").wait_for()
 
 
 def test_wide_screens_keep_the_filter_row(browser):
