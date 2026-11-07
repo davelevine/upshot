@@ -8,6 +8,7 @@ const MAX_HTML = 3_000_000;
 const MIN_TEXT = 500; // shorter "articles" are usually cookie walls or app shells
 const MIN_FEED_WORDS = 300; // less is a teaser, not the article
 const MIN_PAGE_WORDS = 300; // a page with less visible text than this is a shell, not an article that didn't parse
+const MAX_LINK_SHARE = 0.5; // more of an "article" than this is links: it's a list of other stories
 const PAGE_TIMEOUT = 15000; // some pages take 10s from here, and the reader's card means nobody's staring at nothing
 const FEED_TIMEOUT = 10000; // one full-article feed is 4MB
 const CHALLENGE = /cf-challenge|_cf_chl_opt|Just a moment|Access Denied|Request unsuccessful|Incapsula/i; // about bot-protection vendors, not publishers
@@ -90,6 +91,31 @@ export function feedArticle(xml, url) {
   return best && visibleWords(best) >= MIN_FEED_WORDS ? best : null;
 }
 
+// How much of a piece of HTML is link text. An article is prose; a list of related posts is nearly all links.
+export function linkShare(html) {
+  const { document } = parseHTML(`<!doctype html><html><body>${html}</body></html>`);
+  const total = document.body.textContent.replace(/\s+/g, '').length;
+  if (!total) return 1;
+  const links = [...document.querySelectorAll('a')].reduce((n, a) => n + a.textContent.replace(/\s+/g, '').length, 0);
+  return links / total;
+}
+
+const parseArticle = html => new Readability(parseHTML(html).document).parse();
+const usable = a => a?.content && (a.textContent || '').trim().length >= MIN_TEXT && linkShare(a.content) < MAX_LINK_SHARE;
+
+// The article in a page, or null. Readability sometimes scores a "related posts" list above the story, so if what it
+// found is mostly links, take the page's link-heavy lists out and try once more.
+export function extract(html) {
+  const article = parseArticle(html);
+  if (usable(article)) return article;
+  const { document } = parseHTML(html);
+  for (const list of [...document.querySelectorAll('ul, ol')]) {
+    if (list.querySelector('a') && linkShare(list.innerHTML) >= MAX_LINK_SHARE) list.remove();
+  }
+  const retry = new Readability(document).parse();
+  return usable(retry) ? retry : null;
+}
+
 async function fromFeed(env, request, item) {
   try {
     const feeds = await (await env.ASSETS.fetch(new URL('/feeds.json', request.url))).json();
@@ -116,8 +142,8 @@ export async function onRequestGet({ request, env }) {
     const blocked = classify(res, html);
     if (blocked) result.reason = blocked;
     else {
-      const article = new Readability(parseHTML(html).document).parse();
-      if (article?.content && (article.textContent || '').trim().length >= MIN_TEXT) {
+      const article = extract(html);
+      if (article) {
         return json({ url, frameable: false, reason: 'ok', title: article.title, byline: article.byline, siteName: article.siteName, content: clean(article.content, base) });
       }
       // The page loaded but has no article we can pull out, so showing the original is the only thing that can help.

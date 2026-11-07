@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { classify, clean, feedArticle, frameable, onRequestGet } from '../functions/api/read.js';
+import { classify, clean, extract, feedArticle, frameable, linkShare, onRequestGet } from '../functions/api/read.js';
 
 test('frameable honours X-Frame-Options and frame-ancestors', () => {
   const h = o => new Headers(o);
@@ -93,4 +93,24 @@ test('/api/read falls back to a whole-article feed, cleaned the same way', async
   const [, r] = await read(routes, { P: 'https://feed.test/rss' });
   assert.equal(r.reason, 'ok'); assert.equal(r.source, 'feed');
   assert.doesNotMatch(r.content, /script/);
+});
+
+test('linkShare tells prose from a list of links', () => {
+  assert.equal(linkShare('<ul><li><a href="/a">Another story</a></li></ul>'), 1);
+  assert.ok(linkShare(`<p>${words(100)}<a href="/a">a link</a></p>`) < 0.1);
+});
+
+test('extract keeps the story when a related-posts list outscores it', () => {
+  const related = n => `<ul>${Array.from({ length: n }, (_, k) => `<li><a href="/p${k}"><p>Related story number ${k}, with a description long enough, to score well, and commas, for Readability.</p><span>Read now</span></a></li>`).join('')}</ul>`;
+  const story = '<div><p>The real story begins here, in a plain paragraph of prose.</p>' + `<p>${'A sentence of the actual article, with some commas, like this. '.repeat(40)}</p>`.repeat(4) + '</div>';
+  const a = extract(`<html><head><title>T</title></head><body>${related(40)}${story}${related(40)}</body></html>`);
+  assert.match(a.textContent, /The real story begins here/);
+  assert.doesNotMatch(a.textContent, /Read now/);
+});
+
+test('extract leaves alone a short post with a few links, and gives up on a page of only links', () => {
+  const post = `<article><p>${'A short post, but a real one, with a sentence or two. '.repeat(14)}<a href="/x">one link</a></p></article>`;
+  assert.match(extract(`<html><head><title>T</title></head><body>${post}</body></html>`).textContent, /one link/);
+  const only = `<div>${Array.from({ length: 30 }, (_, k) => `<p><a href="/p${k}">A link to another story, number ${k}, in a long list of them.</a></p>`).join('')}</div>`;
+  assert.equal(extract(`<html><head><title>T</title></head><body>${only}</body></html>`), null);
 });
