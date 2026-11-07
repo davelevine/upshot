@@ -31,7 +31,7 @@ Upshot is a set-it-and-forget-it news digest covering AI, security, architecture
 
 There's no server and no database to look after. A scheduled GitHub Actions job does the work and commits a small JSON file, and a single static page renders it:
 
-- [`build.py`](build.py) fetches the feeds in [`feeds.opml`](feeds.opml), scores and summarizes new items with Claude Haiku, removes duplicate coverage, and writes [`site/data.json`](site/data.json) and [`site/rss.xml`](site/rss.xml).
+- [`build.py`](build.py) fetches the feeds in [`feeds.opml`](feeds.opml), scores and summarizes new items with Claude Haiku, removes duplicate coverage, and writes [`site/data.json`](site/data.json) plus two feeds: [`site/rss.xml`](site/rss.xml) with every story, and `site/essentials.xml` with just the weekly picks.
 - [`site/index.html`](site/index.html) and [`site/app.js`](site/app.js) are the whole front end: no framework, no build step. [`site/_headers`](site/_headers) sets the Content-Security-Policy.
 - [`extract.mjs`](extract.mjs) runs during the build, pulling each new story's text into Cloudflare KV for the reader.
 - [`functions/api/read.js`](functions/api/read.js) hands that text to the reader when you open an article.
@@ -44,7 +44,7 @@ There's no server and no database to look after. A scheduled GitHub Actions job 
 - **Remembers where you were:** articles added since your last visit are marked New, and ones you've read are dimmed. This lives in your browser only.
 - **Feels native on a phone:** swipe right to close the reader, and Chrome on Android can install it as an app.
 - **Keyboard-first on a desktop:** a ⌘K / Ctrl+K search palette, plus `j`/`k` or arrow-key navigation.
-- **Light and dark themes, an RSS feed, and a page that refreshes itself** when a new build lands.
+- **Light and dark themes, two RSS feeds (every story, or just the weekly essentials), and a page that refreshes itself** when a new build lands.
 
 ## How it works
 
@@ -56,7 +56,7 @@ Every four hours the Build workflow runs `build.py`:
 4. **Keep the notable ones:** 8+ for AI and Security, 7+ for the quieter categories, with a daily safety cap for unusually big news days.
 5. **Drop repeats:** the model flags a story that's already on the site from the past week (the same launch from another outlet, say). The code checks that claim, so one copy always survives.
 6. **Pick the essentials:** once a day, the model chooses the week's five.
-7. **Publish:** writes the data and RSS, remembers seen URLs in `state.json`, commits, and Cloudflare Pages deploys on the push.
+7. **Publish:** writes the data and both feeds, remembers seen URLs in `state.json`, commits, and Cloudflare Pages deploys on the push.
 
 Everything older than 90 days is pruned, so the data stays small. It also looks after itself: a feed that has failed for two weeks lands in a single "Dead feeds" issue, and a run where every LLM call fails exits with an error so GitHub emails you.
 
@@ -85,7 +85,8 @@ Each build extracts new stories with Mozilla's [Readability](https://github.com/
 | <kbd>k</kbd> / <kbd>←</kbd> | Previous article |
 | <kbd>Enter</kbd> | Open the focused article |
 | <kbd>/</kbd> | Jump to the search bar |
-| <kbd>Esc</kbd> | Close the palette or the reader |
+| <kbd>Esc</kbd> | Close the palette, the reader or the shortcut list |
+| <kbd>?</kbd> | Show these shortcuts |
 
 On a phone, swipe right to close the reader; the feed slides back in underneath. Click an article's headline in the reader to open the original.
 
@@ -217,7 +218,7 @@ The knobs live at the top of [`build.py`](build.py):
 | `DEAD_AFTER_DAYS` | 14 | Days of failures before a feed is reported |
 | `UPSHOT_MODEL` | `claude-haiku-5-5` | Model used for scoring, repeats and the weekly picks (env). The build fails if the CLI answers with a different model |
 | `CLAUDE_BIN` | `claude` | Path to the Claude Code CLI (env) |
-| `SITE_URL` | `https://upshot.levine.io` | The site's address, for RSS links and reading-time lookups (env; set as a repo variable in forks) |
+| `SITE_URL` | `https://upshot.levine.io` | The site's address, for the feeds' links (env; set as a repo variable in forks) |
 
 How often it runs is the `cron` line in [`build.yml`](.github/workflows/build.yml).
 

@@ -109,7 +109,8 @@ function renderWeekly(weekly) {
 }
 
 const syncThemeColor = () => {
-  document.querySelector('meta[name="theme-color"]').setAttribute('content', css('--bg'));
+  // Both media variants: the theme toggle can disagree with the system setting they're keyed to.
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', css('--bg')));
   const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
   for (const b of [$('theme'), $('reader-theme')]) { b.setAttribute('aria-label', `Switch to ${next} mode`); b.title = `Switch to ${next} mode`; }
 };
@@ -418,14 +419,33 @@ function step(dir) {
 }
 function onKey(key, mod, e) {
   const reading = document.body.classList.contains('reading');
+  if ($('keys').open) return;  // the dialog handles its own Esc
   if (key === 'escape' && reading) return dismiss();
   if (key === 'k' && mod) { e?.preventDefault(); return openPalette(); }
   if (mod || e?.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;
-  if (key === '/' && !reading) { e?.preventDefault(); $('search').focus(); }
+  if (key === '?') { e?.preventDefault(); $('keys').showModal(); }
+  else if (key === '/' && !reading) { e?.preventDefault(); $('search').focus(); }
   else if (key === 'j' || key === 'arrowright') { e?.preventDefault(); step(1); }
   else if (key === 'k' || key === 'arrowleft') { e?.preventDefault(); step(-1); }
 }
 addEventListener('keydown', e => onKey(e.key.toLowerCase(), e.metaKey || e.ctrlKey, e));
+$('keys').addEventListener('click', e => { if (e.target === $('keys')) $('keys').close(); });  // a click on the backdrop
+
+// Share the publisher's article, not this site's #read= link: that's what the recipient wants.
+$('reader-share').onclick = async () => {
+  const i = items.find(x => x.url === readerFor);
+  if (!i) return;
+  if (navigator.share && matchMedia('(pointer: coarse)').matches) {  // phones: the native share sheet
+    try { await navigator.share({ title: i.title, url: i.url }); } catch {}  // dismissed
+    return;
+  }
+  let msg = 'Copied';
+  try { await navigator.clipboard.writeText(i.url); } catch { msg = 'Couldn\u2019t copy'; }
+  const done = $('share-done');
+  done.textContent = msg; done.hidden = false; $('status').textContent = msg === 'Copied' ? 'Link copied' : msg;
+  clearTimeout(done.timer);
+  done.timer = setTimeout(() => { done.hidden = true; }, 1600);
+};
 if (matchMedia('(pointer: fine)').matches) {
   $('search-kbd').textContent = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘K' : 'Ctrl K';
   $('search-kbd').hidden = false;

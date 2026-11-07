@@ -355,6 +355,57 @@ def test_reader_says_when_an_article_isnt_stored_yet(browser):
     frame.locator(".status", has_text="ready yet").wait_for()
 
 
+def test_inter_is_served_from_the_site(browser):
+    pg = browser.new_context().new_page()
+    fonts = []
+    pg.on("response", lambda r: fonts.append((r.url, r.status)) if "/fonts/" in r.url else None)
+    pg.goto(URL)
+    pg.wait_for_selector("a.card")
+    pg.evaluate("document.fonts.ready")
+    assert any(u.endswith("/fonts/InterVariable.woff2") and s == 200 for u, s in fonts)
+    assert pg.evaluate("document.fonts.check('16px Inter')")
+
+
+def test_question_mark_lists_the_shortcuts(browser):
+    pg = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
+    pg.goto(URL)
+    pg.wait_for_selector("a.card")
+    pg.keyboard.press("?")
+    assert pg.locator("#keys").is_visible()
+    assert "Search every article" in pg.locator("#keys").inner_text()
+    pg.keyboard.press("j")  # inert while the list is open
+    pg.keyboard.press("Escape")
+    assert not pg.locator("#keys").is_visible()
+    assert not pg.evaluate("document.body.classList.contains('reading')")
+
+
+def test_share_copies_the_publishers_url_on_desktop(browser):
+    ctx = browser.new_context(viewport={"width": 1300, "height": 900})
+    ctx.grant_permissions(["clipboard-read", "clipboard-write"])
+    pg = ctx.new_page()
+    pg.goto(URL)
+    pg.wait_for_selector("a.card")
+    url = pg.locator("a.card").first.get_attribute("href")
+    pg.locator("a.card").first.click()
+    pg.locator("#reader-share").click()
+    pg.locator("#share-done", has_text="Copied").wait_for()
+    assert pg.evaluate("navigator.clipboard.readText()") == url
+
+
+def test_share_opens_the_share_sheet_on_a_phone(browser):
+    ctx = browser.new_context(viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True)
+    ctx.add_init_script("window.__shared = null; navigator.share = d => { window.__shared = d; return Promise.resolve(); };")
+    pg = ctx.new_page()
+    pg.goto(URL)
+    pg.wait_for_selector("a.card")
+    url = pg.locator("a.card").first.get_attribute("href")
+    pg.locator("a.card").first.tap()
+    pg.locator("#reader-share").tap()
+    pg.wait_for_function("window.__shared")
+    shared = pg.evaluate("window.__shared")
+    assert shared["url"] == url and shared["title"]
+
+
 def test_unknown_paths_are_real_404s(browser):
     # Without a 404 page, Pages serves index.html for everything, which breaks robots.txt and any tool probing for a file.
     pg = browser.new_context().new_page()
