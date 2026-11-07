@@ -309,7 +309,9 @@ function openReader(i, { fromHash = false } = {}) {
   else history.replaceState({ reader: true }, '', readHash(i.url));
   if (fresh) $('reader-close').focus({ preventScroll: true });
   let unreadable = 'This publisher doesn\u2019t allow a reader view.';
-  fetch('/api/read?url=' + encodeURIComponent(i.url), { cache: 'no-store' }).then(r => r.json()).then(r => {
+  // Once more on a server error: Cloudflare occasionally stops a function that's hit its CPU limit.
+  const read = () => fetch('/api/read?url=' + encodeURIComponent(i.url), { cache: 'no-store' });
+  read().then(r => (r.status >= 500 ? read() : r)).then(r => r.json()).then(r => {
     if (readerFor !== i.url) return;  // another article was opened meanwhile
     if (r.content) {
       const minutes = readingMinutes(r.content);

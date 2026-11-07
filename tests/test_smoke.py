@@ -343,6 +343,25 @@ def test_reader_message_follows_the_reason(browser):
     frame.locator(".status", has_text="needs the original site").wait_for()
 
 
+def test_reader_retries_once_after_a_server_error(browser):
+    ctx = browser.new_context(viewport={"width": 1300, "height": 900})
+    pg = ctx.new_page()
+    calls = []
+    def flaky(route):
+        calls.append(1)
+        if len(calls) == 1:
+            route.fulfill(status=503, body="error code: 1102")
+        else:
+            url = urllib.parse.parse_qs(urllib.parse.urlsplit(route.request.url).query)["url"][0]
+            route.fulfill(content_type="application/json", body=json.dumps({"url": url, "reason": "ok", "frameable": False, "content": BODY}))
+    ctx.route("**/api/read?*", flaky)
+    pg.goto(URL)
+    pg.wait_for_selector("a.card")
+    pg.locator("a.card").first.click()
+    pg.frame_locator("#reader-body iframe:not(.loading)").locator("p").nth(29).wait_for()
+    assert len(calls) == 2
+
+
 def test_wide_screens_keep_the_filter_row(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 900})
     assert pg.locator("#filter-toggle").is_hidden() and pg.locator("#filters .filter-btn").first.is_visible()

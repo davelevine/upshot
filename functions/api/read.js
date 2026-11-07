@@ -70,8 +70,7 @@ export function classify(res, html) {
   if (res.headers.get('cf-mitigated') === 'challenge' || [202, 401, 403, 429, 503].includes(res.status)) return 'challenge';
   if (!res.ok) return 'error';
   if (!(res.headers.get('content-type') || '').includes('html')) return 'not_html';
-  const words = visibleWords(html);
-  if (words < MIN_PAGE_WORDS && CHALLENGE.test(html)) return 'challenge';
+  if (CHALLENGE.test(html) && visibleWords(html) < MIN_PAGE_WORDS) return 'challenge';  // the cheap test first: this runs on every page
   return null;
 }
 
@@ -92,11 +91,12 @@ export function feedArticle(xml, url) {
 }
 
 // How much of a piece of HTML is link text. An article is prose; a list of related posts is nearly all links.
-export function linkShare(html) {
-  const { document } = parseHTML(`<!doctype html><html><body>${html}</body></html>`);
-  const total = document.body.textContent.replace(/\s+/g, '').length;
+export function linkShare(html) {  // by regex, not a parse: this runs on every article, against Cloudflare's CPU limit
+  const textLength = h => h.replace(/<[^>]*>/g, '').replace(/\s+/g, '').length;
+  const total = textLength(html);
   if (!total) return 1;
-  const links = [...document.querySelectorAll('a')].reduce((n, a) => n + a.textContent.replace(/\s+/g, '').length, 0);
+  let links = 0;
+  for (const m of html.matchAll(/<a\b[^>]*>([\s\S]*?)<\/a>/gi)) links += textLength(m[1]);
   return links / total;
 }
 
