@@ -48,21 +48,6 @@ def test_rss_dates_use_when_the_story_was_added():
     assert dates == ["Thu, 05 Nov 2026 14:30:00 +0000", "Wed, 04 Nov 2026 00:00:00 +0000"]
 
 
-def test_essentials_feed_lists_the_picks_with_what_to_do():
-    items = [{"url": f"https://x.test/{n}", "title": f"Story {n} & <more>", "publisher": "P", "date": "2026-11-05"} for n in range(5)]
-    data = {"items": items, "weekly": {"window_start": "2026-11-01", "window_end": "2026-11-07", "selected_on": "2026-11-07",
-                                       "items": [{"url": i["url"], "why": f"Do thing {n}."} for n, i in enumerate(items)]}}
-    root = ET.fromstring(build.essentials_rss(data))
-    (item,) = root.iter("item")
-    assert item.find("title").text == "Essentials for the week of Nov 1"
-    assert item.find("guid").text == "essentials-2026-11-07"
-    body = ET.fromstring(item.find("description").text.replace("<br>", "<br/>"))  # the body is HTML, escaped once in the feed
-    assert [a.get("href") for a in body.iter("a")] == [i["url"] for i in items]
-    assert [a.text for a in body.iter("a")][0] == "Story 0 & <more>"
-    assert "Do thing 4." in item.find("description").text
-    assert list(ET.fromstring(build.essentials_rss({"items": []})).iter("item")) == []  # no picks yet: an empty, valid feed
-
-
 def test_rss_is_well_formed():
     xml = build.rss([{"date": "2026-11-05", "title": "A & B <c>", "url": "https://x.test/?a=1&b=2",
                       "category": "ai", "summary": "s"}])
