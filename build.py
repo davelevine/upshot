@@ -1,5 +1,6 @@
 """Fetch feeds, classify + summarize new items with an LLM, write the static site data."""
 import gzip
+import hashlib
 import html
 import json
 import os
@@ -16,6 +17,7 @@ from email.utils import format_datetime
 from pathlib import Path
 
 import feedparser
+from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).parent
 SITE = ROOT / "site"
@@ -234,6 +236,96 @@ def pick_weekly(items, today):
     res = llm(WEEKLY_PROMPT, json.dumps(payload), WEEKLY_SCHEMA)
     picks = [{"url": week[p["id"]]["url"], "why": p["why"]} for p in res if 0 <= p["id"] < len(week)]
     return {"window_start": start, "window_end": today.isoformat(), "selected_on": today.isoformat(), "items": picks[:5]}
+
+
+OG = {"w": 1200, "h": 630, "pad": 72, "bg": "#18191d", "text": "#eceff4", "muted": "#a3abbb", "accent": "#73dbcc", "dot": "#d9485a",
+      "cats": {"security": "#f7a3ad", "ai": "#d3abed", "architecture": "#80c7f8", "sdlc": "#b7b5fc", "regulation": "#ebb077", "other": "#b6becb"}}
+
+
+def og_font(size, weight, opsz=14):
+    font = ImageFont.truetype(str(SITE / "fonts" / "InterVariable.woff2"), size)
+    font.set_variation_by_axes([opsz, weight])
+    return font
+
+
+def wrap(text, font, width, max_lines):
+    """Lines that fit `width`, the last one ending in an ellipsis if the text runs over."""
+    lines, line = [], ""
+    for word in text.split():
+        trial = f"{line} {word}".strip()
+        if font.getlength(trial) <= width or not line:
+            line = trial
+        else:
+            lines.append(line)
+            line = word
+    lines.append(line)
+    if len(lines) > max_lines:
+        last = lines[max_lines - 1]
+        while font.getlength(last + "…") > width:
+            last = last.rsplit(" ", 1)[0]
+        lines = lines[:max_lines - 1] + [last.rstrip(",;:") + "…"]
+    return lines
+
+
+def og_image(data, today):
+    """The link-preview card: this week's #1 essential with what to do, or the site's tagline before there is one."""
+    c, img = OG, Image.new("RGB", (OG["w"], OG["h"]), OG["bg"])
+    d, x, right = ImageDraw.Draw(img), OG["pad"], OG["w"] - OG["pad"]
+    logo = og_font(46, 760, 32)
+    d.text((x, 62), "upshot", font=logo, fill=c["text"])
+    end = x + logo.getlength("upshot")
+    d.ellipse((end + 2, 98, end + 12, 108), fill=c["dot"])
+    small, small_bold = og_font(22, 450), og_font(22, 600)
+    d.text((right, 80), f"{today:%A}, {today:%B} {today.day}", font=small, fill=c["muted"], anchor="ra")
+
+    picks = (data.get("weekly") or {}).get("items") or []
+    by_url = {i["url"]: i for i in data.get("items", [])}
+    top = by_url.get(picks[0]["url"]) if picks else None
+    if not top:
+        y = 230
+        for line in wrap("AI, security and architecture news, summarized.", og_font(56, 700, 32), right - x, 3):
+            d.text((x, y), line, font=og_font(56, 700, 32), fill=c["text"])
+            y += 70
+        d.text((x, y + 20), "Five weekly essentials, each with what to do.", font=og_font(30, 400), fill=c["muted"])
+        d.text((x, 550), SITE_URL.split("//")[-1], font=small, fill=c["muted"])
+        return img
+
+    y = 184
+    d.text((x, y), "THIS WEEK'S #1", font=small_bold, fill=c["muted"])
+    cx = x + small_bold.getlength("THIS WEEK'S #1") + 26
+    d.ellipse((cx, y + 7, cx + 12, y + 19), fill=c["cats"].get(top["category"], c["cats"]["other"]))
+    d.text((cx + 22, y), top["category"].upper() if top["category"] != "ai" else "AI", font=small_bold, fill=c["muted"])
+    y += 52
+    head = og_font(52, 700, 32)
+    lines = wrap(top["title"], head, right - x, 3)
+    for line in lines:
+        d.text((x, y), line, font=head, fill=c["text"])
+        y += 66
+    why = picks[0].get("why")
+    if why:
+        note = og_font(30, 400)
+        note_lines = wrap(why, note, right - x - 28, 2 if len(lines) < 3 else 1)
+        top_y = y + 18
+        for n, line in enumerate(note_lines):
+            d.text((x + 28, top_y + n * 42), line, font=note, fill=c["muted"])
+        d.rectangle((x, top_y + 2, x + 3, top_y + 42 * len(note_lines) - 4), fill=c["accent"])
+    d.text((x, 550), SITE_URL.split("//")[-1], font=small, fill=c["muted"])
+    d.text((right, 550), f"{top['publisher']}  ·  {len(picks)} essential{'s' if len(picks) != 1 else ''} this week", font=small, fill=c["muted"], anchor="ra")
+    return img
+
+
+def write_og(data, today):
+    """Writes site/og.png and points index.html's og:image at it. The URL carries a hash of the image, because Slack and
+    iMessage cache previews by URL for days; it only changes, and index.html with it, when the picture does."""
+    path = SITE / "og.png"
+    og_image(data, today).save(path, optimize=True)
+    version = hashlib.sha256(path.read_bytes()).hexdigest()[:10]
+    page = SITE / "index.html"
+    html_text = page.read_text()
+    updated = re.sub(r'(<meta property="og:image" content=")[^"]*(")', rf"\g<1>{SITE_URL}/og.png?v={version}\g<2>", html_text, count=1)
+    if updated != html_text:
+        page.write_text(updated)
+    return version
 
 
 def published(item):
@@ -478,6 +570,7 @@ def main():
     SITE.mkdir(exist_ok=True)
     data_path.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n")
     (SITE / "rss.xml").write_text(rss(data["items"]))
+    write_og(data, today)
     STATE.write_text(json.dumps(state, indent=1, sort_keys=True) + "\n")
     (ROOT / "dead-feeds.txt").write_text("".join(f"{u}\n" for u in dead))
 
