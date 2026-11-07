@@ -43,8 +43,6 @@ jobs:
           cache: npm
       - if: github.event_name == 'pull_request'
         run: npm ci && node --test 'tests/*.test.js'
-      - if: github.event_name == 'pull_request'
-        run: node _probe.mjs
       - if: github.event_name != 'pull_request'
         run: npm install -g @anthropic-ai/claude-code@2.1.319
 
