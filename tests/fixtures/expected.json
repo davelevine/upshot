@@ -57,12 +57,12 @@
  "Cursor": {
   "reason": "ok",
   "words": 217,
-  "start": "H’i fkyvkwe gh erlffhio fndo Vnautdighd sa vfsabek Bioypf! W"
+  "start": "H\u2019i fkyvkwe gh erlffhio fndo Vnautdighd sa vfsabek Bioypf! W"
  },
  "Docker": {
   "reason": "ok",
   "words": 3097,
-  "start": "Mk bhr’wm abti Iralvo vnt c gswpp, “Hblude Tsoyyoiak” dguhs "
+  "start": "Mk bhr\u2019wm abti Iralvo vnt c gswpp, \u201cHblude Tsoyyoiak\u201d dguhs "
  },
  "ElevenLabs": {
   "reason": "ok",
@@ -77,7 +77,7 @@
  "GitHub Changelog": {
   "reason": "ok",
   "words": 143,
-  "start": "Okl vin emh ndsu biyb RfuYfv Yaadauo eksiiuni yh Hyolw’o bhv"
+  "start": "Okl vin emh ndsu biyb RfuYfv Yaadauo eksiiuni yh Hyolw\u2019o bhv"
  },
  "GitLab Security Releases": {
   "reason": "ok",
@@ -87,17 +87,17 @@
  "Google Blog": {
   "reason": "ok",
   "words": 915,
-  "start": "Odrmk, yf’lk etfnums hsv Rmufya Fpdp 0.9 Uuhee, byc hbgekv i"
+  "start": "Odrmk, yf\u2019lk etfnums hsv Rmufya Fpdp 0.9 Uuhee, byc hbgekv i"
  },
  "Google Cloud Blog": {
   "reason": "ok",
   "words": 1229,
-  "start": "Dvn’po nkytsoio scwytvi gfkd gmgfh TYAPR.tl pfmae, ffi hdy’h"
+  "start": "Dvn\u2019po nkytsoio scwytvi gfkd gmgfh TYAPR.tl pfmae, ffi hdy\u2019h"
  },
  "Google DeepMind": {
   "reason": "ok",
   "words": 941,
-  "start": "Obimm, ul’sp asgawirsfp gkg tkwa giwklecg nsbpf: Dtybrd 2 Iu"
+  "start": "Obimm, ul\u2019sp asgawirsfp gkg tkwa giwklecg nsbpf: Dtybrd 2 Iu"
  },
  "Google Research": {
   "reason": "ok",
@@ -142,17 +142,17 @@
  "Martin Fowler": {
   "reason": "ok",
   "words": 2000,
-  "start": "NU;IBTsbi wlrsthwhvu’ igtprkw vsgbc dhgucbk aepenwregug aras"
+  "start": "NU;IBTsbi wlrsthwhvu\u2019 igtprkw vsgbc dhgucbk aepenwregug aras"
  },
  "Meta Engineering": {
   "reason": "ok",
   "words": 2244,
-  "start": "Mfcikhag Kubfsmt Otavynecf (R5) it Ylla’y fieovconc enr ellh"
+  "start": "Mfcikhag Kubfsmt Otavynecf (R5) it Ylla\u2019y fieovconc enr ellh"
  },
  "Meta Newsroom": {
   "reason": "ok",
   "words": 519,
-  "start": "Ropfn, ky’yy dryfcpwpvwr ypsnhu, ef bftypnvvrvg dhi hv blvls"
+  "start": "Ropfn, ky\u2019yy dryfcpwpvwr ypsnhu, ef bftypnvvrvg dhi hv blvls"
  },
  "Microsoft Security Blog": {
   "reason": "ok",
@@ -192,12 +192,7 @@
  "OpenAI": {
   "reason": "ok",
   "words": 1907,
-  "start": "Ic’fr pdedpvvkcti MIL‑1 Emodd, r keoip vkvp li fnhtmsci cykv"
- },
- "Qwen": {
-  "reason": "ok",
-  "words": 1418,
-  "start": "Hlce Ahnsgu LvnKiv Okgaupw Ngih PvnnbKbtug LBBNHRWIntroducti"
+  "start": "Ic\u2019fr pdedpvvkcti MIL\u20111 Emodd, r keoip vkvp li fnhtmsci cykv"
  },
  "Railway": {
   "reason": "ok",
@@ -217,7 +212,7 @@
  "Schneier on Security": {
   "reason": "ok",
   "words": 184,
-  "start": "Rrhyhywytvb duiyinyk: “YI Rashfn Tgl Lpsbctli Gapp Ivyguhcar"
+  "start": "Rrhyhywytvb duiyinyk: \u201cYI Rashfn Tgl Lpsbctli Gapp Ivyguhcar"
  },
  "SecurityWeek": {
   "reason": "ok",
@@ -232,7 +227,7 @@
  "Socket": {
   "reason": "ok",
   "words": 2742,
-  "start": "Vbneep’n Onfctn Myohulii Gwun pmwwbfng vcecsnw-bnml ivwuvsk "
+  "start": "Vbneep\u2019n Onfctn Myohulii Gwun pmwwbfng vcecsnw-bnml ivwuvsk "
  },
  "Tailscale": {
   "reason": "ok",
@@ -257,7 +252,7 @@
  "Trail of Bits": {
   "reason": "ok",
   "words": 1685,
-  "start": "Mweve tn’kf hwlibmuypg wghvuvss-flsb opb adcceygrtk-hgww, ya"
+  "start": "Mweve tn\u2019kf hwlibmuypg wghvuvss-flsb opb adcceygrtk-hgww, ya"
  },
  "UK AISI": {
   "reason": "ok",
