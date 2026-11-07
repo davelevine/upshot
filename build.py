@@ -236,13 +236,41 @@ def pick_weekly(items, today):
     return {"window_start": start, "window_end": today.isoformat(), "selected_on": today.isoformat(), "items": picks[:5]}
 
 
+def published(item):
+    """When the story was added, so feed readers sort it correctly; midnight on its date for items from before that was kept."""
+    when = datetime.fromisoformat(item.get("added") or item["date"])
+    return when if when.tzinfo else when.replace(tzinfo=timezone.utc)
+
+
+def essentials_rss(data):
+    """The weekly picks as their own feed, for readers who only want those: one item a week, the five stories and what
+    to do about each. Only the current week is in data.json; feed readers keep the earlier ones."""
+    weekly = data.get("weekly") or {}
+    by_url = {i["url"]: i for i in data.get("items", [])}
+    picks = [(by_url[p["url"]], p.get("why", "")) for p in weekly.get("items", []) if p["url"] in by_url]
+    entry = ""
+    if picks:
+        start = datetime.fromisoformat(weekly["window_start"])
+        title = f"Essentials for the week of {start:%b} {start.day}"
+        body = "<ol>" + "".join(
+            f'<li><a href="{html.escape(i["url"])}">{html.escape(i["title"])}</a> ({html.escape(i["publisher"])})'
+            + (f"<br>{html.escape(why)}" if why else "") + "</li>" for i, why in picks) + "</ol>"
+        selected = datetime.fromisoformat(weekly["selected_on"]).replace(tzinfo=timezone.utc)
+        entry = (f"<item><title>{html.escape(title, quote=False)}</title><link>{SITE_URL}/</link>"
+                 f'<guid isPermaLink="false">essentials-{weekly["selected_on"]}</guid>'
+                 f"<description>{html.escape(body, quote=False)}</description><pubDate>{format_datetime(selected)}</pubDate></item>")
+    return ('<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Upshot weekly essentials</title>'
+            f"<link>{SITE_URL}/</link><description>Five stories a week chosen as most worth acting on, each with what to do.</description>"
+            f"{entry}</channel></rss>\n")
+
+
 def rss(items):
     def esc(s):
         return html.escape(s, quote=False)
     entries = "".join(
         f"<item><title>{esc(i['title'])}</title><link>{esc(i['url'])}</link><guid>{esc(i['url'])}</guid>"
         f"<description>{esc(i['summary'])}</description><category>{i['category']}</category>"
-        f"<pubDate>{format_datetime(datetime.fromisoformat(i['date']).replace(tzinfo=timezone.utc))}</pubDate></item>"
+        f"<pubDate>{format_datetime(published(i))}</pubDate></item>"
         for i in items[:50]
     )
     return ('<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Upshot</title>'
@@ -472,6 +500,7 @@ def main():
     SITE.mkdir(exist_ok=True)
     data_path.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n")
     (SITE / "rss.xml").write_text(rss(data["items"]))
+    (SITE / "essentials.xml").write_text(essentials_rss(data))
     STATE.write_text(json.dumps(state, indent=1, sort_keys=True) + "\n")
     (ROOT / "dead-feeds.txt").write_text("".join(f"{u}\n" for u in dead))
 

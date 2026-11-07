@@ -64,7 +64,7 @@ jobs:
       - name: Commit data
         if: github.event_name != 'pull_request'
         run: |
-          git add site/data.json site/rss.xml state.json
+          git add site/data.json site/rss.xml site/essentials.xml state.json
           git diff --cached --quiet && exit 0
           git config user.name "github-actions[bot]"  # for the rebase too, which needs an identity once main has moved
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
