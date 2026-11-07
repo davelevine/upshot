@@ -1,0 +1,2 @@
+# Reader links (/read/<slug>) are the same page; app.js opens the story.
+/read/*  /  200

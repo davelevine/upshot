@@ -187,18 +187,20 @@ function showUpdated() {
 }
 // Redraws only when a new build has landed, keeping the filter, search and loaded depth.
 function load() {
-  return fetch('data.json', { cache: 'no-cache' }).then(r => r.json()).then(data => {
+  return fetch('/data.json', { cache: 'no-cache' })  // absolute: the page is also served at /read/…
+.then(r => r.json()).then(data => {
     if (data.generated_at === generatedAt) return;
     const refresh = generatedAt !== null;
     generatedAt = data.generated_at;
     showUpdated();
     items = data.items || [];
+    indexSlugs();
     weekly = data.weekly;
     pruneRead();
     renderFilters();
     renderWeekly(data.weekly);
     renderItems(refresh);
-    if (!refresh) syncFromHash();
+    if (!refresh) syncFromUrl();
   });
 }
 let readerFor = null;
@@ -292,8 +294,23 @@ function mountFrame(frame) {
 
 // About 230 words a minute, the usual adult reading speed for this kind of text.
 const readingMinutes = html => Math.max(1, Math.round(html.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length / 230));
-const readHash = url => '#read=' + encodeURIComponent(url);
-let readerPushed = false;  // false when the reader was opened from a #read= link, so closing mustn't go back off the site
+// Reader links are /read/<the headline's first words>. A clash gets a short hash of the article's URL, so a story's
+// link doesn't depend on which other stories happen to be on the site.
+const slugBase = t => t.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f'’]/g, '').replace(/[^a-z0-9]+/g, ' ')
+  .trim().split(' ').slice(0, 8).join('-').slice(0, 60).replace(/-+$/, '');
+const shortHash = s => { let h = 5381; for (const c of s) h = (h * 33 + c.charCodeAt(0)) >>> 0; return h.toString(36).slice(0, 5); };
+let slugs = new Map();  // slug -> url
+function indexSlugs() {
+  const count = new Map();
+  for (const i of items) count.set(slugBase(i.title), (count.get(slugBase(i.title)) || 0) + 1);
+  slugs = new Map(items.map(i => {
+    const base = slugBase(i.title);
+    return [base && count.get(base) === 1 ? base : [base, shortHash(i.url)].filter(Boolean).join('-'), i.url];
+  }));
+}
+const slugFor = url => [...slugs].find(([, u]) => u === url)?.[0];
+const readPath = url => '/read/' + slugFor(url);
+let readerPushed = false;  // false when the reader was opened from a link, so closing mustn't go back off the site
 function openReader(i, { fromHash = false } = {}) {
   const fresh = !document.body.classList.contains('reading');
   readerFor = i.url;
@@ -305,9 +322,9 @@ function openReader(i, { fromHash = false } = {}) {
   document.body.classList.add('reading');
   $('reader').setAttribute('aria-hidden', 'false');
   document.querySelectorAll('.feed, #top').forEach(el => { el.inert = true; });
-  if (fromHash) { history.replaceState({ reader: true }, '', readHash(i.url)); readerPushed = false; }
-  else if (fresh) { history.pushState({ reader: true }, '', readHash(i.url)); readerPushed = true; }
-  else history.replaceState({ reader: true }, '', readHash(i.url));
+  if (fromHash) { history.replaceState({ reader: true }, '', readPath(i.url)); readerPushed = false; }
+  else if (fresh) { history.pushState({ reader: true }, '', readPath(i.url)); readerPushed = true; }
+  else history.replaceState({ reader: true }, '', readPath(i.url));
   if (fresh) $('reader-close').focus({ preventScroll: true });
   let unreadable = 'The reader view isn\u2019t available right now.';
   fetch('/api/read?url=' + encodeURIComponent(i.url), { cache: 'no-store' }).then(r => r.json()).then(r => {
@@ -348,17 +365,21 @@ function closeReader() {
 }
 function dismiss() {
   if (readerPushed && history.state?.reader) return history.back();
-  history.replaceState(null, '', location.pathname + location.search);
+  history.replaceState(null, '', '/' + location.search);
   closeReader();
 }
-// Back/forward and #read= links: the URL decides whether the reader is open and on what.
-function syncFromHash() {
-  const url = location.hash.startsWith('#read=') ? decodeURIComponent(location.hash.slice(6)) : null;
+// Back/forward and reader links: the URL decides whether the reader is open and on what. Old #read=<url> links
+// still open, and are rewritten to the short form.
+function syncFromUrl() {
+  const path = location.pathname.match(/^\/read\/([^/]+)/);
+  const url = path ? slugs.get(decodeURIComponent(path[1]))
+    : location.hash.startsWith('#read=') ? decodeURIComponent(location.hash.slice(6)) : null;
   const i = url && items.find(x => x.url === url);
   if (i && readerFor !== url) openReader(i, { fromHash: true });
   else if (!i && document.body.classList.contains('reading')) closeReader();
+  else if (!i && path) history.replaceState(null, '', '/' + location.search);  // a story that's since left the site
 }
-addEventListener('popstate', syncFromHash);
+addEventListener('popstate', syncFromUrl);
 // Swipe right to close: the reader follows the finger, then closes past a third of its width or on a flick
 // (judged on the finger's speed at release, px/ms).
 let drag = null;
@@ -431,7 +452,7 @@ function onKey(key, mod, e) {
 addEventListener('keydown', e => onKey(e.key.toLowerCase(), e.metaKey || e.ctrlKey, e));
 $('keys').addEventListener('click', e => { if (e.target === $('keys')) $('keys').close(); });  // a click on the backdrop
 
-// Share the publisher's article, not this site's #read= link: that's what the recipient wants.
+// Share the publisher's article, not this site's reader link: that's what the recipient wants.
 $('reader-share').onclick = async () => {
   const i = items.find(x => x.url === readerFor);
   if (!i) return;
