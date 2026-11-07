@@ -9,6 +9,6 @@ export async function onRequestGet({ request, env }) {
   const url = new URL(request.url).searchParams.get('url');
   const stored = url && env.ARTICLES && await env.ARTICLES.get(await keyFor(url));  // passed through unparsed, to stay cheap
   return new Response(stored || JSON.stringify({ url, frameable: false, reason: 'pending' }), {
-    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Debug-Store': env.ARTICLES ? `bound ${url ? await keyFor(url) : ''}` : 'unbound' },
   });
 }
