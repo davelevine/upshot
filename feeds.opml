@@ -44,7 +44,6 @@
     <outline type="rss" text="OpenAI" xmlUrl="https://openai.com/news/rss.xml"/>
     <outline type="rss" text="OpenAI Alignment" xmlUrl="https://alignment.openai.com/rss.xml"/>
     <outline type="rss" text="OWASP Gen AI Security Project" xmlUrl="https://genai.owasp.org/feed/"/>
-    <outline type="rss" text="Qwen" xmlUrl="https://qwenlm.github.io/blog/index.xml"/>
     <outline type="rss" text="Railway" xmlUrl="https://blog.railway.com/rss.xml"/>
     <outline type="rss" text="Rapid7" xmlUrl="https://www.rapid7.com/blog/rss/"/>
     <outline type="rss" text="Sansec" xmlUrl="https://sansec.io/atom.xml"/>
