@@ -1,6 +1,6 @@
 // Pulls each story's article during the build and stores it in Cloudflare KV, where /api/read serves it from.
 // Parsing happens here because it costs far more CPU than a Pages Function is allowed per request.
-// stdin: {items: [{url, publisher, minutes}], feeds: {publisher: url}}. stdout: {words: {url: n}, error}.
+// stdin: {items: [{url, publisher, title, minutes}], feeds: {publisher: url}}. stdout: {words: {url: n}, error}.
 import { appendFileSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { Readability } from '@mozilla/readability';
@@ -17,6 +17,7 @@ const PAGE_TIMEOUT = 15000; // some pages take 10s
 const FEED_TIMEOUT = 10000; // one full-article feed is 4MB
 const CONCURRENCY = 6;
 const TTL = 100 * 86400; // past the build's KEEP_DAYS (90), so expired articles are already off the site
+const VERSION = 2; // bump when extraction changes, and the next build redoes every stored article
 const TRANSIENT = ['timeout', 'error']; // not a verdict on the article: try again next run
 const CHALLENGE = /cf-challenge|_cf_chl_opt|Just a moment|Access Denied|Request unsuccessful|Incapsula/i; // about bot-protection vendors, not publishers
 const DROP = 'script, style, noscript, iframe, object, embed, form, input, button, link, meta, svg';
@@ -103,7 +104,16 @@ export function linkShare(html) {
   return links / total;
 }
 
-const parseArticle = html => new Readability(parseHTML(html).document).parse();
+// A page's own document. Some sites have a stray <html><body> around the post: browsers ignore it, but Readability would miss the post.
+function parsePage(html) {
+  const { document } = parseHTML(html);
+  for (const stray of [...document.querySelectorAll('body html, body body')]) {
+    while (stray.firstChild) stray.parentNode.insertBefore(stray.firstChild, stray);
+    stray.remove();
+  }
+  return document;
+}
+const parseArticle = html => new Readability(parsePage(html)).parse();
 const usable = a => a?.content && (a.textContent || '').trim().length >= MIN_TEXT && linkShare(a.content) < MAX_LINK_SHARE;
 
 // The article in a page, or null. Readability sometimes scores a "related posts" list above the story, so if what it
@@ -111,12 +121,138 @@ const usable = a => a?.content && (a.textContent || '').trim().length >= MIN_TEX
 export function extract(html) {
   const article = parseArticle(html);
   if (usable(article)) return article;
-  const { document } = parseHTML(html);
+  const document = parsePage(html);
   for (const list of [...document.querySelectorAll('ul, ol')]) {
     if (list.querySelector('a') && linkShare(list.innerHTML) >= MAX_LINK_SHARE) list.remove();
   }
   const retry = new Readability(document).parse();
   return usable(retry) ? retry : null;
+}
+
+const MAX_TIDY_LOSS = 0.35; // past this, a rule has probably mistaken the article for furniture: keep it all instead
+const CHROME_WORDS = 12; // chrome is short, and a longer sentence that starts "Sign up" is probably prose
+const CHROME = [
+  /^\d+ min(ute)?s?( read)?$/i, /^(share|tweet|copy link|print)( this( article| post| story)?)?:?$/i, /^(subscribe|sign up|newsletter)\b/i,
+  /^(tags?|topics?|filed under|categories):/i, /^(advertisement|sponsored)$/i, /^(related:|read next|you may also like)/i,
+];
+const TOC_HEADING = /^((table of )?contents|in this (article|post)|on this page|jump to)$/i;
+const END_HEADING = /^(related( (posts?|articles?|stories|reading|content|links))?|read next|more from .+|you may also like|subscribe( to .+)?|sign up for .*newsletters?)$/i;
+const HEADINGS = 'h1, h2, h3, h4, h5, h6';
+const INLINE = /^(A|ABBR|B|CODE|EM|I|KBD|MARK|Q|S|SMALL|STRONG|SUB|SUP|TIME|U|SPAN)$/;
+const MEDIA = 'img, picture, video, audio, figure, pre, table, svg';
+const DATE_ONLY = /^(?=.*\d)(?:(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*|\d{1,4}(?:st|nd|rd|th)?|[-/.,\s])+$/i;
+
+const textOf = el => (el.textContent || '').replace(/\s+/g, ' ').trim();
+const wordsOf = el => wordCount(textOf(el));
+const inData = el => !!el.closest('pre, code, table');  // a date in a timeline or `print` in a listing is content
+const isProse = el => el.tagName === 'P' && wordsOf(el) >= 8 && /[.?!:"'”’)]$/.test(textOf(el));
+const isBody = el => (el.matches(HEADINGS) && !!el.nextElementSibling && isBody(el.nextElementSibling)) || isProse(el) || /^(IMG|FIGURE|PICTURE|VIDEO|PRE|TABLE)$/.test(el.tagName) || wordsOf(el) >= 30;
+const sameDay = (text, iso) => {
+  if (!iso || !DATE_ONLY.test(text)) return false;
+  const a = Date.parse(text.replace(/(\d)(st|nd|rd|th)\b/gi, '$1')), b = Date.parse(iso);
+  return !Number.isNaN(a) && !Number.isNaN(b) && Math.abs(a - b) < 2 * 86400000;  // 2 days: dates are shown in the publisher's time zone
+};
+const removeWithEmptyParents = (el, root) => {
+  let node = el;
+  while (node.parentElement && node.parentElement !== root && !textOf(node.parentElement).replace(textOf(node), '').trim() && !node.parentElement.querySelector(MEDIA)) node = node.parentElement;
+  node.remove();
+};
+const unwrap = el => { while (el.firstChild) el.parentNode.insertBefore(el.firstChild, el); el.remove(); };
+const rename = (document, el, tag) => { const out = document.createElement(tag); while (el.firstChild) out.appendChild(el.firstChild); el.replaceWith(out); return out; };
+
+// Bylines, dates, tag rows and "N min read" before the article starts: everything up to the first real content.
+function trimLeading(node) {
+  for (const child of [...node.childNodes]) {
+    if (child.nodeType === 3) { if (wordCount(child.textContent) >= 8) return true; if (child.textContent.trim()) child.remove(); continue; }
+    if (child.nodeType !== 1) continue;
+    if (/^(P|UL|OL|DL|BLOCKQUOTE|H[1-6]|IMG|FIGURE|PICTURE|VIDEO|PRE|TABLE)$/.test(child.tagName)) {
+      if (isBody(child)) return true;
+      child.remove();
+    } else if (wordsOf(child) >= 30 || child.querySelector('img, figure, pre, table, video')) {  // a wrapper: the content starts inside it
+      if (trimLeading(child)) return true;
+    } else child.remove();
+  }
+  return false;
+}
+
+// Takes the page furniture out of an extracted article. Every rule looks at what an element is or says, never at who published it.
+export function tidy(article, url = '') {
+  const { document } = parseHTML(`<!doctype html><html><body><div id="root">${article.content}</div></body></html>`);
+  const root = document.getElementById('root');
+  const before = textOf(root).length;
+  const page = url.split('#')[0];
+  const isAnchor = a => { const h = a.getAttribute('href') || ''; return h.startsWith('#') || (!!page && h.startsWith(`${page}#`)); };
+
+  root.querySelectorAll('nav, aside, details').forEach(el => el.remove());
+  root.querySelectorAll('p a h1, p a h2, p a h3, p a h4, p a h5, p a h6, p a p').forEach(el => el.remove());  // link preview cards, inside a sentence
+  // Blocks that are nearly all same-page links are tables of contents, which go nowhere in the sandbox.
+  for (const el of [...root.querySelectorAll('ul, ol, div')]) {
+    if (!el.isConnected) continue;
+    const links = [...el.querySelectorAll('a')];
+    if (links.length >= 2 && links.filter(isAnchor).length / links.length >= 0.8 && linkShare(el.innerHTML) >= MAX_LINK_SHARE) el.remove();
+  }
+  for (const h of [...root.querySelectorAll(HEADINGS)]) {
+    if (!h.isConnected) continue;
+    const text = textOf(h).replace(/:$/, '');
+    if (TOC_HEADING.test(text)) {
+      const next = h.nextElementSibling;
+      if (next?.matches('ul, ol, div') && linkShare(next.innerHTML) >= MAX_LINK_SHARE) next.remove();
+      h.remove();
+    } else if (END_HEADING.test(text)) {  // nothing after "Related posts" is the article
+      while (h.nextSibling) h.nextSibling.remove();
+      removeWithEmptyParents(h, root);
+    }
+  }
+  for (const a of [...root.querySelectorAll('a')]) {
+    if (!a.isConnected || !isAnchor(a)) continue;
+    if (/^[#¶§🔗\s]*$/u.test(textOf(a)) && !a.querySelector(MEDIA)) a.remove();
+    else unwrap(a);
+  }
+
+  const byline = (article.byline || '').replace(/^by\s+/i, '').replace(/\s+/g, ' ').trim().toLowerCase();
+  for (const el of [...root.querySelectorAll('*')]) {
+    if (!el.isConnected || inData(el) || el.querySelector(MEDIA) || el.matches(HEADINGS)) continue;
+    const text = textOf(el);
+    if (!text || wordCount(text) > CHROME_WORDS) continue;
+    // Inline words inside a sentence belong to the sentence: "sign up for GitLab.com" is prose. Only a whole line can be chrome.
+    if (INLINE.test(el.tagName)) { const parent = el.parentElement; if (parent && parent !== root && textOf(parent) !== text && !/^(DIV|SECTION|HEADER|LI)$/.test(parent.tagName)) continue; if (parent && /^(P|LI)$/.test(parent.tagName) && textOf(parent) !== text) continue; }
+    const lower = text.replace(/^by\s+/i, '').toLowerCase();
+    if (CHROME.some(re => re.test(text)) || END_HEADING.test(text.replace(/:$/, '')) || (lower.length >= 3 && byline && (lower === byline || (byline.includes(lower) && /\s/.test(lower)))) || sameDay(text, article.publishedTime)) removeWithEmptyParents(el, root);
+  }
+
+  // Readability wraps its output in empty divs, so the article proper is a level or two down.
+  let start = root;
+  while (start.children.length === 1 && start.firstElementChild.matches('div, section, article, main') && ![...start.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) start = start.firstElementChild;
+  trimLeading(start);
+
+  const emptied = el => !textOf(el) && !el.querySelector(`${MEDIA}, iframe, embed, object`);
+  for (let pass = 0; pass < 3; pass++) {
+    for (const el of [...root.querySelectorAll('p, div, span, li, ul, ol, section, a, strong, em, b, i')]) if (el.isConnected && emptied(el) && !el.closest('pre')) el.remove();
+    for (const el of [...root.querySelectorAll('p, div, span')]) if (/^[|•·\-–—\s]+$/.test(textOf(el)) && !el.querySelector(MEDIA) && !el.closest('pre')) el.remove();
+  }
+  // Not "br + br", which ignores text in between: that would eat every line break in a listing.
+  for (const br of [...root.querySelectorAll('br')]) {
+    const prev = br.previousSibling;
+    if (prev?.nodeType === 1 && prev.tagName === 'BR' && !br.closest('pre')) br.remove();
+  }
+
+  const first = root.querySelector(HEADINGS);
+  const norm = t => t.replace(/\s+/g, ' ').trim().toLowerCase();
+  if (first && article.title && norm(textOf(first)) === norm(article.title)) first.remove();
+  root.querySelectorAll('h1').forEach(h => rename(document, h, 'h2'));
+  const levels = [...root.querySelectorAll(HEADINGS)].map(h => +h.tagName[1]);
+  const shift = levels.length ? Math.min(...levels) - 2 : 0;
+  if (shift > 0) for (const h of [...root.querySelectorAll(HEADINGS)]) rename(document, h, `h${+h.tagName[1] - shift}`);
+
+  for (const p of [...root.querySelectorAll('p')]) {
+    if (!textOf(p) && p.children.length === 1 && p.firstElementChild.tagName === 'IMG') rename(document, p, 'figure');
+  }
+
+  const text = textOf(root).length;
+  const loss = before ? 1 - text / before : 0;
+  // A stray byline is better than a lost article, and the flag makes these findable.
+  if (loss > MAX_TIDY_LOSS) return { content: article.content, text, loss, skipped: true };
+  return { content: root.innerHTML, text, loss, skipped: false };
 }
 
 // What the reader gets for one story: its article, or the reason there isn't one.
@@ -130,7 +266,10 @@ export async function readArticle(item, feedText) {
     if (blocked) result.reason = blocked;
     else {
       const article = extract(html);
-      if (article) return { url, frameable: false, reason: 'ok', title: article.title, byline: article.byline, siteName: article.siteName, content: clean(article.content, res.url || url) };
+      const tidied = article && tidy(article, res.url || url);
+      if (tidied && tidied.text >= MIN_TEXT) {  // less is a page that was mostly furniture
+        return { url, frameable: false, reason: 'ok', ...(tidied.skipped && { tidy: 'skipped' }), title: article.title, byline: article.byline, siteName: article.siteName, content: clean(tidied.content, res.url || url) };
+      }
       // The page loaded but has no article to pull out, so showing the original is the only thing that can help.
       result.reason = visibleWords(html) < MIN_PAGE_WORDS ? 'shell' : 'short';
       result.frameable = frameable(res.headers);
@@ -139,7 +278,9 @@ export async function readArticle(item, feedText) {
     result.reason = e?.name === 'TimeoutError' || e?.name === 'AbortError' ? 'timeout' : 'error';
   }
   const body = feedArticle(await feedText(item.publisher), url);
-  return body ? { url, frameable: false, reason: 'ok', source: 'feed', content: clean(body, url) } : result;
+  if (!body) return result;
+  const tidied = tidy({ content: body, title: item.title }, url);
+  return { url, frameable: false, reason: 'ok', source: 'feed', ...(tidied.skipped && { tidy: 'skipped' }), content: clean(tidied.content, url) };
 }
 
 // Each feed once per run, and '' if there isn't one or it fails.
@@ -195,7 +336,8 @@ export async function run({ items, feeds }, kv) {
   const words = {}, entries = [], counts = {}, feedText = feedReader(feeds);
   const todo = items.filter(i => {
     const had = stored.get(keys.get(i.url));
-    if (had?.reason === 'ok') { words[i.url] = had.words; return false; }
+    if (had?.reason === 'ok') words[i.url] = had.words;
+    if (had?.reason === 'ok' && had.v === VERSION) return false;
     return kv || !i.minutes;  // with nowhere to store it, only a missing reading time is worth a fetch
   });
   const queue = [...todo];
@@ -204,12 +346,15 @@ export async function run({ items, feeds }, kv) {
       const item = queue.shift();
       const record = await readArticle(item, feedText);
       counts[record.reason] = (counts[record.reason] || 0) + 1;
+      if (record.tidy) counts.tidy_skipped = (counts.tidy_skipped || 0) + 1;
       if (TRANSIENT.includes(record.reason)) continue;
+      const key = keys.get(item.url);
+      const had = stored.get(key);
+      if (had?.reason === 'ok' && record.reason !== 'ok') continue;  // a block on the redo mustn't cost a good article
       const n = record.content ? visibleWords(record.content) : 0;
       words[item.url] = n;
-      const key = keys.get(item.url);
-      if (stored.get(key)?.reason === record.reason) continue;  // still blocked the same way: nothing to write
-      entries.push({ key, value: JSON.stringify(record), expiration_ttl: TTL, metadata: { reason: record.reason, words: n } });
+      if (record.reason !== 'ok' && had?.reason === record.reason) continue;  // still blocked the same way: nothing to write
+      entries.push({ key, value: JSON.stringify(record), expiration_ttl: TTL, metadata: { reason: record.reason, words: n, v: VERSION } });
     }
   }));
   if (kv && entries.length) await kv.put(entries);

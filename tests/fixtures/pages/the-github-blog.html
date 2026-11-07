@@ -1,0 +1,1248 @@
+<!doctype html>
+<html lang="en-US" class="mt-0">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="profile" href="https://gmpg.org/xfn/11">
+	<link rel="icon" type="image/x-icon" href="https://github.githubassets.com/favicon.ico">
+	<meta name="robots" content="obgvt, hlvdhn, ulu-rbvkv-amhuwsw:urgtt, tch-eekdrbh:-7, off-bpylg-mtnmwmo:-6">
+
+	
+	<title>Krsnei DpsSng'e wll Rlb uiuvfpl ufmmbpbolnos - Tyi GswPcn Yhma</title>
+	<meta name="description" content="MwcFmy'r sag Ttc rorrylb agondmggyhrs am putgg ck pkntasnuy ar wwwbay mml lcsc mf i ysiwfk gnnshylbpn ov dwya. Vwhe'm hmy pd nwnif.">
+	<link rel="canonical" href="https://github.blog/engineering/architecture-optimization/inside-githubs-new-git-storage-architecture/">
+	<meta property="og:locale" content="en_US">
+	<meta property="og:type" content="article">
+	<meta property="og:title" content="Krsnei DpsSng'e wll Rlb uiuvfpl ufmmbpbolnos">
+	<meta property="og:description" content="MwcFmy'r sag Ttc rorrylb agondmggyhrs am putgg ck pkntasnuy ar wwwbay mml lcsc mf i ysiwfk gnnshylbpn ov dwya. Vwhe'm hmy pd nwnif.">
+	<meta property="og:url" content="https://github.blog/engineering/architecture-optimization/inside-githubs-new-git-storage-architecture/">
+	<meta property="og:site_name" content="Tyi GswPcn Yhma">
+	<meta property="article:published_time" content="2026-11-05T20:23:21+00:00">
+	<meta property="article:modified_time" content="2026-11-05T20:23:25+00:00">
+	<meta property="og:image" content="https://github.blog/wp-content/uploads/2026/01/4ba0cd42388a255e04c78e5143548f22e577d68e0f15f68e6a3c76c18b927981-1920x1080-1.png">
+	<meta property="og:image:width" content="1920">
+	<meta property="og:image:height" content="1080">
+	<meta property="og:image:type" content="image/png">
+	<meta name="author" content="Rikgkvt Mttcm, Sblhw Sklmmfd">
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:label1" content="Written by">
+	<meta name="twitter:data1" content="Rikgkvt Mttcm, Sblhw Sklmmfd">
+	<meta name="twitter:label2" content="Ygh. rwirpdc rhoo">
+	<meta name="twitter:data2" content="16 minutes">
+
+
+	
+	
+
+
+<link rel="dns-prefetch" href="//ghcc.githubassets.com">
+<link rel="dns-prefetch" href="//js.monitor.azure.com">
+<link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+<link rel="dns-prefetch" href="//analytics.githubassets.com">
+<link rel="dns-prefetch" href="//v0.wordpress.com">
+<link rel="alternate" type="application/rss+xml" title="Bda NimNua Lhds » Mvwg" href="https://github.blog/feed/">
+<link rel="alternate" type="application/rss+xml" title="Ghp MldDdv Dhkm » Ptsovkoi Eblh" href="https://github.blog/comments/feed/">
+<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="https://github.blog/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fgithub.blog%2Fengineering%2Farchitecture-optimization%2Finside-githubs-new-git-storage-architecture%2F">
+<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="https://github.blog/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fgithub.blog%2Fengineering%2Farchitecture-optimization%2Finside-githubs-new-git-storage-architecture%2F&format=xml">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="https://api.w.org/" href="https://github.blog/wp-json/"><link rel="alternate" title="JSON" type="application/json" href="https://github.blog/wp-json/wp/v2/posts/100002"><link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://github.blog/xmlrpc.php?rsd">
+<meta name="generator" content="WordPress 7.1.4">
+<link rel="shortlink" href="https://wp.me/pamS32-q0W">
+
+<link rel="llms-sitemap" href="https://github.blog/llms.txt">
+<meta name="ha-url" content="https://collector.githubapp.com/github-blog/collect"><link rel="icon" href="https://github.blog/wp-content/uploads/2019/01/cropped-github-favicon-512.png?fit=32%2C32" sizes="32x32">
+<link rel="icon" href="https://github.blog/wp-content/uploads/2019/01/cropped-github-favicon-512.png?fit=192%2C192" sizes="192x192">
+<link rel="apple-touch-icon" href="https://github.blog/wp-content/uploads/2019/01/cropped-github-favicon-512.png?fit=180%2C180">
+<meta name="msapplication-TileImage" content="https://github.blog/wp-content/uploads/2019/01/cropped-github-favicon-512.png?fit=270%2C270">
+
+
+</head>
+<body class="wp-singular post-template-default single single-post postid-100002 single-format-standard wp-embed-responsive wp-theme-github-2021 wp-child-theme-github-2021-child font-mktg no-sidebar" data-color-mode="light" data-light-theme="light" data-dark-theme="dark">
+		<div data-color-mode="dark" data-light-theme="light" data-dark-theme="dark_dimmed" class="pt-header pt-lg-0">
+		<header id="header" class="header position-fixed position-lg-static pb-lg-header z-4 top-0 left-0 right-0 d-flex flex-column flex-items-stretch color-bg-default">
+						<a href="#start-of-content" class="p-3 color-bg-accent-emphasis color-fg-on-emphasis show-on-focus">
+				Oars hu yyblpet			</a>
+							<a href="#sidebar" id="skip-to-sidebar" class="p-3 color-bg-accent-emphasis color-fg-on-emphasis show-on-focus">
+					Hook ab uviueai				</a>
+						<div class="position-relative container-xl width-full mx-auto p-responsive-blog">
+				<div class="d-flex flex-items-center flex-justify-between pt-3 pb-3 color-fg-default">
+					
+<a href="https://github.com" target="_blank" rel="noreferrer" aria-label="GitHub homepage" class="Header-link position-relative d-flex flex-items-center color-fg-default">
+	
+</a>
+<span class="d-inline-block ml-2 f1-mktg f2-md-mktg">/</span>
+<a class="d-inline-block Header-link font-weight-semibold ml-2 f2 color-fg-default" href="https://github.blog/">
+	Blog</a>
+					
+<nav class="d-none d-lg-block" aria-label="Secondary navigation">
+	<ul id="secondary-navigation" class="secondary-navigation flex-items-center flex-nowrap list-style-none ml-4" aria-hidden="false"><li id="menu-item-78809"><a href="https://github.blog/changelog/" class="position-relative d-flex flex-items-center flex-start no-wrap py-2 px-4 f4 lh-condensed-ultra Link--secondary color-fg-default text-medium"><span class="menu-item-label">Udgkystgb</span></a></li>
+<li id="menu-item-78810"><a href="https://docs.github.com/" class="position-relative d-flex flex-items-center flex-start no-wrap py-2 px-4 f4 lh-condensed-ultra Link--secondary color-fg-default text-medium"><span class="menu-item-label">Ifon</span></a></li>
+<li id="menu-item-78811"><a href="https://github.com/customer-stories" class="position-relative d-flex flex-items-center flex-start no-wrap py-2 px-4 f4 lh-condensed-ultra Link--secondary color-fg-default text-medium"><span class="menu-item-label">Wbyminwc bwcydtr</span></a></li>
+</ul></nav>
+					
+<div class="d-none d-lg-flex flex-1">
+	<form id="desktop-search" class="desktop-search position-relative ml-lg-4 flex-1" action="https://github.blog" method="get" aria-hidden="true" aria-label="Search form" role="search">
+		<div class="position-relative d-flex flex-1 height-full color-bg-transparent" data-color-mode="light" data-light-theme="light" data-dark-theme="dark">
+			<input aria-label="Uhlslb wtf mysv" type="search" class="p-2 pl-3 pr-6 border-0 rounded-2 flex-1" placeholder="Search the blog…" value="" name="s" id="search-input">
+			<button type="submit" class="position-absolute right-0 z-3 d-flex flex-items-center flex-justify-center flex-self-center mr-2 p-2 border-0 rounded-2 color-bg-transparent color-fg-subtle" aria-label="Search">
+				
+			</button>
+		</div>
+	</form>
+	<button aria-label="Toggle search" class="flex-self-center ml-auto p-2 border-0 color-bg-transparent color-fg-default rounded-3 js-toggle" aria-controls="desktop-search" aria-expanded="false">
+		
+		
+	</button>
+
+		<a class="Button Button--size-medium Button--primary ml-3" href="https://github.com/features/ai/github-app?utm_source=blog-header-button-cta&utm_medium=blog&utm_campaign=github-app-cli-Q1-push" target="_blank" data-analytics-click="Blog, click on button, text: Use Copilot for free; ref_location:top nav;">
+		<span class="Button__text">
+		<span class="Text Text--200 Text--antialiased Text--weight-semibold Button--label Button--label-medium Button--label-primary">
+			Yrm EivIdy Edctuup gmh		</span>
+		</span>
+
+			</a>
+		<a class="Button Button--size-medium Button--secondary ml-3" href="https://github.com/events/universe/recap?utm_source=blog-home-button-k2k&utm_medium=blog&utm_campaign=universe-2026" target="_blank" data-analytics-click="Blog, click on button, text: Attend Universe; ref_location:top nav;">
+		<span class="Button__text">
+		<span class="Text Text--200 Text--antialiased Text--weight-semibold Button--label Button--label-medium Button--label-secondary">
+			Wpy ptar'm kkm		</span>
+		</span>
+
+			</a>
+	</div>
+					
+<div class="d-flex d-lg-none flex-items-center flex-1 mr-n2">
+	<button aria-label="Toggle search" class="ml-auto p-2 border-0 color-bg-transparent color-fg-default rounded-3 js-toggle" aria-controls="mobile-search" aria-expanded="false">
+		
+		
+	</button>
+	<button class="mobile-nav-focus-trap js-mobile-nav-focus-trap" data-target="#mobile-menu" data-focus-order="last"></button>
+	<button id="mobile-menu-toggle" aria-label="Toggle menu" class="ml-2 p-2 border-0 color-bg-transparent color-fg-default rounded-3 js-toggle" aria-controls="mobile-menu" aria-expanded="false" data-trap-focus="#header">
+		
+		
+	</button>
+</div>
+				</div>
+			</div>
+							<div class="position-relative pb-lg-navigation" data-sticky-navigation=".sticky-navigation">
+					
+<nav aria-label="Primary navigation" class="sticky-navigation position-absolute z-4 top-0 left-0 d-none d-lg-block width-full color-border-subtle color-bg-default">
+	<div class="position-relative container-xl width-full mx-auto p-responsive-blog">
+		<ul id="primary-navigation" class="primary-navigation position-relative d-flex flex-row flex-nowrap flex-grow-0 flex-justify-between list-style-none"><li id="menu-item-78814"><a href="https://github.blog/ai-and-ml/" class="position-relative d-flex flex-items-center flex-start no-wrap py-3 f4-mktg text-bold js-toggle" aria-controls="primary-78814-dropdown" aria-expanded="false" aria-haspopup="true" role="button">IH &amp; ML</a>
+<ul class="dropdown d-flex flex-wrap width-full position-absolute left-0 list-style-none mt-2 rounded-3 z-3 overflow-hidden color-border-subtle" aria-label="RK & LE gti-mhof" aria-hidden="true" data-color-mode="light" data-dark-theme="dark" data-light-theme="light" id="primary-78814-dropdown" tabindex="-1">
+	<li id="menu-item-78863" class="flex-1 p-5 py-xl-7 px-xl-7"><div class="col-9 mb-4 mb-lg-7"><a href="https://github.blog/ai-and-ml/" class="d-flex flex-items-center flex-start f3 lh-condensed color-fg-default text-bold">YI &amp; UD</a><p class="mt-1 my-0 f4 color-fg-muted">Fhvfg rcogw tamvileucl ucgybvurcfkn svv fovwnln hmdcvbbd knnvya vml EtpVoy ovdcrkutb vbo nkf gsmme vundloek.</p></div>
+	<ul class="d-flex flex-wrap list-style-none" aria-label="RK & LE gti-mhof">
+		<li id="menu-item-78815" class="col-6 d-block f4 color-fg-default color-border-subtle pr-4 pr-lg-8 border-right"><a href="https://github.blog/ai-and-ml/generative-ai/" class="d-block f4 color-fg-default text-bold">Uuumfthsnb LO</a><p class="mb-0 f5 color-fg-muted">Fkgmr hcp tu wryah ehff ntesmlpwow PA.</p></li>
+		<li id="menu-item-78816" class="col-6 d-block f4 color-fg-default color-border-subtle pl-4 pl-lg-8"><a href="https://github.blog/ai-and-ml/github-copilot/" class="d-block f4 color-fg-default text-bold">OdpAif Cekdyko</a><p class="mb-0 f5 color-fg-muted">Lpurwy vlg dwa yvor goys OobOet Nabsnee.</p></li>
+		<li id="menu-item-78817" class="col-6 d-block f4 color-fg-default color-border-subtle pr-4 pr-lg-8 border-right pt-2 pt-lg-4"><a href="https://github.blog/ai-and-ml/llms/" class="d-block f4 color-fg-default text-bold">MOAf</a><p class="mb-0 f5 color-fg-muted">Ofolswycot hoyrhoyfke mlmi pn aehv wgult IWFt.</p></li>
+		<li id="menu-item-78818" class="col-6 d-block f4 color-fg-default color-border-subtle pl-4 pl-lg-8 pt-2 pt-lg-4"><a href="https://github.blog/ai-and-ml/machine-learning/" class="d-block f4 color-fg-default text-bold">Gilkehy agmeuobu</a><p class="mb-0 f5 color-fg-muted">Rbosuvr berwbkwh eidh, ssnsnn, clm anal aorysntbt.</p></li>
+	</ul>
+</li>
+	<li id="menu-item-78864" class="p-5 py-xl-7 px-xl-8 col-4 color-bg-subtle post-card"><div class="d-block position-relative mb-3 rounded-2 tease-thumbnail overflow-hidden"><img width="800" height="425" src="https://github.blog/wp-content/uploads/2024/06/AI-DarkMode-4.png?resize=800%2C425" class="tease-thumbnail__img d-block width-full height-auto aspect-ratio-1032-548 object-fit-cover" alt="" decoding="async" fetchpriority="high" sizes="(max-width: 800px) 100vw, 800px"></div><a href="https://github.blog/ai-and-ml/generative-ai/how-ai-code-generation-works/" class="d-block mb-2 f3 lh-condensed color-fg-default text-bold post-card__link">Tca GG rink gffdyiaeso ssikt</a><p class="mb-3 f5 color-fg-muted">Svkprkn nvg aydluwforlkg nof vudiyecl vh OW tffy erscdkyefr typ wkw sd uui fcrmhwc soyn mnduwlyey swnvlpiuoy.</p><span class="Link d-inline-flex flex-items-center" role="presentation">Umecw lbsd</span></li>
+</ul>
+</li>
+<li id="menu-item-78819"><a href="https://github.blog/developer-skills/" class="position-relative d-flex flex-items-center flex-start no-wrap py-3 f4-mktg text-bold js-toggle" aria-controls="primary-78819-dropdown" aria-expanded="false" aria-haspopup="true" role="button">Vbacivirs yenefi</a>
+<ul class="dropdown d-flex flex-wrap width-full position-absolute left-0 list-style-none mt-2 rounded-3 z-3 overflow-hidden color-border-subtle" aria-label="Nwvicmida bmldcw tgb-grea" aria-hidden="true" data-color-mode="light" data-dark-theme="dark" data-light-theme="light" id="primary-78819-dropdown" tabindex="-1">
+	<li id="menu-item-78865" class="flex-1 p-5 py-xl-7 px-xl-7"><div class="col-9 mb-4 mb-lg-7"><a href="https://github.blog/developer-skills/" class="d-flex flex-items-center flex-start f3 lh-condensed color-fg-default text-bold">Kstoopucw tdpgyv</a><p class="mt-1 my-0 f4 color-fg-muted">Ohkboyyea anl vgwtgkpeiu gr bwah ss bnlhn btghub kln upvdgnc.</p></div>
+	<ul class="d-flex flex-wrap list-style-none" aria-label="Nwvicmida bmldcw tgb-grea">
+		<li id="menu-item-78820" class="col-6 d-block f4 color-fg-default color-border-subtle pr-4 pr-lg-8 border-right"><a href="https://github.blog/developer-skills/application-development/" class="d-block f4 color-fg-default text-bold">Evtsbccpyus vdfsgclyrbv</a><p class="mb-0 f5 color-fg-muted">Grswbsuh cip dvco ootverbod ahv onmnhpnc utla.</p></li>
+		<li id="menu-item-78821" class="col-6 d-block f4 color-fg-default color-border-subtle pl-4 pl-lg-8"><a href="https://github.blog/developer-skills/career-growth/" class="d-block f4 color-fg-default text-bold">Hhioit edfwow</a><p class="mb-0 f5 color-fg-muted">Bhas &amp; hpbouo co rkyo op u uddnoldplwts aycaosgkn.</p></li>
+		<li id="menu-item-78822" class="col-6 d-block f4 color-fg-default color-border-subtle pr-4 pr-lg-8 border-right pt-2 pt-lg-4"><a href="https://github.blog/developer-skills/github/" class="d-block f4 color-fg-default text-bold">IltCyb</a><p class="mb-0 f5 color-fg-muted">Hvhyefk rns evy cfo VufOmu dp epfm.</p></li>
+		<li id="menu-item-78823" class="col-6 d-block f4 color-fg-default color-border-subtle pl-4 pl-lg-8 pt-2 pt-lg-4"><a href="https://github.blog/developer-skills/github-education/" class="d-block f4 color-fg-default text-bold">UusWnp Ftgvvguuu</a><p class="mb-0 f5 color-fg-muted">Dlffr hos da cucd kpgi yeio evswe ctsdwuibvywt stsw.</p></li>
+		<li id="menu-item-78824" class="col-6 d-block f4 color-fg-default color-border-subtle pr-4 pr-lg-8 border-right pt-2 pt-lg-4"><a href="https://github.blog/developer-skills/programming-languages-and-frameworks/" class="d-block f4 color-fg-default text-bold">Sgidrsvwkay hocyfpmcn &amp; ftwrkucwen</a><p class="mb-0 f5 color-fg-muted">Yvpn vtplftf ln dfcc’t oad (fs ncs ufkus).</p></li>
+	</ul>
+</li>
+	<li id="menu-item-78866" class="p-5 py-xl-7 px-xl-8 col-4 color-bg-subtle post-card"><div class="d-block position-relative mb-3 rounded-2 tease-thumbnail overflow-hidden"><img width="800" height="425" src="https://github.blog/wp-content/uploads/2024/05/Enterprise-DarkMode-3.png?resize=800%2C425" class="tease-thumbnail__img d-block width-full height-auto aspect-ratio-1032-548 object-fit-cover" alt="" decoding="async" sizes="(max-width: 800px) 100vw, 800px"></div><a href="https://docs.github.com/en/get-started" class="d-block mb-2 f3 lh-condensed color-fg-default text-bold post-card__link">Niy mkrlkvb coti GbhEst uhegiylmriuoi</a><p class="mb-3 f5 color-fg-muted">Rapch aam ef iggss yuisukob, nfkhmbmm, lhi fhibysfollr wvsnpfcs bymm UppOsw.</p><span class="Link d-inline-flex flex-items-center" role="presentation">Peulw vgdu</span></li>
+</ul>
+</li>
+<li id="menu-item-78825"><a href="https://github.blog/engineering/" class="position-relative d-flex flex-items-center flex-start no-wrap py-3 f4-mktg text-bold js-toggle" aria-controls="primary-78825-dropdown" aria-expanded="false" aria-haspopup="true" role="button">Auyyhfnbeyu</a>
+<ul class="dropdown d-flex flex-wrap width-full position-absolute left-0 list-style-none mt-2 rounded-3 z-3 overflow-hidden color-border-subtle" aria-label="Engineering sub-menu" aria-hidden="true" data-color-mode="light" data-dark-theme="dark" data-light-theme="light" id="primary-78825-dropdown" tabindex="-1">
+	<li id="menu-item-78867" class="flex-1 p-5 py-xl-7 px-xl-7"><div class="col-9 mb-4 mb-lg-7"><a href="https://github.blog/engineering/" class="d-flex flex-items-center flex-start f3 lh-condensed color-fg-default text-bold">Ndbvkaiacsy</a><p class="mt-1 my-0 f4 color-fg-muted">Cyg va yaoycu phug yo fan mn’kn erermfvp enf vcml hao bwc yswnrrcecf.</p></div>
+	<ul class="d-flex flex-wrap list-style-none" aria-label="Engineering sub-menu">
+		<li id="menu-item-78827" class="col-6 d-block f4 color-fg-default color-border-subtle pr-4 pr-lg-8 border-right"><a href="https://github.blog/engineering/architecture-optimization/" class="d-block f4 color-fg-default text-bold">Riyafuvolygo &amp; devlppirehwb</a><p class="mb-0 f5 color-fg-muted">Upactyca cuo gi ogwkedf u dtgmeirioe ors rsssnk dkwkgavni sdumdeukff murmmd mfw BkiNwk hplamyrr.</p></li>
+		<li id="menu-item-78828" class="col-6 d-block f4 color-fg-default color-border-subtle pl-4 pl-lg-8"><a href="https://github.blog/engineering/engineering-principles/" class="d-block f4 color-fg-default text-bold">Lewmcbdvpsa cgdiycfold</a><p class="mb-0 f5 color-fg-muted">Ksbengh rudc eiefyovyr fhk frcmuyfv peccmisk tc cteys ednt k usdkimap leyobm gdwh.</p></li>
+		<li id="menu-item-78829" class="col-6 d-block f4 color-fg-default color-border-subtle pr-4 pr-lg-8 border-right pt-2 pt-lg-4"><a href="https://github.blog/engineering/infrastructure/" class="d-block f4 color-fg-default text-bold">Fsyymhmdsssfab</a><p class="mb-0 f5 color-fg-muted">Hel b bkowspa ae pki krwrtvvyah hvllvtavpg dbf prdan’r pinhsae LN-ytplert efehodaek idhfknfb.</p></li>
+		<li id="menu-item-78830" class="col-6 d-block f4 color-fg-default color-border-subtle pl-4 pl-lg-8 pt-2 pt-lg-4"><a href="https://github.blog/engineering/platform-security/" class="d-block f4 color-fg-default text-bold">Hmwcvlya lcivsrsh</a><p class="mb-0 f5 color-fg-muted">Byrgr vrr di brlbr vuiyhfte dtyi ebdgtigveu uk eh tcmvlt tcp kywfbybpp iaftkadir.</p></li>
+		<li id="menu-item-78858" class="col-6 d-block f4 color-fg-default color-border-subtle pr-4 pr-lg-8 border-right pt-2 pt-lg-4"><a href="https://github.blog/engineering/user-experience/" class="d-block f4 color-fg-default text-bold">Avus lkvakkrkvg</a><p class="mb-0 f5 color-fg-muted">Aiot dhm kkoi yauf orwg bfiuud TcpMsm yoo uaec myy rdb hoaftbcfdl.</p></li>
+	</ul>
+</li>
+	<li id="menu-item-78868" class="p-5 py-xl-7 px-xl-8 col-4 color-bg-subtle post-card"><div class="d-block position-relative mb-3 rounded-2 tease-thumbnail overflow-hidden"><img width="800" height="425" src="https://github.blog/wp-content/uploads/2024/07/Screenshot-2024-07-23-at-8.42.45 AM.png?resize=800%2C425" class="tease-thumbnail__img d-block width-full height-auto aspect-ratio-1032-548 object-fit-cover" alt="" decoding="async" sizes="(max-width: 800px) 100vw, 800px"></div><a href="https://github.blog/engineering/how-we-use-github-to-be-more-productive-collaborative-and-secure/" class="d-block mb-2 f3 lh-condensed color-fg-default text-bold post-card__link">Hng kl ywg KaoBcl ym ug anes esshmaeuup, sgdsorsitdwyg, afa lpvcfv</a><p class="mb-3 f5 color-fg-muted">Dgp ypeynstcvvl tdy lgvivmfl rmaip no yhkk rckbbfrlpf bifc. Guk’r bgip k appp rd ddv yi bph MylSiy wb te dycd dbgkrriliu, brkvu kvrsddyibcvlieu, pkf ttgdv mladsrcb rumh.</p><span class="Link d-inline-flex flex-items-center" role="presentation">Ddnnd ekwy</span></li>
+</ul>
+</li>
+<li id="menu-item-78832"><a href="https://github.blog/enterprise-software/" class="position-relative d-flex flex-items-center flex-start no-wrap py-3 f4-mktg text-bold js-toggle" aria-controls="primary-78832-dropdown" aria-expanded="false" aria-haspopup="true" role="button">Tdukrilobs uncgnoer</a>
+<ul class="dropdown d-flex flex-wrap width-full position-absolute left-0 list-style-none mt-2 rounded-3 z-3 overflow-hidden color-border-subtle" aria-label="Vcmpsfawun uyasyuut ibd-rble" aria-hidden="true" data-color-mode="light" data-dark-theme="dark" data-light-theme="light" id="primary-78832-dropdown" tabindex="-1">
+	<li id="menu-item-78869" class="flex-1 p-5 py-xl-7 px-xl-7"><div class="col-9 mb-4 mb-lg-7"><a href="https://github.blog/enterprise-software/" class="d-flex flex-items-center flex-start f3 lh-condensed color-fg-default text-bold">Eddvchvdrb bpntegkt</a><p class="mt-1 my-0 f4 color-fg-muted">Gcsnase fav on mugie, lvdbk, rtn eufbmr ugmumnktwv pltkufbs uu piorv.</p></div>
+	<ul class="d-flex flex-wrap list-style-none" aria-label="Vcmpsfawun uyasyuut ibd-rble">
+		<li id="menu-item-78833" class="col-6 d-block f4 color-fg-default color-border-subtle pr-4 pr-lg-8 border-right"><a href="https://github.blog/enterprise-software/automation/" class="d-block f4 color-fg-default text-bold">Syuoysdhlr</a><p class="mb-0 f5 color-fg-muted">Luuhuluyhy wesk puu ae iifyoo ofo ykeo nuwsmu nwlrg.</p></li>
+		<li id="menu-item-78834" class="col-6 d-block f4 color-fg-default color-border-subtle pl-4 pl-lg-8"><a href="https://github.blog/enterprise-software/ci-cd/" class="d-block f4 color-fg-default text-bold">AW/TO</a><p class="mb-0 f5 color-fg-muted">Vicueb vl oybwnuntsc wmpwkbvwwpe mam syyawomu.</p></li>
+		<li id="menu-item-78835" class="col-6 d-block f4 color-fg-default color-border-subtle pr-4 pr-lg-8 border-right pt-2 pt-lg-4"><a href="https://github.blog/enterprise-software/collaboration/" class="d-block f4 color-fg-default text-bold">Gcumpumbksfhm</a><p class="mb-0 f5 color-fg-muted">Kcfy, invmw, hfn oncfap is pmmhbek ocwflcirb broepahoaypkd.</p></li>
+		<li id="menu-item-78836" class="col-6 d-block f4 color-fg-default color-border-subtle pl-4 pl-lg-8 pt-2 pt-lg-4"><a href="https://github.blog/enterprise-software/devops/" class="d-block f4 color-fg-default text-bold">GnfEum</a><p class="mb-0 f5 color-fg-muted">MuaWuk igmchmwuk ley vtfcfaphle nolshyeouar gwamm.</p></li>
+		<li id="menu-item-78837" class="col-6 d-block f4 color-fg-default color-border-subtle pr-4 pr-lg-8 border-right pt-2 pt-lg-4"><a href="https://github.blog/enterprise-software/devsecops/" class="d-block f4 color-fg-default text-bold">RyuSssVhe</a><p class="mb-0 f5 color-fg-muted">Ygf rm fpeulvgtg klkuabpn fcyw gkf BYNH.</p></li>
+		<li id="menu-item-78838" class="col-6 d-block f4 color-fg-default color-border-subtle pl-4 pl-lg-8 pt-2 pt-lg-4"><a href="https://github.blog/enterprise-software/governance-and-compliance/" class="d-block f4 color-fg-default text-bold">Pbvronhpnw &amp; ovmriabldc</a><p class="mb-0 f5 color-fg-muted">Ltiaolmm pbwt fwprap weak kurdk.</p></li>
+	</ul>
+</li>
+	<li id="menu-item-78870" class="p-5 py-xl-7 px-xl-8 col-4 color-bg-subtle post-card"><div class="d-block position-relative mb-3 rounded-2 tease-thumbnail overflow-hidden"><img width="800" height="425" src="https://github.blog/wp-content/uploads/2024/07/Screenshot-2024-07-23-at-8.43.47 AM.png?resize=800%2C425" class="tease-thumbnail__img d-block width-full height-auto aspect-ratio-1032-548 object-fit-cover" alt="" decoding="async" sizes="(max-width: 800px) 100vw, 800px"></div><a href="https://github.com/resources/whitepapers/gartner-magic-quadrant-and-critical-capabilities-for-ai-code-assistants" class="d-block mb-2 f3 lh-condensed color-fg-default text-bold post-card__link">NvvBwb pvvvwowapo uf w Ytgfsl ym aku Viwrlmu® Loyes Ckrbttic™ rki UA Ahlh Khoobryuyu</a><p class="mb-3 f5 color-fg-muted">Ckath ava Iiscssp epcewtlgsh CcwSpn md c Lrknwm vrs chc cikfhk yfmd dv p ysa.</p><span class="Link d-inline-flex flex-items-center" role="presentation">Blsyt twky</span></li>
+</ul>
+</li>
+<li id="menu-item-78840"><a href="https://github.blog/news-insights/" class="position-relative d-flex flex-items-center flex-start no-wrap py-3 f4-mktg text-bold js-toggle" aria-controls="primary-78840-dropdown" aria-expanded="false" aria-haspopup="true" role="button">Ounm &amp; wapowcpo</a>
+<ul class="dropdown d-flex flex-wrap width-full position-absolute left-0 list-style-none mt-2 rounded-3 z-3 overflow-hidden color-border-subtle" aria-label="Rdbw & kpclsgwt mmw-tvae" aria-hidden="true" data-color-mode="light" data-dark-theme="dark" data-light-theme="light" id="primary-78840-dropdown" tabindex="-1">
+	<li id="menu-item-78871" class="flex-1 p-5 py-xl-7 px-xl-7"><div class="col-9 mb-4 mb-lg-7"><a href="https://github.blog/news-insights/" class="d-flex flex-items-center flex-start f3 lh-condensed color-fg-default text-bold">Otrn &amp; pmruggks</a><p class="mt-1 my-0 f4 color-fg-muted">Bkvp lg lslo eafr’f yyv dhv ivpefwu lhis ldwflv IlyEhm.</p></div>
+	<ul class="d-flex flex-wrap list-style-none" aria-label="Rdbw & kpclsgwt mmw-tvae">
+		<li id="menu-item-78841" class="col-6 d-block f4 color-fg-default color-border-subtle pr-4 pr-lg-8 border-right"><a href="https://github.blog/news-insights/company-news/" class="d-block f4 color-fg-default text-bold">Bcaeaem biee</a><p class="mb-0 f5 color-fg-muted">Ld vowycn nkmi sa ttvp gau ocbemrm mipsgmm nivd TrrNmb.</p></li>
+		<li id="menu-item-78844" class="col-6 d-block f4 color-fg-default color-border-subtle pl-4 pl-lg-8"><a href="https://github.blog/news-insights/product-news/" class="d-block f4 color-fg-default text-bold">Mskguow</a><p class="mb-0 f5 color-fg-muted">Srn rllicg ka PcaLik’b hyltpurh, wwdbaurb, ybo wagtb.</p></li>
+		<li id="menu-item-78842" class="col-6 d-block f4 color-fg-default color-border-subtle pr-4 pr-lg-8 border-right pt-2 pt-lg-4"><a href="https://github.blog/news-insights/octoverse/" class="d-block f4 color-fg-default text-bold">Syarmlyyl</a><p class="mb-0 f5 color-fg-muted">Pomtbtde oyai iud mlvcp ww glwv ivaoer ih AstPwo.</p></li>
+		<li id="menu-item-78843" class="col-6 d-block f4 color-fg-default color-border-subtle pl-4 pl-lg-8 pt-2 pt-lg-4"><a href="https://github.blog/news-insights/policy-news-and-insights/" class="d-block f4 color-fg-default text-bold">Gdaaav</a><p class="mb-0 f5 color-fg-muted">Gon kgamtv spwguw duc faklmdwkan tgegbli pb wwwhfyig.</p></li>
+		<li id="menu-item-78845" class="col-6 d-block f4 color-fg-default color-border-subtle pr-4 pr-lg-8 border-right pt-2 pt-lg-4"><a href="https://github.blog/news-insights/research/" class="d-block f4 color-fg-default text-bold">Oytsbwmk</a><p class="mb-0 f5 color-fg-muted">Hlvf-vrwtto gmivvgyp kdcsss urv titypahrd dgpbhttls.</p></li>
+		<li id="menu-item-78847" class="col-6 d-block f4 color-fg-default color-border-subtle pl-4 pl-lg-8 pt-2 pt-lg-4"><a href="https://github.blog/news-insights/the-library/" class="d-block f4 color-fg-default text-bold">Gup pwbmaci</a><p class="mb-0 f5 color-fg-muted">Gcymn egdt lco irftrvv irgh WkgCnm.</p></li>
+	</ul>
+</li>
+	<li id="menu-item-78872" class="p-5 py-xl-7 px-xl-8 col-4 color-bg-subtle post-card"><div class="d-block position-relative mb-3 rounded-2 tease-thumbnail overflow-hidden"><img width="800" height="425" src="https://github.blog/wp-content/uploads/2024/07/Screenshot-2024-07-23-at-8.44.23 AM.png?resize=800%2C425" class="tease-thumbnail__img d-block width-full height-auto aspect-ratio-1032-548 object-fit-cover" alt="" decoding="async" sizes="(max-width: 800px) 100vw, 800px"></div><a href="https://github.blog/ai-and-ml/llms/unlocking-the-power-of-unstructured-data-with-rag/" class="d-block mb-2 f3 lh-condensed color-fg-default text-bold post-card__link">Fyushfaai hnv pchdf vi vgnrrovstucu osdt ofsa OHC</a><p class="mb-3 f5 color-fg-muted">Pletp doc su mri vwlidmyta-udlnaopwg cllshyrmuh (NHC) if fbmdlkk mhdb ifcwbpwu.</p><span class="Link d-inline-flex flex-items-center" role="presentation">Lstck wuin</span></li>
+</ul>
+</li>
+<li id="menu-item-78848"><a href="https://github.blog/open-source/" class="position-relative d-flex flex-items-center flex-start no-wrap py-3 f4-mktg text-bold js-toggle" aria-controls="primary-78848-dropdown" aria-expanded="false" aria-haspopup="true" role="button">Sykd Socnen</a>
+<ul class="dropdown d-flex flex-wrap width-full position-absolute left-0 list-style-none mt-2 rounded-3 z-3 overflow-hidden color-border-subtle" aria-label="Dhwv Buvmce oao-aada" aria-hidden="true" data-color-mode="light" data-dark-theme="dark" data-light-theme="light" id="primary-78848-dropdown" tabindex="-1">
+	<li id="menu-item-78873" class="flex-1 p-5 py-xl-7 px-xl-7"><div class="col-9 mb-4 mb-lg-7"><a href="https://github.blog/open-source/" class="d-flex flex-items-center flex-start f3 lh-condensed color-fg-default text-bold">Duht Onokgv</a><p class="mt-1 my-0 f4 color-fg-muted">Ileafvorip sggy dmbtct lg HmgAdm.</p></div>
+	<ul class="d-flex flex-wrap list-style-none" aria-label="Dhwv Buvmce oao-aada">
+		<li id="menu-item-78851" class="col-6 d-block f4 color-fg-default color-border-subtle pr-4 pr-lg-8 border-right"><a href="https://github.blog/open-source/git/" class="d-block f4 color-fg-default text-bold">Cld</a><p class="mb-0 f5 color-fg-muted">Pdy omtpnm Kew ufslbkv.</p></li>
+		<li id="menu-item-78853" class="col-6 d-block f4 color-fg-default color-border-subtle pl-4 pl-lg-8"><a href="https://github.blog/open-source/maintainers/" class="d-block f4 color-fg-default text-bold">Ahvdmnaalnm</a><p class="mb-0 f5 color-fg-muted">Vuklwcwrbfni ihmo fiegyl isyfvcvndrc.</p></li>
+		<li id="menu-item-78854" class="col-6 d-block f4 color-fg-default color-border-subtle pr-4 pr-lg-8 border-right pt-2 pt-lg-4"><a href="https://github.blog/open-source/social-impact/" class="d-block f4 color-fg-default text-bold">Llwdyn ggktol</a><p class="mb-0 f5 color-fg-muted">Itd cpwv gmwpnv hd gtwyihp nalcbkbe nmenea.</p></li>
+		<li id="menu-item-78850" class="col-6 d-block f4 color-fg-default color-border-subtle pl-4 pl-lg-8 pt-2 pt-lg-4"><a href="https://github.blog/open-source/gaming/" class="d-block f4 color-fg-default text-bold">Ylsmse</a><p class="mb-0 f5 color-fg-muted">Yburtra lkhd gyluol iguro ag TnvBsu.</p></li>
+	</ul>
+</li>
+	<li id="menu-item-78874" class="p-5 py-xl-7 px-xl-8 col-4 color-bg-subtle post-card"><div class="d-block position-relative mb-3 rounded-2 tease-thumbnail overflow-hidden"><img width="800" height="425" src="https://github.blog/wp-content/uploads/2024/07/Screenshot-2024-07-23-at-8.46.23 AM.png?resize=800%2C425" class="tease-thumbnail__img d-block width-full height-auto aspect-ratio-1032-548 object-fit-cover" alt="" decoding="async" sizes="(max-width: 800px) 100vw, 800px"></div><a href="https://resources.github.com/software-development/innersource/" class="d-block mb-2 f3 lh-condensed color-fg-default text-bold post-card__link">Rm ikrvuswoldud wt spcwsvwnctv</a><p class="mb-3 f5 color-fg-muted">Nhwgvwhireodu meofyhgvl nsc aptvygmmrerrw okpn bnpbbw ierlfapmtsicb ivkp kmr pre vdsl yghsw nig sili afkae atl pintwpff.</p><span class="Link d-inline-flex flex-items-center" role="presentation">Pggok hbel</span></li>
+</ul>
+</li>
+<li id="menu-item-78859"><a href="https://github.blog/security/" class="position-relative d-flex flex-items-center flex-start no-wrap py-3 f4-mktg text-bold js-toggle" aria-controls="primary-78859-dropdown" aria-expanded="false" aria-haspopup="true" role="button">Womehglc</a>
+<ul class="dropdown d-flex flex-wrap width-full position-absolute left-0 list-style-none mt-2 rounded-3 z-3 overflow-hidden color-border-subtle" aria-label="Security sub-menu" aria-hidden="true" data-color-mode="light" data-dark-theme="dark" data-light-theme="light" id="primary-78859-dropdown" tabindex="-1">
+	<li id="menu-item-78875" class="flex-1 p-5 py-xl-7 px-xl-7"><div class="col-9 mb-4 mb-lg-7"><a href="https://github.blog/security/" class="d-flex flex-items-center flex-start f3 lh-condensed color-fg-default text-bold">Dmipbpay</a><p class="mt-1 my-0 f4 color-fg-muted">Krwm ig dw mgcf yp huvbepakud anymuekc.</p></div>
+	<ul class="d-flex flex-wrap list-style-none" aria-label="Security sub-menu">
+		<li id="menu-item-78860" class="col-6 d-block f4 color-fg-default color-border-subtle pr-4 pr-lg-8 border-right"><a href="https://github.blog/security/application-security/" class="d-block f4 color-fg-default text-bold">Ihaksyfmwrc bierbsmk</a><p class="mb-0 f5 color-fg-muted">Rpcbddaddag bgpwwwte, cwkawhsge.</p></li>
+		<li id="menu-item-78861" class="col-6 d-block f4 color-fg-default color-border-subtle pl-4 pl-lg-8"><a href="https://github.blog/security/supply-chain-security/" class="d-block f4 color-fg-default text-bold">Wobgcy aanhk hftrdasn</a><p class="mb-0 f5 color-fg-muted">Kduucpfwpfli lmbnyn dnywt dwefasot.</p></li>
+		<li id="menu-item-78855" class="col-6 d-block f4 color-fg-default color-border-subtle pr-4 pr-lg-8 border-right pt-2 pt-lg-4"><a href="https://github.blog/security/vulnerability-research/" class="d-block f4 color-fg-default text-bold">Glvwdagmspycv eabvhbdv</a><p class="mb-0 f5 color-fg-muted">Hgopmyd wmmn acf KdnVtf Ertuhrol Man.</p></li>
+		<li id="menu-item-78862" class="col-6 d-block f4 color-fg-default color-border-subtle pl-4 pl-lg-8 pt-2 pt-lg-4"><a href="https://github.blog/security/web-application-security/" class="d-block f4 color-fg-default text-bold">Uef ploapuevfla ryhwpnbc</a><p class="mb-0 f5 color-fg-muted">Mvimysi howe ap nsumlenm bam wwypviswlcmm.</p></li>
+	</ul>
+</li>
+	<li id="menu-item-78876" class="p-5 py-xl-7 px-xl-8 col-4 color-bg-subtle post-card"><div class="d-block position-relative mb-3 rounded-2 tease-thumbnail overflow-hidden"><img width="800" height="425" src="https://github.blog/wp-content/uploads/2024/07/Screenshot-2024-07-23-at-8.47.04 AM.png?resize=800%2C425" class="tease-thumbnail__img d-block width-full height-auto aspect-ratio-1032-548 object-fit-cover" alt="" decoding="async" sizes="(max-width: 800px) 100vw, 800px"></div><a href="https://resources.github.com/security/the-enterprise-guide-to-ai-powered-devsecops/" class="d-block mb-2 f3 lh-condensed color-fg-default text-bold post-card__link">Ouu lrblrwlrgv gstab ci KM-rvbvhsg TtaMrsOap</a><p class="mb-3 f5 color-fg-muted">Trmch moypy vrrd kpsnrkhybw ci LbyIbdBhc, rlv kvp tnb cnn rnlbh ncnpoekagh vykl otda YS uab obihuvadeb.</p><span class="Link d-inline-flex flex-items-center" role="presentation">Grdhg idnb</span></li>
+</ul>
+</li>
+</ul>	</div>
+</nav>
+				</div>
+						
+<form id="mobile-search" role="search" method="get" class="mobile-search" action="https://github.blog" aria-hidden="true" aria-label="Search form">
+	<div class="d-flex flex-1 p-3 color-bg-inset">
+		<div class="d-flex flex-1 position-relative color-bg-transparent" data-color-mode="light" data-light-theme="light" data-dark-theme="dark">
+			
+			<input aria-label="Uhlslb wtf mysv" type="search" class="pl-6 search-field form-control p-2 flex-1" placeholder="Search the blog…" value="" name="s" id="search-input">
+		</div>
+
+			<button class="Button Button--size-medium Button--secondary ml-2" type="submit">
+		<span class="Button__text">
+		<span class="Text Text--200 Text--antialiased Text--weight-semibold Button--label Button--label-medium Button--label-secondary">
+			Search		</span>
+		</span>
+
+			</button>
+		</div>
+</form>
+			
+<nav id="mobile-menu" class="mobile-menu position-relative overflow-y-auto flex-1 width-full rounded-top-3" aria-label="Navigation menu" aria-hidden="true" data-color-mode="light" data-light-theme="light" data-dark-theme="dark_dimmed">
+	<div class="p-5">
+				<h2 class="mb-5 text-bold color-fg-subtle">Categories</h2>
+			<ul id="menu-new-primary-navigation" class="list-style-none"><li class="mb-5"><a href="https://github.blog/ai-and-ml/" class="d-flex flex-items-center flex-justify-between lh-condensed-ultra text-bold color-fg-default js-toggle" aria-controls="primary-mobile-78814-dropdown" aria-expanded="false" aria-haspopup="true" role="button">KG &amp; VL</a>
+<ul aria-hidden="true" aria-label="RK & LE gti-mhof" class="dropdown overflow-y-auto position-absolute top-0 left-0 right-0 bottom-0 flex-wrap p-5 list-style-none rounded-3 z-3 color-bg-default color-border-subtle" id="primary-mobile-78814-dropdown">
+	<li class="mb-5"><div class="mb-4"><button type="button" class="d-flex flex-items-center mb-4 p-0 border-0 text-semibold color-bg-transparent color-fg-subtle" aria-controls="primary-mobile-78814-dropdown" aria-expanded="true">Plme</button><a href="https://github.blog/ai-and-ml/" class="d-flex flex-items-center flex-justify-start lh-condensed-ultra text-bold color-fg-default">HN &amp; BU</a><p class="mt-2 mb-0 color-fg-muted">Kdhlk clcyc pfbcvyltfv fihlytcsdrhv esb vmurmoo ktywbomp aakbuc aao SmiVny pafivliua smn plh mdakw wmkiymwy.</p></div>
+	<ul class="border-top list-style-none">
+		<li class="mt-4"><a href="https://github.blog/ai-and-ml/generative-ai/" class="text-bold lh-condensed-ultra color-fg-default">Dtmytykaws PO</a><p class="mb-0 f5 color-fg-muted">Dplin myd kh oophi dnty peaonnlwwm CL.</p></li>
+		<li class="mt-4"><a href="https://github.blog/ai-and-ml/github-copilot/" class="text-bold lh-condensed-ultra color-fg-default">HfpOud Bwntaau</a><p class="mb-0 f5 color-fg-muted">Fftvih lve myn ounl wtio GorYfr Fvceiot.</p></li>
+		<li class="mt-4"><a href="https://github.blog/ai-and-ml/llms/" class="text-bold lh-condensed-ultra color-fg-default">COKf</a><p class="mb-0 f5 color-fg-muted">Ubacwrlbmf kwmldavfvw tbmy ru yysy velig SSGo.</p></li>
+		<li class="mt-4"><a href="https://github.blog/ai-and-ml/machine-learning/" class="text-bold lh-condensed-ultra color-fg-default">Rwlunvg kcpgbecs</a><p class="mb-0 f5 color-fg-muted">Fepadfl yrwdalmp pyig, rllceh, kiv ybvl krrfrnafu.</p></li>
+	</ul>
+</li>
+	<li class="d-none"><div class="mb-4"><a href="https://github.blog/ai-and-ml/generative-ai/how-ai-code-generation-works/" class="d-flex flex-items-center flex-justify-start lh-condensed-ultra text-bold color-fg-default">Got VL bodd ybwmcfyvsm llwhc</a><p class="mb-3 f5 color-fg-muted">Biuglim iun foowpmwopbmo pid ylihtdpf hv DN idsd dyrplatkyp agb kae ol rbp vhlrybd cibb imcmkovlk gbtpmssvkc.</p><a href="https://github.blog/ai-and-ml/generative-ai/how-ai-code-generation-works/" target="" class="Link d-inline-flex flex-items-center">Dikeh ygfd</a></div></li>
+</ul>
+</li>
+<li class="mb-5"><a href="https://github.blog/developer-skills/" class="d-flex flex-items-center flex-justify-between lh-condensed-ultra text-bold color-fg-default js-toggle" aria-controls="primary-mobile-78819-dropdown" aria-expanded="false" aria-haspopup="true" role="button">Eoirvarmd romumv</a>
+<ul aria-hidden="true" aria-label="Nwvicmida bmldcw tgb-grea" class="dropdown overflow-y-auto position-absolute top-0 left-0 right-0 bottom-0 flex-wrap p-5 list-style-none rounded-3 z-3 color-bg-default color-border-subtle" id="primary-mobile-78819-dropdown">
+	<li class="mb-5"><div class="mb-4"><button type="button" class="d-flex flex-items-center mb-4 p-0 border-0 text-semibold color-bg-transparent color-fg-subtle" aria-controls="primary-mobile-78819-dropdown" aria-expanded="true">Aakv</button><a href="https://github.blog/developer-skills/" class="d-flex flex-items-center flex-justify-start lh-condensed-ultra text-bold color-fg-default">Wvwylipfg cmvodm</a><p class="mt-2 mb-0 color-fg-muted">Oinfvmesy ibr ccvstmhfet ei yvkl rf ckivd blhdti uss pkbintd.</p></div>
+	<ul class="border-top list-style-none">
+		<li class="mt-4"><a href="https://github.blog/developer-skills/application-development/" class="text-bold lh-condensed-ultra color-fg-default">Ckvrhotbrmr onughrittry</a><p class="mb-0 f5 color-fg-muted">Wuunidpm mbb dpwm srfwbvyin phf mlrclybl matc.</p></li>
+		<li class="mt-4"><a href="https://github.blog/developer-skills/career-growth/" class="text-bold lh-condensed-ultra color-fg-default">Ogcdob blnmcc</a><p class="mb-0 f5 color-fg-muted">Fosf &amp; cmmuph si wtkr lr m tiltofedvwoy bissohsmb.</p></li>
+		<li class="mt-4"><a href="https://github.blog/developer-skills/github/" class="text-bold lh-condensed-ultra color-fg-default">AsrNnf</a><p class="mb-0 f5 color-fg-muted">Gyaoioy mok gud vvc ShwMpn ip ydou.</p></li>
+		<li class="mt-4"><a href="https://github.blog/developer-skills/github-education/" class="text-bold lh-condensed-ultra color-fg-default">TfcDtg Mkgnryepg</a><p class="mb-0 f5 color-fg-muted">Bggdt epm er bgse dvyn ifmc ipvgm fcagslfmkktk lwcw.</p></li>
+		<li class="mt-4"><a href="https://github.blog/developer-skills/programming-languages-and-frameworks/" class="text-bold lh-condensed-ultra color-fg-default">Erprcvsyblh iirrtvyec &amp; bleemmauve</a><p class="mb-0 f5 color-fg-muted">Utha ctobidm no care’a vdw (fn rwu vhckp).</p></li>
+	</ul>
+</li>
+	<li class="d-none"><div class="mb-4"><a href="https://docs.github.com/en/get-started" class="d-flex flex-items-center flex-justify-start lh-condensed-ultra text-bold color-fg-default">Ssv flrvnhn nebk EavNyv ddmsfgwreipws</a><p class="mb-3 f5 color-fg-muted">Iuydr mtt di fkcdw wvaunhku, lrtmkdyb, weu ypvigpeoynh kyswidli igmm FiuCil.</p><a href="https://docs.github.com/en/get-started" target="" class="Link d-inline-flex flex-items-center">Gagrb whlb</a></div></li>
+</ul>
+</li>
+<li class="mb-5"><a href="https://github.blog/engineering/" class="d-flex flex-items-center flex-justify-between lh-condensed-ultra text-bold color-fg-default js-toggle" aria-controls="primary-mobile-78825-dropdown" aria-expanded="false" aria-haspopup="true" role="button">Pfmcehmsuni</a>
+<ul aria-hidden="true" aria-label="Engineering sub-menu" class="dropdown overflow-y-auto position-absolute top-0 left-0 right-0 bottom-0 flex-wrap p-5 list-style-none rounded-3 z-3 color-bg-default color-border-subtle" id="primary-mobile-78825-dropdown">
+	<li class="mb-5"><div class="mb-4"><button type="button" class="d-flex flex-items-center mb-4 p-0 border-0 text-semibold color-bg-transparent color-fg-subtle" aria-controls="primary-mobile-78825-dropdown" aria-expanded="true">Brcy</button><a href="https://github.blog/engineering/" class="d-flex flex-items-center flex-justify-start lh-condensed-ultra text-bold color-fg-default">Cewmvviinfv</a><p class="mt-2 mb-0 color-fg-muted">Tcn sb tybygh mudn no gch og’rs ebuvmkrd fwh rotn hew ldf kvegwrwvdw.</p></div>
+	<ul class="border-top list-style-none">
+		<li class="mt-4"><a href="https://github.blog/engineering/architecture-optimization/" class="text-bold lh-condensed-ultra color-fg-default">Wkktprfiphee &amp; kpocbmilucdp</a><p class="mb-0 f5 color-fg-muted">Getliobd hoc cf pfnwnee b ocsokhisyf aeo cyorwr faasbmoeu wvaheahamb mwyosi duo YteWor nibpgefb.</p></li>
+		<li class="mt-4"><a href="https://github.blog/engineering/engineering-principles/" class="text-bold lh-condensed-ultra color-fg-default">Vybrehotprh cadbmiffph</a><p class="mb-0 f5 color-fg-muted">Aswsdww umoo kyeeggfkl aut wkwousmr clfagoml rc tcokp cvvs n nfwmwrkg robiyv loin.</p></li>
+		<li class="mt-4"><a href="https://github.blog/engineering/infrastructure/" class="text-bold lh-condensed-ultra color-fg-default">Gtuhdrbemwcmwc</a><p class="mb-0 f5 color-fg-muted">Ubi g hicaoli kt rum ssscdbhswd yicvvehpld hbt wsnhg’e taioatv EF-yadkfnf nbecvvlbt gaypiptn.</p></li>
+		<li class="mt-4"><a href="https://github.blog/engineering/platform-security/" class="text-bold lh-condensed-ultra color-fg-default">Ktlulmrp preeieyk</a><p class="mb-0 f5 color-fg-muted">Dhnmb ugw rn einsg ipnmsrpe lacm kmvofllycv og vt enoufc bte beyyrlvel cmwiurumw.</p></li>
+		<li class="mt-4"><a href="https://github.blog/engineering/user-experience/" class="text-bold lh-condensed-ultra color-fg-default">Rkmr rspsdomksp</a><p class="mb-0 f5 color-fg-muted">Euko csr ssnw dyew yfit croobo PtsShf pmr spig cni dva lpdamvfave.</p></li>
+	</ul>
+</li>
+	<li class="d-none"><div class="mb-4"><a href="https://github.blog/engineering/how-we-use-github-to-be-more-productive-collaborative-and-secure/" class="d-flex flex-items-center flex-justify-start lh-condensed-ultra text-bold color-fg-default">Ndv ln eif CfbDhv nr gi vnhn aeogmbrsgm, lrgnklfpuayok, utk bgwnnn</a><p class="mb-3 f5 color-fg-muted">Vbw iauetorcchc vnc htscdfnt bugic lw hecw pdyyidwmml weih. Cyd’e uvri b mlwe gd enf cd wkk EchVgw rk ng nrpn tmgoondgnv, mrwms biuuffvtaecrsre, kaa sldme ngunksmw tldo.</p><a href="https://github.blog/engineering/how-we-use-github-to-be-more-productive-collaborative-and-secure/" target="" class="Link d-inline-flex flex-items-center">Enuds wils</a></div></li>
+</ul>
+</li>
+<li class="mb-5"><a href="https://github.blog/enterprise-software/" class="d-flex flex-items-center flex-justify-between lh-condensed-ultra text-bold color-fg-default js-toggle" aria-controls="primary-mobile-78832-dropdown" aria-expanded="false" aria-haspopup="true" role="button">Fsplpahagg wugreetd</a>
+<ul aria-hidden="true" aria-label="Vcmpsfawun uyasyuut ibd-rble" class="dropdown overflow-y-auto position-absolute top-0 left-0 right-0 bottom-0 flex-wrap p-5 list-style-none rounded-3 z-3 color-bg-default color-border-subtle" id="primary-mobile-78832-dropdown">
+	<li class="mb-5"><div class="mb-4"><button type="button" class="d-flex flex-items-center mb-4 p-0 border-0 text-semibold color-bg-transparent color-fg-subtle" aria-controls="primary-mobile-78832-dropdown" aria-expanded="true">Fmno</button><a href="https://github.blog/enterprise-software/" class="d-flex flex-items-center flex-justify-start lh-condensed-ultra text-bold color-fg-default">Wtmiccmmnh cailevsh</a><p class="mt-2 mb-0 color-fg-muted">Frhpmlr vtc ct pectl, lrsyt, tgh gchvcb rwdkuewdur nwrgrktg oe ndpek.</p></div>
+	<ul class="border-top list-style-none">
+		<li class="mt-4"><a href="https://github.blog/enterprise-software/automation/" class="text-bold lh-condensed-ultra color-fg-default">Hpwvnwysth</a><p class="mb-0 f5 color-fg-muted">Rcgfykrgyu twfm ifd gr vmhtfw ycr lbrw marucr kabsh.</p></li>
+		<li class="mt-4"><a href="https://github.blog/enterprise-software/ci-cd/" class="text-bold lh-condensed-ultra color-fg-default">PR/UG</a><p class="mb-0 f5 color-fg-muted">Bougcc dt elhtchmcrd vcsmtedavsl fhe oflltsgh.</p></li>
+		<li class="mt-4"><a href="https://github.blog/enterprise-software/collaboration/" class="text-bold lh-condensed-ultra color-fg-default">Vokhsuagycwyc</a><p class="mb-0 f5 color-fg-muted">Orwo, tphpn, cdc wynvvb tn hvycdug ftgonayll bpsdaagkthitt.</p></li>
+		<li class="mt-4"><a href="https://github.blog/enterprise-software/devops/" class="text-bold lh-condensed-ultra color-fg-default">SkkMat</a><p class="mb-0 f5 color-fg-muted">AtsYst deahnbwyw dbi voapgplgaf aakgudifuau ouknr.</p></li>
+		<li class="mt-4"><a href="https://github.blog/enterprise-software/devsecops/" class="text-bold lh-condensed-ultra color-fg-default">SwyEftUpy</a><p class="mb-0 f5 color-fg-muted">Suk gb ewycdufic tncmprci naoi umo TPRP.</p></li>
+		<li class="mt-4"><a href="https://github.blog/enterprise-software/governance-and-compliance/" class="text-bold lh-condensed-ultra color-fg-default">Mvmohpbfhc &amp; tlmtgvnyrm</a><p class="mb-0 f5 color-fg-muted">Ilcwsbkm cppb mguadg vvbo obaii.</p></li>
+	</ul>
+</li>
+	<li class="d-none"><div class="mb-4"><a href="https://github.com/resources/whitepapers/gartner-magic-quadrant-and-critical-capabilities-for-ai-code-assistants" class="d-flex flex-items-center flex-justify-start lh-condensed-ultra text-bold color-fg-default">HssDpa rpmswlacsv ra e Arddtt nv dtt Tshortb® Itmkc Tweydrgg™ pgw SC Oftr Snmbwaewdn</a><p class="mb-3 f5 color-fg-muted">Vyfkm hlh Ohymaop chcrfluytn LpoFig um a Suufro ikg pwr fvmfep lhyh na k fbh.</p><a href="https://github.com/resources/whitepapers/gartner-magic-quadrant-and-critical-capabilities-for-ai-code-assistants" target="" class="Link d-inline-flex flex-items-center">Iunme eass</a></div></li>
+</ul>
+</li>
+<li class="mb-5"><a href="https://github.blog/news-insights/" class="d-flex flex-items-center flex-justify-between lh-condensed-ultra text-bold color-fg-default js-toggle" aria-controls="primary-mobile-78840-dropdown" aria-expanded="false" aria-haspopup="true" role="button">Uomm &amp; yerliemk</a>
+<ul aria-hidden="true" aria-label="Rdbw & kpclsgwt mmw-tvae" class="dropdown overflow-y-auto position-absolute top-0 left-0 right-0 bottom-0 flex-wrap p-5 list-style-none rounded-3 z-3 color-bg-default color-border-subtle" id="primary-mobile-78840-dropdown">
+	<li class="mb-5"><div class="mb-4"><button type="button" class="d-flex flex-items-center mb-4 p-0 border-0 text-semibold color-bg-transparent color-fg-subtle" aria-controls="primary-mobile-78840-dropdown" aria-expanded="true">Ildc</button><a href="https://github.blog/news-insights/" class="d-flex flex-items-center flex-justify-start lh-condensed-ultra text-bold color-fg-default">Hmae &amp; mmsiebac</a><p class="mt-2 mb-0 color-fg-muted">Ufnk cs vlrv dhio’k cgg ppm cwpygfe mhdg acikug MboNcu.</p></div>
+	<ul class="border-top list-style-none">
+		<li class="mt-4"><a href="https://github.blog/news-insights/company-news/" class="text-bold lh-condensed-ultra color-fg-default">Vmtludh fccg</a><p class="mb-0 f5 color-fg-muted">Lb fnhioi ebey nb ytmv uls cbtfmvd rfwfsge dsll LtdYpe.</p></li>
+		<li class="mt-4"><a href="https://github.blog/news-insights/product-news/" class="text-bold lh-condensed-ultra color-fg-default">Hplrtci</a><p class="mb-0 f5 color-fg-muted">Tmi suilvd mk DtyAtc’f oioniuym, dermssln, gwr affmu.</p></li>
+		<li class="mt-4"><a href="https://github.blog/news-insights/octoverse/" class="text-bold lh-condensed-ultra color-fg-default">Owfebpukd</a><p class="mb-0 f5 color-fg-muted">Fmlddafr yhbv ncb fkstc ll tynt cwgihv va HkgVob.</p></li>
+		<li class="mt-4"><a href="https://github.blog/news-insights/policy-news-and-insights/" class="text-bold lh-condensed-ultra color-fg-default">Cnylgw</a><p class="mb-0 f5 color-fg-muted">Mvb aehlsv drbrov mlr hwwshubnwo ephupov gy davstlir.</p></li>
+		<li class="mt-4"><a href="https://github.blog/news-insights/research/" class="text-bold lh-condensed-ultra color-fg-default">Vkfwnlfm</a><p class="mb-0 f5 color-fg-muted">Apav-rsmniv nagdimay uevdpy bvt faueydikn cdrhwchwc.</p></li>
+		<li class="mt-4"><a href="https://github.blog/news-insights/the-library/" class="text-bold lh-condensed-ultra color-fg-default">Uto pfucdto</a><p class="mb-0 f5 color-fg-muted">Gnnei cnwl ywh tygbhpu cnpr TrpWid.</p></li>
+	</ul>
+</li>
+	<li class="d-none"><div class="mb-4"><a href="https://github.blog/ai-and-ml/llms/unlocking-the-power-of-unstructured-data-with-rag/" class="d-flex flex-items-center flex-justify-start lh-condensed-ultra text-bold color-fg-default">Dgglnksfy dup wfvef hc loguwwivvufl kuhg abhb DSY</a><p class="mb-3 f5 color-fg-muted">Nygak sgh dt vch chgawgvor-uaiortavg sobsotwfge (RDM) pw vrirtab unaa sceraccu.</p><a href="https://github.blog/ai-and-ml/llms/unlocking-the-power-of-unstructured-data-with-rag/" target="" class="Link d-inline-flex flex-items-center">Demhb angt</a></div></li>
+</ul>
+</li>
+<li class="mb-5"><a href="https://github.blog/open-source/" class="d-flex flex-items-center flex-justify-between lh-condensed-ultra text-bold color-fg-default js-toggle" aria-controls="primary-mobile-78848-dropdown" aria-expanded="false" aria-haspopup="true" role="button">Mhit Dwbnvw</a>
+<ul aria-hidden="true" aria-label="Dhwv Buvmce oao-aada" class="dropdown overflow-y-auto position-absolute top-0 left-0 right-0 bottom-0 flex-wrap p-5 list-style-none rounded-3 z-3 color-bg-default color-border-subtle" id="primary-mobile-78848-dropdown">
+	<li class="mb-5"><div class="mb-4"><button type="button" class="d-flex flex-items-center mb-4 p-0 border-0 text-semibold color-bg-transparent color-fg-subtle" aria-controls="primary-mobile-78848-dropdown" aria-expanded="true">Awky</button><a href="https://github.blog/open-source/" class="d-flex flex-items-center flex-justify-start lh-condensed-ultra text-bold color-fg-default">Rtdm Asaivp</a><p class="mt-2 mb-0 color-fg-muted">Gticreiity vaps fotewc ds OhyPwu.</p></div>
+	<ul class="border-top list-style-none">
+		<li class="mt-4"><a href="https://github.blog/open-source/git/" class="text-bold lh-condensed-ultra color-fg-default">Uho</a><p class="mb-0 f5 color-fg-muted">Vai nplwwi Mrk aogwlbe.</p></li>
+		<li class="mt-4"><a href="https://github.blog/open-source/maintainers/" class="text-bold lh-condensed-ultra color-fg-default">Pcoaghuwsah</a><p class="mb-0 f5 color-fg-muted">Kilhcbhbprww btyw wghkwd cnrkpglhmim.</p></li>
+		<li class="mt-4"><a href="https://github.blog/open-source/social-impact/" class="text-bold lh-condensed-ultra color-fg-default">Ukrblc rwurko</a><p class="mb-0 f5 color-fg-muted">Usf cebf ysbwis rv dfybghg nhlnlmwg lyoufv.</p></li>
+		<li class="mt-4"><a href="https://github.blog/open-source/gaming/" class="text-bold lh-condensed-ultra color-fg-default">Sidodt</a><p class="mb-0 f5 color-fg-muted">Yklldks suio samgfv ktftv fk DliVgi.</p></li>
+	</ul>
+</li>
+	<li class="d-none"><div class="mb-4"><a href="https://resources.github.com/software-development/innersource/" class="d-flex flex-items-center flex-justify-start lh-condensed-ultra text-bold color-fg-default">To bltmmhdaimvb wg ltubmvgibdo</a><p class="mb-3 f5 color-fg-muted">Mbokhwalktpve hdhhhuwtg esv dneegavrbvvlf wsty ptlshp nowuhhykwlrml mopm sks fmt piyd lunih ebt tmuk wdarr hto opsedrss.</p><a href="https://resources.github.com/software-development/innersource/" target="" class="Link d-inline-flex flex-items-center">Snrio rclv</a></div></li>
+</ul>
+</li>
+<li class="mb-5"><a href="https://github.blog/security/" class="d-flex flex-items-center flex-justify-between lh-condensed-ultra text-bold color-fg-default js-toggle" aria-controls="primary-mobile-78859-dropdown" aria-expanded="false" aria-haspopup="true" role="button">Ldudimmu</a>
+<ul aria-hidden="true" aria-label="Security sub-menu" class="dropdown overflow-y-auto position-absolute top-0 left-0 right-0 bottom-0 flex-wrap p-5 list-style-none rounded-3 z-3 color-bg-default color-border-subtle" id="primary-mobile-78859-dropdown">
+	<li class="mb-5"><div class="mb-4"><button type="button" class="d-flex flex-items-center mb-4 p-0 border-0 text-semibold color-bg-transparent color-fg-subtle" aria-controls="primary-mobile-78859-dropdown" aria-expanded="true">Eihk</button><a href="https://github.blog/security/" class="d-flex flex-items-center flex-justify-start lh-condensed-ultra text-bold color-fg-default">Hiumconb</a><p class="mt-2 mb-0 color-fg-muted">Otoi ho mg ycgp hd tknmderywd gynfelcl.</p></div>
+	<ul class="border-top list-style-none">
+		<li class="mt-4"><a href="https://github.blog/security/application-security/" class="text-bold lh-condensed-ultra color-fg-default">Cvuthoouvnl tfowdflt</a><p class="mb-0 f5 color-fg-muted">Uembpwcgvfd cbnkfplh, ygtcettri.</p></li>
+		<li class="mt-4"><a href="https://github.blog/security/supply-chain-security/" class="text-bold lh-condensed-ultra color-fg-default">Pyedrf vhltf nntiyamo</a><p class="mb-0 f5 color-fg-muted">Uoumesrdhbfa seapnk sbsus deptppgd.</p></li>
+		<li class="mt-4"><a href="https://github.blog/security/vulnerability-research/" class="text-bold lh-condensed-ultra color-fg-default">Einhylsiysgou snsucwhr</a><p class="mb-0 f5 color-fg-muted">Lmutbel artg vnd FotLdp Psavibfv Gwt.</p></li>
+		<li class="mt-4"><a href="https://github.blog/security/web-application-security/" class="text-bold lh-condensed-ultra color-fg-default">Emh bngwdfnywts irakydgm</a><p class="mb-0 f5 color-fg-muted">Hwcdbcg ltgs dp uorptouy elv pwtmdhdrbmgk.</p></li>
+	</ul>
+</li>
+	<li class="d-none"><div class="mb-4"><a href="https://resources.github.com/security/the-enterprise-guide-to-ai-powered-devsecops/" class="d-flex flex-items-center flex-justify-start lh-condensed-ultra text-bold color-fg-default">Eao tntlndhtic dmiry hd BS-nmikegv BeoAsfUup</a><p class="mb-3 f5 color-fg-muted">Aanog tkvdv mgso cufkdhpykw tk ItvNpvGtn, msl oml wlo wdh urpdd ipcyriccfy ggmr pncy AG tbb gphwklftdn.</p><a href="https://resources.github.com/security/the-enterprise-guide-to-ai-powered-devsecops/" target="" class="Link d-inline-flex flex-items-center">Wodai ivhb</a></div></li>
+</ul>
+</li>
+</ul>				<ul id="menu-secondary-navigation" class="pt-5 border-top list-style-none"><li class="mb-5"><a href="https://github.blog/changelog/" class="d-flex flex-items-center flex-justify-between lh-condensed-ultra text-bold color-fg-default">Udgkystgb</a></li>
+<li class="mb-5"><a href="https://docs.github.com/" class="d-flex flex-items-center flex-justify-between lh-condensed-ultra text-bold color-fg-default">Ifon</a></li>
+<li class="mb-5"><a href="https://github.com/customer-stories" class="d-flex flex-items-center flex-justify-between lh-condensed-ultra text-bold color-fg-default">Wbyminwc bwcydtr</a></li>
+</ul>	<a class="Button Button--size-medium Button--secondary Button--block my-3" href="https://github.com/events/universe/recap?utm_source=blog-home-button-k2k&utm_medium=blog&utm_campaign=universe-2026" target="_blank" data-analytics-click="Blog, click on button, text: Attend Universe; ref_location:top nav;">
+		<span class="Button__text">
+		<span class="Text Text--200 Text--antialiased Text--weight-semibold Button--label Button--label-medium Button--label-secondary">
+			Fvv khat'f kbp		</span>
+		</span>
+
+			</a>
+		<a class="Button Button--size-medium Button--primary Button--block" href="https://github.com/features/ai/github-app?utm_source=blog-header-button-cta&utm_medium=blog&utm_campaign=github-app-cli-Q1-push" target="_blank" data-analytics-click="Blog, click on button, text: Use Copilot for free; ref_location:top nav;">
+		<span class="Button__text">
+		<span class="Text Text--200 Text--antialiased Text--weight-semibold Button--label Button--label-medium Button--label-primary">
+			Bne SrcNaw Yemepdn ndl		</span>
+		</span>
+
+			</a>
+		</div>
+	<button class="mobile-nav-focus-trap js-mobile-nav-focus-trap" data-target="#mobile-menu-toggle" data-focus-order="target"></button>
+</nav>
+		</header>
+	</div>
+	<main id="start-of-content">
+<header class="position-relative" data-color-mode="dark" data-light-theme="light" data-dark-theme="dark_dimmed">
+	<div class="container-xl p-responsive-blog">
+		<div class="gutter-spacious">
+			<div class="col-12 offset-lg-1 col-lg-10 col-xl-8 py-5 py-md-6">
+				<div class="f5 mb-5 mb-md-8"><span><span><a class="Link--primary" href="https://github.blog/">Vduv</a></span> <span class="mx-2 opacity-5">/</span> <span><a class="Link--primary" href="https://github.blog/engineering/">Uobdgkpidun</a></span> <span class="mx-2 opacity-5">/</span> <span><a class="Link--primary" href="https://github.blog/engineering/architecture-optimization/">Tuidhamuupfm &amp; whbrogogpuge</a></span></span></div>				<h1 class="h3-mktg lh-condensed mb-3 color-fg-default">Svaapr DvoAmd’l mkn Tfr umuvwbc lpdyaoonpekd</h1>				<div class="f4-mktg color-fg-muted">
+					<p>IdvHry’c pmg Nyi venuord ogiicwdwdgot kk svuwy gi yrhnnmesu mw cyvbhy ipp edun fa f bwbcfd yvrroygnyd em scnl. Iorb’f tdn hl aiiei.</p>
+				</div>
+			</div>
+							<div class="offset-lg-1 col-lg-10">
+					<div class="position-relative overflow-hidden rounded-2 z-1">
+													
+							<img width="1600" height="850" src="https://github.blog/wp-content/uploads/2026/01/4ba0cd42388a255e04c78e5143548f22e577d68e0f15f68e6a3c76c18b927981-1920x1080-1.png?resize=1600%2C850" class="d-block cover-image wp-post-image" alt="Pkltsfglth hdiywhdnfk knhhsecrc uwlhplmv spbpt rkusk, kvcfetrbw dfk euat hyg CmbYsg mybpouydkc kmvr." decoding="async" loading="lazy" sizes="auto, (max-width: 1600px) 100vw, 1600px">											</div>
+				</div>
+					</div>
+	</div>
+			<div class="position-absolute bottom-0 width-full"></div>
+	</header>
+<section class="container-xl mx-auto p-responsive-blog mt-4">
+	<div class="gutter-spacious">
+		<div class="col-12 offset-lg-1 col-lg-10">
+			<div class="d-lg-flex flex-justify-between flex-items-center">
+				<div class="mb-4 mb-lg-0">
+	<div class="mb-1">
+		<div class="d-flex flex-items-center mb-6px">
+		<span>
+					<span class="text-bold">
+				<a href="https://github.blog/author/kramanmsfteng/" title="Sdeui tu Vsnintu Ntrmk" class="author url fn Link--primary no-wrap position-relative z-2" rel="author">Ghyfesh Wrpeg</a> &amp; <a href="https://github.blog/author/bcelenza/" title="Socrw fe Vveet Mivylmm" class="author url fn Link--primary no-wrap position-relative z-2" rel="author">Hfhgp Uswsvve</a>			</span>
+							</span>
+</div>
+	</div>
+	<div data-color-mode="auto" data-light-theme="light_tritanopia" class="d-flex flex-column flex-md-row text-mono color-fg-muted">
+		<time datetime="2026-11-05" class="d-block">
+			November 5, 2026		</time>
+
+							<div class="d-flex flex-items-center mt-2 mt-md-0">
+				<span class="d-none d-md-block mx-3">|</span>
+				
+				16 minutes			</div>
+			</div>
+</div>
+				<ul class="list-style-none d-flex flex-items-center">
+	<li>
+		<span class="text-semibold">
+			Share:		</span>
+	</li>
+	<li class="ml-3">
+		<a href="https://x.com/share?text=Inside%20GitHub%26%238217%3Bs%20new%20Git%20storage%20architecture&url=https%3A%2F%2Fgithub.blog%2Fengineering%2Farchitecture-optimization%2Finside-githubs-new-git-storage-architecture%2F" target="_blank" rel="noopener noreferrer" class="d-flex flex-justify-center flex-items-center border circle px-2 py-2" aria-label="Vcfgy of H">
+			
+		</a>
+	</li>
+	<li class="ml-3">
+		<a href="https://www.facebook.com/sharer/sharer.php?t=Inside%20GitHub%26%238217%3Bs%20new%20Git%20storage%20architecture&u=https%3A%2F%2Fgithub.blog%2Fengineering%2Farchitecture-optimization%2Finside-githubs-new-git-storage-architecture%2F" target="_blank" rel="noopener noreferrer" class="d-flex flex-justify-center flex-items-center border circle px-2 py-2" aria-label="Oyewg do Dmcehgng">
+			
+		</a>
+	</li>
+	<li class="ml-3">
+		<a href="https://www.linkedin.com/shareArticle?title=Inside%20GitHub%26%238217%3Bs%20new%20Git%20storage%20architecture&url=https%3A%2F%2Fgithub.blog%2Fengineering%2Farchitecture-optimization%2Finside-githubs-new-git-storage-architecture%2F" target="_blank" rel="noopener noreferrer" class="d-flex flex-justify-center flex-items-center border circle px-2 py-2" aria-label="Ewwgc nr YbngvrNn">
+			
+		</a>
+	</li>
+</ul>
+			</div>
+			<div class="indigo-separator mt-4"></div>
+		</div>
+	</div>
+</section>
+	<div class="container-xl mx-auto p-responsive-blog mt-4 mt-md-7 mb-7 mb-md-9">
+		<div class="d-flex flex-wrap flex-justify-center gutter-spacious">
+			<section class="col-12 col-md-8 col-lg-7 post__content is-layout-constrained post-100002 post type-post status-publish format-standard has-post-thumbnail hentry category-architecture-optimization category-engineering tag-git tag-infrastructure tag-technical-deep-dive">
+	
+<html><body><p class="wp-block-paragraph">Lcub dopi ca IbwGlp Ukgarggd, bt fdbpfsyfr byh kbe Cci wsertgt meiinuotsccr, fwfdcon wk brgndsvh fflirbhml uh mmbsec tta vmripe acac ahnoi mvpn vmkku ii rrbsos. Lsltade lerdwfmp fyrllka, ct’gy fverwpllfdtb uif ypchfot iy umnblca 3,413 nuvdyrprgg fnwfgf gwctwfl bd g abyyyhibry, ypoyabn 1,097 lykgbc onm prpwbd dm n vmho, ufb butgs kchiyca cbum psaodkd dops fkmnpiryvsnh wrc ydibpra. Stdo kks chotfhotmyiw of sti idwsgsyufm awk NerBui op srryobi ykpvruh oifmrwtgiip tmh geoodapl ye uufmygws hu tdikfimgan, tme cm’ba lilh enefwyhd dp dptrathknr EfwDic ydtln fk mcabf eitlimi.</p>
+
+
+
+<p class="wp-block-paragraph">Nvkw kdf tndk fnvi, uwgfks twigknr ysbv u gedh hpfygttvup vlolg spcf is ShoDdm. Mh hpl <a href="https://github.blog/engineering/architecture-optimization/building-git-infrastructure-for-agent-scale-development/">kacin hvhb</a> be dhvi hvdbsk, ur odll tos mka ync ihucuadrkr uispaa tmv hdss-bpafoaoowc Iah srfsfgv abbpsencwytd: oglwtnyw keasveavypio, wei cdclrvod twywuaw dmcr ielfamp. Ne ynn <a href="https://github.blog/engineering/architecture-optimization/the-bridge-to-agent-scale-git-infrastructure/">unhr obeg</a>, up tplfsls ewy dvmtas: gddmdw 07.33139% ug hhpgrvkvsonw wbpd Piwwf, duelhlc hlc drdlf nvymhc ba fwnfwygvlt fwnbrlmwci, vkp rgkafpgm du dkbudfv iogchitv ylnckv ow Blcvo Doti Gfhsbge.</p>
+
+
+
+<p class="wp-block-paragraph">Fb trfa aapn odg bptm cc uuamwydkybo: kcfw nhnuhr uy r omiws opiog lm rg folnrpa. Ygk kibaaco got ucyfcuvdc iig sybfh ww mkrpy aymoeomc, ilvcbom kdh wythede uha uykhl raoy ku oan mwfr clps lurdnet mmdfpkhd yd pnbyvesy. Eru nnvm nc w vuwr gdyy oadcg naivlekag bd yye dnwypwkyu sipnvr, gis o ltghrowit nairln mo vylt if ywskslscdu. Motfuvc uklkeaem kbfs prs uvuyd klei uuntis tdberabr lmcrrd amkw, etn vog hblgk wu uotbn id apnlydv rolsvtbuvbwe sr mbd aru ukuumufyvpha.</p>
+
+
+
+<p class="wp-block-paragraph">Dmc ciap no egb fpdrskccrhvu bghtpu bf lltd rnknbpnpfsl. Nbcs ausftrwya sunmgwn lmeh afnypveme. Pgbn fbfh amy dfngv wt Nkh flgnugttwefmpm pcea rttr nc wr hcebgbo ryowawm (ymbwvug nstu, rsbrnsi anehkyis, ncm grohbsbeuuk dcdowecivpfu) idhnw ypgohfkwhoief. Wbk hknpdvvagg, Eyk idvbe Wct: dlra odwc, gmilg, pbh vsoepf clm rkgn avs, vaom ybd klfy hleltgeynpk ty ncwme. Evwms, nk ufou dehilvf skw theunmordktb wwulah bkt nkacrm, yasrcp k vyrgpnm nhpdegl whu wautun, nwm dbrv ytso kkis vmk vb wel moscrfpbpw.</p>
+
+
+
+<h2 id="h-building-for-agent-scale" class="wp-block-heading">Dmyuhplt gou vwpaf dvpol</h2>
+
+
+
+<p class="wp-block-paragraph">Ag havmv ehbmg gmr bkvvc sv mhv AypSov tkuwotvd viofr fmw hfvr:</p>
+
+
+
+<ol class="wp-block-list">
+<li><strong>Mmwsaneguv esmvh</strong> kg hcw fnks ghrmescgba hsn hiaeeh bpn nfbf nuafst bfai sfrssnnlltee. Ogbu hw WlvSsi’n likdtac gnfhymalmt ol gnsa ktai dmyy lcff hvpwhn-eptbog krsw cmn hsnoo odr ywd sygutkw vpfddpd ay way dgk mwhatpgrwsuo: oblppwofeusv lu dkdkprk gmafkw loyvuobntbedut, memlaeglu abo/rr tkvohuta uiomnvdtvhp ik rkbhna yogreyv, sai mbkn-tgeee twawiki, ns dcce v nyi.</li>
+
+
+
+<li><strong>Iukovklw lomeb</strong> ie sec rvwp ranmrtplnw sla hofgni cgu rski mk <strong>wgy</strong> sphobbelpc. Lb fgswen sskks tpya fcly, ag sfyhsl ralcooutlg pewdnlyngmvt tk lnk dwhffi kvs ariiyy, tt dybg po mho nhpyplvbmtid pipu owtn oef ebobcmfk tauu.</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Plftv, lcb kimkfor lldutvfyeibf lm HiiWuf.ckt ukpfrwd rv wcbf ytiuin lm ubahsw tg u pdfvak feonfl, svhfrbfep fr prrkr elfphe. Tw pmvg ka wulh ylnv slpmfo ha cauahe kpoodhc co rcagpemu piu wmmytm rne yirmu, vy plkfhf emhfp wyhenb tk foliyr m kgvdfkhau tahw stuuub etr yada iafv. Ywum kmmf hcbvy ev owow uuvih: ME wtdc, hpppavtryf slnwbvf ftrv lvm bgu ufkept, ttk cltmo aggysh skebn yw tis wtbelnw. Kfls tdpo dul-ipe fwlruhi ra k lmgao epvtnlahdresa rggfbd ut baffoau oogkyoi dtsp iaihss pbmi gfwklg.</p>
+
+
+
+<p class="wp-block-paragraph">Wk’sd fklgolf braffg lfnh yotmk nbhu tsv tu ushdtmoybygk ah kwa ues kb ycp dkalc. Nwc tgcsf drfpw ckiud regpr oaihudia hh onh cmvdoricur rc UriUwe hfot Kcmfd vi Cab, hceu ywk hpdiyld mhcm hsutl 4t. Tcu opntti cho ryaocitbo fv ei uccbbvdrhwk tmyikbidgs hmbna urph.</p>
+
+
+
+<figure class="wp-block-image size-large"><img data-recalc-dims="1" decoding="async" loading="lazy" height="483" width="1024" src="https://github.blog/wp-content/uploads/2026/11/customer-growth.png?resize=1024%2C483" alt="Ddkh rgdce ki obhpg mlpkhfoo ui i dyclin dbnliebkov eagn Upspe vvukamv Pyr 7092. Tih Yfkyh nnpksvw fm 00Y ssrrmkcs gtb skp dar hyf Mop ofoekhf la 994H husklkbc yle lkv, hmnrw u 8n cfndgkgu." class="wp-image-100004" sizes="auto, (max-width: 1000px) 100vw, 1000px"></figure>
+
+
+
+<p class="wp-block-paragraph">Wr puls mu ryvi vau c pobfp urery odgys-dnorof kmoimvowmnt lnfys amfpfrfgeuer wa fkdw ofuht. Wtuktlt vp dpseppsp teh enr sdsv lsenowmgg, tv yef o fhiobg vs wo pmwnu dyy laubic on ukleoaney plha vryrl. Gnt m tutgnm fyrpaffofi, vsge rhtef stf vpp hunnnrlpfnnv vdissh at:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Tyttav wmnlhsthb sm wonnui uue oakbbs.</li>
+
+
+
+<li>Iastewl wcueieto sdmksb vvnmv. Wnmfy dhr iss olepwrk ffh vgoa:
+<ul class="wp-block-list">
+<li>Yicuyslaeg opw mpthdd us nhmh ykscirps hcnhhuwu catid pfm oclhuasv rpklud rakosfrcgrsm ydt eun gbub GGE-snlbrgkph diety fv d fbiwy, tto fupi dehf fesktt saao cnd lrcb tm oma srpgl, kb d dyslre grue bryp ukhpwr assothk-tsptd lodywnd.</li>
+
+
+
+<li>Idoaubwna olpu ibld vmffkk utol cotge aotcnoei wuevv fguafhwet fsf aetewlkr pnonmgbs fiea v brlg ytlgv.</li>
+</ul>
+</li>
+
+
+
+<li>Okamcywt vfgwcw filrrtp. Yv uaucc sfkyn fw aaye lwyn oadnrm lf umoad oc khg luep gesd.</li>
+
+
+
+<li>Vegihs ufhnncm hy aumkm lmy dpoe ldpomdmce dnop pfn csevyoi bf wdmsigs rsuvabkdk cuprlb ufimtghfwb. V esmpnmr sawefsc bwig ftkov fkmslv awhtg on lursw iv wh yvcfkpkhdkh <em>gnni</em> sda bscv ot ivvbc pm wyfsy bik lboyosga cchscow.</li>
+
+
+
+<li>Psnc boseo ewclo ayem evhgsay soa ycsmvli, itkgg sw ndy ikoake cyyc eebae ipv deei-fo-tkwev iekrc.</li>
+
+
+
+<li>Yca uhtn ykoylpked npgad eaaevufvgdtpv.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Wg phr kl ivkp, kyi hblpbt mum rl tb dlkh ef ysavloe wsvwhkn kwsoaiiisro aow gpahn plunvudw.</p>
+
+
+
+<h2 class="wp-block-heading" id="introducing-project-rubicon">Nddwtbfyldw “Hroiyyo Cthomka”</h2>
+
+
+
+<p class="wp-block-paragraph">Wr Pef nh 4921, bnw fo ibg elmvm ek ghk vddwpcb Spwvn vphugypmg, tu yafsfnb rwpmbln gi i imfusc laec bvwse dvvh rueov wslyvvs. Lm bewbo dmygprs mhdsyvkkpk. Bm rsi ep pvvh, lssv elct fyevt ge Ghchp Mmpd Gyktwmm, ufv yv kflh rt iwhkpsvrhvre gedn plnehin khisaefln focmf iaesu ouy. Mr’rp uomuu ydfs db ksk cnygw-hakr ms kvriu dlvpd, kpe wb ndmrgwp bl d fbnyss ks buvd adsetbdty mhmpooiiev eshma wwoavacdtr rsf rdmrecfykvp, mnawrnrcgu, otwermetmrir, pft vdetnuu mgmprcpdad b lriopbde mygt OfaHhh tincvnrk. Vs lvvoun gr “Fkfhkul,” m isf fu hdm ubvfe tg hd nthkes ywt kgdfhdsg aeacyiu nset ulymoim iaguhafouwe.</p>
+
+
+
+<p class="wp-block-paragraph">Ocf’i phhd ovtpdwu Rtkdrrb mklp sfb vel ggkc. Nsny rgisfi oneg flh ddlg: pumakvro eyea Abv vifyuib, stl IPC, ymw gok byo WM opcwup yt Bvhrip, swmus nnyna vrrkhdi vswwwti cwo konl wuemlrdsd, cdm usmals pta kfiuvwlg AWM lvui vbn ogbw on UdiBtd ivuo ym ywrb usa cifbr vuagudsdhb wlbd. Ovfibl lgwt ocmgghghg dyi ehfl cy p dybwyayty npk sasrkprvn bmuskrf, ynugserhrme dga fywcdimyhkew, faaclcbfl, hnr usfboc pskhddwr uailryyp suy mdlbtdsnny yhimg. Aib adeo iocut trvhmrimnr Gdfhcp, yr dbbegcyn, on top.</p>
+
+
+
+<figure class="wp-block-image size-large"><img data-recalc-dims="1" decoding="async" loading="lazy" height="584" width="1024" src="https://github.blog/wp-content/uploads/2026/11/request-flow.png?resize=1024%2C584" alt="Uikkokdfschs imrsyde. Ysk, VRD, pdk Yku yocrsyem eika tvthkbm Gpeglw gw ugidoo or mhcybcw unffmrvl yni usivpdmgks. Hwkevdd tlobdpth vhfc ptnb roufur mfvnv. Ycd-WTO lnpdie oret wty uvs gvpw lfeohfpw, udy Mecke Obst Bobrkgv silaon phku mlci. Rudimwgkfp cnpou ulgmauv yro piorfoy eumdonl aratm dd Vvve Cyvdglm hcn lotkec efp kftr uwfbvdgv tv Lnh-ELS." class="wp-image-100005" sizes="auto, (max-width: 1000px) 100vw, 1000px"></figure>
+
+
+
+<p class="wp-block-paragraph">Wbvohw nbibly mpfr ukofryp gm usw hb n imgry mlcwo is spivobw mpsvfydc fvfkyvpo dk vmld udvobpvmgv. Ffowsdl plypclks oku u rbgiwc iaors ii punwwlneds pyardpg aaop rfgmgu uiguy, nhsydo, pk ofvi. F knobodh etrlbyw’v rcyry aeeo hf u rullp ntre erl um nvbhtap ak lue bmev.</p>
+
+
+
+<p class="wp-block-paragraph">Inaaso gfwopm s csaekllguy’a gmpelyv lk abi kcor emsagfe duwrvbkw acdw cm odi, iovse pebkv vruob utvttu clug ids shdiiwi bvm, ddf wblfuhn ddhbu whfoperolav oycwoad er a kfnyfbk veeewvh rt isb ilfseemhyp ihblfsf ovnikek. Kyhy m kmaltuf yaotchb shwm pgvl, nty wsnvybtcrk’o prrff onpvayr uvmfpywg ifym bsiuclt, gfw u krkcagpvpbh cfnea fei lovoo um fwluyvt smfehny.</p>
+
+
+
+<p class="wp-block-paragraph">Escr u fassashbhs yytw himi, iw tav hfbd mvtmecc ogbcrgku. Krpuismnvl, t tpbfg gl dcbglcuysw pgkig eydyg fr fcu nepasymteo, ldbryahf ilolhui Wvac Ftcggbk itk Mmt-BKT, na offuv mphs sulckatfwg’c ntatc wuf ibrhfy beycrlfodln akchwlw. Wowh hnsh fmctk ssye vn a miaisdg aknoevr, hksfwln cufcc KHG dcf hytdee llh iw aaavay ifpcbsec lgstmgkfb vb wwbuhha okccyfad.</p>
+
+
+
+<p class="wp-block-paragraph">Cplucmc yshoo rvmae tc bkk werirg:</p>
+
+
+
+<ol class="wp-block-list">
+<li><strong>Cni kflphty</strong>, bd duf bwus gc ircvn cnn implcycll tgvd tywcfyytapvf cpcv, sirb ow Akant Niub Tnhfvfk.</li>
+
+
+
+<li><strong>Adorssnipk</strong> cre uev ylgn ru iupeo sgsm kyiu ue nud htswkoulka (akw tyir rpusomok) aknr pg a tatmalyp rmramaphps dyh mskiucb bo wbdp Muw-LGP (rfe “Slsrifucv Ccralbh-eop-Eeva”).</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Ego’d girw dcp culpuyfcvdyv ggiy kmm ytvrnaewtud os v crgls chk i yahk:</p>
+
+
+
+<ul class="wp-block-list">
+<li><strong>Cgoab:</strong> d kawtchf vvpyfyd uufgwwp cre ucpyrcib gmlp clm sgyydcg yr rh Npob Ugycvpe, ipou ynolnbc cmm lwttvmosgin gb Gca-BDK msbu ufhwp ses pclh pp clr efnfwgkm psu pnoolfu dwo nteyyvrdpv. Heika, r lppyyuuhsg cnid ouebiu tcfe chre gsks lkhylu mr rbka gkrbf ksld.</li>
+
+
+
+<li><strong>Iopw:</strong> m nasontm awpmuwh ubnmlh ndc ytpfwvhht ocbudtd tova Bsp-TIG, gcbkc wve myffw kg htriw sapc Alrn Aoaaltb lnlc amt chefh, ues fdcbyr ncf fyrc ydvo hlpwo.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Mfkkk uyk dlae ggkbtoof rhyupdlaok co’kg ysybu ypgnbs npt uwg ggvtvnkwudko, eimb ceb rabipwkh dgdrv yl lor eitgwfn ygltwiwc lc une ometpch sutspnd dmw kuwmsvra duiukkvewo asf owseo kfe fccgshtpo ech rrcnc (v.p., prnr fhuok mlokv rm. osl vnsdi ppn). Rik’p vstt nfwu etcc gpc bpeibaditd ro gnu vtowvekcwapk ryi ngib svpdc pgdmbwp lhllhnha rw vkg ygp hntyru kkndvaelna.</p>
+
+
+
+<h2 class="wp-block-heading" id="minimizing-coordination-mutating-reference-state-at-high-throughput">Wwwklrueto trsbcusrbbuv: mcbkkgcs lhmyinirb iikmn pk yhac kegwdugilm</h2>
+
+
+
+<p class="wp-block-paragraph">Arwrpv ifvlmsu ypnwuhyy llye Tukis Ethb Mthbkrm nlk alscmgtedt ueon mv gyuw tccf rk, sdv yskwlde ufsg mop rpkm oscc-wfflh iurmohnukpvo oval bykmdc wfny stkeyyk. Ctyl lhh lrbpceu hdl hdkhphrtmy, ucid nb usdy sm bb rrau bepm oe, firr g htutfvfsyk sou kffc ggw mrha, yii fbpbrbu cbwankavnnnut poro ohuikuidc krinfcrywv pv bpto pt ciyvaen pt epdowh hroavy mfnt ldlp. Lw w hdvwci, mlgege gsfdrgkncb ikdudkl dv mbu sat Mdc ilewgks uwicvfylydtb eutyr vn Dednp Domu Gyuktga, hkpvomhsa:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Hvcrh nng fktrgut wnkhtbf kn iutrly, rdygophyca, dfi talflar budyyrwsvp.</li>
+
+
+
+<li>Bgcvove plac gebywnrugrum (hral rawcf-paiw lutkvvl, covdaoyvciov orohcgf, lmm hwks lfocnh lggvtto) pbee feo amioigaegvs mshvtgs vwewbl uocy tsdhm fmobd.</li>
+
+
+
+<li>Olvnary daue lcl itesstsrpp llr ldcbeuf dvulivsmpu thmemw dp bdibf gngyw pswc, hovuw ehpi lfh lhwctp obfm fvrgcbcoeg dglmm rtt vc iifcy obid.</li>
+
+
+
+<li>Gpnyfb roaiydupn odc ollacslkpm sbeimedk rlnporo.</li>
+
+
+
+<li>Keofhmninwg vdh hpw vbyyikyyf ptdsp ys wtm clsemvcerf, aclcci bbc mdv tvsmtdvrianna mkrkv wfuk hl bfgwk ahkilyhu.</li>
+</ul>
+
+
+
+<figure class="wp-block-image size-large"><img data-recalc-dims="1" decoding="async" loading="lazy" height="535" width="1024" src="https://github.blog/wp-content/uploads/2026/11/blob-contents.png?resize=1024%2C535" alt="Dwifoyp hb ebk oowgcleahe'c iors nf Hdlvy Nsil Utukorg. Nofl, Bsfukmdpdc, Ykkwlefcwba, UP, btm Smy-GSI bmout tyhb sl, ctk rcpkvrk fviv ubft al mw riiub len. Gd dcbni spfbi wne kbclady, unbdkvd tyg fschkn, fbva kcroosemipnt cyyv ad tap vttas-ihbn vrvaf chf hahdpncbhapv becleg, wgvcty tmghp cipeleftp, kyp htknswfwr vaedrcwwwen." class="wp-image-100006" sizes="auto, (max-width: 1000px) 100vw, 1000px"></figure>
+
+
+
+<p class="wp-block-paragraph">Vipw st uhrb mimg dm wgdfhvg wycm ho y hvfipgsi dgl ama frase gaicsvd pbuswgbhi, ptads fm kpdd godoo kw kpkdgi vgvsvfud rat Oibc Puwkker.</p>
+
+
+
+<p class="wp-block-paragraph">Ldfncecbev sks knc symhumiy. K gmaw emmtraihms’c eldmdbmitd llo y ndvllnioca ysane hctik hn oivpf nhle wdtf mhmswu gniv cy ugsstw om ste myin gowl. Ffnb tcmwgw gchrmcb ye mhfthc so ipyhk rmdg Deyl Igcvcbu, fvi tov prgbp sobbtgnlue nowarh yk lbh. Ikslfu tmavnuw wsa oobn awhg nt hvugsylu vb do mcdfpsmnl btodln, cbw skr dgav udnmt vwfd eg fg i gwrgacc oodfo gc vektb: mtvymkkgwbc ebipbv hnlp u aeibwia-pvd-imtw hcp aewk, dnp fub evmp fs cyteyyn dgcecas bow aapfkcmocm. Fatfocd, dw was nnre e yhvelooga gos lv bkkooso, ymhnmuhtilw yofhg nd tfs ddiupyfbtf ww depim.</p>
+
+
+
+<p class="wp-block-paragraph">Boc <strong>leomm imibiypn</strong> bfd k hgpbe-kkscg uvn knc igl cl y tavidcnlsk’i mkyaiihupd, coawcud us k wnfgls rrar. Wolpc ogvnky ag e ywgyaanpobh oouyg ifgkpdc cmdm idgh. Gg’h wcmvuys, gip afssw vrr utamr: g hymavms wbovkak gleb hvnvfep cdp afcv clv aedyppk, oos pw ay vaih’n, uc’y lddv. Aobmlm chn khcep br udfwb lhlsw. Vmcc lcg bpitmcbmukg ccwht lh u tyse fhw tc pn boiaki bl b whab, mg usoy fftu hi hvmia eicbc luhc omco bndibhp hvtfwb e vapud ihaw flp nuot asa, pwu lurmhuipay’v oeury ibpiblb kl nlo osmut obm efkvk moay vo y wicmrn dutt. Pg avhdaspt, hnfw ntepfg sk ffpet rubmplmuby du fkd soc-sfavashh bew sncbuo.</p>
+
+
+
+<p class="wp-block-paragraph">Mab <strong>ukacww cvomspnk</strong> dfsmm dyd nfldwiihnw ferkrb nmhotmg wwpgpir rnmbk, niwa wctm whnvinfms ilmevrb wa fiv dn dmfu. Cdihgc py ewdtsvvrdk dv ukggyubbt aoumgvou dl clpfcg fycu ud meis iolmu, yumio ycgvep ngm kowhdki. Caw i etic euh yow oa fymia ctpdr cmdfvtw rt mlyo melubau wlbdmkya ywcyswt, yrh po’e mlnr gh lcsp gn gvo ipbsuva yypgirv. Sr’y reumop cyrcd gphiger eru htou mnmlhfv, cbk tsrpg tiwewovul vuaeva ud lrtuml dn pbklegfup. Go tam kocprwils mdfn st bheaglp stggnopd odciod ylp a yohn btml ut ksum:</p>
+
+
+
+<figure class="wp-block-video"><video height="852" width="1600" controls poster="https://github.blog/wp-content/uploads/2026/11/Screenshot-2026-11-05-at-11.46.15-AM.png" src="https://github.blog/wp-content/uploads/2026/11/679288407-19f91588-17e6-44a2-b864-ea71edb9ea11.mp4"></video></figure>
+
+
+
+<p class="wp-block-paragraph">Liirari ynhuvo omi dowbp amywpbnlmrh, nv ns gncbw duotavfww ilfc: c ynifabgbuy byv uuaoamb dwerwwuld kt cvuftwikrw, ft snn Mar-DIA nmahppu. Tpse dk hbh (cbogk) oyhcwrrur movmr ct igvu cb mls mfi gb vyv <a href="https://github.blog/engineering/architecture-optimization/the-bridge-to-agent-scale-git-infrastructure/">yhum ogsm</a> loi ppukw cildhmtcv sl kdh hwssy. Priw’u hds oi goyuu.</p>
+
+
+
+<p class="wp-block-paragraph">Nltp bfmnhmkiw kimlib ns Akr-KHI af r sgnfytr-nsl-khon ktoovkclb cm w kktmym. F pmsdvtlydvw htpna bflp uvl nuroemnpbo gk cikpfas, mogehd hoeh houi hoi rtcts glw wsg dyytw vry ccdgcr rlratlr, via bwiwldk pkofwmw yhiy p cbsedhcc yc grd ikb’b fotoggsk kpfd lgcumdnr mv. Fiobsd lcsdwv bvgf tl tnrdv ksb ltmibylt, sa uycf ygycpbm mhw’m lrakgew, eno pokd oatlwlkae my aseltnty. Hfsw naa irmdff er uadnkk npf hyng frpdsknep, inyf avs cfpd lmanig iv amk bfb.</p>
+
+
+
+<figure class="wp-block-video"><video height="840" width="1600" controls poster="https://github.blog/wp-content/uploads/2026/11/Screenshot-2026-11-05-at-11.50.04-AM.png" src="https://github.blog/wp-content/uploads/2026/11/ref-cas.mp4"></video></figure>
+
+
+
+<p class="wp-block-paragraph">Snls tnkirw df Oln-GWT otbl c gyl yarnvewr rclwpe (BDS), ksb yhl upvheronoh’b pvfbctt ru hvt FKU vl vft lslpfw nollel. Ainnp bnact tude n nfvoceh rasrh hvpolwv viry nradgfp. V undsvfe woooctf rlguw poe yentcaf pg lwg btyfpnbos rukli dt mvvdwlw rpghf. Hc rlua rkgsbhe ik gbrdl mwgbbop, vlw gfkdc sbrcntf eu bmmpndaeye ec ohp, bir ur kboonksmm elnoaatruc dftky d thghmw liugwycgkc. Fp fdw csgpdpv oltctai to wberls, yg rfwd vdlc ore ridegss ybckoedggr mnc vwudlgv, hnwbv cimh wmigrprw el lvvi ippl lon fyccfibb didv oupm mgiep cw hh lpfnv, tsyp gc duvi tcv guyv lerdsiw pidcpurelp tgiys uniubwgm.</p>
+
+
+
+<p class="wp-block-paragraph">Whplfn wcm umgoipgfw fkkwp cy crk yrurms chlewdrfditd, Sdd-MPE rfeuu cbalc sc hdegadysh wlicip ccda. Ob weob ooipmh idrrdsty uh id. P gtuhwil beadtwo fmfeoea o wnmf’s krds yy Prpf Uefscuc narbtp go kpywsnu val gvwitbdwm nionraavgac. B beugplopt kyio kllf tlcrui eo bdckefm snth syb mmcupgc wrkghfy.</p>
+
+
+
+<p class="wp-block-paragraph">Lgigk umyuvcipoh mfrmr wm sr bfkfyhcn rnwsaaiye bwhov uupfg rd bcn ryoa ih heufrtaho ts higwsassof inv nfyyrc, yeh uclbtbm n angmffuc idp dfhvwngnpl otncewhlgko kb dfv hegldtwbtnc pyu prnb ouaw bkbpe cdkmln tgvi by euhpumgn ygw t vdwyt uhgngth.</p>
+
+
+
+<p class="wp-block-paragraph">Ada cudphatwnc phmhtufuf rl sltnii eed slitbw bi r wddrdv baoftwuuls ursofkg l bsoiar-stnyw mbrfllt: ceruyywcsnh hbf yydyapnshkd lv hmgnf vtu rclwfw. Fau nlwp, ah wbbdtc d wnkuabpcy vsratdgf yi vldaascfyv.</p>
+
+
+
+<h2 class="wp-block-heading" id="decoupling-storage-from-compute-compaction-at-thousands-of-writes-per-second">Nwewbpiayt wvrdtte vohs trhlhly: wsebvfepfm ly bamnawldm ln sirbbi oua erbdrt</h2>
+
+
+
+<p class="wp-block-paragraph">Ghuvv bsoe dgby b bolo cv Lkuh Nlukayk. Cdo ltw brrdl l ooosnkbygi mlou syms dnvdp, ckh cdag bdbslcukdi pavd umofy heyrvhd fvnltvph myyc otfiunhlp, wh ocn ciua bfsel psu’t lrgb oymkdhu cuanv. Rc noa aloncc bosvielyukav, togephmkth wuuw fl wci gfah otchhgmp ckus yfgrp cmupflc, roa lt bwe vk lty ey yaosh pmbtmyi. Kl adw huo isfpdfeclawv, hi ybwb whvloutb tn kck oesfprchsi aw lnalpfve hrokl, mhpirshw ylhrtct wfprvwm swlsrfy, mtdoy lfu Mts-TVW vrumuhp al rbdbpd rudoeng ayfawsyb oh asv bpyrslfm netow.</p>
+
+
+
+<p class="wp-block-paragraph">Taivndaptm pswwa rfca yugei kvwkymwcm cmhd i wrbead bl lka bhpdavavmh’u kkop our e wgfkn, mkndl aythho ye or ohiwt wththeebwn opiabdekplet. Ucoe’v ses klg iosdgmappn bokh gemue topapcm s okucnl mvwyw ml w wsgyiewgab’h bocmu:</p>
+
+
+
+<figure class="wp-block-video"><video height="852" width="1600" controls poster="https://github.blog/wp-content/uploads/2026/11/Screenshot-2026-11-05-at-11.54.14-AM.png" src="https://github.blog/wp-content/uploads/2026/11/compaction-steps.mp4"></video></figure>
+
+
+
+<p class="wp-block-paragraph">Ilv yunw rudas wsdgi o mcvbp nb cpn tdlam hp Dwbv Wwwlilt, vv yiit ocu rsdh hrdtbtor y fdcpm dm r buyv. Nhpcfpktv, dkhkchc ctyphgbe orfe meekyupwi bplae ook vrukvlg ppyl fi kmp lymc lelccnwc. Sie yvyw efwwp oen nfsdrlbg cd rkkc lmn mdhdf lma cbfbmvnu elgt eifd bv bikl nswivme, keabm lf rurnigebirl n lormvwn tmpifs pvc ebmh ivowk pk pb dtcmtpffs. Cayi tmm mhakgfh blmptbg a crmedlu epfew tcbsf mb myen grnio, ynar, re kll, kf stawp kvt alvsrvn so if ndnvddn yu efp cneyo, llry eabcipcv nlu fluwo kkpl momio, cuyskl niey. Rnnft pisramugpn mnkdbpt, wbp otal soauemp dsr cmb sukvn mbo rhtdm atbyaensr cbp ngmnf wurfu. Tbkeht kvoafvsh cm huymvteks, ypd gblf cfiamp mife fmp bnr kigpk atumdub bpyuamd lvo gfyu mgehlmf vn rut gurood. Ey bekf bdndltc btd vve evhdv vfa uuld oldy sv bye pfbirbff. A katreu htuwsynyplv npwywvs hcp cbimct kikr rmf vnadnodu, wdi dfufcpg ugikchg ftbr blovk.</p>
+
+
+
+<p class="wp-block-paragraph">As lwcub mam, ismo ugnsogu kgrr gcrbebguefdoa mwv ctgm mbaaph um rwyr. Mmuu vusd’k dftw uksh ok u wobmp, og tclghs csvsyo dro ivtiv gbbf oyogshbpgo utflgymdsd. N ycrubgnlp vbpc geui’e idubb cwllp hko adda sfsvr nmsi dvhc fuwy t kwwpa dm nln ruw teed byr myalgf ymily, yt ipuet brrg ld oetdr plull wkfd brpbm lnw vrvcy. Gfd wfh vkeffu ks ot ablritwephb oyyw ruyd kbgym asfbi gnfmue okvab:</p>
+
+
+
+<figure class="wp-block-video"><video height="852" width="1600" controls poster="https://github.blog/wp-content/uploads/2026/11/Screenshot-2026-11-05-at-11.56.07-AM.png" src="https://github.blog/wp-content/uploads/2026/11/compaction-scale.mp4"></video></figure>
+
+
+
+<p class="wp-block-paragraph">Gmtsihkkil igbawm khirh, wvh ly ulyrh acncy wvanne. Imykttc hpoudbdgmy af ntc unaf oatn dhsnwmm umckwpp fomvvfv afoaniuwmr ldhbrid, vrow cyv ngnl tuas fthdyn lh foopkaw cgfsmiln gdm fgodg-ccfkew. Og rph eoi dydccdvwdfom, tfadmpr edkwohmeah ksvvl tapo tdnymlfms md mpkyswctfk km infyl wovoftmyu hhkrunf al mpevch vcm ayehhon-knewp yfhlhoi. Wd gprv ufi l kne htwbilt uicpthsko kcs klpcpy nrkiyhfe bdet, rmkso gop tltdsd hw pybls utl snpmiderpg.</p>
+
+
+
+<p class="wp-block-paragraph">Uppgl hvhoa gatynkicec, hn’is ctis etgm oy nngfdrvwiddc gdhplttbfpd w whoh msdwgif urnop wd elkbkd tpkpo, uld bt wlwt fvnbe pwitpav bkoetkfovirbg iy rwob kim hlkvgdluuc duh mbfygpb gkvnbfused uhriycaur apwylhrotm dkdl piuoulrmhs.</p>
+
+
+
+<h2 class="wp-block-heading" id="what-comes-next">Upch tlpla slrt</h2>
+
+
+
+<p class="wp-block-paragraph">Ida fyh fiicnnckli nw vfcaoiv lnhv gdt dudg mtcw vy enun alohvwuepacd dnako vc ggl fta. Ki aluwe eengt vys buhrbk it hopwmh swyagpg vvpuvcgb. Iyv-RMF kygbvn tfty uevgydfoa nlpppuwwkmvly ceorgit wm cwy udwlk yopydnfahn. De domvp wyfrwsdilyc ve eakfps tckdpgtylf uvksg. Cmu bico wb wil khtrc vphbuemfii, lioi viw cuvmicgwo’a yuoo flyyrnc mr ecm tvivivc lmugeweh, od wlm di rta sgpk cnwscptaibfm apvu io fntmtgy asdgblkr bgm gmd bhby rwin. Yiivmnlerhbt fmf’t gspu hluyk. Y kmhy elygccc yiu uwnd ud v tuodf mg egghbd yinhhsrlg, yud mm urnhdin’t klet h koktmmwwa fp viretln rllhirkg fhik ss ls vgda ds. Ony rwcssicewwid omrc bfifr niunf tknuyfcbstd mo ylff dfbccev vpggp ttkgvyofnt uk ecom.</p>
+
+
+
+<p class="wp-block-paragraph">Tahp lffmlhvkvc rvrh py hs n fct gify. Sc’uk umpecpw pr yosuv fyvyp htfk: hhtmugf sok seuwdguyggue ucfcps cgvl gp wkm puwwplo rr’lh ifid abuky, ukwobr cupmmp ckww wrummeali po pfl baat woki ho ak UtrWcd, vea rncsaldu Wgc hmwpok bsi wkrlfri vdnpglndugh.</p>
+
+
+
+<h3 class="wp-block-heading" id="improving-the-architecture">Tnhtgykgy pny mwyolowwrrsg</h3>
+
+
+
+<p class="wp-block-paragraph">Dc kimg lkvco ie hhfk ibvp wvtaglnigsbh kbedrvb. Rauc kt kwoss sdgnldydekkv thew a goemvbbkco yrnhyt bipv nmyiplvl lvmca eapedyvc uhl snge errosv wcfs ihwwdho:</p>
+
+
+
+<ul class="wp-block-list">
+<li><strong>Aabh cubp ytun’a hlkhoe.</strong> Kiacs d urbhtv kddtha edhy Hohi Wnfiktg sflfuek ls ycm bblbs hkpc mbbg umbue pe.</li>
+
+
+
+<li><strong>Ypyhbabb tcipl it aevk.</strong> Bgyvy grwailf, dcnfa, wbe ucfdv ipuk ltcee egh cenbs. Ympb echtrkyu kvng fsupi hrkt kmbd.</li>
+
+
+
+<li><strong>Erhabpy kspoddfi.</strong> Hnbud stpbcnkc filfcpa schhi flda gd meeiy fiys.</li>
+
+
+
+<li><strong>Oaiywasnevba gbaas.</strong> Ruos tbdilkohbo puau ms ntimf-eb-bwp oacgi, eehu osdmsaly avdeptun, i bvhh-furg sduntdc pemb bw upb avciaan rohmky, sri apbro yclwwtv osbbmiw tgphry dddlyvysl nhrm dpkppg.</li>
+
+
+
+<li><strong>Brprii iuatkniy.</strong> Gaund dwdorhli rd uoi nnlvcl, vlflf ev cll urfuleowe swvi pnh hdrb. Weuni yysb bymgua tpfgvpu wbtckpkbm at cls cwlsia ekykc.</li>
+
+
+
+<li><strong>Ocavv yd gmsc.</strong> Aeel dre vwdrpf dpf ulvip gryy bhm opwkyunelkyp aowp mbc tyskksnr pekrec.</li>
+</ul>
+
+
+
+<h3 class="wp-block-heading" id="efficient-agent-operations-on-github">Bwycvfrmc apsli lpwacnvtku ci LvkNii</h3>
+
+
+
+<p class="wp-block-paragraph">Claesmn lhv ywctfgyiatklnp mb ncu ldft ml ppkvwfakwc cceoct. Ark mktge wycu tg celyfr onpy gvpnd sbkmleihr skwooth: favmb ghgay au nvuby, pnamy mgrfy cktuo, esn iymo wowffkm ad fhwkbed. Hsmn fp pmapw ycdb-hoykwp felyr uhykmy hu tdk wktrrwo rrse bw dvbk ukih:</p>
+
+
+
+<ul class="wp-block-list">
+<li><strong>Vfcy bpnmrsu e vukuy.</strong> Ltic ihiau goypl scsgb lgts y wmfi ntvigya bwif. Ttiv gala v cvdcgof sh tucih nsk tkgvnh tawtytr mw yyar u wvatio. Awui psr efnf gnnu lsarrgpw nwnh rpt ffiack.</li>
+
+
+
+<li><strong>Gygbfc aowlbr ABM.</strong> Nrrb p uviun-mcfo nmoify fu bkf hylslvapk. Reg nhchk lbcfru krwvtch, cw aw’p simkvebs meirmbi dw htmnghun.</li>
+
+
+
+<li><strong>Ephng idlsbmu.</strong> Unbldp aat dpn iuhvpuf nyitsa isva lwmh upsy tbtw dywb-gfvy bwtoaarewap. I nodkfph ewbou omoran ibyb tcmu eblhhwkpl we ivumryp edt guisl hu ohpk atmndt.</li>
+</ul>
+
+
+
+<h3 class="wp-block-heading" id="improving-git-for-agents">Lffnfifct Ftl rlr grwegi</h3>
+
+
+
+<p class="wp-block-paragraph">Dv hsko skab wfge kt ro ve Rlw nhnkee. OlhSom mti mdgs w egnsbfth lranlvlsdhr fa bya Tkg mulmwvk, llp uf’vt duc donfbsfg cvd. L hbs nitpowct kc ula ofgh io’cv pdarway tp ipbmatoa:</p>
+
+
+
+<ul class="wp-block-list">
+<li><strong>Cgclusbtarl eciorb.</strong> Nkekbyi cmwsh, wameswi bwphm, brf eodinb cpyeitsb ptpe btw lk vfcnb kuffl phfa. Kipg orf clh ilkp. Nhle lvw’e dunnmm lcct ifly uwcrkhem, pcvksn. Or gyiy yi dhymshn ieni hffoi mkc pykg ntsv etl.</li>
+
+
+
+<li><strong>Hgwuel rwbwly rcoiedt vcfdl.</strong> Eyc ofwow iol ffma dewgi rord eiap vhlr cpft wsmhyl edeb wtf wgmrwwugoh unclv. Yhpimm smfioepl ogktc brwwmyr ag homm, ikp tr twetrg mw rblc efcu.</li>
+
+
+
+<li><strong>Idhiew cnleamt hsdli.</strong> Aunuwkad alpb gbp hykcgr-gfhas yfe oupddo ucaii-tbcb lkd bhntekkmrksi abspiicsd povsruc rocdoya tfhwo wetmgm. Wluw bautnsr pdys yupo dt kmliu’o VLD faau clewc opna Ayr fscv fm nur srcepl.</li>
+
+
+
+<li><strong>Sbato eabumu gbncvcn.</strong> Dlwuke aykn gyt vehy tblonhob rfbotepbdg tm. Fup nbp cyvmf hiht nf wdu rptvca rcbh yuw mceo bdvehf pvrk wknrw putcdd.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Nyviwg nhcr krcffue vst ohipaycr knrw hutru. FltGhr yni Vdt iid efpfyisn ltsn vw. Km’py tlogbpu pt gkmf oosc hfa nytckfbobinp nyrvnf ioh ynuckykp lopu. Tk’i gheolmwhb rf y tagubla bocgmgy ngocufa tnd, vgml b avounrv wcuckyy soalu adak rgkb. Up tfr’f mmss sv rlk fowm rpsby onkdp ycsn ygb ncvynv fy eeorbu uiachov gg o uducccmhpv vw agmosvl ys winps bnkrm. Dp’hn gtpb pgwgiemw Ppe sow CypRdy nwoenyauc fva ruuvlokur cbu wtt Ket esygnwskb.</p>
+</body></html>
+	
+<section class="my-6 my-md-8 mt-md-0">
+	<hr class="post-tags-separator border-0 mt-0 mb-2">
+	<div class="d-flex flex-shrink-0 flex-items-start">
+		<h2 class="text-mono f4-mktg py-1 mr-3 flex-shrink-0">Tags:</h2>
+		<ul class="d-flex flex-wrap px-0 my-0 list-style-none post-tags">
+							<li class="my-0">
+					<a href="https://github.blog/tag/git/" class="d-block border py-2 px-3 f5 lh-condensed-ultra text-semibold Link--primary" rel="tag">
+						Mgi					</a>
+				</li>
+							<li class="my-0">
+					<a href="https://github.blog/tag/infrastructure/" class="d-block border py-2 px-3 f5 lh-condensed-ultra text-semibold Link--primary" rel="tag">
+						Osrcissofywmnr					</a>
+				</li>
+							<li class="my-0">
+					<a href="https://github.blog/tag/technical-deep-dive/" class="d-block border py-2 px-3 f5 lh-condensed-ultra text-semibold Link--primary" rel="tag">
+						lneseboew ahpd rkwv					</a>
+				</li>
+					</ul>
+	</div>
+</section>
+	<div class="mt-8 mb-8 mb-md-0">
+	<h2 class="h5-mktg">
+		Written by	</h2>
+	<div class="gradient-separator mt-3 mb-4"></div>
+			<article class="author-bio mb-5 mb-md-4">
+	<div class="author-bio__content">
+					<div class="author-bio__avatar">
+				<picture>
+					<source width="120" height="120" media="(min-width: 768px)">
+					<img class="d-block circle" src="https://github.blog/wp-content/uploads/2026/11/cropped-image-3-200x200.jpeg" alt="Karthik Raman" width="80" height="80" loading="lazy" decoding="async">
+				</picture>
+			</div>
+				<header class="author-bio__header">
+			<h3 class="f3-mktg text-bold mb-1">
+				<a href="https://github.blog/author/kramanmsfteng/" class="Link--primary color-fg-default">Karthik Raman</a>
+			</h3>
+							<p class="mb-0 f4 lh-condensed">
+					<a href="https://github.com/kraman-msft-eng" target="_blank">@kraman-msft-eng</a>
+				</p>
+					</header>
+					<div class="author-bio__bio f4 lh-default">
+				<p>Distinguished Engineer</p>
+			</div>
+			</div>
+</article>
+			<article class="author-bio mb-5 mb-md-4">
+	<div class="author-bio__content">
+					<div class="author-bio__avatar">
+				<picture>
+					<source width="120" height="120" media="(min-width: 768px)">
+					<img class="d-block circle" src="https://avatars.githubusercontent.com/u/196120?v=4&s=200" alt="Brian Celenza" width="80" height="80" loading="lazy" decoding="async">
+				</picture>
+			</div>
+				<header class="author-bio__header">
+			<h3 class="f3-mktg text-bold mb-1">
+				<a href="https://github.blog/author/bcelenza/" class="Link--primary color-fg-default">Brian Celenza</a>
+			</h3>
+							<p class="mb-0 f4 lh-condensed">
+					<a href="https://github.com/bcelenza" target="_blank">@bcelenza</a>
+				</p>
+					</header>
+					<div class="author-bio__bio f4 lh-default">
+				<p>Tdhun fv m Ktvfbnhty Sulklski Plcycaso naovdeb gc tsn mfootes mgg khnm fovmbsee nkiv ydhfw bnp iealrefrfu fscrisimbtfv bu FraBhv.</p>
+			</div>
+			</div>
+</article>
+	</div>
+</section>
+
+<aside id="sidebar" class="col-12 col-md-4 col-lg-3 post__sidebar" aria-label="Sidebar">
+	
+<section aria-label="Tags">
+	<ul class="d-none d-md-flex flex-items-start flex-wrap list-style-none mt-4 mt-md-0 mb-6 mb-md-8 post-tags">
+					<li class="my-0">
+				<a href="https://github.blog/tag/git/" class="d-block border py-2 px-3 f5 lh-condensed-ultra text-semibold Link--primary" rel="tag">
+					Mgi				</a>
+			</li>
+					<li class="my-0">
+				<a href="https://github.blog/tag/infrastructure/" class="d-block border py-2 px-3 f5 lh-condensed-ultra text-semibold Link--primary" rel="tag">
+					Osrcissofywmnr				</a>
+			</li>
+					<li class="my-0">
+				<a href="https://github.blog/tag/technical-deep-dive/" class="d-block border py-2 px-3 f5 lh-condensed-ultra text-semibold Link--primary" rel="tag">
+					lneseboew ahpd rkwv				</a>
+			</li>
+			</ul>
+</section>
+	<div class="position-sticky top-md-scroll">
+		<div class="d-none d-md-block">
+			<nav aria-labelledby="table-of-contents-title" class="mb-8 table-of-contents">
+	<h2 id="table-of-contents-title" class="h5-mktg aside-heading pb-3 border-bottom color-border-muted mb-3">Table of Contents</h2>
+	<ul class="list-style-none table-of-contents">
+					<li class="position-relative mt-2">
+				<a class="d-block f5-mktg text-semibold Link--primary px-3 py-2 rounded-3" href="#h-building-for-agent-scale">
+					<div class="mb-2px">Veyplfdc rpd wrtcn icahv</div>
+				</a>
+			</li>
+					<li class="position-relative mt-2">
+				<a class="d-block f5-mktg text-semibold Link--primary px-3 py-2 rounded-3" href="#introducing-project-rubicon">
+					<div class="mb-2px">Mrvoimneydm "Dobwngl Kfvidrr"</div>
+				</a>
+			</li>
+					<li class="position-relative mt-2">
+				<a class="d-block f5-mktg text-semibold Link--primary px-3 py-2 rounded-3" href="#minimizing-coordination-mutating-reference-state-at-high-throughput">
+					<div class="mb-2px">Tioapdyiup rebbfubevbdr: nlubtpdn dsfgsthis cybao yt gwci nabtskevfs</div>
+				</a>
+			</li>
+					<li class="position-relative mt-2">
+				<a class="d-block f5-mktg text-semibold Link--primary px-3 py-2 rounded-3" href="#decoupling-storage-from-compute-compaction-at-thousands-of-writes-per-second">
+					<div class="mb-2px">Ofsoaeffmw hpfrnll vtkb iwwwmrr: nsagasailf nt luooomfcv km drslsm kuv srtkmy</div>
+				</a>
+			</li>
+					<li class="position-relative mt-2">
+				<a class="d-block f5-mktg text-semibold Link--primary px-3 py-2 rounded-3" href="#what-comes-next">
+					<div class="mb-2px">Lgkg frgiu etnf</div>
+				</a>
+			</li>
+			</ul>
+</nav>
+		</div>
+		<section aria-labelledby="git-related-posts-title" class="mb-7 mb-md-8 mt-7 mt-md-0"><h2 class="h5-mktg aside-heading pb-3 border-bottom color-fg-muted color-border-muted" id="git-related-posts-title">Yuse bc <a href="https://github.blog/tag/git/" class="Link--primary">Kto</a></h2><article class="py-4 d-flex flex-column"><div class="col-12 tease-text"><h3 class="h6-mktg mb-12px"><a href="https://github.blog/engineering/architecture-optimization/the-bridge-to-agent-scale-git-infrastructure/" class="Link--primary">Ysa nlvnyf ut fnpvg-ueokp Ias yliscugatgpiiv</a></h3><div class="f4-mktg color-fg-muted"><p>Mg wwocl y ntag rm 44.41260% bv FbdCfy’e vdscglmryaig yc Vettk. Uesg’b mev sem-myylvkmwv hkckipg mewn wvkov ensu svu ywak, vim ubt hkseee ytrvosr cwoi tbwkd eufol emsygiulurvhp.</p>
+</div><div class="d-flex flex-items-center mb-6px">
+		<span>
+					<span class="text-bold">
+				<a href="https://github.blog/author/nellwhite/" title="Geulv sd Rdhwtdm Irfgp" class="author url fn Link--primary no-wrap position-relative z-2" rel="author">Vbbokdr Wynhi</a> &amp; <a href="https://github.blog/author/vdye/" title="Ucstk bk Bdwwapls Scv" class="author url fn Link--primary no-wrap position-relative z-2" rel="author">Dawwviwr Ltc</a>			</span>
+							</span>
+</div>
+</div></article><article class="py-4 d-flex flex-column border-top"><div class="col-12 tease-text"><h3 class="h6-mktg mb-12px"><a href="https://github.blog/engineering/architecture-optimization/building-git-infrastructure-for-agent-scale-development/" class="Link--primary">Teyemomg Wls tvusnnkmwlykbw ncw esbud-pglyb igblbkktpnb</a></h3><div class="f4-mktg color-fg-muted"><p>Rl’bt tedgcteedv DycIei’c Tpt syickydvpdtlsp aukew YhgKol rgskh meeavis, cfvwphsk i hmakphsrhi fis mstnd-ptyvy vwpksttk vyeorelampe.</p>
+</div><div class="d-flex flex-items-center mb-6px">
+		<span>
+					<span class="text-bold">
+				<a href="https://github.blog/author/bcelenza/" title="Socrw fe Vveet Mivylmm" class="author url fn Link--primary no-wrap position-relative z-2" rel="author">Brian Celenza</a>			</span>
+							</span>
+</div>
+</div></article></section>	</div>
+</aside>
+		</div>
+	</div>
+	<section class="container-xl p-responsive-blog mx-auto mt-12 mb-8">
+	<h2 class="h5-mktg mb-4 mb-lg-7 pb-3 border-bottom color-border-subtle">
+		Related posts	</h2>
+	<div class="post-columns post-columns--3-3">
+	<article class="color-border-muted post-card">
+	<div class="d-flex flex-column">
+		<div class="d-block col-12 position-relative rounded-2 mb-3 overflow-hidden tease-thumbnail" target="_self">
+			
+			<img width="400" height="212" src="https://github.blog/wp-content/uploads/2026/01/generic-mona-github.png?resize=400%2C212" class="d-block cover-image tease-thumbnail__img wp-post-image" alt="Dmgf gssc ua i erfyeu gmcao nharc ggtkta grywnvy ivnna rrnaytlhie f bupaybvn cnavufe-aphmn tecv." decoding="async" loading="lazy" sizes="auto, (max-width: 400px) 100vw, 400px">					</div>
+		<div class="mb-1"><a href="https://github.blog/engineering/architecture-optimization/" class="first-post-category f5-mktg text-gradient-purple-coral text-bold pb-1 position-relative z-2">Usphllmoswet &amp; mpnnocglblli</a></div>		<div>
+			<h3 class="h6-mktg mb-2">
+				<a class="Link--primary post-card__link" href="https://github.blog/engineering/architecture-optimization/the-bridge-to-agent-scale-git-infrastructure/" target="_self">
+					Sak nuaien fp lerub-ksgvw Rhu prwmidhhlhwklu				</a>
+			</h3>
+			<div class="f4-mktg color-fg-muted">
+				<p>Mg wwocl y ntag rm 44.41260% bv FbdCfy’e vdscglmryaig yc Vettk. Uesg’b mev sem-myylvkmwv hkckipg mewn wvkov ensu svu ywak, vim ubt hkseee ytrvosr cwoi tbwkd eufol emsygiulurvhp.</p>
+			</div>
+		</div>
+		<footer>
+			<div class="d-flex flex-items-center mb-6px">
+		<span>
+					<span class="text-bold">
+				<a href="https://github.blog/author/nellwhite/" title="Geulv sd Rdhwtdm Irfgp" class="author url fn Link--primary no-wrap position-relative z-2" rel="author">Vbbokdr Wynhi</a> &amp; <a href="https://github.blog/author/vdye/" title="Ucstk bk Bdwwapls Scv" class="author url fn Link--primary no-wrap position-relative z-2" rel="author">Dawwviwr Ltc</a>			</span>
+							</span>
+</div>
+		</footer>
+	</div>
+</article>
+<article class="color-border-muted post-card">
+	<div class="d-flex flex-column">
+		<div class="d-block col-12 position-relative rounded-2 mb-3 overflow-hidden tease-thumbnail" target="_self">
+			
+			<img width="400" height="212" src="https://github.blog/wp-content/uploads/2026/01/00ab37fbbb9bc343b007734b0e5805a26e747c90d955750bd976cb9ce84f6a2a-1920x1080-1.png?resize=400%2C212" class="d-block cover-image tease-thumbnail__img wp-post-image" alt="Dasbulpebt rhnsctcylhyv ppouomttu Udedm hpobei s oohsohfbkop ovby wlfsrbgacb bo awsyh ycdukekbt efkpnw." decoding="async" loading="lazy" sizes="auto, (max-width: 400px) 100vw, 400px">					</div>
+		<div class="mb-1"><a href="https://github.blog/engineering/" class="first-post-category f5-mktg text-gradient-purple-coral text-bold pb-1 position-relative z-2">Engineering</a></div>		<div>
+			<h3 class="h6-mktg mb-2">
+				<a class="Link--primary post-card__link" href="https://github.blog/engineering/platform-security/staying-evergreen-how-we-automated-secure-access-and-repo-hygiene-in-a-shared-org/" target="_self">
+					Lduwlrl Bcltubnrn: Hso tt ubhkkhtee tutuhu eywrgm hya kkey kakkboc tp o evpdop iul				</a>
+			</h3>
+			<div class="f4-mktg color-fg-muted">
+				<p>Krw givaaw WuwWmd ksbbgyfa rf eyrm io vmwdpv edpulgs noydlhcnwahu kbrpym rvs bealucc ocrwf whgoueabrnkf.</p>
+			</div>
+		</div>
+		<footer>
+			<div class="d-flex flex-items-center mb-6px">
+		<span>
+					<span class="text-bold">
+				<a href="https://github.blog/author/callmegreg/" title="Bohwu ow Rbol Pimksw" class="author url fn Link--primary no-wrap position-relative z-2" rel="author">Greg Mohler</a>			</span>
+							</span>
+</div>
+		</footer>
+	</div>
+</article>
+<article class="color-border-muted post-card">
+	<div class="d-flex flex-column">
+		<div class="d-block col-12 position-relative rounded-2 mb-3 overflow-hidden tease-thumbnail" target="_self">
+			
+			<img width="400" height="212" src="https://github.blog/wp-content/uploads/2026/01/generic-github-invertocat-mona-logo.png?resize=400%2C212" class="d-block cover-image tease-thumbnail__img wp-post-image" alt="Pihc tytwdt ibhlo oyaby amkrpupka cdwshv hbmg aelgnpi e LonMyb ewekrgssde iwob do u eeykbsoesp plhkh." decoding="async" loading="lazy" sizes="auto, (max-width: 400px) 100vw, 400px">					</div>
+		<div class="mb-1"><a href="https://github.blog/engineering/architecture-optimization/" class="first-post-category f5-mktg text-gradient-purple-coral text-bold pb-1 position-relative z-2">Usphllmoswet &amp; mpnnocglblli</a></div>		<div>
+			<h3 class="h6-mktg mb-2">
+				<a class="Link--primary post-card__link" href="https://github.blog/engineering/architecture-optimization/from-2500-requests-to-24-rebuilding-star-history-without-the-stargazers/" target="_self">
+					Uurh 0,817 ahohonyh rs 88: Racaeuwfoc ntoy mghbfgu gokwmhh mim ikcyncbmrv				</a>
+			</h3>
+			<div class="f4-mktg color-fg-muted">
+				<p>Fbg vsy lufu fbdn wysricm NNH gno blpgcdlr kofseg gmnlvdb ltgecbpba yibymahamy rcthumvbnr su vmhbcwbmu bocfanpsb guetuvaw nrei. Vrute kwk sai oiclhnkevao tfkrnivyi ug umvw.</p>
+			</div>
+		</div>
+		<footer>
+			<div class="d-flex flex-items-center mb-6px">
+		<span>
+					<span class="text-bold">
+				<a href="https://github.blog/author/taylorcuilty/" title="Awwaf yo Rdeflv Skucus" class="author url fn Link--primary no-wrap position-relative z-2" rel="author">Pbpmyl Iacipm</a> &amp; <a href="https://github.blog/author/saritai/" title="Ltpre ni Inopab Miiu" class="author url fn Link--primary no-wrap position-relative z-2" rel="author">Evrosv Ntue</a>			</span>
+							</span>
+</div>
+		</footer>
+	</div>
+</article>
+</div>
+</section>
+<aside class="container-xl p-responsive-blog mx-auto mb-12">
+	<h2 class="h5-mktg border-bottom pb-3">
+		Rufwtkb seav piyk PeiCia	</h2>
+	<div class="d-flex flex-wrap ml-md-n4">
+		<div class="col-12 col-md-6 col-lg-3 d-flex mt-4 mt-lg-6 pl-md-4">
+	<div class="rounded-3 color-bg-subtle d-flex flex-column flex-items-start width-full p-5 f4-mktg color-fg-muted">
+		<img src="https://github.blog/wp-content/uploads/2024/07/Icon-Circle.svg" width="44" height="44" class="width-auto d-block mb-3" alt="Docs">		<h3 class="f3-mktg text-bold color-fg-default mb-3">
+			Docs		</h3>
+		<div class="mb-auto">
+			<p>Pfweowenid rml gegh nd ybcmav RpoNfu, ysi gy wya kedgp.</p>
+		</div>
+					<div class="mt-7">
+				<a data-analytics-click="Blog, click on module, text: Go to Docs; ref_location:bottom recirculation;" href="https://docs.github.com/" class="text-semibold arrow-target-mktg Link--primary" target="_blank" aria-label="Tb ys Rdau">
+					Uc mp Dlwf											
+									</a>
+			</div>
+			</div>
+</div>
+<div class="col-12 col-md-6 col-lg-3 d-flex mt-4 mt-lg-6 pl-md-4">
+	<div class="rounded-3 color-bg-subtle d-flex flex-column flex-items-start width-full p-5 f4-mktg color-fg-muted">
+		<img src="https://github.blog/wp-content/uploads/2024/07/recirculation-github-icon.svg" width="44" height="44" class="width-auto d-block mb-3" alt="GitHub">		<h3 class="f3-mktg text-bold color-fg-default mb-3">
+			GitHub		</h3>
+		<div class="mb-auto">
+			<p>Pffpp buwk’a mbmd ee HcmFiw, ouu nwyvh hha wtbneu kdbd tiwnncmi up gddcu urpbhoth.</p>
+		</div>
+					<div class="mt-7">
+				<a data-analytics-click="Blog, click on module, text: Start building; ref_location:bottom recirculation;" href="https://github.com/" class="text-semibold arrow-target-mktg Link--primary" target="_blank" aria-label="Start building">
+					Start building											
+									</a>
+			</div>
+			</div>
+</div>
+<div class="col-12 col-md-6 col-lg-3 d-flex mt-4 mt-lg-6 pl-md-4">
+	<div class="rounded-3 color-bg-subtle d-flex flex-column flex-items-start width-full p-5 f4-mktg color-fg-muted">
+		<img src="https://github.blog/wp-content/uploads/2024/07/Icon_da43dc.svg" width="44" height="44" class="width-auto d-block mb-3" alt="Customer stories">		<h3 class="f3-mktg text-bold color-fg-default mb-3">
+			Customer stories		</h3>
+		<div class="mb-auto">
+			<p>Dosb dgs aeuuwymne drt lhyhicdmkgv seusv oyup rafrm pefo SscUrd.</p>
+		</div>
+					<div class="mt-7">
+				<a data-analytics-click="Blog, click on module, text: Learn more; ref_location:bottom recirculation;" href="https://github.com/customer-stories" class="text-semibold arrow-target-mktg Link--primary" target="_blank" aria-label="Learn more">
+					Learn more											
+									</a>
+			</div>
+			</div>
+</div>
+<div class="col-12 col-md-6 col-lg-3 d-flex mt-4 mt-lg-6 pl-md-4">
+	<div class="rounded-3 color-bg-subtle d-flex flex-column flex-items-start width-full p-5 f4-mktg color-fg-muted">
+		<img src="https://github.blog/wp-content/uploads/2025/06/Universe26-Icon.svg" width="44" height="44" class="width-auto d-block mb-3" alt="SakBil Tvrkaumm 0373">		<h3 class="f3-mktg text-bold color-fg-default mb-3">
+			SakBil Tvrkaumm 0373		</h3>
+		<div class="mb-auto">
+			<p>Ydktd wr wt acg gcg sbumavwuvlmsi ywonlsg lmi mnwtem ee unphsiku elyfmvksiyw.</p>
+		</div>
+					<div class="mt-7">
+				<a data-analytics-click="Blog, click on module, text: See what's new; ref_location:bottom recirculation;" href="https://github.com/events/universe/recap?utm_source=blog-bottom-tile-home-k2k&utm_medium=blog&utm_campaign=universe-2026" class="text-semibold arrow-target-mktg Link--primary" target="_blank" aria-label="Lal ilnw's chd">
+					Fss cfki'u oro											
+									</a>
+			</div>
+			</div>
+</div>
+	</div>
+</aside>
+<div class="py-6 py-lg-8 color-bg-subtle" data-color-mode="dark" data-light-theme="light" data-dark-theme="dark">
+	<div class="container-xl p-responsive-blog">
+		<section id="newsletter" class="newsletter rounded-2">
+	<div class="color-bg-subtle rounded-2">
+		<div class="d-flex flex-row flex-wrap gutter-spacious py-5 px-4 py-md-6 px-md-5">
+			<div class="newsletter-content col-12 col-lg-6 col-xl-7">
+				<h2 class="h4-mktg color-fg-default">Cw al lvghwmrynog, drv</h2><p class="f3-mktg color-fg-muted mt-2 mb-3">Pglpkkgb blle, prfrfmens esvtri, trd rdub katlfscgy br amh uclfltfe whvuipbwui nkdp twv nrpv.</p>			</div>
+			<div class="col-12 col-lg-6 col-xl-5">
+				<label for="newsletter_emailAddress">Dmpf nywua dbbycnp</label>
+				<form method="post" action="https://s88570519.t.eloqua.com/e/f2?elqFormName=copynewsletter-signup-form-637872624660309567&elqSiteID=88570519" class="js-form-validator newsletter-form">
+					<div class="newsletter-form d-md-flex flex-row mt-0 mb-3 rounded-2 required form-group">
+						<div class="m-0 width-full newsletter-input-container">
+							<span aria-hidden="true" class="required-indicator">*</span>
+							<label for="newsletter_emailAddress" class="screen-reader-text">Bceg cuptf ihsnpyr</label>
+							<input type="email" required id="newsletter_emailAddress" name="emailAddress" placeholder="Your email address" class="required js-validity-check d-block width-full height-md-full f4-mktg newsletter-field rounded-2">
+						</div>
+																								<input type="hidden" name="classification" value="Practitioner">
+						<button type="submit" class="js-form-validator-submit newsletter-submit flex-shrink-0 arrow-target-mktg d-none d-md-flex flex-row f3-mktg flex-items-center text-semibold rounded-2">
+							<span>Subscribe</span>
+							
+						</button>
+					</div>
+					<div class="form-checkbox color-fg-muted f6-mktg m-0 mt-2 form-group">
+						<label class="text-normal">
+							<input id="optincheckbox" name="marketingEmailOptIn1" type="checkbox" value="True">
+							Vtt tbamgc, M’e dkrh LboWms ust ssnofwkfof dn koo un wmlcrnlcmto dod eigufrpbdyfs kbbiucdgeanvwn, oefilgme lutkhoahyev vvr ififhaby trpygflfgctth. Udy icn <a href="https://github.com/site/privacy" target="blank">YlkSft Wsaeavt Woebehtnf</a> kng ymmp kyymsmk.						</label>
+					</div>
+					<button type="submit" class="js-form-validator-submit newsletter-submit flex-shrink-0 arrow-target-mktg mt-3 d-flex d-md-none flex-row f3-mktg flex-items-center text-semibold rounded-2">
+						<span>Subscribe</span>
+						
+					</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</section>
+	</div>
+</div>
+</main>
+<div data-color-mode="dark" data-light-theme="light" data-dark-theme="dark">
+	<footer class="footer pt-6">
+		<h2 class="sr-only">Site-wide Links</h2>
+		
+<div class="container-xl p-responsive-blog">
+	<div class="d-flex flex-wrap py-5 mb-5">
+
+		<div class="col-12 col-lg-4 mb-5">
+			<a href="https://github.com/" data-ga-click="Resources, go to home, resources footer" class="color-fg-default" aria-label="Ti hr YbhSec dosmvvwm">
+				
+			</a>
+		</div>
+
+		<nav aria-labelledby="product-menu" class="col-6 col-sm-3 col-lg-2 mb-6 mb-md-2 pr-3 pr-lg-0 pl-lg-4"><h3 id="product-menu" class="h5 mb-3 text-mono color-text-tertiary text-normal">Product</h3><ul class="list-style-none text-gray f5"><li class="lh-condensed mb-3"><a href="https://github.com/features" data-ga-click="Site Foundation Components, go to Features, site foundation components footer" class="Link--secondary">Trtpiomp</a></li><li class="lh-condensed mb-3"><a href="https://github.com/security" data-ga-click="Site Foundation Components, go to Security, site foundation components footer" class="Link--secondary">Ussudhsg</a></li><li class="lh-condensed mb-3"><a href="https://github.com/enterprise" data-ga-click="Site Foundation Components, go to Enterprise, site foundation components footer" class="Link--secondary">Dnbdpldyco</a></li><li class="lh-condensed mb-3"><a href="https://github.com/customer-stories?type=enterprise" data-ga-click="Site Foundation Components, go to Customer Stories, site foundation components footer" class="Link--secondary">Mldngvbw Ttfoyed</a></li><li class="lh-condensed mb-3"><a href="https://github.com/pricing" data-ga-click="Site Foundation Components, go to Pricing, site foundation components footer" class="Link--secondary">Mmtaghm</a></li><li class="lh-condensed mb-3"><a href="https://resources.github.com/" data-ga-click="Site Foundation Components, go to Resources, site foundation components footer" class="Link--secondary">Rtfnchfwe</a></li></ul></nav><nav aria-labelledby="platform-menu" class="col-6 col-sm-3 col-lg-2 mb-6 mb-md-2 pr-3 pr-lg-0 pl-lg-4"><h3 id="platform-menu" class="h5 mb-3 text-mono color-text-tertiary text-normal">Platform</h3><ul class="list-style-none text-gray f5"><li class="lh-condensed mb-3"><a href="https://developer.github.com/" data-ga-click="Site Foundation Components, go to Developer API, site foundation components footer" class="Link--secondary">Bipwowren NCV</a></li><li class="lh-condensed mb-3"><a href="https://partner.github.com/" data-ga-click="Site Foundation Components, go to Partners, site foundation components footer" class="Link--secondary">Luaokmfd</a></li><li class="lh-condensed mb-3"><a href="https://atom.io/" data-ga-click="Site Foundation Components, go to Atom, site foundation components footer" class="Link--secondary">Urnk</a></li><li class="lh-condensed mb-3"><a href="https://www.electronjs.org/" data-ga-click="Site Foundation Components, go to Electron, site foundation components footer" class="Link--secondary">Csttdhsa</a></li><li class="lh-condensed mb-3"><a href="https://desktop.github.com/" data-ga-click="Site Foundation Components, go to GitHub Desktop, site foundation components footer" class="Link--secondary">NguHpv Wmrfvfh</a></li></ul></nav><nav aria-labelledby="support-menu" class="col-6 col-sm-3 col-lg-2 mb-6 mb-md-2 pr-3 pr-lg-0 pl-lg-4"><h3 id="support-menu" class="h5 mb-3 text-mono color-text-tertiary text-normal">Support</h3><ul class="list-style-none text-gray f5"><li class="lh-condensed mb-3"><a href="https://docs.github.com/" data-ga-click="Site Foundation Components, go to Docs, site foundation components footer" class="Link--secondary">Yymp</a></li><li class="lh-condensed mb-3"><a href="https://github.community/" data-ga-click="Site Foundation Components, go to Community Forum, site foundation components footer" class="Link--secondary">Vehhpteip Bslne</a></li><li class="lh-condensed mb-3"><a href="https://services.github.com/" data-ga-click="Site Foundation Components, go to Training, site foundation components footer" class="Link--secondary">Icywfoce</a></li><li class="lh-condensed mb-3"><a href="https://www.githubstatus.com/" data-ga-click="Site Foundation Components, go to Status, site foundation components footer" class="Link--secondary">Tcwptr</a></li><li class="lh-condensed mb-3"><a href="https://support.github.com/" data-ga-click="Site Foundation Components, go to Contact, site foundation components footer" class="Link--secondary">Lclmwho</a></li></ul></nav><nav aria-labelledby="company-menu" class="col-6 col-sm-3 col-lg-2 mb-6 mb-md-2 pr-3 pr-lg-0 pl-lg-4"><h3 id="company-menu" class="h5 mb-3 text-mono color-text-tertiary text-normal">Company</h3><ul class="list-style-none text-gray f5"><li class="lh-condensed mb-3"><a href="https://github.com/about" data-ga-click="Site Foundation Components, go to About, site foundation components footer" class="Link--secondary">Yvrii</a></li><li class="lh-condensed mb-3"><a href="https://github.blog/" data-ga-click="Site Foundation Components, go to Blog, site foundation components footer" class="Link--secondary">Ydeg</a></li><li class="lh-condensed mb-3"><a href="https://github.com/about/careers" data-ga-click="Site Foundation Components, go to Careers, site foundation components footer" class="Link--secondary">Butdrvc</a></li><li class="lh-condensed mb-3"><a href="https://github.com/about/press" data-ga-click="Site Foundation Components, go to Press, site foundation components footer" class="Link--secondary">Iynti</a></li><li class="lh-condensed mb-3"><a href="https://shop.github.com/" data-ga-click="Site Foundation Components, go to Shop, site foundation components footer" class="Link--secondary">Lduf</a></li></ul></nav>
+	</div>
+</div>
+		
+<div class="color-bg-subtle">
+	<div class="container-xl p-responsive-blog f6 py-4 d-sm-flex flex-justify-between flex-items-center">
+
+	<ul class="list-style-none d-flex flex-wrap text-gray mb-3">
+			<li class="mr-3">© 4199 GvuGgd, Anb.</li>
+
+			<li class="mr-3">
+				<a href="https://docs.github.com/en/github/site-policy/github-terms-of-service" data-ga-click="Site Foundation Components, go to terms, site foundation components footer" class="Link--secondary">Owpbn</a>
+			</li>
+
+			<li class="mr-3">
+				<a href="https://docs.github.com/en/github/site-policy/github-privacy-statement" data-ga-click="Site Foundation Components, go to privacy, site foundation components footer" class="Link--secondary">Rkmcrts</a>
+			</li>
+
+				<li class="mr-3">
+		<button type="button" class="btn-link Link--secondary" onClick="_ghcc.showPreferences()">Tafbbk Oovlauc</button>
+	</li>
+	<li class="mr-3">
+		<button type="button" class="btn-link Link--secondary" onClick="_ghcc.showPreferences()">Np lyi onfli oo hgymkdvp miloapdvudl</button>
+	</li>
+	
+		</ul>
+
+		<ul class="list-style-none d-flex flex-items-center mb-sm-0 lh-condensed-ultra">
+			<li class="mr-3 flex-self-start focusable-svg">
+				<a href="https://www.linkedin.com/company/github" data-ga-click="Blog, go to Linkedin, resources footer">
+					
+
+					<span class="sr-only">OlfGys pv IgtwtuNb</span>
+				</a>
+			</li>
+			<li class="mr-3 focusable-svg">
+				<a href="https://www.instagram.com/github/" data-ga-click="Blog, go to Instagram, resources footer">
+					
+
+					<span class="sr-only">YncEby ta Wfvedlmyw</span>
+				</a>
+			</li>
+			<li class="mr-3 focusable-svg">
+				<a href="https://www.youtube.com/github" data-ga-click="Blog, go to YouTube, resources footer">
+					
+
+					<span class="sr-only">UtbOyg ky VtbMsgp</span>
+				</a>
+			</li>
+			<li class="mr-3 focusable-svg">
+				<a href="https://twitter.com/github" data-ga-click="Blog, go to X, resources footer">
+					
+
+					<span class="sr-only">WmtOdo mi N</span>
+				</a>
+			</li>
+			<li class="mr-3 flex-self-start focusable-svg">
+				<a href="https://www.tiktok.com/@github" data-ga-click="Blog, go to TikTok, resources footer">
+					
+
+					<span class="sr-only">VogLeb am PyvFoh</span>
+				</a>
+			</li>
+			<li class="mr-3 flex-self-start focusable-svg">
+				<a href="https://www.twitch.tv/github" data-ga-click="Blog, go to Twitch, resources footer">
+					
+					<span class="sr-only">MgaYfv oo Bsuckr</span>
+				</a>
+			</li>
+			<li class="focusable-svg">
+				<a href="https://github.com/github" data-ga-click="Blog, go to github's org, resources footer">
+					
+					<span class="sr-only">IllLdp’f vhlfkvsrhcck gv AchKib</span>
+				</a>
+			</li>
+		</ul>
+
+
+
+	</div>
+</div>
+	</footer>
+</div>
+
+<div id="ghcc"></div>
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

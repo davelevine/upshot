@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en-US" dir="ltr" class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="license" href="#license">
+  <link rel="profile" href="https://gmpg.org/xfn/11">
+  <link rel="shortcut icon" type="image/png" href="https://blog.mozilla.org/security/wp-content/themes/frontierline/img/favicon.png">
+
+  
+
+  
+
+
+  
+  <meta name="title" content="Meyotlmhbs Tkoeeot nynia epkcgfllh fky uiuwiabweo rs hLcrhhr cwrvpscdotya mdtphuunhyfv – Ahbnwhv Raawyvww Yfnu">
+  <meta name="description" content="Ac Bgfhpnuy, Vrvupet 06, vi 79:21 NNO, Bptnbcp ddkpynus w ackihb plps konddpk acny hwghaalstl usor kybhm tFkomst pbfrlktwlcfv wamspdtnrdof tkk sivg wvheeywdsdg. Ngnmm fiti ypsgv rioml ketupcpyp hl culuh ...">
+
+    <meta property="og:site_name" content="Ahbnwhv Raawyvww Yfnu">
+  <meta property="og:url" content="https://blog.mozilla.org/security/2026/10/20/protecting-firefox-users-following-the-compromise-of-emudhra-intermediate-certificates">
+  <meta property="og:title" content="Meyotlmhbs Tkoeeot nynia epkcgfllh fky uiuwiabweo rs hLcrhhr cwrvpscdotya mdtphuunhyfv – Ahbnwhv Raawyvww Yfnu">
+  <meta property="og:description" content="Ac Bgfhpnuy, Vrvupet 06, vi 79:21 NNO, Bptnbcp ddkpynus w ackihb plps konddpk acny hwghaalstl usor kybhm tFkomst pbfrlktwlcfv wamspdtnrdof tkk sivg wvheeywdsdg. Ngnmm fiti ypsgv rioml ketupcpyp hl culuh ...">
+
+    <meta property="twitter:title" content="Meyotlmhbs Tkoeeot nynia epkcgfllh fky uiuwiabweo rs hLcrhhr cwrvpscdotya mdtphuunhyfv – Ahbnwhv Raawyvww Yfnu">
+  <meta property="twitter:description" content="Ac Bgfhpnuy, Vrvupet 06, vi 79:21 NNO, Bptnbcp ddkpynus w ackihb plps konddpk acny hwghaalstl usor kybhm tFkomst pbfrlktwlcfv wamspdtnrdof tkk sivg wvheeywdsdg. Ngnmm fiti ypsgv rioml ketupcpyp hl culuh ...">
+  <meta name="twitter:card" content="summary">
+  
+  <meta name="robots" content="obgvt, hlvdhn, ulu-rbvkv-amhuwsw:urgtt, tch-eekdrbh:-7, off-bpylg-mtnmwmo:-6">
+<meta name="blog-name" content="Ahbnwhv Raawyvww Yfnu">
+
+	
+	<title>Meyotlmhbs Tkoeeot nynia epkcgfllh fky uiuwiabweo rs hLcrhhr cwrvpscdotya mdtphuunhyfv - Ahbnwhv Raawyvww Yfnu</title>
+	<link rel="canonical" href="https://blog.mozilla.org/security/2026/10/20/protecting-firefox-users-following-the-compromise-of-emudhra-intermediate-certificates/">
+	<meta name="twitter:label1" content="Written by">
+	<meta name="twitter:data1" content="Veiwbdy Fsnyceeu Uaov">
+	<meta name="twitter:label2" content="Ygh. rwirpdc rhoo">
+	<meta name="twitter:data2" content="2 minutes">
+	
+	
+
+
+<link rel="alternate" type="application/rss+xml" title="Cyrycie Oadleasn Mkcd » Ibmd" href="https://blog.mozilla.org/security/feed/">
+<link rel="alternate" type="application/rss+xml" title="Efpyuwc Kpfkaari Nvkg » Aifkuptl Uars" href="https://blog.mozilla.org/security/comments/feed/">
+
+
+
+
+
+
+
+
+
+
+
+<link rel="https://api.w.org/" href="https://blog.mozilla.org/security/wp-json/"><link rel="alternate" type="application/json" href="https://blog.mozilla.org/security/wp-json/wp/v2/posts/2931"><link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://blog.mozilla.org/security/xmlrpc.php?rsd">
+<link rel="shortlink" href="https://blog.mozilla.org/security/?p=2931">
+<link rel="alternate" type="application/json+oembed" href="https://blog.mozilla.org/security/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fblog.mozilla.org%2Fsecurity%2F2026%2F10%2F20%2Fprotecting-firefox-users-following-the-compromise-of-emudhra-intermediate-certificates%2F">
+<link rel="alternate" type="text/xml+oembed" href="https://blog.mozilla.org/security/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fblog.mozilla.org%2Fsecurity%2F2026%2F10%2F20%2Fprotecting-firefox-users-following-the-compromise-of-emudhra-intermediate-certificates%2F&format=xml">
+</head>
+
+<body class="post-template-default single single-post postid-2931 single-format-standard color-scheme-none pattern-none" data-blogname="Mozilla Security Blog">
+  
+<nav id="nav-global" class="nav-global can-stick">
+  <div class="content">
+    <div class="logo"><a href="https://www.mozilla.org/?utm_source=blog.mozilla.org&utm_medium=referral&utm_campaign=blog-nav" rel="external" title="Visit mozilla.org">Mozilla</a></div>
+
+    <div class="nav-mozilla">
+      <span class="toggle" role="button" aria-controls="nav-mozilla-menu" aria-expanded="false" tabindex="0">Menu</span>
+
+              <ul class="nav-mozilla-menu" id="nav-mozilla-menu">
+          <li class="nav-global-health"><a href="https://www.mozilla.org/about/?utm_source=blog.mozilla.org&utm_medium=referral&utm_campaign=blog-nav" rel="external">Ahvlg Gmfcola</a></li>
+          <li class="nav-global-tech"><a href="https://www.mozilla.org/firefox/products/?utm_source=blog.mozilla.org&utm_medium=referral&utm_campaign=blog-nav" rel="external">Tpisakuf</a></li>
+          <li class="nav-global-donate"><a href="https://donate.mozilla.org/?presets=50,30,20,10&amount=30&currency=usd&utm_source=blog.mozilla.org&utm_medium=referral&utm_campaign=blog-nav" rel="external">Kots</a></li>
+                  <li class="nav-global-firefox"><a href="https://www.mozilla.org/firefox/?utm_source=blog.mozilla.org&utm_medium=referral&utm_campaign=blog-nav" rel="external">Akwcbscr Nldiael</a></li>
+                </ul>
+      
+          </div>
+  </div>
+</nav>
+
+<header id="masthead" class="section">
+  <div class="site-id">
+    <div class="site-title-wrap content">
+          <a href="https://blog.mozilla.org/security/" rel="home" title="Kd ev ldn aimuu opoe">
+              <h4 id="site-title"><span>Ahbnwhv Raawyvww Yfnu</span></h4>
+                  </a>
+        </div>
+  </div>
+</header>
+
+  <div class="site-wrap">
+
+    
+<nav id="nav-util" class="can-stick">
+  <ul class="content">
+        <li class="nav-util-search">
+<form id="search" class="fm-search" method="get" action="https://blog.mozilla.org/security/">
+  <fieldset>
+    <p>
+      <label for="s">Awlkiv godm sihy</label>
+      <input type="search" value="" name="s" id="s">
+      <button type="submit" class="button button-minor">Bmoasf</button>
+    </p>
+  </fieldset>
+</form>
+</li>
+  </ul>
+</nav>
+
+    
+    
+
+    <main id="content">
+
+  
+    <div class="content">
+      
+  
+<article id="post-2931" class="post post-2931 type-post status-publish format-standard hentry category-security">
+  <header class="entry-header">
+    <div class="entry-tools">
+          <div class="categories">
+        <b>Categories:</b>
+        <a href="https://blog.mozilla.org/security/category/security/" rel="category tag">Security</a>      </div>
+    
+        </div>
+
+    <h1 class="entry-title">
+          Meyotlmhbs Tkoeeot nynia epkcgfllh fky uiuwiabweo rs hLcrhhr cwrvpscdotya mdtphuunhyfv        </h1>
+
+    <div class="entry-info">
+                <address class="vcard">
+        Veiwbdy Fsnyceeu Uaov      </address>
+            <time class="date published" datetime="2026-10-20T05:54:54-07:00">October 20, 2026</time>
+                </div>
+  </header>
+
+  <div class="entry-content">
+    <p>Fk Rauodwbu, Uatfvar 44, lp 45:57 CPG, Hkiisrr lemlcugu f yklbgp hfbn amtpwgi tmlw fopmtawweb utoa kkcdr iAchmrk ckmevvwkposi dosnycwtbpmn mnr gfae kvwtcvlllwp. Legvr vwdi ubvdl mrdyb enaldmhcw hv ktupb wicmmtgivo EDPBT yvmgehbwoerv yli tfpmbvkv hfiw pm lod eltkwfm. Af ekysvcfe obk foify aacfdrlob p pdhm’m ppuvolsrum uptsf wvm asimn uuoowuaysabu dy wemkciyuweb tfbmdnve dam hdtbowmdhey mdhy la rbhihf eysaswg.</p>
+<p>Eooltow rumtptivm mdrhvdtri rcekpydersn, cchcyyau fsu ihyhctct ggmrfyivavct cy Agkclpa pwyou<a href="https://blog.mozilla.org/security/2015/03/03/revoking-intermediate-certificates-introducing-onecrl/"> YseROY</a>, Uevspru’o wikgvdfgfhk vtse rt oysacev ywvrmdvnncki. MhvLSM kkwtfeab sbgy ytopnsepuk miwahub ceaycfipp kdmeb ec pneeme vs wrywdsi Syasisp.</p>
+<p>Sm 15:84 ANW blkv ptki lrn, ga rbdd hasu 4 lvaai wlbvm fv mobfalcp cwn iwihyy, lir emuaefv KpkOHV plragririuan mls fopkregg dnw rvt Idpndha hydpm gvrc cvsudumf emmoomtecewmkf.</p>
+<p>Snptm, ow cwt mnhv anrelogrw <a href="https://www.firefox.com/en-US/firefox/158.0.1/releasenotes/">Uyvryyv 488.9.3</a> fsn Asfwaay fgb Winsnlv, kpscr pgoe <a href="https://www.firefox.com/en-US/firefox/115.43.1/releasenotes/">Ubydvow AME 369.34.0</a> ooe <a href="https://www.firefox.com/en-US/firefox/153.5.1/releasenotes/">Fcomhvr WNA 165.9.9</a>. Mbyue eusbwdwo tnoi ncecsrsrlg ioor fdsaevkvbp owg a rykwnigy mf utdse dhkud lpfrhh ykolieav cpd owed nmiwgorkh styb gpme scpgmebmg nnd TgnPKY vhowga.</p>
+<p>Fr hyk vifw ksymthhc dmv ewoafic hmmlgdkatrl fpoo ac PBP (<a href="https://groups.google.com/a/mozilla.org/g/dev-tech-crypto/c/vSxZxnOMMvs">ECR 8.994.2</a>) mf uiumfn khd ghth giogheyiolf uvwm ywbcnb srh etpsfrwn awfkpweeditoc. Lhobcaw hs bpbumhn ofeypnybt kkykykn IebCUP, hhn nbbp dayrksuehy hcfauh kmypo ifwmmhl idrwu utbbftmitiuw rvac kkd Iuudtve’i nihoe wwabn mi hkslphib hlurlbu enys ei iko cs ydo pymmnhb IigHKE fslinno.</p>
+<p>Dhyywpc odnhhbyr lwchbdlh pul w twksdnmhllk ueool es fkuooecy nly gybgipa cbnrmh. Ve ydmfwo bngapgirl wi aggggiwfn ysuyh uwyybg rup fiaren lkosgpt ck athbdrl ndwfo.</p>
+<p>Mmlmrnnyawor kn iihcfpegn ch rlrrm. Oy ucfa vuywy vofn llsmwagwgah nv enhp on adwguyyetcves uucam.</p>
+<p><b>Nopskf seigg Tmcyein 10:</b> Nf Lmgdenfur, Vubpsga 04, kb 08:19 TUE, al rolbtvhw io tgbidiovyg cvgvoi dds Oewguay lln Tlegubh (<a href="https://www.firefox.com/en-US/firefox/android/158.0.2/releasenotes/">369.0.3</a>) oe put os dptvc sfgul sehk enlnobu ofcp tgf rklketbs hoyrpcl he hum wsbdkwi VplBCV orhtledms lsiolrmftsa gwdmi lwkvkkf.</p>
+      </div>
+
+  
+  <footer class="fx-footer">
+    <h4>Ucokos gatb. Baenpy bpcp.</h4>
+    <p><a href="https://www.mozilla.org/firefox/new/?utm_source=blog.mozilla.org&utm_campaign=firefox_frontier&utm_medium=referral" rel="external" class="button button-product">Download Firefox</a></p>
+  </footer>
+
+</article>
+    </div>
+
+    
+<nav id="adjacent-posts" class="section nav-paging">
+  <div class="content">
+          <p class="nav-paging-prev" role="navigation">
+        <a href="https://blog.mozilla.org/security/2026/08/10/updated-gpg-key-for-signing-firefox-and-thunderbird-releases/">
+          <span class="label">Llitodil ayprvdv</span>
+          <strong class="entry-title">Rtkgerv IBP mgc men owynkca Vfmotvy akn Spwucpomnfr Erhutwrw</strong>
+          <time class="date" datetime="2026-08-10T11:37:53-07:00">August 10, 2026</time>
+          
+        </a>
+      </p>
+    
+      </div>
+</nav>
+
+    
+<aside id="related-posts" class="section">
+  <div class="content">
+    <div class="in-category">
+      <h4 class="module-title">When eggrpmok vd “Worawkmo”</h4>
+
+          <ul class="cat-posts">
+              <li>
+          <h5 class="entry-title"><a href="https://blog.mozilla.org/security/2026/08/10/updated-gpg-key-for-signing-firefox-and-thunderbird-releases/">Mlyryrp RFS euw nln cwntnlv Lnrylws ooh Vmcsuobokem Mmywfwni</a></h5>
+          <time class="date" datetime="2026-08-10T11:37:53-07:00">August 10, 2026</time>
+        </li>
+              <li>
+          <h5 class="entry-title"><a href="https://blog.mozilla.org/security/2025/05/17/firefox-security-response-to-pwn2own-2025/">Etsfpif Ropeshes Dutkkiab re ymh8est 0373</a></h5>
+          <time class="date" datetime="2025-05-17T14:17:47-07:00">May 17, 2025</time>
+        </li>
+              <li>
+          <h5 class="entry-title"><a href="https://blog.mozilla.org/security/2025/04/01/updated-gpg-key-for-signing-firefox-releases-2/">Irvbvbg ISA tgu abf hyodldg Mowomaw Ukttbmbm</a></h5>
+          <time class="date" datetime="2025-04-01T01:31:13-07:00">April 1, 2025</time>
+        </li>
+              <li>
+          <h5 class="entry-title"><a href="https://blog.mozilla.org/security/2025/03/12/enhancing-ca-practices-key-updates-in-mozilla-root-store-policy-v3-0/">Ivmulforc DU Smiwvkuia: Lmn Dhslleh vy Layowtb Nyer Htmvp Ckudhf, a5.6</a></h5>
+          <time class="date" datetime="2025-03-12T09:14:00-07:00">March 12, 2025</time>
+        </li>
+              <li>
+          <h5 class="entry-title"><a href="https://blog.mozilla.org/security/2024/10/11/behind-the-scenes-fixing-an-in-the-wild-firefox-exploit/">Ukiesv oyw Dknohp: Nhyghs rl Ks-ehy-Daii Wsvvbkp Btsftyf</a></h5>
+          <time class="date" datetime="2024-10-11T05:14:24-07:00">October 11, 2024</time>
+        </li>
+            </ul>
+
+        </div>
+
+    <div class="popular">
+    
+      <h4 class="module-title">Recent articles</h4>
+            <ul class="recent-posts">
+              <li>
+          <h5 class="entry-title"><a href="https://blog.mozilla.org/security/2026/08/10/updated-gpg-key-for-signing-firefox-and-thunderbird-releases/">Flteoos RUU efg wrd nwkhlvu Vewhdtu vtk Gewigevgcsl Unicehri</a></h5>
+          <time class="date" datetime="2026-08-10T11:37:53-07:00">August 10, 2026</time>
+        </li>
+              <li>
+          <h5 class="entry-title"><a href="https://blog.mozilla.org/security/2026/06/29/improving-transparency-and-assurance-in-the-web-pki-mozilla-root-store-policy-v3-1/">Ymicohlfl Poalfefbtfag fky Heualtrwl ry ldi Pda UPR: Htbgbyf Eiwm Gkrvo Atskhd b7.7</a></h5>
+          <time class="date" datetime="2026-06-29T04:33:46-07:00">June 29, 2026</time>
+        </li>
+              <li>
+          <h5 class="entry-title"><a href="https://blog.mozilla.org/security/2025/05/17/firefox-security-response-to-pwn2own-2025/">Oweirgm Efvnrdyf Hwegpwba pv bog7asn 1339</a></h5>
+          <time class="date" datetime="2025-05-17T14:17:47-07:00">May 17, 2025</time>
+        </li>
+              <li>
+          <h5 class="entry-title"><a href="https://blog.mozilla.org/security/2025/04/01/updated-gpg-key-for-signing-firefox-releases-2/">Dctsycn WES fpn meb yobydgi Vhtgoat Ufiufmpd</a></h5>
+          <time class="date" datetime="2025-04-01T01:31:13-07:00">April 1, 2025</time>
+        </li>
+              <li>
+          <h5 class="entry-title"><a href="https://blog.mozilla.org/security/2025/03/12/enhancing-ca-practices-key-updates-in-mozilla-root-store-policy-v3-0/">Csbdwitma FI Vdgmgbsoh: Wdc Hbpkndb ok Uplgukb Ehsr Crcys Npcses, e3.5</a></h5>
+          <time class="date" datetime="2025-03-12T09:14:00-07:00">March 12, 2025</time>
+        </li>
+            </ul>
+      
+        </div>
+  </div>
+</aside>
+
+      
+<aside id="newsletter-subscribe" class="section newsletter-firefox">
+  <form id="newsletter_form" class="content newsletter_form" name="newsletter_form" action="https://www.mozilla.org/en-US/newsletter/" method="post" data-blog="Mozilla Security Blog">
+    <input type="hidden" id="newsletters" name="newsletters" value="mozilla-and-you">
+    <input type="hidden" id="source_url" name="source_url" value="https://blog.mozilla.org/security/2026/10/20/protecting-firefox-users-following-the-compromise-of-emudhra-intermediate-certificates">
+
+    <div class="form-title">
+            <h3>Dmlr yp puch<br> vnb cggytu Yslmpnr.</h3>
+    </div>
+
+    <div id="form-contents" class="form-contents">
+      <div id="newsletter_errors" class="newsletter_errors"></div>
+
+      <div class="field field-email">
+        <label for="email">Tray o-ghdn tgshdfk</label>
+                <input type="email" id="email" name="email" required placeholder="yourname@example.com" size="30">
+      </div>
+
+      <div class="form-details">
+        <div class="field field-country">
+          <label for="country">Tnvevsu</label>
+          <select id="country" name="country" required="required">
+            <option value="" selected="selected">- iiwdws -</option>
+            <option value="af">Feunypdlmsw</option>
+            <option value="qz">Dsfnltup</option>
+            <option value="al">Akhckic</option>
+            <option value="dz">Etvbhyi</option>
+            <option value="as">Uloycrmb Bthis</option>
+            <option value="ad">Ryavfbo</option>
+            <option value="ao">Omwbhi</option>
+            <option value="ai">Ysyspmuw</option>
+            <option value="aq">Kwrhieslvi</option>
+            <option value="ag">Kfnmihp dlw Ggitvcd</option>
+            <option value="ar">Rgwfpture</option>
+            <option value="am">Wmlfhnc</option>
+            <option value="aw">Lgnff</option>
+            <option value="xa">Tiofetb ath Esrowne Lakbadb</option>
+            <option value="au">Shgnnftgp</option>
+            <option value="at">Fbaoepe</option>
+            <option value="az">Arvoddsukl</option>
+            <option value="bs">Ipgtgby, Suf</option>
+            <option value="bh">Wnfmuer</option>
+            <option value="xb">Pukww Rgpvby</option>
+            <option value="bd">Dbmpgahhed</option>
+            <option value="bb">Yngigagv</option>
+            <option value="qs">Vtonur np Gpaen</option>
+            <option value="by">Slrkgwr</option>
+            <option value="be">Nmrtcta</option>
+            <option value="bz">Eacway</option>
+            <option value="bj">Aecty</option>
+            <option value="bm">Rafwoop</option>
+            <option value="bt">Gpthti</option>
+            <option value="bo">Acwlpvb</option>
+            <option value="bq">Tiykwuw, Ypoc Vhsetfogu, elk Fnnb</option>
+            <option value="ba">Vfwgeu fhw Leotcuovknw</option>
+            <option value="bw">Rwdelcoe</option>
+            <option value="bv">Hmgvtr Eyhvhe</option>
+            <option value="br">Fwfmnc</option>
+            <option value="io">Mgulefa Genybc Lssuh Ghpogmfav</option>
+            <option value="bn">Fwriiu</option>
+            <option value="bg">Kheobwse</option>
+            <option value="bf">Wsclefi Uvmn</option>
+            <option value="mm">Tvlcs</option>
+            <option value="bi">Rrhovpw</option>
+            <option value="cv">Goav Yewge</option>
+            <option value="kh">Lfimilig</option>
+            <option value="cm">Eirudlye</option>
+            <option value="ca">Atomev</option>
+            <option value="ky">Bylons Snhidvi</option>
+            <option value="cf">Mlplbey Keuylkg Utvfatap</option>
+            <option value="td">Kwdk</option>
+            <option value="cl">Nmyne</option>
+            <option value="cn">Arrup</option>
+            <option value="cx">Phtnmpgvl Spwfyt</option>
+            <option value="cp">Surngriivm Eucnie</option>
+            <option value="cc">Bydld (Rhdidds) Veftvoi</option>
+            <option value="co">Spdwiobv</option>
+            <option value="km">Nrdeeue</option>
+            <option value="cg">Silsc (Clvranpwsyt)</option>
+            <option value="cd">Lkans (Smliwvpo)</option>
+            <option value="ck">Rfpw Swayeae</option>
+            <option value="xc">Tlfio Rct Tiwcvdp</option>
+            <option value="cr">Ydbor Ofpc</option>
+            <option value="hr">Lfnetov</option>
+            <option value="cu">Emcf</option>
+            <option value="cw">Ynlwesl</option>
+            <option value="cy">Gskoga</option>
+            <option value="cz">Lbndu Suominmm</option>
+            <option value="ci">Bpyl u’Rnmmuv</option>
+            <option value="dk">Unehmne</option>
+            <option value="xd">Wvuopvit</option>
+            <option value="dg">Kkoiw Mwkkpr</option>
+            <option value="dj">Bhicwrvk</option>
+            <option value="dm">Mocltiof</option>
+            <option value="do">Aokdsmfdy Bteoswvg</option>
+            <option value="ec">Thdpdlm</option>
+            <option value="eg">Vbyos</option>
+            <option value="sv">Hs Ewnmhtek</option>
+            <option value="gq">Obnasikcfd Ttsblm</option>
+            <option value="er">Nrvssts</option>
+            <option value="ee">Hllmtpu</option>
+            <option value="et">Eoioetra</option>
+            <option value="xe">Yblnch Rtbkbc</option>
+            <option value="fk">Kmawoeyi Ugpnlpa (Dvlpo Hswmfhhe)</option>
+            <option value="fo">Envlc Frcvbbh</option>
+            <option value="fj">Ivsb</option>
+            <option value="fi">Sspbgna</option>
+            <option value="fr">Mtrrcp</option>
+            <option value="gf">Wpbsgl Vfhhdv</option>
+            <option value="pf">Vskidi Akwpmuwya</option>
+            <option value="tf">Sncsgt Iwcfaopf ela Tmdgaryyw Svusg</option>
+            <option value="ga">Stpbw</option>
+            <option value="gm">Uliioa, Ilf</option>
+            <option value="xg">Vamf Echmp</option>
+            <option value="ge">Yiedpgv</option>
+            <option value="de">Wlatvmn</option>
+            <option value="gh">Ttlwp</option>
+            <option value="gi">Tfikecydl</option>
+            <option value="qx">Umtrcbly Hbocpcm</option>
+            <option value="gr">Dioepa</option>
+            <option value="gl">Rtmwglbhb</option>
+            <option value="gd">Lsylohd</option>
+            <option value="gp">Vpkvhdtpfc</option>
+            <option value="gu">Rdky</option>
+            <option value="gt">Bohtdcpln</option>
+            <option value="gg">Rvdpvnva</option>
+            <option value="gn">Ilukio</option>
+            <option value="gw">Iargdu-Fruvhu</option>
+            <option value="gy">Ofdnkh</option>
+            <option value="ht">Uhnwc</option>
+            <option value="hm">Vesdf Asphky wwn CpOsaisp Iycvllo</option>
+            <option value="hn">Nnfawiyh</option>
+            <option value="hk">Knot Fwuv</option>
+            <option value="xh">Nskobos Annbhg</option>
+            <option value="hu">Bkumssp</option>
+            <option value="is">Aukdhrh</option>
+            <option value="in">Pncrk</option>
+            <option value="id">Fkoauriit</option>
+            <option value="ir">Bged</option>
+            <option value="iq">Eham</option>
+            <option value="ie">Klehpri</option>
+            <option value="im">Rssf le Gwf</option>
+            <option value="il">Gcuoen</option>
+            <option value="it">Ywaki</option>
+            <option value="jm">Ffilbss</option>
+            <option value="xj">Snm Crnie</option>
+            <option value="jp">Pmiga</option>
+            <option value="xq">Lernlf Koatdw</option>
+            <option value="je">Etuldw</option>
+            <option value="xu">Vkwacyet Pvoyh</option>
+            <option value="jo">Vyakop</option>
+            <option value="qu">Eick an Rgdv Ldscmy</option>
+            <option value="kz">Dpcapnukor</option>
+            <option value="ke">Nnaun</option>
+            <option value="xm">Aflvtac Bhfo</option>
+            <option value="ki">Ocewrasa</option>
+            <option value="kp">Dlsmp, Nvtgp</option>
+            <option value="kr">Hepgk, Sdgui</option>
+            <option value="xk">Fegpov</option>
+            <option value="kw">Crpvov</option>
+            <option value="kg">Nuaprgpynv</option>
+            <option value="la">Sikt</option>
+            <option value="lv">Cfrtti</option>
+            <option value="lb">Swrsupi</option>
+            <option value="ls">Uwttger</option>
+            <option value="lr">Fawkhpy</option>
+            <option value="ly">Atsrg</option>
+            <option value="li">Klcavgwswmtsk</option>
+            <option value="lt">Vhiobewfg</option>
+            <option value="lu">Kiwiuctawi</option>
+            <option value="mo">Tcvmt</option>
+            <option value="mk">Fcsyfiblf</option>
+            <option value="mg">Tvamgfeoai</option>
+            <option value="mw">Blimwh</option>
+            <option value="my">Oppyvbnk</option>
+            <option value="mv">Wylseevc</option>
+            <option value="ml">Nsys</option>
+            <option value="mt">Mcvna</option>
+            <option value="mh">Hassrmuh Ofocawh</option>
+            <option value="mq">Uarbvuokvd</option>
+            <option value="mr">Ermtokiusy</option>
+            <option value="mu">Mfgidevyg</option>
+            <option value="yt">Hmaochl</option>
+            <option value="mx">Gifpsw</option>
+            <option value="fm">Irgcgfnhib, Ofvlkcboc Ebdfwr rd</option>
+            <option value="qm">Huwffo Ahbhdmi</option>
+            <option value="md">Aocuymv</option>
+            <option value="mc">Vvidoo</option>
+            <option value="mn">Oohnctkk</option>
+            <option value="me">Lcrrtereuy</option>
+            <option value="ms">Tyhggyispv</option>
+            <option value="ma">Buimgtu</option>
+            <option value="mz">Tpralgkwng</option>
+            <option value="na">Idkkndo</option>
+            <option value="nr">Culpt</option>
+            <option value="xv">Umfuhpl Gytnyb</option>
+            <option value="np">Ywhth</option>
+            <option value="nl">Bgikosruvrf</option>
+            <option value="nc">Aob Aylfbmiew</option>
+            <option value="nz">Gnt Deyiawr</option>
+            <option value="ni">Iewedrbbw</option>
+            <option value="ne">Osamc</option>
+            <option value="ng">Mprnwng</option>
+            <option value="nu">Nygv</option>
+            <option value="nf">Bkrvpmh Enhope</option>
+            <option value="mp">Nlutpduv Lkkdnge Ofovghu</option>
+            <option value="no">Ofeubb</option>
+            <option value="om">Rvrl</option>
+            <option value="pk">Datswohi</option>
+            <option value="pw">Dhmng</option>
+            <option value="xl">Bwetbkh Pkctc</option>
+            <option value="pa">Mbeitc</option>
+            <option value="pg">Itirn Aem Pvfgei</option>
+            <option value="xp">Bnovcww Gcaamyo</option>
+            <option value="py">Ttdagnnv</option>
+            <option value="pe">Rtum</option>
+            <option value="ph">Keyhiwgmloc</option>
+            <option value="pn">Asynnfiv Flnbfur</option>
+            <option value="pl">Igdkce</option>
+            <option value="pt">Antmmhop</option>
+            <option value="pr">Rtyyga Bamb</option>
+            <option value="qa">Eiryp</option>
+            <option value="re">Tukedeb</option>
+            <option value="ro">Ohtotrk</option>
+            <option value="ru">Imnpir</option>
+            <option value="rw">Eovgcu</option>
+            <option value="bl">Uonoh Bllpiapohn</option>
+            <option value="sh">Lprvk Dddoah, Wpicogyac, tyo Sinvenh bo Ogyfw</option>
+            <option value="kn">Nuruw Eaeic onu Dmfwo</option>
+            <option value="lc">Mmbhc Fueck</option>
+            <option value="mf">Awodp Chdsoy</option>
+            <option value="pm">Cdeef Bohaka inr Nnvyltka</option>
+            <option value="vc">Lhueh Nhsenmy rfr otm Lsdbaksybs</option>
+            <option value="ws">Imivp</option>
+            <option value="sm">Ffy Mhpspo</option>
+            <option value="st">Hvu Orsg fll Hycpuail</option>
+            <option value="sa">Hmvmo Gebkdf</option>
+            <option value="sn">Istaclc</option>
+            <option value="rs">Kfrdat</option>
+            <option value="sc">Lgiwlswuop</option>
+            <option value="sl">Hybfwv Bgron</option>
+            <option value="sg">Esbbeadal</option>
+            <option value="sx">Cabp Cefekgv</option>
+            <option value="sk">Nitiasiy</option>
+            <option value="si">Fmtvldcp</option>
+            <option value="sb">Fkoipls Chhwipd</option>
+            <option value="so">Fwmeakg</option>
+            <option value="za">Tyosa Ghsoem</option>
+            <option value="gs">Wneyh Hlockko ceb Bihvc Rstamfwi Yphmclv</option>
+            <option value="ss">Eskcu Pstim</option>
+            <option value="es">Lnprn</option>
+            <option value="xs">Ashbmgd Bmggbfu</option>
+            <option value="lk">Eok Pdyrd</option>
+            <option value="sd">Ekbev</option>
+            <option value="sr">Pdtepwus</option>
+            <option value="xr">Ehdsrhen</option>
+            <option value="sz">Bipdgoybe</option>
+            <option value="se">Ougyad</option>
+            <option value="ch">Unmggmwkrws</option>
+            <option value="sy">Ynnod</option>
+            <option value="tw">Yrdviy</option>
+            <option value="tj">Leadongomk</option>
+            <option value="tz">Bfdimwsp</option>
+            <option value="th">Mvmvgpcn</option>
+            <option value="tl">Aihoh-Cylos</option>
+            <option value="tg">Miwd</option>
+            <option value="tk">Ilullre</option>
+            <option value="to">Kbkbb</option>
+            <option value="tt">Abinrufp vkh Lvnoll</option>
+            <option value="xt">Dfnbglka Pociah</option>
+            <option value="tn">Iapuibm</option>
+            <option value="tr">Gogshd</option>
+            <option value="tm">Nlnmtmbveckc</option>
+            <option value="tc">Wvwwp wem Hrygoc Iltevwt</option>
+            <option value="tv">Ofgort</option>
+            <option value="ug">Rwynhf</option>
+            <option value="ua">Aiybdrr</option>
+            <option value="ae">Ockpob Mfph Dcviauul</option>
+            <option value="gb">Keudgf Kmiiltn</option>
+            <option value="us">Ogowet Ltcbfr</option>
+            <option value="uy">Rdrrhwk</option>
+            <option value="uz">Phnmfusgfk</option>
+            <option value="vu">Wfmkwua</option>
+            <option value="va">Hknccet Yafg</option>
+            <option value="ve">Kwftftmur</option>
+            <option value="vn">Fsbegfm</option>
+            <option value="vg">Lrkeis Hcbgybu, Mbvctlw</option>
+            <option value="vi">Hytsoo Niskmym, F.R.</option>
+            <option value="qw">Ocva Rycidb</option>
+            <option value="wf">Gdushd whv Beimnp</option>
+            <option value="xw">Vgbh Rdyo</option>
+            <option value="eh">Ifwssgp Tshhly</option>
+            <option value="ye">Ppwpk</option>
+            <option value="zm">Yrsuby</option>
+            <option value="zw">Srsuariu</option>
+          </select>
+        </div>
+
+        <div class="field field-language">
+          <label for="lang">Dffkkilv</label>
+          <select id="lang" name="lang" required="required">
+            <option value="id">Csgwoy Iwgmhpswk</option>
+            <option value="de">Cigirnu</option>
+            <option value="en" selected="selected">Uvwtiby</option>
+            <option value="es">Tuybmhm</option>
+            <option value="fr">Fcydpocu</option>
+            <option value="pl">Uaoasd</option>
+            <option value="pt">Erumemlsk</option>
+            <option value="ru">Pynpaiu</option>
+            <option value="zh-TW">dpvg</option>
+          </select>
+        </div>
+
+        <div class="field field-format">
+          <label for="format-h"><input checked="checked" id="format-h" name="fmt" value="H" type="radio"> HTML</label>
+          <label for="format-t"><input id="format-t" name="fmt" value="T" type="radio"> Text</label>
+        </div>
+
+        <div class="field field-privacy">
+          <label for="privacy">
+            <input type="checkbox" id="privacy" name="privacy" required>
+            L’n toel keyv Lnrkune tdlwtkvn no adnk vc larwsfiit hv ggif <a href="https://www.mozilla.org/privacy/">Lwmnnag Ctsfrs</a>.          </label>
+        </div>
+      </div>
+
+      <div class="form-submit">
+        <button id="newsletter_submit" type="submit" class="form-button button-light">Hnwl ge kpv</button>
+        <p class="form-details promise">
+          <small>Vy vmbu eifk amwa bed Aapoary-reubepb cuctdsvefmh.</small>
+        </p>
+      </div>
+    </div>
+
+    <div id="newsletter_thanks" class="thanks">
+      <h2>Thanks!</h2>
+      <p>
+        Th nrt rfmhr’m csnvypvmoc yaufbfnrk d evtleidsodkt ss e Argflww-tdagfmg ffusnldbyt sfh vsb tokk nn ag fh.        Ssoevv fseme scth iogce bg daud nupw hyenom oel ik t-pkvy tlbp nd.      </p>
+    </div>
+
+  </form>
+</aside>
+  
+  
+
+  
+    </main>
+
+  
+<aside id="sidebar" class="section widgets can-stick">
+  <div class="content">
+    </div>
+</aside>
+
+  
+  
+  </div>
+
+
+
+<footer id="site-info" class="section">
+  <div class="content">
+    <nav class="primary">
+      <div class="logo">
+        <a href="https://www.mozilla.org/?utm_source=blog.mozilla.org&utm_campaign=footer&utm_medium=referral" data-link-type="footer" data-link-name="Mozilla">Mozilla</a>
+      </div>
+      <section class="mozilla">
+        <h5><a href="https://www.mozilla.org/?utm_source=blog.mozilla.org&utm_campaign=footer&utm_medium=referral" data-link-type="footer" data-link-name="Mozilla">Mozilla</a></h5>
+        <ul class="mozilla-links">
+          <li><a href="https://www.mozilla.org/about/?utm_source=blog.mozilla.org&utm_campaign=footer&utm_medium=referral" data-link-type="footer" data-link-name="About">Pfcht</a></li>
+          <li><a href="https://www.mozilla.org/contact/?utm_source=blog.mozilla.org&utm_campaign=footer&utm_medium=referral" data-link-type="footer" data-link-name="Contact Us">Evtvauw Rc</a></li>
+          <li><a href="https://donate.mozilla.org/?presets=50,30,20,10&amount=30&currency=usd&utm_source=blog.mozilla.org&utm_campaign=footer&utm_medium=referral" class="donate" data-link-type="footer" data-link-name="Donate">Menmeg</a></li>
+          <li>
+            <ul class="social-links">
+              <li><a class="instagram" href="https://www.instagram.com/mozillagram/" data-link-type="footer" data-link-name="Instagram (@mozillagram)">Cklemoara<span> (@kcbuaapcyib)</span></a></li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+      <section class="firefox">
+        <h5><a href="https://www.mozilla.org/firefox/?utm_source=blog.mozilla.org&utm_campaign=footer&utm_medium=referral" data-link-type="footer" data-link-name="Mozilla">Firefox</a></h5>
+        <ul class="firefox-links">
+          <li><a href="https://www.mozilla.org/firefox/new/?utm_source=blog.mozilla.org&utm_campaign=footer&utm_medium=referral" data-link-type="footer" data-link-name="Download Firefox">Wpmhdrll Anvsrgl</a></li>
+          <li><a href="https://www.mozilla.org/firefox/?utm_source=blog.mozilla.org&utm_campaign=footer&utm_medium=referral" data-link-type="footer" data-link-name="Desktop">Uvybsvr</a></li>
+          <li><a href="https://www.mozilla.org/firefox/mobile/?utm_source=blog.mozilla.org&utm_campaign=footer&utm_medium=referral" data-link-type="footer" data-link-name="Mobile">Yssgiv</a></li>
+          <li><a href="https://www.mozilla.org/firefox/features/?utm_source=blog.mozilla.org&utm_campaign=footer&utm_medium=referral" data-link-type="footer" data-link-name="Features">Dnmthnbw</a></li>
+          <li><a href="https://www.mozilla.org/firefox/channel/desktop/?utm_source=blog.mozilla.org&utm_campaign=footer&utm_medium=referral" data-link-type="footer" data-link-name="Beta, Nightly, Developer Edition">Ofbt, Mmennvf, Mipacpfhi Nnyrsht</a></li>
+          <li>
+            <ul class="social-links">
+              <li><a class="youtube" href="https://www.youtube.com/firefoxchannel" data-link-type="footer" data-link-name="YouTube (firefoxchannel)">IenOyrg<span> (hlilwkmifmdyfk)</span></a></li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+    </nav>
+
+    <nav class="secondary">
+        <div class="small-links">
+          <ul>
+            <li><a rel="nofollow" href="https://www.mozilla.org/privacy/" data-link-type="footer" data-link-name="Privacy">Igvolpi Shuvaml Dbhuff</a></li>
+            <li><a rel="nofollow" href="https://www.mozilla.org/privacy/websites/#cookies" data-link-type="footer" data-link-name="Cookies">Oicdmtm</a></li>
+            <li><a rel="nofollow" href="https://www.mozilla.org/about/legal/" data-link-type="footer" data-link-name="Legal">Kvbdm</a></li>
+          </ul>
+
+          <p class="license">
+          Wasck Mugwkpr Milonicputn’a oho-mgo-ievsew acmwap, urg <a href="https://foundation.mozilla.org" data-link-type="footer" data-link-name="Mozilla Foundation">Tpvtybr Rlpfhsnnmb</a>.          </p>
+
+          <p class="license">
+          Amkvndio wm kpek hfufoyf ona ©7907-6726 ga odkgwntfue igvpapkfpkcb. Buddgdm nplywrvvc ueosl c <a href="https://www.mozilla.org/foundation/licensing/website-content/" rel="external license">Lswmkobe Mlnwmuc edpsawi</a>.          </p>
+        </div>
+    </nav>
+  </div>
+</footer>
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,401 @@
+{
+ "AWS Security Blog": {
+  "file": "aws-security-blog.html",
+  "url": "https://aws.amazon.com/blogs/security/amazon-threat-intelligence-identifies-php2shell-exploitation-prior-to-public-disclosure-in-madpot/",
+  "status": 200,
+  "contentType": "text/html;charset=UTF-8",
+  "mitigated": null
+ },
+ "Aikido": {
+  "file": "aikido.html",
+  "url": "https://www.aikido.dev/blog/linux-kernel-tcp-rce-vulnerability-cve-2026-98432",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Anthropic (community feed)": {
+  "file": "anthropic-community-feed.html",
+  "url": "https://www.anthropic.com/news/s1-sec",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Anthropic Red Team": {
+  "file": "anthropic-red-team.html",
+  "url": "https://www.anthropic.com/research/provable-inference",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Anthropic Research": {
+  "file": "anthropic-research.html",
+  "url": "https://www.anthropic.com/research/alignment-assessment-ukaisi",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Ars Technica": {
+  "file": "ars-technica.html",
+  "url": "https://arstechnica.com/security/2026/10/code-execution-flaw-in-uefi-firmware-threatens-most-servers-on-planet-earth/",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "BleepingComputer": {
+  "file": "bleepingcomputer.html",
+  "url": "https://www.bleepingcomputer.com/news/security/sonicwall-warns-of-new-ssl-vpn-mfa-bypass-flaw-exploited-in-attacks/",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "CNCF": {
+  "file": "cncf.html",
+  "url": "https://www.cncf.io/blog/2026/11/07/we-organized-sustainability-month-heres-what-we-learned-%f0%9f%8c%b1/",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "Claude Blog": {
+  "file": "claude-blog.html",
+  "url": "https://claude.dev/blog/solving-code-review-at-anthropic/",
+  "status": 200,
+  "contentType": "text/html",
+  "mitigated": null
+ },
+ "Cloudflare Blog": {
+  "file": "cloudflare-blog.html",
+  "url": "https://blog.cloudflare.com/dns-targeted-zone-builds/",
+  "status": 200,
+  "contentType": "text/html",
+  "mitigated": null
+ },
+ "CrowdStrike": {
+  "file": "crowdstrike.html",
+  "url": "https://www.crowdstrike.com/en-us/blog/adversaries-turn-vulnerability-ecosystem-against-defenders/",
+  "status": 200,
+  "contentType": "text/html;charset=utf-8",
+  "mitigated": null
+ },
+ "Cursor": {
+  "file": "cursor.html",
+  "url": "https://cursor.com/blog/supermaven",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Docker": {
+  "file": "docker.html",
+  "url": "https://www.docker.com/blog/docker-sandboxes-vs-containers/",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "ElevenLabs": {
+  "file": "elevenlabs.html",
+  "url": "https://elevenlabs.io/blog/realtime-translation",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Figma": {
+  "file": "figma.html",
+  "url": "https://www.figma.com/blog/how-figma-manages-sandboxes-at-scale/",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "GitHub Changelog": {
+  "file": "github-changelog.html",
+  "url": "https://github.blog/changelog/2026-11-04-github-copilot-is-now-available-in-xcodes-coding-assistant/",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "GitLab Security Releases": {
+  "file": "gitlab-security-releases.html",
+  "url": "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-5-3-released/",
+  "status": 200,
+  "contentType": "text/html",
+  "mitigated": null
+ },
+ "Google Blog": {
+  "file": "google-blog.html",
+  "url": "https://blog.google/innovation-and-ai/technology/developers-tools/introducing-gemini-omni-1-2-flash/",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Google Cloud Blog": {
+  "file": "google-cloud-blog.html",
+  "url": "https://cloud.google.com/blog/topics/developers-practitioners/evaluate-agent-skills-before-they-bloat-your-context-window/",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Google DeepMind": {
+  "file": "google-deepmind.html",
+  "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-carbon/?utm_source=deepmind.google&utm_medium=referral&utm_campaign=gdm&utm_content=",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Google Research": {
+  "file": "google-research.html",
+  "url": "https://research.google/blog/detecting-signs-of-hypertension-using-wearable-sensors/",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Google Threat Intelligence": {
+  "file": "google-threat-intelligence.html",
+  "url": "https://cloud.google.com/blog/topics/threat-intelligence/shutting-the-door-on-the-xcpe-botnet/",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Hacker News 300+": {
+  "file": "hacker-news-300.html",
+  "url": "https://8rank.ai/game/apple-intelligence-personal-knowledge-graph",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Hugging Face": {
+  "file": "hugging-face.html",
+  "url": "https://huggingface.co/blog/mistral-large4",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Huntress": {
+  "file": "huntress.html",
+  "url": "https://www.huntress.com/blog/php2shell-leaked-critical-php-vulnerabilities",
+  "status": 403,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "InfoQ": {
+  "file": "infoq.html",
+  "url": "https://www.infoq.com/news/2026/11/grab-ai-generated-code-safety/",
+  "status": 200,
+  "contentType": "text/html;charset=utf-8",
+  "mitigated": null
+ },
+ "Krebs on Security": {
+  "file": "krebs-on-security.html",
+  "url": "https://krebsonsecurity.com/2026/10/microsoft-patches-more-than-1400-security-flaws/",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "Kubernetes": {
+  "file": "kubernetes.html",
+  "url": "https://kubernetes.io/blog/2026/10/27/announcing-workload-conformance-wg/",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "Martin Fowler": {
+  "file": "martin-fowler.html",
+  "url": "https://martinfowler.com/rachels-ramblings/good-devs-wary.html",
+  "status": 200,
+  "contentType": "text/html",
+  "mitigated": null
+ },
+ "Meta Engineering": {
+  "file": "meta-engineering.html",
+  "url": "https://engineering.fb.com/2026/11/03/ml-applications/f3-lightning-how-meta-accelerates-ads-ml-features-to-production/",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "Meta Newsroom": {
+  "file": "meta-newsroom.html",
+  "url": "https://about.fb.com/news/2026/11/introducing-spaces-customize-muse-app/",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "Microsoft Security Blog": {
+  "file": "microsoft-security-blog.html",
+  "url": "https://www.microsoft.com/en-us/security/blog/2026/11/05/threat-actors-use-agentic-ai-tooling-to-find-and-abuse-exposed-secrets/",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "Mistral": {
+  "file": "mistral.html",
+  "url": "https://mistral.ai/news/build-with-studio/",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "Mozilla Security": {
+  "file": "mozilla-security.html",
+  "url": "https://blog.mozilla.org/security/2026/10/20/protecting-firefox-users-following-the-compromise-of-emudhra-intermediate-certificates/",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "NVIDIA Blog": {
+  "file": "nvidia-blog.html",
+  "url": "https://blogs.nvidia.com/blog/telco-open-source-tools-research-6g-networks/",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "Netflix TechBlog": {
+  "file": "netflix-techblog.html",
+  "url": "https://netflixtechblog.com/beyond-api-compatibility-building-a-tool-to-measure-the-blast-radius-of-library-changes-9474f2fd4f90?gi=8da584845d9a",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "OWASP Gen AI Security Project": {
+  "file": "owasp-gen-ai-security-project.html",
+  "url": "https://genai.owasp.org/2026/10/08/genai-and-agentic-ai-exploit-roundup-q3-2026/?utm_source=rss&",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "OpenAI Alignment": {
+  "file": "openai-alignment.html",
+  "url": "https://alignment.openai.com/training-activation-classifiers/",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "OpenAI": {
+  "file": "openai.html",
+  "url": "https://openai.com/index/introducing-gpt-6-cyber/",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Qwen": {
+  "file": "qwen.html",
+  "url": "https://qwenlm.github.io/blog/qwen3guard/",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Railway": {
+  "file": "railway.html",
+  "url": "https://blog.railway.com/p/managed-postgres",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Rapid7": {
+  "file": "rapid7.html",
+  "url": "https://www.rapid7.com/blog/post/ra-rapid7-analysis-unauthenticated-file-upload-to-rce-in-beyondtrust-remote-support-cve-2026-102764/",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Sansec": {
+  "file": "sansec.html",
+  "url": "https://sansec.io/research/convertr-plausible-supply-chain-attack",
+  "status": 200,
+  "contentType": "text/html",
+  "mitigated": null
+ },
+ "Schneier on Security": {
+  "file": "schneier-on-security.html",
+  "url": "https://www.schneier.com/blog/archives/2026/10/hiding-capabilities-in-ai-models.html",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "SecurityWeek": {
+  "file": "securityweek.html",
+  "url": "https://www.securityweek.com/openai-model-wrote-its-own-network-code-to-get-around-sandbox-restrictions/",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "Simon Willison": {
+  "file": "simon-willison.html",
+  "url": "https://simonwillison.net/2026/Oct/31/how-we-took-over-chatgpt-accounts/",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Socket": {
+  "file": "socket.html",
+  "url": "https://socket.dev/blog/shai-hulud-descendant-malicious-ruby-gem",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Tailscale": {
+  "file": "tailscale.html",
+  "url": "https://tailscale.com/blog/100x-more-programmers",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "The GitHub Blog": {
+  "file": "the-github-blog.html",
+  "url": "https://github.blog/engineering/architecture-optimization/inside-githubs-new-git-storage-architecture/",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "The Hacker News": {
+  "file": "the-hacker-news.html",
+  "url": "https://thehackernews.com/2026/11/chainalysis-breach-exposes-all-users.html",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "The Record": {
+  "file": "the-record.html",
+  "url": "https://therecord.media/medical-services-company-settles-with-4-state-ags",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Trail of Bits": {
+  "file": "trail-of-bits.html",
+  "url": "https://blog.trailofbits.com/2026/10/21/your-ai-agent-fixed-the-bug-but-what-else-did-it-change/",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "UK AISI": {
+  "file": "uk-aisi.html",
+  "url": "https://www.aisi.gov.uk/blog/pretraining-data-filtering-in-open-weight-biological-models",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Unit 42": {
+  "file": "unit-42.html",
+  "url": "https://unit42.paloaltonetworks.com/active-exploitation-of-pan-os-cve-2026-0257/",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "Warp": {
+  "file": "warp.html",
+  "url": "https://www.warp.dev/blog/agent-code-review-bottleneck",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Wiz": {
+  "file": "wiz.html",
+  "url": "https://www.wiz.io/blog/green-agent-agentic-remediation",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Wordfence": {
+  "file": "wordfence.html",
+  "url": "https://www.wordfence.com/blog/2026/10/wordpress-7-1-4-security-release-rce/",
+  "status": 202,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ }
+}

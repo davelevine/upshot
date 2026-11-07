@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { classify, clean, extract, feedArticle, feedReader, frameable, kvClient, linkShare, readArticle, run } from '../extract.mjs';
+import { classify, clean, extract, feedArticle, feedReader, frameable, kvClient, linkShare, readArticle, run, tidy } from '../extract.mjs';
 import { keyFor, onRequestGet } from '../functions/api/read.js';
 
 test('frameable honours X-Frame-Options and frame-ancestors', () => {
@@ -121,6 +121,71 @@ test('run retries blocked stories, but only writes when something changed', asyn
   kv = fakeKv(blocked);
   out = await withFetch({ 'https://x.test/a': page(200, {}, article) }, () => run({ items, feeds: {} }, kv));
   assert.equal(kv.puts[0].metadata.reason, 'ok');  // the block lifted
+});
+
+test('run redoes articles from an older version, but a block on the redo keeps what it has', async () => {
+  const items = [{ url: 'https://x.test/a', publisher: 'P' }];
+  const old = [[await keyFor('https://x.test/a'), { reason: 'ok', words: 300 }]];  // no version: stored before this one
+  let kv = fakeKv(old);
+  await withFetch({ 'https://x.test/a': page(200, {}, article) }, () => run({ items, feeds: {} }, kv));
+  assert.equal(kv.puts.length, 1);
+  const { v } = kv.puts[0].metadata;
+  assert.ok(v);
+
+  kv = fakeKv(old);
+  const out = await withFetch({ 'https://x.test/a': page(403, {}, 'blocked') }, () => run({ items, feeds: {} }, kv));
+  assert.equal(kv.puts.length, 0);
+  assert.equal(out.words['https://x.test/a'], 300);
+
+  kv = fakeKv([[old[0][0], { reason: 'ok', words: 300, v }]]);
+  await withFetch({ 'https://x.test/a': new Error('should not be fetched') }, () => run({ items, feeds: {} }, kv));
+  assert.equal(kv.puts.length, 0);
+});
+
+test('tidy removes furniture by what it is, and leaves the article', () => {
+  const prose = 'A real sentence of the article, with enough words to count as prose. '.repeat(6);
+  const content = `<div><ul><li>Kush Pandya</li></ul><p><time>Nov 6, 2026</time> <span>|</span> <span>12 min read</span></p>
+    <h1>The Title</h1><h2>Table of Contents</h2><ul><li><a href="#one">One</a></li><li><a href="#two">Two</a></li></ul>
+    <p>${prose}<a href="#one">a jump</a> and <a href="https://x.test/other">a real link</a>.</p><p></p>
+    <p><img src="https://x.test/i.png"></p><h2 id="one">One</h2><p>${prose}</p>
+    <pre>print\n12 min read\n</pre><table><tr><td>Nov 6, 2026</td></tr></table>
+    <p>Share</p><h2>Related posts</h2><ul><li><a href="https://x.test/p">Another story</a></li></ul></div>`;
+  const { content: out, skipped } = tidy({ content, title: 'The Title', byline: 'Kush Pandya', publishedTime: '2026-11-06T17:00:00Z' }, 'https://x.test/a');
+  assert.equal(skipped, false);
+  for (const gone of ['Kush Pandya', 'min read</span>', 'Table of Contents', 'href="#', 'Related posts', 'Another story', '<h1', '>Share<', 'The Title']) assert.ok(!out.includes(gone), gone);
+  for (const kept of ['a jump', 'a real link', 'print', '<td>Nov 6, 2026</td>', '<figure>', '<h2 id="one"'.slice(0, 3)]) assert.ok(out.includes(kept), kept);
+});
+
+test('tidy drops a newsletter pitch and whatever follows it', () => {
+  const prose = 'A real sentence of the article, with enough words to count as prose. '.repeat(6);
+  const { content: out } = tidy({ content: `<div><p>${prose}</p><p>${prose}</p><h2>Subscribe to our developer newsletter</h2><p>Discover tips in our biweekly letter.</p></div>`, title: 'T' }, 'https://x.test/a');
+  assert.ok(!out.includes('newsletter')); assert.ok(!out.includes('biweekly'));
+});
+
+test('tidy keeps prose and real sections that only look like chrome', () => {
+  const prose = 'A real sentence of the article, with enough words to count as prose. '.repeat(6);
+  const content = `<div><p>${prose}</p><p>To try it, <a href="https://x.test/s">sign up for the beta</a> today.</p><h2>Related Published CVEs</h2><p>${prose}</p><p>Share this idea with the wider community of readers who care.</p></div>`;
+  const { content: out } = tidy({ content, title: 'T' }, 'https://x.test/a');
+  for (const kept of ['sign up for the beta', 'Related Published CVEs', 'Share this idea']) assert.ok(out.includes(kept), kept);
+});
+
+test('tidy keeps line breaks that have text between them', () => {
+  const prose = 'A real sentence of the article, with enough words to count as prose. '.repeat(6);
+  const { content: out } = tidy({ content: `<div><p>${prose}</p><p>one<br>two<br>three<br><br>four</p></div>`, title: 'T' }, 'https://x.test/a');
+  assert.ok(out.includes('one<br>two<br>three<br>four') || out.includes('one<br>two<br>three<br/>four'));
+});
+
+test('tidy gives the article back untouched if it would remove too much', () => {
+  const content = `<div><nav>${'word '.repeat(300)}</nav><p>${'A real sentence of the article. '.repeat(10)}</p></div>`;
+  const r = tidy({ content, title: 'T' }, 'https://x.test/a');
+  assert.equal(r.skipped, true);
+  assert.equal(r.content, content);
+});
+
+test('a page that was mostly furniture is short, not an article', async () => {
+  const shell = `<html><head><title>T</title></head><body><article><p>Kush Pandya</p><h2>Table of Contents</h2><nav>${'<a href="/x">A link to something</a> '.repeat(90)}</nav><p>${'Word '.repeat(95)}</p></article></body></html>`;
+  const r = await read({ 'https://x.test/a': page(200, {}, shell) });
+  assert.notEqual(r.reason, 'ok');
 });
 
 test('run stores nothing on a transient failure, so the next run tries again', async () => {

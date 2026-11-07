@@ -65,6 +65,7 @@ Everything older than 90 days is pruned, so the data stays small. It also looks 
 
 Each build extracts new stories with Mozilla's [Readability](https://github.com/mozilla/readability), the same approach as Firefox's reader view, and stores the result in Cloudflare KV. Opening an article calls `/api/read`, a Cloudflare Pages Function that returns what's stored. Parsing happens in the build because it costs far more CPU than a function on the free plan is allowed per request.
 
+- **Page furniture is removed by what it is, never by who published it.** Bylines, dates, tables of contents, same-page links and "N min read" lines come out before the article is stored. If that would remove more than 35% of the text, the article is kept whole instead, because a stray byline beats a lost paragraph.
 - **Article text is stored, but not in this repository.** It sits in a private KV namespace and expires after 100 days, shortly after a story leaves the site. It's a snapshot from when the story was first read, so later corrections by the publisher won't appear.
 - **It says why when it can't.** Every response carries a reason: `ok`, `challenge` (the publisher blocks it), `shell`, `short`, `not_html` or `pending` (no article yet). Your screen already shows the story's summary from `data.json`, so a block never leaves it empty. Blocked stories are tried again on every build.
 - **Some blocked publishers still work.** If a publisher's feed carries whole articles, the build takes the article from the feed instead.
@@ -148,9 +149,20 @@ Everything runs on GitHub Actions and Cloudflare Pages' free tiers. The only pai
    It prints a long-lived OAuth token (it lasts about a year). In the fork, go to **Settings → Secrets and variables → Actions → New repository secret**, name it `CLAUDE_CODE_OAUTH_TOKEN`, and paste the token. When it expires, builds start failing with "every scoring call failed"; run `claude setup-token` again and replace the secret.
 3. **Connect Cloudflare Pages.** Create a Pages project from your fork with production branch `main`, build command `npm ci`, and output directory `site`. Add a custom domain if you want one; the `*.pages.dev` address works as is.
 4. **Tell the build where the site lives.** Under **Settings → Secrets and variables → Actions → Variables**, add `SITE_URL` with your site's address (for example `https://news.example.com`). The build uses it for the RSS feed's links and to look up reading times through the site's reader.
-5. **Make it yours.** Point the GitHub links and the stale-build link in `site/index.html` at your fork, change the README badges, edit [`feeds.opml`](feeds.opml), and adjust the bars in [`build.py`](build.py) if you want more or fewer stories (see [Configuration](#configuration)).
+5. **Make it yours.** Point the GitHub links and the stale-build link in `site/index.html` at your fork, change the README badges, edit [`feeds.opml`](feeds.opml) (see [adding a feed](#adding-a-feed)), and adjust the bars in [`build.py`](build.py) if you want more or fewer stories (see [Configuration](#configuration)).
 6. **Give the reader somewhere to keep articles.** In Cloudflare, create a Workers KV namespace and bind it to the Pages project as `ARTICLES`, for both Production and Preview. Create an API token with only the **Workers KV Storage: Edit** permission, then add `CF_API_TOKEN`, `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID` as repository secrets. Without them the digest still works, but the reader only shows each story's summary.
 7. **Run the first build.** Under **Actions → Build → Run workflow**, start it on `main`. Set `backfill_days` to `30` to fill in the last month (only as far back as each feed still lists). Pages deploys the result a minute after the build commits.
+
+### Adding a feed
+
+A feed isn't added until the reader has been proven on it, so CI fails until the new feed has a test page. It only takes two commands:
+
+```bash
+node tests/fixtures/fetch.mjs "Publisher name"              # the name from feeds.opml
+UPDATE_EXPECTED=1 node --test tests/fixtures.test.js        # records what the reader makes of it
+```
+
+The saved page has its article text scrambled, so no publisher's writing ends up in your repository. Check the diff of `tests/fixtures/expected.json`, then commit both. When a real page breaks the reader, save it the same way and fix the rule in `tidy()` so it keys on what the element is, never on a site's name or class.
 
 <details>
   <summary><strong>Keeping the schedule on time</strong></summary>

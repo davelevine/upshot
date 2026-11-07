@@ -1,0 +1,287 @@
+{
+ "AWS Security Blog": {
+  "reason": "ok",
+  "words": 675,
+  "start": "Dugplw Chomod Cthfcmechyop mrenutaudt c NRI0Nemgn sryeudaegi"
+ },
+ "Aikido": {
+  "reason": "ok",
+  "words": 1699,
+  "start": "TL;DRHUL-1183-50859 ua n wuyr vh hkm glp Ftsvs cgnnvu ngfe h"
+ },
+ "Anthropic (community feed)": {
+  "reason": "ok",
+  "words": 236,
+  "start": "Rcfhn, Uavbypwri, KIH osdgm c npclvygwstfv dosuferhl ww Riht"
+ },
+ "Anthropic Red Team": {
+  "reason": "ok",
+  "words": 4397,
+  "start": "Iyg Chbtiry (Mhpomtnip), Pkww Fmdfhf (Lddunnyee); Lbnyluokbi"
+ },
+ "Anthropic Research": {
+  "reason": "ok",
+  "words": 7453,
+  "start": "Vl Vhdlwt 8, 5507, yov DL HF Bidponog Ekblntavh (TTYV) achdg"
+ },
+ "Ars Technica": {
+  "reason": "ok",
+  "words": 1667,
+  "start": "Ynusyetey kcbmdi yhn srcyd ogoy psi aocruh cc hplubylbde nl "
+ },
+ "BleepingComputer": {
+  "reason": "ok",
+  "words": 403,
+  "start": "VtfwuPmfv doc fegehnse yblnugwa koosuou dm mte ykhak nydeadp"
+ },
+ "CNCF": {
+  "reason": "ok",
+  "words": 827,
+  "start": "Lbpl at Foakpntcei bcvoyfmh cbnrrsallr, oMAN, gwnmki gowruws"
+ },
+ "Claude Blog": {
+  "reason": "ok",
+  "words": 3215,
+  "start": "Tf'vk awke fusiyl tocu Obeswo tekpck gcdfp 01 ptsgwfd ns Fuf"
+ },
+ "Cloudflare Blog": {
+  "reason": "ok",
+  "words": 3761,
+  "start": "Hnln D emci bgngl drmwi tbw YAG hmccdmphedy smebvete ws 2633"
+ },
+ "CrowdStrike": {
+  "reason": "ok",
+  "words": 2089,
+  "start": "Gfv uiseesbk tslhugtrc ecd ldse abcsihyn nf g radmphtlnkdi y"
+ },
+ "Cursor": {
+  "reason": "ok",
+  "words": 217,
+  "start": "H’i fkyvkwe gh erlffhio fndo Vnautdighd sa vfsabek Bioypf! W"
+ },
+ "Docker": {
+  "reason": "ok",
+  "words": 3097,
+  "start": "Mk bhr’wm abti Iralvo vnt c gswpp, “Hblude Tsoyyoiak” dguhs "
+ },
+ "ElevenLabs": {
+  "reason": "ok",
+  "words": 353,
+  "start": "Kkk ihhgywmmvd hpslcwu ggirl nmfvnwca gbelmpkwdn, yovtylft n"
+ },
+ "Figma": {
+  "reason": "ok",
+  "words": 2057,
+  "start": "Tdvue ybsvi hvs wyfsil twmgec vheh icca fbsf EU pnapl uesr t"
+ },
+ "GitHub Changelog": {
+  "reason": "ok",
+  "words": 146,
+  "start": "Okl vin emh ndsu biyb RfuYfv Yaadauo eksiiuni yh Hyolw’o bhv"
+ },
+ "GitLab Security Releases": {
+  "reason": "ok",
+  "words": 433,
+  "start": "Lv Sbfmhnn 97, 9861, yu hpahhlei dikmkiwn 90.0.5, 67.1.4, 58"
+ },
+ "Google Blog": {
+  "reason": "ok",
+  "words": 956,
+  "start": "Odrmk, yf’lk etfnums hsv Rmufya Fpdp 0.9 Uuhee, byc hbgekv i"
+ },
+ "Google Cloud Blog": {
+  "reason": "ok",
+  "words": 1229,
+  "start": "Dvn’po nkytsoio scwytvi gfkd gmgfh TYAPR.tl pfmae, ffi hdy’h"
+ },
+ "Google DeepMind": {
+  "reason": "ok",
+  "words": 941,
+  "start": "Obimm, ul’sp asgawirsfp gkg tkwa giwklecg nsbpf: Dtybrd 2 Iu"
+ },
+ "Google Research": {
+  "reason": "ok",
+  "words": 1196,
+  "start": "Umaplhalrypd (u.o., pevv opbai tfwbmmvv), ftiom vaphna lry \""
+ },
+ "Google Threat Intelligence": {
+  "reason": "ok",
+  "words": 5815,
+  "start": "Introduction Woer lpnp, Inbtok kpa mmkhwypc dusogolm bdrbwth"
+ },
+ "Hacker News 300+": {
+  "reason": "ok",
+  "words": 5949,
+  "start": "Kopw av T wlih oui iyif cnkmo Epf ghloh 2511 asvtb n gcul du"
+ },
+ "Hugging Face": {
+  "reason": "ok",
+  "words": 2162,
+  "start": "Yltiomn Celdk 6 (tuc Ma Wodgb) pl u rkpuavopgg, ugvhuensehpp"
+ },
+ "Huntress": {
+  "reason": "challenge",
+  "words": 0,
+  "start": ""
+ },
+ "InfoQ": {
+  "reason": "ok",
+  "words": 549,
+  "start": "Svk mshttds nukgflkg el WN emdiyh cbdoyysuwb vtd chwaoayytam"
+ },
+ "Krebs on Security": {
+  "reason": "ok",
+  "words": 461,
+  "start": "Lgmhlyrlr clwff ndaifm frslhme ya tsf ydyk vlrk 0,619 adosyg"
+ },
+ "Kubernetes": {
+  "reason": "ok",
+  "words": 683,
+  "start": "Gb hin kcsrtsn by tfwikcht vmrf vih Lwkanislvv fmvuadhlm bcm"
+ },
+ "Martin Fowler": {
+  "reason": "ok",
+  "words": 2000,
+  "start": "NU;IBTsbi wlrsthwhvu’ igtprkw vsgbc dhgucbk aepenwregug aras"
+ },
+ "Meta Engineering": {
+  "reason": "ok",
+  "words": 2244,
+  "start": "Mfcikhag Kubfsmt Otavynecf (R5) it Ylla’y fieovconc enr ellh"
+ },
+ "Meta Newsroom": {
+  "reason": "ok",
+  "words": 519,
+  "start": "Ropfn, ky’yy dryfcpwpvwr ypsnhu, ef bftypnvvrvg dhi hv blvls"
+ },
+ "Microsoft Security Blog": {
+  "reason": "ok",
+  "words": 3433,
+  "start": "Mirrwalca Cwsmoy Uivvnreybrfd lyo fwempvwa ubdryc gidmtv cos"
+ },
+ "Mistral": {
+  "reason": "ok",
+  "words": 1637,
+  "start": "Fpkboss Rseti 8 (Pa Arfdw) lagleboh vhekfnchyk GF mdge hmcup"
+ },
+ "Mozilla Security": {
+  "reason": "ok",
+  "words": 294,
+  "start": "Fk Rauodwbu, Uatfvar 44, lp 45:57 CPG, Hkiisrr lemlcugu f yk"
+ },
+ "NVIDIA Blog": {
+  "reason": "ok",
+  "words": 953,
+  "start": "G rvvi ssa, NPCPAM ospn mefsfpk sls Buytvr dgdmnwkp rvouyosw"
+ },
+ "Netflix TechBlog": {
+  "reason": "ok",
+  "words": 2118,
+  "start": "Dyhdn kttck gl hhcep kd hatp whugg pt rnmw tnanMcybfd gaupfy"
+ },
+ "OWASP Gen AI Security Project": {
+  "reason": "ok",
+  "words": 4098,
+  "start": "Overview Ovmh saogmkr pnkicpbnschu tsmkstad ibabr HH-cccrtba"
+ },
+ "OpenAI Alignment": {
+  "reason": "ok",
+  "words": 1766,
+  "start": "Introduction Ys YhrnHO, re ygaws ceiwdr cy apmimc ms i rnkn "
+ },
+ "OpenAI": {
+  "reason": "ok",
+  "words": 1907,
+  "start": "Ic’fr pdedpvvkcti MIL‑1 Emodd, r keoip vkvp li fnhtmsci cykv"
+ },
+ "Qwen": {
+  "reason": "ok",
+  "words": 1418,
+  "start": "Hlce Ahnsgu LvnKiv Okgaupw Ngih PvnnbKbtug LBBNHRWIntroducti"
+ },
+ "Railway": {
+  "reason": "ok",
+  "words": 1974,
+  "start": "Oakrdhvy sip r tfh kiwg us Pywbope! Ig kgtrnde tmbfnvsckhdy "
+ },
+ "Rapid7": {
+  "reason": "ok",
+  "words": 4040,
+  "start": "OverviewNg ffsdnv-ltdwgbbehw kpmy sd RihtnvRphtu Raaifa Obes"
+ },
+ "Sansec": {
+  "reason": "ok",
+  "words": 853,
+  "start": "Wenpef Iebtghr 58lc: Lelopwob cag shtdvcv uci cmafnal usk dr"
+ },
+ "Schneier on Security": {
+  "reason": "ok",
+  "words": 184,
+  "start": "Rrhyhywytvb duiyinyk: “YI Rashfn Tgl Lpsbctli Gapp Ivyguhcar"
+ },
+ "SecurityWeek": {
+  "reason": "ok",
+  "words": 447,
+  "start": "NolhTG dsei iv dnyhgsha dtpuphsn oecly davamfh ohy gyuifru, "
+ },
+ "Simon Willison": {
+  "reason": "ok",
+  "words": 297,
+  "start": "Rsi Ko Nkog Pbou WfafLPT Coientrl (tgv) Fwaiaorwr Sgbv gfeym"
+ },
+ "Socket": {
+  "reason": "ok",
+  "words": 2755,
+  "start": "Vbneep’n Onfctn Myohulii Gwun pmwwbfng vcecsnw-bnml ivwuvsk "
+ },
+ "Tailscale": {
+  "reason": "ok",
+  "words": 2682,
+  "start": "Y swyce nocmk mgb vutnb yd yy dgnhc 048 wdehe panm hyrkkbiyt"
+ },
+ "The GitHub Blog": {
+  "reason": "ok",
+  "words": 3265,
+  "start": "Lcub dopi ca IbwGlp Ukgarggd, bt fdbpfsyfr byh kbe Cci wsert"
+ },
+ "The Hacker News": {
+  "reason": "ok",
+  "words": 1172,
+  "start": "Dttirgsdah nyrcrtyu luhm Mitdaiobvng skl pebslfni afov cho p"
+ },
+ "The Record": {
+  "reason": "ok",
+  "words": 375,
+  "start": "Lkveb tlffbegke vouhbul me Vplulp kwprowwwm b uhymvo otay no"
+ },
+ "Trail of Bits": {
+  "reason": "ok",
+  "words": 1685,
+  "start": "Mweve tn’kf hwlibmuypg wghvuvss-flsb opb adcceygrtk-hgww, ya"
+ },
+ "UK AISI": {
+  "reason": "ok",
+  "words": 1361,
+  "start": "Sbrhdhdthrw fcrmpblafo SC klodct (ck bggvi) awd nbaekuu otkf"
+ },
+ "Unit 42": {
+  "reason": "ok",
+  "words": 1436,
+  "start": "Executive Summary Mvuprpa 21 Vunpmy Bmny 29 lmh oycgtotu dsy"
+ },
+ "Warp": {
+  "reason": "ok",
+  "words": 1443,
+  "start": "Etg pcyi wtsrp WFo uut khldpdip bfww gtbmac vegbm flo? 81? 2"
+ },
+ "Wiz": {
+  "reason": "ok",
+  "words": 1111,
+  "start": "Kigd so eubmof rtym-ktv vkls cru tarwdc SUA8Yeari elwmwnotbb"
+ },
+ "Wordfence": {
+  "reason": "challenge",
+  "words": 0,
+  "start": ""
+ }
+}
