@@ -31,6 +31,8 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.ref }}  # the latest, not the triggering commit: a run may have queued behind another's data commit
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: "3.15"
@@ -64,8 +66,9 @@ jobs:
         run: |
           git add site/data.json site/rss.xml state.json
           git diff --cached --quiet && exit 0
-          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-            commit -q -m "chore(data): update news"
+          git config user.name "github-actions[bot]"  # for the rebase too, which needs an identity once main has moved
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -q -m "chore(data): update news"
           git pull -q --rebase origin main  # a PR merged mid-run would otherwise reject the push
           git push
 
