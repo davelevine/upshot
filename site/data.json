@@ -379,6 +379,17 @@
   },
   {
    "date": "2026-10-29",
+   "title": "Security notice — malicious version of Anthropic.claude-code (2.1.312 and 2.1.313) identified in the Cursor VS Code Extension Marketplace",
+   "url": "https://cursor.com/blog/claude-code-extension-security-notice",
+   "publisher": "Cursor",
+   "category": "security",
+   "summary": "Cursor warns that malicious versions 2.1.312 and 2.1.313 of the Anthropic.claude-code extension were found in its VS Code extension marketplace.",
+   "relevance": 8,
+   "added": "2026-11-07T20:31:10+00:00",
+   "minutes": 4
+  },
+  {
+   "date": "2026-10-29",
    "title": "Welcome Le Chonk: Mistral Large 4 on Hugging Face",
    "url": "https://huggingface.co/blog/mistral-large4",
    "publisher": "Hugging Face",
@@ -436,6 +447,17 @@
    "summary": "Meta Engineering describes Andromeda, its next-generation ads retrieval engine, co-designing model, system, and GPU hardware to score all eligible ads at retrieval scale.",
    "relevance": 6,
    "minutes": 11
+  },
+  {
+   "date": "2026-10-28",
+   "title": "Smaller apps and faster GPU inference with LiteRT in Google Play services",
+   "url": "https://developers.googleblog.com/smaller-apps-and-faster-gpu-inference-with-litert-in-google-play-services/",
+   "publisher": "Google AI",
+   "category": "ai",
+   "summary": "Google moved LiteRT GPU inference into Play services, citing about 1.4x speedup, an 8 MB app size reduction, and automatic runtime updates plus a new CompiledModel API.",
+   "relevance": 6,
+   "added": "2026-11-07T20:31:10+00:00",
+   "minutes": 4
   },
   {
    "date": "2026-10-27",
@@ -529,6 +551,17 @@
   },
   {
    "date": "2026-10-26",
+   "title": "Node2Shell: RCE in the Node.js Brotli Decoder",
+   "url": "https://www.hacktron.ai/blog/node2shell",
+   "publisher": "Hacktron",
+   "category": "security",
+   "summary": "Node2Shell (HTTP2Shell), an out-of-bounds write in the Brotli decoder, enables remote code execution in Node.js, Python, Bun, Envoy and .NET.",
+   "relevance": 8,
+   "added": "2026-11-07T20:31:10+00:00",
+   "minutes": 5
+  },
+  {
+   "date": "2026-10-26",
    "title": "Bias in Qwen3-Coder Model",
    "url": "https://www.schneier.com/blog/archives/2026/10/bias-in-qwen3-coder-model.html",
    "publisher": "Schneier on Security",
@@ -596,6 +629,17 @@
    "summary": "Netflix describes Quasar, a tool linking proposed Java library API changes to observed symbol references in consumer repositories to inform release decisions.",
    "relevance": 6,
    "minutes": 9
+  },
+  {
+   "date": "2026-10-22",
+   "title": "PHP2Shell: RCE in PHP",
+   "url": "https://www.hacktron.ai/blog/php2shell",
+   "publisher": "Hacktron",
+   "category": "security",
+   "summary": "Two unauthenticated remote code execution flaws in PHP have seen reported exploitation attempts; fixed in PHP 8.5.12, 8.4.27, 8.3.36 and 8.2.35.",
+   "relevance": 9,
+   "added": "2026-11-07T20:31:10+00:00",
+   "minutes": 4
   },
   {
    "date": "2026-10-22",
@@ -1085,5 +1129,5 @@
    }
   ]
  },
- "generated_at": "2026-11-07T20:18:10+00:00"
+ "generated_at": "2026-11-07T20:31:11+00:00"
 }
