@@ -73,7 +73,8 @@
    "publisher": "Docker",
    "category": "architecture",
    "summary": "Docker explains the difference between standard containers sharing the host kernel and Docker Sandboxes, which are microVMs with their own kernel and private Docker Engine, for AI agent isolation.",
-   "relevance": 6
+   "relevance": 6,
+   "minutes": 14
   },
   {
    "date": "2026-11-06",
@@ -1084,5 +1085,5 @@
    }
   ]
  },
- "generated_at": "2026-11-07T16:17:53+00:00"
+ "generated_at": "2026-11-07T19:33:03+00:00"
 }
