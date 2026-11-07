@@ -69,6 +69,13 @@
   "contentType": "text/html",
   "mitigated": null
  },
+ "Cohere": {
+  "file": "cohere.html",
+  "url": "https://cohere.com/blog/embed-rerank-5-openrouter",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
  "CrowdStrike": {
   "file": "crowdstrike.html",
   "url": "https://www.crowdstrike.com/en-us/blog/adversaries-turn-vulnerability-ecosystem-against-defenders/",
@@ -78,7 +85,7 @@
  },
  "Cursor": {
   "file": "cursor.html",
-  "url": "https://cursor.com/blog/supermaven",
+  "url": "https://cursor.com/blog/claude-code-extension-security-notice",
   "status": 200,
   "contentType": "text/html; charset=utf-8",
   "mitigated": null
@@ -116,6 +123,13 @@
   "url": "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-5-3-released/",
   "status": 200,
   "contentType": "text/html",
+  "mitigated": null
+ },
+ "Google AI": {
+  "file": "google-ai.html",
+  "url": "https://developers.googleblog.com/agent-distraction/",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
   "mitigated": null
  },
  "Google Blog": {
@@ -156,6 +170,13 @@
  "Hacker News 300+": {
   "file": "hacker-news-300.html",
   "url": "https://8rank.ai/game/apple-intelligence-personal-knowledge-graph",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Hacktron": {
+  "file": "hacktron.html",
+  "url": "https://www.hacktron.ai/blog/openai-partnership",
   "status": 200,
   "contentType": "text/html; charset=utf-8",
   "mitigated": null

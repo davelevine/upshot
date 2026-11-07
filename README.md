@@ -124,7 +124,7 @@ If you change the theme script in `index.html` or the relay script in `app.js`, 
 <details>
   <summary><strong>Adding or removing feeds</strong></summary>
 
-Edit [`feeds.opml`](feeds.opml); each feed is one `<outline>` line, and its `text` attribute is the publisher name shown on the site. Some big publishers (Anthropic, Cohere, Reuters) don't publish RSS. Anthropic comes from a community-maintained feed, and the Hacker News 300+ feed catches most of the rest.
+Edit [`feeds.opml`](feeds.opml); each feed is one `<outline>` line, and its `text` attribute is the publisher name shown on the site. Some big publishers (Anthropic, Cohere, Reuters) don't publish RSS. Anthropic, Cohere and a few others come from community-maintained feeds, and the Hacker News 300+ feed catches most of the rest. A new feed also needs a test page; see [adding a feed](#adding-a-feed).
 
 </details>
 
