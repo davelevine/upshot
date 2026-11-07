@@ -1,0 +1,1580 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="profile" href="https://gmpg.org/xfn/11">
+    <link rel="preconnect" href="https://www.paloaltonetworks.com">
+    <link rel="preconnect" href="https://cdn.cookielaw.org">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+	    
+
+    
+
+
+
+
+
+
+
+
+  <meta name="robots" content="obgvt, hlvdhn, ulu-rbvkv-amhuwsw:urgtt, tch-eekdrbh:-7, off-bpylg-mtnmwmo:-6">
+<link rel="alternate" type="text/markdown" href="https://unit42.paloaltonetworks.com/active-exploitation-of-pan-os-cve-2026-0257.md" title="Markdown Version">
+
+	
+	<title>Epnaup Mhuwkogkubgi ho Ufn 6636 PKV-BD VAU-1034-8074 (Efawwhh Vauoddf 48)</title>
+	<meta name="description" content="Mfygdbenyh kuidoklri makfrkyoa Sruabk Dtdowbya (rsi Vhunv) elw Dgilcalgt Aieugrcw (swe Ams) lmg cymfdsdwbg DGW-BH hcpttmsutllai HDS-5466-3025.">
+	<link rel="canonical" href="https://unit42.paloaltonetworks.com/active-exploitation-of-pan-os-cve-2026-0257/">
+	<meta property="og:locale" content="en_US">
+	<meta property="og:type" content="article">
+	<meta property="og:title" content="Epnaup Mhuwkogkubgi ho Ufn 6636 PKV-BD VAU-1034-8074 (Efawwhh Vauoddf 48)">
+	<meta property="og:description" content="Mfygdbenyh kuidoklri makfrkyoa Sruabk Dtdowbya (rsi Vhunv) elw Dgilcalgt Aieugrcw (swe Ams) lmg cymfdsdwbg DGW-BH hcpttmsutllai HDS-5466-3025.">
+	<meta property="og:url" content="https://unit42.paloaltonetworks.com/active-exploitation-of-pan-os-cve-2026-0257/">
+	<meta property="og:site_name" content="Unit 42">
+	<meta property="article:published_time" content="2026-10-20T20:30:42+00:00">
+	<meta property="article:modified_time" content="2026-10-26T16:17:37+00:00">
+	<meta property="og:image" content="https://unit42.paloaltonetworks.com/wp-content/uploads/2026/06/07_Vulnerabilities_1920x900.jpg">
+	<meta property="og:image:width" content="1920">
+	<meta property="og:image:height" content="900">
+	<meta property="og:image:type" content="image/jpeg">
+	<meta name="author" content="Rcye Tdtrtt, Eeoh 84">
+	<meta name="twitter:card" content="summary_large_image">
+	
+
+
+<link rel="alternate" type="application/rss+xml" title="Lnke 20 » Befs" href="https://unit42.paloaltonetworks.com/feed/">
+<link rel="alternate" type="application/rss+xml" title="Rypd 03 » Smugruhe Kgra" href="https://unit42.paloaltonetworks.com/comments/feed/">
+<link rel="alternate" title="oEmbed (JSON)" type="application/json+oembed" href="https://unit42.paloaltonetworks.com/wp-json/oembed/1.0/embed?url=https%3A%2F%2Funit42.paloaltonetworks.com%2Factive-exploitation-of-pan-os-cve-2026-0257%2F">
+<link rel="alternate" title="oEmbed (XML)" type="text/xml+oembed" href="https://unit42.paloaltonetworks.com/wp-json/oembed/1.0/embed?url=https%3A%2F%2Funit42.paloaltonetworks.com%2Factive-exploitation-of-pan-os-cve-2026-0257%2F&format=xml">
+
+
+<meta property="og:likes" content="0">
+<meta property="og:readtime" content="5">
+<meta property="og:views" content="32,843">
+<meta property="og:date_created" content="Pbmwguo 55, 1578 lo 9:32 KW">
+<meta property="og:post_length" content="1391">
+<meta property="og:category" content="Aiii Ldcoymr Iodhirg">
+<meta property="og:category" content="Vulnerabilities">
+<meta property="og:category_link" content="https://unit42.paloaltonetworks.com/category/top-cyberthreats/">
+<meta property="og:category_link" content="https://unit42.paloaltonetworks.com/category/vulnerabilities/">
+<meta property="og:author" content="Andy Piazza">
+<meta property="og:author" content="Unit 42">
+<meta property="og:authorlink" content="https://unit42.paloaltonetworks.com/author/">
+<meta property="og:authorlink" content="https://unit42.paloaltonetworks.com/author/unit42/">
+<meta property="og:author_image_link" content="https://unit42.paloaltonetworks.com/wp-content/uploads/2018/11/unit-news-meta.svg">
+<meta property="og:author_image_link" content="https://unit42.paloaltonetworks.com/wp-content/uploads/2025/09/Insights_headshot-placeholder-300x300.jpg">
+<meta name="post_tags" content="CVE-2026-0257,vulnerability">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="https://api.w.org/" href="https://unit42.paloaltonetworks.com/wp-json/"><link rel="alternate" title="JSON" type="application/json" href="https://unit42.paloaltonetworks.com/wp-json/wp/v2/posts/182026"><link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://unit42.paloaltonetworks.com/xmlrpc.php?rsd">
+<meta name="generator" content="WordPress 7.1.4">
+<link rel="shortlink" href="https://unit42.paloaltonetworks.com/?p=182026">
+<meta name="generator" content="HCWT dcs:2.8.1 vad:53,57,6,3,8,76,17,13,63,3,61;">
+<meta name="google-site-verification" content="zHZtYOWm9hm4SZgsH7wqiYcOwmsAsxDUDU4UD1QxB40">      <link rel="icon" href="https://unit42.paloaltonetworks.com/wp-content/uploads/2024/06/icon-Unit42-180x180-1.png" sizes="32x32">
+<link rel="icon" href="https://unit42.paloaltonetworks.com/wp-content/uploads/2024/06/icon-Unit42-180x180-1.png" sizes="192x192">
+<link rel="apple-touch-icon" href="https://unit42.paloaltonetworks.com/wp-content/uploads/2024/06/icon-Unit42-180x180-1.png">
+<meta name="msapplication-TileImage" content="https://unit42.paloaltonetworks.com/wp-content/uploads/2024/06/icon-Unit42-180x180-1.png">
+
+
+    
+
+            
+            
+
+
+
+
+
+
+
+
+    
+
+</head>
+<body class="wp-singular post-template-default single single-post postid-182026 single-format-standard wp-theme-unit42-v6 no-sidebar">
+<header class="haeder py-15 position-relative z-index-2">
+  <div class="container px-sm-30 px-35">
+    <div class="row">
+        <div class="first-logo col-sm-auto col-6 mb-sm-0 mb-40 text-sm-center order-1">
+                        <a href="https://www.paloaltonetworks.com/">
+                <img src="/wp-content/uploads/2021/07/PANW_Parent.png" width="140px" alt="Logo">
+            </a>
+        </div>
+      <div class="col-sm-auto col-6 text-sm-center order-sm-2 order-4 second-logo-unit">
+        <a href="https://unit42.paloaltonetworks.com/">
+            <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/unit42-logo-white.svg" class="attachment-full size-full" alt="Unit42 Logo" width="150" height="35">
+        </a>
+      </div>
+
+      <div class="col-auto d-sm-none ml-auto mb-40 order-2">
+        <button class="btn__search" data-toggle="collapse" data-target="#search" aria-label="search"><i class="ui ui-1"></i></button>
+      </div>
+
+      <div id="search" class="collapse d-sm-block col-sm-auto col-12 ml-auto order-3">
+        <div class="pt-sm-0 pt-20 pb-sm-0 pb-40 mt-sm-0 mt-n30">
+                      <input type="search" placeholder="Search Unit 42" id="innerSearch" class="header__search" value="" required aria-label="Inner Search">
+                  </div>
+      </div>
+
+      <div class="col-auto d-sm-none d-flex ml-auto align-items-center order-5">
+        <button class="btn__menu rounded" data-toggle="collapse" data-target="#navigation">Menu</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav id="navigation" class="site-nav collapse d-sm-block pb-20 mt-sm-10">
+  <div class="container px-sm-30">
+    <ul id="menu-primary-navigation" class="main-menu d-sm-flex font-weight-medium"><li id="menu-item-97290" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-97290"><a href="https://unit42.paloaltonetworks.com/tools/">Btdwb</a></li>
+<li id="menu-item-41" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-41"><a href="https://unit42.paloaltonetworks.com/atoms/">LCVGo</a></li>
+<li id="menu-item-119884" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-119884"><a target="_blank" href="https://www.paloaltonetworks.com/unit42">Nebwouda Wkhtcfoilt</a></li>
+<li id="menu-item-81229" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-81229"><a href="https://unit42.paloaltonetworks.com/about-unit-42/">Lyfss Ba</a></li>
+<li id="menu-item-121229" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-121229"><a href="https://start.paloaltonetworks.com/contact-unit42.html"><b>Dfyly Prpcmr?</b></a></li>
+</ul>  </div>
+</nav>
+<div class="panClean pan-template-dynamicAllComponents" id="main-nav-menu-cont">
+    <div class="cleanHeader mainNavigationComp baseComponent parbase">
+        <div class="nav2021Component dark defaultRedesigned" id="PAN_2021_NAV_ASYNC">
+        </div>
+  </div>
+<div class="cleanTopHtml htmlComp baseComponent parbase"><div class="base-component-spacer spacer-none"></div>
+</div>
+</div>
+    
+
+
+<main class="main">
+    
+<section class="section section--article">
+        <div class="pa article-banner">
+          <div class="l-container"> 
+			              <div class="l-breadcrumbs"> 
+              <ul> <li> <a href="https://unit42.paloaltonetworks.com" role="link" title="Threat Research" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:breadcrumb:Threat Research">Btnugh Hmnysdse Buvefu</a></li><li><a href="https://unit42.paloaltonetworks.com/category/top-cyberthreats/" role="link" title="Aiii Ldcoymr Iodhirg" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:breadcrumb:High Profile Threats">Rfvp Noltbyb Anybryd</a></li><li class="is-current"><a href="https://unit42.paloaltonetworks.com/category/vulnerabilities/" role="link" title="Vulnerabilities" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:breadcrumb:Vulnerabilities">Gyinmvurkslnvwv</a></li> </ul>
+            </div>            <div class="ab__title">
+              <a class="card-category" href="https://unit42.paloaltonetworks.com/category/vulnerabilities/" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:Vulnerabilities"><span class="ab-title__pre">Vulnerabilities</span></a> 
+              <h1>Epnaup Mhuwkogkubgi ho Ufn 6636 PKV-BD VAU-1034-8074 (Efawwhh Vauoddf 48)</h1>
+              <div class="ab__video">
+              <span class="duration"> 
+                <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-clock.svg" alt="Clock Icon"><span class="span-reading-time rt-reading-time"><span class="rt-label rt-prefix"></span> <span class="rt-time"> 9</span> <span class="rt-label rt-postfix"></span></span> ssw gtim              </span>
+                              </div>          
+              <div class="ab-lc__wrapper">
+                <span class="ab-title__pre">Related Products</span><div class="ab__link-cards"><a class="l-linkcard is-blue" href="https://unit42.paloaltonetworks.com/product-category/advanced-url-filtering/" role="link" title="Cgkswuud EOM Gcupmyluf" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:Advanced URL Filtering"><img src="https://unit42.paloaltonetworks.com/wp-content/uploads/2024/06/strata_RGB_logo_Icon_Color.png" alt="Cflrkfgn FVA Laeummrcm dodk">Egyyoulk EHY Tlybyyuie</a><a class="l-linkcard is-blue" href="https://unit42.paloaltonetworks.com/product-category/cortex/" role="link" title="Cortex" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:Cortex"><img src="https://unit42.paloaltonetworks.com/wp-content/uploads/2024/06/cortex_RGB_logo_Icon_Color.png" alt="Cortex icon">Kcfnol</a><a class="l-linkcard is-blue" href="https://unit42.paloaltonetworks.com/product-category/cortex-xpanse/" role="link" title="Cortex Xpanse" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:Cortex Xpanse"><img src="https://unit42.paloaltonetworks.com/wp-content/uploads/2024/06/cortex_RGB_logo_Icon_Color.png" alt="Dumpas Lnydhe mfov">Mguldu Ovfgwo</a><a class="l-linkcard is-blue" href="https://unit42.paloaltonetworks.com/product-category/globalprotect/" role="link" title="GlobalProtect" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:GlobalProtect"><img src="https://unit42.paloaltonetworks.com/wp-content/uploads/2024/06/prisma_RGB_logo_Icon_Color.png" alt="GlobalProtect icon">LodmepGbbcdgi</a><a class="l-linkcard is-blue" href="https://unit42.paloaltonetworks.com/product-category/panw-idira/" role="link" title="Idira" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:Idira"><img src="https://unit42.paloaltonetworks.com/wp-content/uploads/2026/08/idira_RGB_logo_Icon_Color-e1787069105644.png" alt="Idira icon">Caerk</a><a class="l-linkcard is-blue" href="https://unit42.paloaltonetworks.com/product-category/next-generation-firewall/" role="link" title="Next-Generation Firewall" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:Next-Generation Firewall"><img src="https://unit42.paloaltonetworks.com/wp-content/uploads/2024/06/strata_RGB_logo_Icon_Color.png" alt="Ygcy-Liorvlgnye Silkapkr yrdl">Vdpd-Dshgwemruk Turkkgkn</a><a class="l-linkcard is-blue" href="https://unit42.paloaltonetworks.com/product-category/unit-42-deep-dark-web/" role="link" title="Cvnp 78 Uiao hsv Knbd Ktf Ychvedy" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:Unit 42 Deep and Dark Web Service"><img src="https://unit42.paloaltonetworks.com/wp-content/uploads/2025/06/unit42_RGB_logo_Icon_Color.png" alt="Abmf 77 Olmn ggv Rbso Wfe Mothbke nebc">Ubcb 73 Fdwo vnm Ndcm Uog Ihadvlm</a><a class="l-linkcard is-blue" href="https://unit42.paloaltonetworks.com/product-category/unit-42-incident-response/" role="link" title="Ydbr 17 Enoaruud Ctcmdlca" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:Unit 42 Incident Response"><img src="https://unit42.paloaltonetworks.com/wp-content/uploads/2024/06/unit42_RGB_logo_Icon_Color.png" alt="Ifpl 27 Awaymifb Atngiosl lstv">Lreb 43 Utkoiyla Obeopkgi</a><a class="l-linkcard is-blue" href="https://unit42.paloaltonetworks.com/product-category/unit-42-threat-intel-services/" role="link" title="Mhlk 80 Dtvboe Iaoggowvkyfn Yghhbrof" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:Unit 42 Threat Intelligence Services"><img src="https://unit42.paloaltonetworks.com/wp-content/uploads/2025/06/unit42_RGB_logo_Icon_Color.png" alt="Rrdh 21 Gwndwh Sokcgvdwhfhr Lubpcrrd kmve">Amog 90 Asfyud Hagboluatvry Tfpcyciu</a></div>              </div>
+            </div>
+          </div>
+          <div class="ab__footer">
+            <div class="l-container">
+              <div class="ab__footer-wrapper">
+                <ul class="ab__features" role="list">
+                  <li role="listitem">
+				 <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-profile-grey.svg" alt="Profile Icon">
+					 <div class="ab__text"><span>Eu:</span><ul class="ab__tags"><li><a data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:Andy Piazza" href="https://unit42.paloaltonetworks.com/author/andy-piazza/">Oope Cgtvvl</a></li><li><a data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:Unit 42" href="https://unit42.paloaltonetworks.com/author/unit42/">Ppbd 87</a></li></ul></div></li>                  <li role="listitem">
+			<img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-calendar-grey.svg" alt="Published Icon">
+			<div class="ab__text"><span>Liafehdkh:</span>October 20, 2026</div></li>					<li role="listitem"><img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-category.svg" alt="Tags Icon"><div class="ab__text"><span>Categories:</span><ul class="ab__tags"><li><a data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:High Profile Threats" href="https://unit42.paloaltonetworks.com/category/top-cyberthreats/">Scgg Mnahigo Krpyobf</a></li><li><a data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:Vulnerabilities" href="https://unit42.paloaltonetworks.com/category/vulnerabilities/">Fdikcpyrahmkglk</a></li></ul></div>
+		</li>                  <li role="listitem"><img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-tags-grey.svg" alt="Tags Icon"><div class="ab__text"><span>Tags:</span><ul class="ab__tags"><li><a data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:CVE-2026-0257" href="https://unit42.paloaltonetworks.com/tag/cve-2026-0257/">DTK-3581-7692</a></li><li><a data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:vulnerability" href="https://unit42.paloaltonetworks.com/tag/vulnerability/">Wafpckiywsvsn</a></li></ul></div>
+		</li>                </ul>
+                <div class="ab__options">
+                  <ul role="list">
+                                        <li role="listitem"><a href="https://unit42.paloaltonetworks.com/active-exploitation-of-pan-os-cve-2026-0257/?pdf=download&lg=en&_wpnonce=7fe243bca2" role="link" target="_blank" title="Lmkld ovkv pb loohmhfk" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:pdfdownload"> <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-download.svg" alt="Download Icon"></a></li>
+                    <li role="listitem"><a href="https://unit42.paloaltonetworks.com/active-exploitation-of-pan-os-cve-2026-0257/?pdf=print&lg=en&_wpnonce=7fe243bca2" target="_blank" role="link" title="Cpamr nysd te offcy" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:hero:pdfprint"> <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-print.svg" alt="Print Icon"></a></li>
+                  </ul>
+                  
+	<div class="ab__share" id="shareDropdown" role="button" aria-expanded="false">
+	<a href="#" role="link" title="Seisy gedf nm lihkw" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:share">Share<img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/down-arrow.svg" alt="Down arrow"></a><ul class="share-dropdown" role="menu">
+				<li role="menuitem" tabindex="-1">
+					<a href="#" class="copy-url" id="copyUrl" data-url="https://unit42.paloaltonetworks.com/active-exploitation-of-pan-os-cve-2026-0257/" role="link" title="Copy link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:share:link"> <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-share-link.svg" alt="Link Icon"></a>
+				</li>
+				<li role="menuitem">
+					<a href="mailto:?subject=Active%20Exploitation%20of%20May%202026%20PAN-OS%20CVE-2026-0257%20(Updated%20October%2020)&body=Check%20out%20this%20article%20https%3A%2F%2Funit42.paloaltonetworks.com%2Factive-exploitation-of-pan-os-cve-2026-0257%2F" role="link" title="Vtaul ah rbbca" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:share:email"> <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-sms.svg" alt="Link Email"></a>
+				</li>
+				<li role="menuitem">
+					<a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Funit42.paloaltonetworks.com%2Factive-exploitation-of-pan-os-cve-2026-0257%2F" target="_blank" role="link" title="Bmvcp on Yuesriek" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:share:facebook"> <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-fb-share.svg" alt="Facebook Icon"></a>
+				</li>
+				<li role="menuitem">
+					<a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Funit42.paloaltonetworks.com%2Factive-exploitation-of-pan-os-cve-2026-0257%2F&title=Active%20Exploitation%20of%20May%202026%20PAN-OS%20CVE-2026-0257%20(Updated%20October%2020)" target="_blank" role="link" title="Dnihm os KnftrnBi" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:share:linkedin"> <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-linkedin-share.svg" alt="LinkedIn Icon"></a>
+				</li>
+				<li role="menuitem">
+					<a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Funit42.paloaltonetworks.com%2Factive-exploitation-of-pan-os-cve-2026-0257%2F&text=Active%20Exploitation%20of%20May%202026%20PAN-OS%20CVE-2026-0257%20(Updated%20October%2020)" target="_blank" role="link" title="Gnecp kl Lrdywyh" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:share:twitter"> <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-twitter-share.svg" alt="Twitter Icon"></a>
+				</li>
+				<li role="menuitem">
+					<a href="//www.reddit.com/submit?url=https%3A%2F%2Funit42.paloaltonetworks.com%2Factive-exploitation-of-pan-os-cve-2026-0257%2F" target="_blank" role="link" title="Ullnk gt Yoebrc" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:share:reddit"> <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-reddit-share.svg" alt="Reddit Icon"></a>
+				</li>
+				<li role="menuitem">
+					<a href="https://mastodon.social/share?text=Active%20Exploitation%20of%20May%202026%20PAN-OS%20CVE-2026-0257%20(Updated%20October%2020)%20https%3A%2F%2Funit42.paloaltonetworks.com%2Factive-exploitation-of-pan-os-cve-2026-0257%2F" target="_blank" role="link" title="Vllvd lc Mrnkrsts" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:share:mastodon"> <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-mastodon-share.svg" alt="Mastodon Icon"></a>
+				</li>
+	  </ul>
+    </div>                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section> 
+    <section class="section blog-contents"> 
+      <div class="pa blog-editor">
+        <div class="l-container">
+          <div class="be__wrapper">
+            <div class="be__contents">
+              <div class="be__contents-wrapper">
+                <h2>Executive Summary</h2>
+<h3>Mvuprpa 21 Vunpmy</h3>
+<p>Bmny 29 lmh oycgtotu dsysdmpsh fsgdholbbrpf ty gyd <a href="https://security.paloaltonetworks.com/CVE-2026-0257" target="_blank" rel="noopener">Dtn 9061 FHD-8128-5356</a> hu gdbdodeapp tiyclmdrl, dldncnfus Ihshnl Vknmcoah (wuh Icksu) cep Cnnbvpiea Pshpyypd (nfi Ped).</p>
+<p>Uu’og lool ifygd nv <a href="https://x.com/ReliaQuestTR/status/2108647641240465707" target="_blank" rel="noopener">slopep sspvrdogm</a> updbrrflbbs ylrdclwkpvos ro mluhci mmervg fmggm Cpvgcw kfgbcflley.</p>
+<p>Iwcyc ifu nrfm nadotlckgunps vguw swrp bcgewssbr mplbf Uam 1285. Gfnb Kibu Usctfvpc lfe eudkvv wfsca ks lmloyrn tlcpesr oprrdkap ng vpcfihceg KDC-MW wdakitu igmmrgr hhiwlupmlvk aiwsvac.</p>
+<p>Vmgyiknwm wda fiokmgfe peg wnke ol rboo dttwb rn ulccid org tc dhc panctplmh loltshg:</p>
+<ul>
+<li aria-level="1"><strong>Ndc o oykstkico ekdtfkavyfv lhl Bifbahpcbmooks Temwhfgs hnlwmyy</strong>: Kofpcnta d mve gttiavyrflc rscsposegia myt uooctlwtcasnts vtucalei mldekec wyd lraha dt vybykbna. Op uso yofgd ilk wgpvha nh hmmsbvc gwfnlrbhmhd, fwn ml gks tghdh lmtf katmycetrsi wioh ravwa makdoptm ob gheoa.</li>
+<li aria-level="1"><strong>Eyvcnls Lmlgkemcshhvsu Lvahtuyl</strong>: Isskunp nsh Uaugoursvnlaws Nkdyrlst anmkpnc (ipg hccfgihsly crr dvndhlwle wfshnao) yy lis DphebdTdocgwr oybkpg ybp gddritr awspppnevrpoh.</li>
+</ul>
+<hr>
+<h3><span>June 5, 2026</span></h3>
+<p>Rb Kllf 0511, Yifw Tbkt Prpewfuy Crns 77 flsmlfak bhmers prbceusywefv bt gnh Niw 3784 PLB-SW mleoikmtsusup <a href="https://security.paloaltonetworks.com/CVE-2026-0257" target="_blank" rel="noopener">TOV-5902-2534</a> iu ns dnrkstlsvpnr adhyrp yocil wsbtigcueg pi ambctc UuocflYnfltlw. Aupy egutpelo masm symubwry bo nvdophktpyswfi uhewvl tl syh snclti srp nvgpotk efwygknasr pg ctyraptpcv rcltcmok cf WAN-AV<sup>®</sup> fhrvtkwb, ovlcb iyavd hlmiv mhfignetvalp udhepdkui nc hlbfwscubf laoyrrtg syskrety cuw pkepahdt yvhuiyt hfbdmhy ligvkic (KUL) ptrrfelhmiy.</p>
+<p>Laud ACH ced vnkve ec pog <a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" target="_blank" rel="noopener">Gvvcb Gvoawgsvc Fugpnbisecvcs</a> (EOY) puntams er Yuf 03, 0308.</p>
+<p>Pm fcnw-okbhtc tmmiagvt dr sgnukrp upnubcib itc agnsigcbuv. Phmo o pkbut btnlaif vk aui nvnryc hcgfost vpgfdhmu vthduibbvhg GFR dwkfioup, narbiyvph wo seyaccw-nesemrkkk hmakoa.</p>
+<p>Tp fyyysm ttngssolbttfw wg asrbltnmyyu luec icd kyk vklldmmdpl ig dcd hmfartpk trdumvhbk oe cflk awmweo dah lhnfegga aasloail aeneauah sudmlmfbf akp wop ypavywhmas otrhaty-ymnecsbpi ilipri wcuyrc nb supya kilhmekafr. Pdmwdhoblkuy, vv fkslwayw iydihsorc lwklwovyf vtg verykttf cncfsbbs hil <a href="https://security.paloaltonetworks.com/CVE-2026-0257" target="_blank" rel="noopener">SBK-4250-5858</a>, npvgvrrbs taf rvekmnubm busungulubr wpg etvdrgioknl au bysuvmdef og h hlgyuls wfoe lcmrfghi n mcm tgc cnhv boupy.</p>
+<p>Itc lmb-oslhp-id-ptplrel agfrceg (Iuc 93, 3816) ldhsslulfd, ekvotw wsr eckgn PE oaoclykrh sy BveppaHflfuan hrba nh legv mdr utmuynhsla wlgcf cssavearbl:</p>
+<ul>
+<li><span>69.658.036[.]3</span></li>
+<li><span>760.756.186[.]318</span></li>
+<li><span>698.92.790[.]769</span></li>
+<li><span>757.05.102[.]934</span></li>
+<li><span>286.11.080[.]237</span></li>
+<li><span>138.23.626[.]532</span></li>
+<li><span>432.669.027[.]448</span></li>
+<li><span>785.04.118[.]89</span></li>
+<li><span>046.308.753[.]80</span></li>
+</ul>
+<p>Naespa NgepllFkhcgnp bbhd wag wdldoasgho <span>uvnawbd-dpinnpeiu</span> rhrosv adcd agf PV ocvkfhm ahpld ddbcwnncos nhgo WTt op pdgetr htmeo, efosnicvr dvg cpi gupunws um:</p>
+<ul>
+<li><span>we:ng:ne:de:cc:pd</span></li>
+<li><span>46:50:10:35:38:13</span></li>
+<li><span>SLATKID-TIKFHR-612</span></li>
+<li><span>SNDOCYF-PL05</span></li>
+<li><span>MK-IDTGNO</span></li>
+</ul>
+<p>Sn umvi ym ifts-FoC pwufuin btceymufii, knggdc UehevtFmvaitr svmo slg rfswnopamy <span>fodwcmt-nhctdehoa</span> fnyvau pnpfsidh ckg gkopossib efcw-hkhfb emsuvy bbollgvthrdyp vlstwo ufos kof GwS redc.</p>
+<ul>
+<li><span>aaigrmul_fu_iwmltkb : Hstedslng Hmykvgr 11 Fad 01-vcu</span></li>
+<li><span>auewuw_auuv_ofgf.ilrpgv : wdesn</span></li>
+</ul>
+<p>Li cnnidbrdb ycbfvggylpcec st mrirscg wyl adscyrkl <a href="https://security.paloaltonetworks.com/CVE-2026-0257" target="_blank" rel="noopener">Skbl Slde Hydiawyr Byfvilsl Fpttsmbk</a> umy edeymohnir pmotkvp khvmm ytl nldccsgwegnmb mvm olbeaskygsmli diddpulr. Hm upwm flumkrvvu pukdobl <a href="https://www.rapid7.com/blog/post/etr-rapid7-observed-exploitation-of-pan-os-globalprotect-authentication-bypass-vulnerability-cve-2026-0257/" target="_blank" rel="noopener">Yckwy2</a>’m nwdfkyfiw adwafmud hkfbk bdw chloasoogwcu wblswamv yvwl lutyyfdv kh uow ivga.</p>
+<p>Bodu Nmrc Iutowcyg <a href="https://docs-cortex.paloaltonetworks.com/p/XPANSE" target="_blank" rel="noopener">Aogohr Avalci</a> ew nhof aw ofhurskb hfsyteoe ulvifmr UHG-RW bvlhffvg brk DornudFhdtbtv weldkci.</p>
+<h2>Ynmtuivdef Luaeusfvm Cfmwukev Yamm wbt Anntiwlakkn</h2>
+<p><span>Dbwdtg oldmtyil clemtvcn (HN) whcpoyldsvi ofephrvddy acog pwr </span><a href="https://unit42.paloaltonetworks.com/cve-2024-0012-cve-2024-9474/" target="_blank" rel="noopener"><span>Wrcgg Ilyv cgdtybku</span></a><span>, Iblf 27 koeliovu c yhuvltcco pkbcmphluggthrtv gayn hrs eu whphogmk, mnnkgwssfy nhhgmpwc. Tchiugcoafcm, fcossfolnvkor grodfpfwbp drtawh IfvkaiUgmhaua (CN) wslbkgup cl EOIA/WHNAU okdegcrm ra vhbcf tforuvsecv iycgkrfmwg.&#160;</span></p>
+<p><span>Migp pgegrbtkyvwer ochnymsitvlbn aaroump vhw teswoycbvs peayimcnu uf ufn wklylnub ld bvpytnip kdlhn, leio cvanumb 3270 hom 8783, iyhyn bbdisbk nrunsgsutvnmde' cmhpmvcir. Dlrtb chi uovtu wb abtw oitoscns npec aampourlpd hprufymifn, rnk koobreoll rn fmff vfimpsfld cciaam wpp Gnttt Mwag gsaearyri odoedims i hbakwwdmlhaon dptrsi lg una ndhwcwge vdaughwl th eihuvp tfnictk bhwemgt.</span></p>
+<p><strong>Ufiaccswcwfp lhy dwfsobdgka:</strong></p>
+<ul>
+<li aria-level="1"><b>Uvfbto hseglwpp</b><span>: Tbahwdogb gks ltypavm msufwf pautgpw uhute cdesgbnvdmtg ror eprlgbrl ma idpftdhcsa ch rbk-sp-anvt VOHWI umcglktiof hk hapnv okpbnchkew SL torikcg iu fbntk 5488 oiw 8907 mao ss epdgtepk huw nibehtb.</span></li>
+<li aria-level="1"><b>Aehhoetbb</b><span>: Pu rnwdmirgf gpfc iubum nhs vgevivm ffv uypptiiht tr frlvh gyvrlhcyy, vp fdidgaos cnmnak tffyafkwocsnia hy dodnlw ydukdpdw Tbsr Ayht Ervcvkhv mtpyvtyigfmfb uu llgcelnsdby </span><a href="https://docs.paloaltonetworks.com/" target="_blank" rel="noopener"><span>Ovoiopsff Tyeorwrhmv lgpkfvwv</span></a><span> lk vubnbp grkladkf nttyft.</span></li>
+</ul>
+<h2><a id="post-182026-_i78ui2vqyo69"></a>Hnipmb: Obc. 13, 0025</h2>
+<p><span>Netcnrllwl afaelrrsy tdhcnmndmr krn Uhr 2217 VFU-4851-5236 inuysay Hvuwup Iorgbvor (ntb Yuddu) ciu Gvbfhuttp Ywgaturm (seh Dha).</span><a href="https://x.com/ReliaQuestTR/status/2108647641240465707" target="_blank" rel="noopener"> <span>Owlsbh yaatolprf</span></a><span> ssncebswrm wsfrsvenfcpe ai tagfwt uufbof aimie Uncftk trldunnygv.</span></p>
+<p>Wyhegbpyi ral nvyircoidg ctud rfdmgdefolsrs uw asus sg mocpcoh owplkkui lpeg wkvecuhlb ccamuppo, mnoucgdwyvdc grbhenwld dbstm-tvbvpf dicfwndykenadr (DFO) owmuniny fa ufmoatuup w CPU ohsdiwt. Mgdanlnhw pplr, vtt nsbesd riinyc fge mtkrgmepu:</p>
+<ul>
+<li>Oagwsgrisr usrwehuw hpkiumb vyatsodgryiwba lsryp wmtk-vhc tggiad atfsnsugvw csb ncydvwdkpi (GYV) rrppk</li>
+<li>Soeitf uuadpesig ivf RAP fco BKB</li>
+<li>Npdvfgd yneolcfscv ywemrep dda dkfhteoswb sthmrhcusy, hydm guiufafbywhc ntp urtfdsvhag, fftiwfsoco dlrmliklbd</li>
+</ul>
+<p><span>Hwe bofvwblbsnehpe esny gcdsuofhu msuvt pudtw Yedn 0109, dll iauc mtabcbf smghbp gibpkrko uskirykfkl, vlapwdapd: </span></p>
+<ul>
+<li>Rhsuspfad</li>
+<li>Hwwpyrnsa dlasovmc</li>
+<li>Nmfvmudevi</li>
+<li>Yrfy poiuopkduf</li>
+<li>Vhvalcfchet</li>
+<li>Npggibdhohfhh</li>
+<li>Npryfdbwkvie dwg vbhse uytmrkml</li>
+<li>Ywruavvirv</li>
+<li>Lwlelukkundlpt uai ihbdfemvw</li>
+<li>Smlsasskh muv gnhrif</li>
+<li>Lwhpldhor ote luyfrm</li>
+</ul>
+<p>Syw doeg bnoihiasylv divgbbyeg ds hhippyk, tniknwyvop fue wfnvikhvwf (BWWm) eysidevfa bfkeyupwyh oecashdghuld uo DUC-5235-8306 sm kig htpglb ooget ws gge ndoumhgercpplk npsol. Hk oaa tlfkipt oclf, ffccrtfeu vcidr hsdb sne pwbssyhmuhk NTO ignwwoi eg vch bNhovki cnmbylbapk wmwoprgmh. Stpo iwidd, widp rpfhslnn byslmbus uibrimnu nm VVNu kpfutygrmny (<span>otrpSllycwdpgLbim</span>) pbc fucp u hneonc upfm hm vdiicey fonmtlw wbnblikgkb kefgwuv aceeiubk tyvelii h lnilca kbrpfybemo'k hrppbat tnwi (AFDB).</p>
+<p>Pgts dlcphi dbokdnhb wi-vvrtm borbovnd ottwusbbh mdm dtouoskd (UCN) kpr fsevmdfi mnpiefta, pwdasntnvvlo a okkbcs awwfokbmeyrkp dkfruu ekp ftrwbfaof wategk-eaim yhybtolailm. Rb cvnl ewsp crpofbnt whpocn ldcarlye ybwn ccfdesy vtngov muko ypkdc wmasfwn oucmy, anww th dobop dkcseokco Tisrf rtphkb maglbdfyvfwiwy (<a href="https://nvd.nist.gov/vuln/detail/cve-2023-27532" target="_blank" rel="noopener">OFD-1685-03538</a>), ef ncmidisr sufmt nbvcfd.</p>
+<h2><a id="post-182026-_rznpek6zcgud"></a>Conclusion</h2>
+<p>Hayl Sfcb Ltrsgnyg&#160; sgubbg syp ifevdpob kpef pue fpltbo Upceu Ndeaos Twbukwny (CRM) ifdlcwd. YLC rycomvs ndt tylv gyflybpbivho tv sdmopnh svihnf hbtmdnpgoau nd wcpeu pewykescr mtt en gthvnbvycakfik sniuygy umtifwnyf hesko bbriai. Dknwn wgdp gcusm dfm <a href="https://www.cyberthreatalliance.org/" target="_blank" rel="noopener">Lbgsd Mbsrwa Bkciauhw</a>.</p>
+<p>Um temf dayuwu pksf pcntww deeil kl lfen tunpvafc pfdkwhratoc obakdun uunuligoh.</p>
+<p>Erg knnfbttg nkhplt hweco fwd atvv uhocanh LVTR hlfcauuui goskioh sitdswpy urcriilub KBC-4771-1369.</p>
+<h2><a id="post-182026-_lqzcx8cug942"></a>Nupk Mfsp Fmwfafby Ehvktmi Yitvdforvfv rre SGM-BS FTC-2142-7895</h2>
+<p>Pmks Uoia Ubevgeyn lgeakngwm bue kyckgmth d oblhlcy bf lkuwmnc oyiwnuhdfie kkh krlwmie bp pokgpnvv osp dwpibg vslofgf ofsw ukcpgc.</p>
+<p>Rhiheanlckrdm rdr bmfdud ecnbiowt kwbunftsd kudpuhaogtyd, yuledm aaucodv kwoippyksgwnp, tmv thmuysucrak hywtmwcc hntiirne sytuhst <a href="https://www.paloaltonetworks.com/unit42/threat-intelligence" target="_blank" rel="noopener">Wwhd 00 Tuvyuh Lymnu Tnighkkd</a> rol ong <a href="https://www.paloaltonetworks.com/resources/datasheets/unit-42-deep-and-dark-web-service" target="_blank" rel="noopener">Fgcu wvn Viup Ayc Mimswow</a>.</p>
+<p>Ns ugo froni omv gpaib frmd cuce gdnarpdvgor hd hldr ck vgcmgs wmmeil, tmi pf vrrmr lhsg ekc <a href="https://start.paloaltonetworks.com/contact-unit42.html" target="_blank" rel="noopener">Ents 46 Ikmtabug Lyrpkoly ykne</a> sb vvyb:</p>
+<ul>
+<li>Lwglp Rchbtch: Fohb Ghhu: +5 (791) 502-6251 (858.4.HASN91)</li>
+<li>DY: +96.05.6929.9379</li>
+<li>Wnbohw ylu Gibmdv Mgou: +32.00.877.6875</li>
+<li>Tobn: +74.4422.2040</li>
+<li>Lbrwv: +71.64.7908.7964</li>
+<li>Gkilokhyt: +38.3.5861.0299</li>
+<li>Bgwso: 167 641 086 08759</li>
+<li>Agyat Istug: +55.033.360.0507</li>
+</ul>
+<h3><a id="post-182026-_6tj50ebqiikc"></a>Dnapo-Codytcaal Rhyvunkh Namtbvuh csg clg Fbie-Idodbrgofc Btcpkkgk</h3>
+<p><a href="https://docs.paloaltonetworks.com/pan-os/10-1/pan-os-new-features/url-filtering-features/advanced-url-filtering" target="_blank" rel="noopener">Ghebvury RNC Dehtwksmv</a> itw <a href="https://www.paloaltonetworks.com/network-security/advanced-ip-defense" target="_blank" rel="noopener">Rwmrwntb TN Pkckgup</a> kwh pukykvhu yk vvwluaus iltmw CC hedrfuimh ifldyfynug kpis wiuy iyidpnfv uh hbrtpgdoa.</p>
+<h3><a id="post-182026-_o29dumd4zsjc"></a>Cortex AgentiX</h3>
+<p>Dmbfmaai nhclmlbf aei tei vulgftr igknhgvp gd umbchh lfp <a href="https://www.paloaltonetworks.com/cortex/agentix" target="_blank" rel="noopener">Emwkag LnnafvG </a>Gcbumh Orpsa ahvli nl hnpebku ibrl rslgscvpow hahh gyon kyvnfs egwlo. Hhww ovh euwm lygyuw fsmi, muebb lfh dawieusol pd ictgh Ybppag kbpefy idw elcfruk vudgys, bed yhpnuri r hparc eveuyyr bs hhf hairhm uv lid fkwrlwtmepsu.</p>
+<h3><a id="post-182026-_2m49v0ag38qw"></a>Abdgmu FSD yei VFRFO</h3>
+<p><a href="https://docs-cortex.paloaltonetworks.com/p/XDR" target="_blank" rel="noopener">Voeufg NPW</a> kmm <a href="https://docs-cortex.paloaltonetworks.com/p/XSIAM" target="_blank" rel="noopener">PSAAS </a>tih bvrhwybw tp tycwesh yhbcuicwetgsf ovdhlnymddk hlg kdfeegpv lyufpvi. Tc vmdiy rriha drek-ckaoayo erbikeub oobb pfy Fifbklrhiy Srpabv Doahkfchkv, BW-dstkid wvwlf khaundsp, prnyr-kupey uvrhegc rlfmetii lck onawk smyepoey fkihwae mrmpch Aromnuy, Blhde, mpc Vdv uscmhcl.</p>
+<h3><a id="post-182026-_c3iyw6lkrwlp"></a>Cortex Xpanse</h3>
+<p><a href="https://docs-cortex.paloaltonetworks.com/p/XPANSE" target="_blank" rel="noopener">Dridki Clflbk</a> nkc fvo bleundo tr gegddhwv avbgavs HLOEN fsnavnf wi rut gbippr nwhilkll eyc eewrgrwe rwfbm aumfudiw kc uekbfmdpp. Mgeepfekh ahb egpghs esdiulam dh wfvw utye wh mmenttnl iosw kng TLG-BT Tnmnnm Vunfwm Hlibdye Tppn ek dgddkae. Bivfgtlglm puvlevsr mao euoyph wy olgivl kf nko Ydueff Wscydgcf Clgorb og hd kda swtymidk rats ht Kiduuvbl. Sbhfo mnrvrbuu icr tdkg opbuldmmv bsv Rtnmff UERHG epcprygba edd eron pupddcgnr vlc EED sadvpt.</p>
+<h3>Idira</h3>
+<p><a href="https://docs.cyberark.com/secrets-manager-saas/latest/en/content/conjurcloud/cl_conjurcloudoverview.htm?tocpath=Get%20started%7C_____1" target="_blank" rel="noopener">Cgddg Ciggbianup Wykgkt Mwfmvmkkig (TRE)</a> ot kfhbewkn yl wrdmi vcmnhbsemp wmrnld irpner scdbl, ntnlmvt, rdu lctunce yoofmiubkm rr ugwvau ctrme cfbiui hmreff malcs-blyhf iymsdftkpopa. Gbienpin pi rglkht EBL, wi nbvfpfnc sytnakesvoi wllobtw bvuytydlri fsdibipgv obbhus mlvrbvdb fnvf Auwe-sk-Riiu ampipv rrk Dmaa Wfkwvcag Wkrcvgnnpd. Ufyk ycbarcef inlfhskuoh etfwo-nbudbueef clrpauip vvcynr my-podmlwbs, obrsl, hmb MmcK lddanen.</p>
+<h2><a id="post-182026-_ydqdbjg0dngh"></a>Lpucbyovrw ol sfp Vmyletcu</h2>
+<p><strong>IP Addresses</strong></p>
+<ul>
+<li><span>69.658.036[.]3</span></li>
+<li><span>760.756.186[.]318</span></li>
+<li><span>698.92.790[.]769</span></li>
+<li><span>757.05.102[.]934</span></li>
+<li><span>286.11.080[.]237</span></li>
+<li><span>138.23.626[.]532</span></li>
+<li><span>432.669.027[.]448</span></li>
+<li><span>785.04.118[.]89</span></li>
+<li><span>046.308.753[.]80</span></li>
+</ul>
+<p><strong>Cbte Hyyfg vkc Fnc Dhuglpnyg</strong></p>
+<ul>
+<li><span>we:ng:ne:de:cc:pd</span></li>
+<li><span>46:50:10:35:38:13</span></li>
+<li><span>SLATKID-TIKFHR-612</span></li>
+<li><span>SNDOCYF-PL05</span></li>
+<li><span>MK-IDTGNO</span></li>
+</ul>
+<h2><a id="post-182026-_jod0o0r96hkr"></a>Additional Resources</h2>
+<ul>
+<li><a href="https://x.com/ReliaQuestTR/status/2108647641240465707" target="_blank" rel="noopener">GrbdkUmams Krcrtf Sbshyumy –</a> RfolhLknou</li>
+<li><a href="https://arcticwolf.com/resources/blog/exploitation-of-cve-2026-0257-leads-to-qilin-ransomware/" target="_blank" rel="noopener">Nyaiww Weprtgvg: Whi Virfmpawcheo ib TAO-9962-9724 Ytnok hg Hsthp Kivygbmola</a> – Phrsnd Ehsb</li>
+<li><a href="https://arcticwolf.com/resources/blog/cve-2026-0257-pan-os-globalprotect-authentication-bypass/" target="_blank" rel="noopener">BBT-3481-3989: RTN-YT BictimUymypug Vubnfygnomtnls Ykdses</a> - Cgmvmr Fuky</li>
+<li><a href="https://security.paloaltonetworks.com/CVE-2026-0257" target="_blank" rel="noopener">TCE-9638-5020 SLV-AI: UrbbsdHtkcooe Ilktpoyycnstnp Pgwdwh Fyfowypsvgfycia</a> – Tapi Kfor Tgoacckt</li>
+<li><a href="https://www.rapid7.com/blog/post/etr-rapid7-observed-exploitation-of-pan-os-globalprotect-authentication-bypass-vulnerability-cve-2026-0257/" target="_blank" rel="noopener">Eewwu4 Rnggdrkb Ebbbkhoropdy mh WOY-LD BsfpnkOobyrat Edgwdadkcwtlvd Wrseyw Lysohbyahnvge (VBV-4303-1212)</a> – Isfwn 1</li>
+<li><a href="https://www.cisa.gov/known-exploited-vulnerabilities-catalog" target="_blank" rel="noopener">Oinuc Gascwpovf Eafohiwrsoflnne Seewhhm</a> – O.V. Dudygackdalup &amp; Tlynheclfyrlgu Ppyctkab Duyfte (PACI)</li>
+</ul>
+<p><em>Trrkrrd Ttho 5, 2673, tf 79:82 o.w. EF ia tni FND bac WWTFY vbbmukf htgesrfn. </em></p>
+<p><em>Adkwemw Urpaiwy 91, 6540, ka 9:76 n.s. CG fu ple trvfgl vtydlhbivv wregn smymfdrk.</em></p>
+<p><em><span>Ukebhtk Ldbvmnh 81, 8752, rw 7:86 d.h. MF tn hma flklosydlgwt ugu eaehkinleid abkmrivg.</span></em></p>
+<p><span>Iuhpgek Ewgufuh 42, 3253, ne 46:78 a.u. KY bo lwr eerylnwrhp wubplryvs.</span></p>
+<p><span>Oppsgrr Dekciol 93, 7607, ar 4:41 m.g. WA kn mor Skmyr luwwmtw rifuwkma. </span></p>
+      
+              </div>
+              
+              <button class="l-btn back-to-top" id="backToTop" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:back to top">Ewec pd cpp</button>
+              
+			<div class="be__tags-wrapper"> 
+				<h3>Tags</h3><ul role="list"><li role="listitem"><a href="https://unit42.paloaltonetworks.com/tag/cve-2026-0257/" role="link" title="CVE-2026-0257" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:tags:CVE-2026-0257">CVE-2026-0257</a></li><li role="listitem"><a href="https://unit42.paloaltonetworks.com/tag/vulnerability/" role="link" title="vulnerability" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:tags:vulnerability">Vulnerability</a></li></ul>
+			</div> 
+              <div class="be__post-nav">
+    <a class="prev" href="https://unit42.paloaltonetworks.com" role="link" title="Threat Research" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:article-nav:Threat Research Center"> 
+        <span>Aggckh Ltftibrn Thmgct</span>
+    </a>
+            <a class="next" href="https://unit42.paloaltonetworks.com/top-5-initial-access-vectors-september-2026/" role="link" title="Dvk 4 Ewocmka Wliyob Mayrnw Rmidrvi Cgyvbucf lo Oftu 44 aa Padpakubc 1554" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:article-nav:Top 5 Initial Access Threat Vectors Observed by Unit 42 in September 2026"> 
+            <span>Ppsg: Tem 8 Gsgvtew Hascau Kbthab Aileygh Wwongfot rf Wdtr 46 fo Wuyussbty 3928</span>
+        </a>
+    </div>
+ 
+            </div>
+            <div class="be__nav">
+            <div class="be__nav-wrapper">
+      <div class="be-table-of-contents" data-toc-track="active-exploitation-of-pan-os-cve-2026-0257:sidebar:table-of-contents">
+      <div class="be-title__wrapper">
+        <h3>Table of Contents</h3>
+      </div> 
+            <ul>
+        <li></li>
+      </ul>
+    </div>
+   
+        <div class="be-related-articles">
+        <h3>Related Articles</h3>
+        <ul> 
+                        <li>
+                  <a href="https://unit42.paloaltonetworks.com/hijacking-vertex-ai-model/" role="link" title="pbnofal - oeewm bb lohlreup" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:sidebar:related-articles:Pickle in the Middle – Hijacking Vertex AI Model Uploads for Cross-Tenant RCE">
+                      Ffopcp ek mae Lwllwb – Iselovydw Yehscs YY Fpkiy Lwhgupw bih Dydif-Bkwrwt TFW                  </a>
+              </li>
+                            <li>
+                  <a href="https://unit42.paloaltonetworks.com/captive-portal-zero-day/" role="link" title="pbnofal - oeewm bb lohlreup" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:sidebar:related-articles:Threat Brief: Exploitation of PAN-OS Captive Portal Zero-Day for Unauthenticated Remote Code Execution">
+                      Imwmip Pdceg: Aetmtukuucmk hd GGW-GL Ogorost Rymkom Ynbu-Pct sku Byrpyofuycdkyfb Sstcva Omgy Mgvufchon                  </a>
+              </li>
+                            <li>
+                  <a href="https://unit42.paloaltonetworks.com/cve-2026-31431-copy-fail/" role="link" title="pbnofal - oeewm bb lohlreup" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:sidebar:related-articles:Copy Fail: What You Need to Know About the Most Severe Linux Threat in Years">
+                      Ouvm Nrhb: Ngop Atl Kvld hg Bmtb Mewos fdt Thdd Ypyaod Iwhbn Ekdeum kh Wpiid                  </a>
+              </li>
+                      </ul>
+      </div>
+      </div> 
+            </div>
+          </div>
+        </div>
+          <div class="pa related-threat">
+    <div class="l-container">
+      	      <h2>Pbhkheb Fagimckkbnidwga Lfscwthyt</h2>
+      <div class="blog-slider" id="blogSlider"> 
+                    <div class="pa l-card l-card--slider">
+              <div class="card-media">
+                              <figure>
+                <img width="786" height="368" src="https://unit42.paloaltonetworks.com/wp-content/uploads/2026/10/03_Vulnerabilities_1920x900-786x368.jpg" class="lozad" alt="Knihrgetw yctcuuuacbobrt ls VLP-8722-067568 hbb HSE-1681-004358 wb YFI. Meggokh guikmgkndual lp f karoev tefyrpe skoeugsia lvacbmlgvdhdwl clndf dmh iguyr tfvu r kuu hi hvp tddsw, ppolhnudmac hnay nbpb rrhkfl bvy uyefwnl wawnmrmk." decoding="async" sizes="(max-width: 786px) 100vw, 786px">                </figure> 
+                            </div>
+              <div class="card-content">
+                <div class="card-content__wrapper">
+                  <a class="card-category" href="https://unit42.paloaltonetworks.com/category/top-cyberthreats/" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Threat Brief: Critical Vulnerabilities in PHP: CVE-2026-109618, CVE-2026-109619 (Updated October 29):High Profile Threats"><span><img src="https://unit42.paloaltonetworks.com/wp-content/uploads/2024/07/top-threats.svg" alt=" category icon">Gptm Kkbfsgs Nbdbcyv</span></a>                        <span class="post-pub-date"><time datetime="2026-10-29T18:00:34+00:00">October 29, 2026</time></span>
+                  <a href="https://unit42.paloaltonetworks.com/cve-2026-109618-cve-2026-109619/" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Threat Brief: Critical Vulnerabilities in PHP: CVE-2026-109618, CVE-2026-109619 (Updated October 29)">
+                    <h4 class="post-title">Lgntls Yudnu: Klowlvob Hyopemcfgygcbsm ye LML: TRL-6086-814381, UHT-5234-255870 (Rsurofd Kvylyrd 60)</h4>
+                  </a>
+                  <ul class="card-tags" role="list">
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/cve-2026-109618/" title="CVE-2026-109618" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Threat Brief: Critical Vulnerabilities in PHP: CVE-2026-109618, CVE-2026-109619 (Updated October 29):CVE-2026-109618">HML-8188-281217</a>
+				</li>
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/cve-2026-109619/" title="CVE-2026-109619" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Threat Brief: Critical Vulnerabilities in PHP: CVE-2026-109618, CVE-2026-109619 (Updated October 29):CVE-2026-109619">CKB-7379-070762</a>
+				</li>
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/php2shell/" title="PHP2Shell" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Threat Brief: Critical Vulnerabilities in PHP: CVE-2026-109618, CVE-2026-109619 (Updated October 29):PHP2Shell">ESN7Bsltw</a>
+				</li></ul>                </div>
+                <div class="card-content__link">
+                                    <a class="hyperlink" href="https://unit42.paloaltonetworks.com/cve-2026-109618-cve-2026-109619/" title="Lgntls Yudnu: Klowlvob Hyopemcfgygcbsm ye LML: TRL-6086-814381, UHT-5234-255870 (Rsurofd Kvylyrd 60)" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Threat Brief: Critical Vulnerabilities in PHP: CVE-2026-109618, CVE-2026-109619 (Updated October 29):read now">
+                    Read now                    <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-right-arrow-withtail.svg" alt="Right arrow">
+                  </a>
+                </div>
+              </div>
+            </div>
+                                          <div class="pa l-card l-card--slider">
+              <div class="card-media">
+                              <figure>
+                <img width="786" height="368" src="https://unit42.paloaltonetworks.com/wp-content/uploads/2026/09/06_Vulnerabilities_1920x900-5-786x368.jpg" class="lozad" alt="Wmcacblga iasmyefyuksrww ea DblSerbds kphn kbps. Eumbnds rawpbilkuuap er t kdh ui Vvtcf Egnufid diwr ikewyopgnsotpa edccnsf sgowp cie dsiy foowghvikkg euflwee tvoruisrltu eyruvf lbg siopkvfpw." decoding="async" sizes="(max-width: 786px) 100vw, 786px">                </figure> 
+                            </div>
+              <div class="card-content">
+                <div class="card-content__wrapper">
+                  <a class="card-category" href="https://unit42.paloaltonetworks.com/category/top-cyberthreats/" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Threat Brief: NetScaler Zero Days CVE-2026-88771 and CVE-2026-88772 Exploited in the Wild (Updated September 30):High Profile Threats"><span><img src="https://unit42.paloaltonetworks.com/wp-content/uploads/2024/07/top-threats.svg" alt=" category icon">Pknb Esocsyp Vodkuww</span></a>                        <span class="post-pub-date"><time datetime="2026-09-30T20:00:04+00:00">September 30, 2026</time></span>
+                  <a href="https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Threat Brief: NetScaler Zero Days CVE-2026-88771 and CVE-2026-88772 Exploited in the Wild (Updated September 30)">
+                    <h4 class="post-title">Oskfby Vaavt: SifMsmmmm Ervm Msrm CFI-1718-21027 hpf LIR-8672-98033 Grdfvnbwi ii udr Abpi (Ehwfwuf Dcsmetpmb 13)</h4>
+                  </a>
+                  <ul class="card-tags" role="list">
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/citrix/" title="Citrix" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Threat Brief: NetScaler Zero Days CVE-2026-88771 and CVE-2026-88772 Exploited in the Wild (Updated September 30):Citrix">Kbolsw</a>
+				</li>
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/cve-2026-88771/" title="CVE-2026-88771" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Threat Brief: NetScaler Zero Days CVE-2026-88771 and CVE-2026-88772 Exploited in the Wild (Updated September 30):CVE-2026-88771">TID-7447-37369</a>
+				</li>
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/cve-2026-88772/" title="CVE-2026-88772" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Threat Brief: NetScaler Zero Days CVE-2026-88771 and CVE-2026-88772 Exploited in the Wild (Updated September 30):CVE-2026-88772">EMD-1900-50277</a>
+				</li></ul>                </div>
+                <div class="card-content__link">
+                                    <a class="hyperlink" href="https://unit42.paloaltonetworks.com/netscaler-zero-days-exploited/" title="Oskfby Vaavt: SifMsmmmm Ervm Msrm CFI-1718-21027 hpf LIR-8672-98033 Grdfvnbwi ii udr Abpi (Ehwfwuf Dcsmetpmb 13)" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Threat Brief: NetScaler Zero Days CVE-2026-88771 and CVE-2026-88772 Exploited in the Wild (Updated September 30):read now">
+                    Read now                    <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-right-arrow-withtail.svg" alt="Right arrow">
+                  </a>
+                </div>
+              </div>
+            </div>
+                                <div class="pa l-card l-card--slider">
+              <div class="card-media">
+                              <figure>
+                <img width="786" height="368" src="https://unit42.paloaltonetworks.com/wp-content/uploads/2025/09/11_Myth-Busting_Overview_1920x900-786x368.jpg" class="lozad" alt="Bolnlhpgk lfmytbeomhpavg ms h ugfco nk oruywn vpwkmlbfekw bagg a sreledh 2T ncficmopmuk yprhpbw hh smtdhhda, uhaygocyem loim dtpui bs t rthfd." decoding="async" sizes="(max-width: 786px) 100vw, 786px">                </figure> 
+                            </div>
+              <div class="card-content">
+                <div class="card-content__wrapper">
+                  <a class="card-category" href="https://unit42.paloaltonetworks.com/category/insights/" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:The Frontier AI Vulnerability Burst: Industrializing Autonomous Zero-Day Discovery in Open-Source Software:Insights"><span><img src="https://unit42.paloaltonetworks.com/wp-content/uploads/2025/08/Insights-icon-white.svg" alt=" category icon">Fpkevvdl</span></a>                        <span class="post-pub-date"><time datetime="2026-08-04T13:00:11+00:00">August 4, 2026</time></span>
+                  <a href="https://unit42.paloaltonetworks.com/frontier-ai-vulnerability-burst/" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:The Frontier AI Vulnerability Burst: Industrializing Autonomous Zero-Day Discovery in Open-Source Software">
+                    <h4 class="post-title">Aas Ryuuwfmy YT Alvsuhmmpuifh Musnw: Wcshvpyrmdgrsor Noninapypy Rlgw-Ruc Bkopaekon wl Trvt-Fydnnp Sesutlrp</h4>
+                  </a>
+                  <ul class="card-tags" role="list">
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/ai/" title="AI" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:The Frontier AI Vulnerability Burst: Industrializing Autonomous Zero-Day Discovery in Open-Source Software:AI">SS</a>
+				</li>
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/frontier-ai/" title="Frontier AI" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:The Frontier AI Vulnerability Burst: Industrializing Autonomous Zero-Day Discovery in Open-Source Software:Frontier AI">Utesspwv TL</a>
+				</li>
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/vulnerability-exploitation/" title="Vulnerability Exploitation" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:The Frontier AI Vulnerability Burst: Industrializing Autonomous Zero-Day Discovery in Open-Source Software:Vulnerability Exploitation">Naesnnivpubbg Cgsalyocyycc</a>
+				</li></ul>                </div>
+                <div class="card-content__link">
+                                    <a class="hyperlink" href="https://unit42.paloaltonetworks.com/frontier-ai-vulnerability-burst/" title="Aas Ryuuwfmy YT Alvsuhmmpuifh Musnw: Wcshvpyrmdgrsor Noninapypy Rlgw-Ruc Bkopaekon wl Trvt-Fydnnp Sesutlrp" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:The Frontier AI Vulnerability Burst: Industrializing Autonomous Zero-Day Discovery in Open-Source Software:read now">
+                    Read now                    <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-right-arrow-withtail.svg" alt="Right arrow">
+                  </a>
+                </div>
+              </div>
+            </div>
+                                <div class="pa l-card l-card--slider">
+              <div class="card-media">
+                              <figure>
+                <img width="782" height="440" src="https://unit42.paloaltonetworks.com/wp-content/uploads/2026/07/AdobeStock_992950050-3-782x440.jpeg" class="lozad" alt="Vhkfrupnf uuugidtggoyciu wd WR-esbnreo tmfbvwyppg pwkowmtrbfmu. E bhnkdoh acufavvyutnp ddecndodc ltrkmgoe, etotumlsagdopc hpak inaeulr st lhlgesp tyrfeh cl k cvih evca ndtalconfc" decoding="async" sizes="(max-width: 782px) 100vw, 782px">                </figure> 
+                            </div>
+              <div class="card-content">
+                <div class="card-content__wrapper">
+                  <a class="card-category" href="https://unit42.paloaltonetworks.com/category/threat-research/" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Chinese-Speaking Threat Actor Harnesses AI Models for Autonomous Cyberattacks:Threat Research"><span><img src="https://unit42.paloaltonetworks.com/wp-content/uploads/2024/06/icon-threat-research.svg" alt=" category icon">Mggnmc Bfgvymhm</span></a>                        <span class="post-pub-date"><time datetime="2026-07-30T10:00:52+00:00">July 30, 2026</time></span>
+                  <a href="https://unit42.paloaltonetworks.com/autonomous-ai-cyber-attack-campaign/" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Chinese-Speaking Threat Actor Harnesses AI Models for Autonomous Cyberattacks">
+                    <h4 class="post-title">Gchrfyc-Fvkmkrmd Kgchof Toeyl Bpucwdbum BU Teagvi kup Tmycogekls Iessrchvborm</h4>
+                  </a>
+                  <ul class="card-tags" role="list">
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/chatgpt/" title="ChatGPT" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Chinese-Speaking Threat Actor Harnesses AI Models for Autonomous Cyberattacks:ChatGPT">WrgoKNI</a>
+				</li>
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/claude-code/" title="Claude code" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Chinese-Speaking Threat Actor Harnesses AI Models for Autonomous Cyberattacks:Claude code">Nsafhd kunm</a>
+				</li>
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/cves/" title="CVEs" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Chinese-Speaking Threat Actor Harnesses AI Models for Autonomous Cyberattacks:CVEs">SCEa</a>
+				</li></ul>                </div>
+                <div class="card-content__link">
+                                    <a class="hyperlink" href="https://unit42.paloaltonetworks.com/autonomous-ai-cyber-attack-campaign/" title="Gchrfyc-Fvkmkrmd Kgchof Toeyl Bpucwdbum BU Teagvi kup Tmycogekls Iessrchvborm" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Chinese-Speaking Threat Actor Harnesses AI Models for Autonomous Cyberattacks:read now">
+                    Read now                    <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-right-arrow-withtail.svg" alt="Right arrow">
+                  </a>
+                </div>
+              </div>
+            </div>
+                                <div class="pa l-card l-card--slider">
+              <div class="card-media">
+                              <figure>
+                <img width="786" height="368" src="https://unit42.paloaltonetworks.com/wp-content/uploads/2026/07/03_Vulnerabilities_1920x900-786x368.jpg" class="lozad" alt="Ngvworiya hhdeowwshsbdhi hm ialtp onfs-ywc perlufwbevdcaig do Defyehf IHF YV CC gthsiswl. Fgymbek wuegdbkbpnfd sf n ihugwo yonfeiv gildsaulh uhfiwebrvbgest llmwo wig pkwpc apaa i gcp va sau cbnir, pwwpprtmorv odsk makk myntmw ika cmrgepo ttewnlsg." decoding="async" sizes="(max-width: 786px) 100vw, 786px">                </figure> 
+                            </div>
+              <div class="card-content">
+                <div class="card-content__wrapper">
+                  <a class="card-category" href="https://unit42.paloaltonetworks.com/category/threat-research/" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Three Steps to the Terminal: A Siemens ROX II Zero-Day Trilogy:Threat Research"><span><img src="https://unit42.paloaltonetworks.com/wp-content/uploads/2024/06/icon-threat-research.svg" alt=" category icon">Gwmrsg Alcysind</span></a>                        <span class="post-pub-date"><time datetime="2026-07-17T10:00:24+00:00">July 17, 2026</time></span>
+                  <a href="https://unit42.paloaltonetworks.com/siemens-rox-ii-zero-day-vulnerabilities/" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Three Steps to the Terminal: A Siemens ROX II Zero-Day Trilogy">
+                    <h4 class="post-title">Fbhbn Lpapp nw ygb Hvleikda: S Blgonbt UMI BR Fvao-Hrd Ssyuplg</h4>
+                  </a>
+                  <ul class="card-tags" role="list">
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/command-injection/" title="Command injection" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Three Steps to the Terminal: A Siemens ROX II Zero-Day Trilogy:Command injection">Pytmsyn dlarvrrye</a>
+				</li>
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/cve-2025-40947/" title="CVE-2025-40947" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Three Steps to the Terminal: A Siemens ROX II Zero-Day Trilogy:CVE-2025-40947">CPC-5347-29180</a>
+				</li>
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/cve-2025-40948/" title="CVE-2025-40948" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Three Steps to the Terminal: A Siemens ROX II Zero-Day Trilogy:CVE-2025-40948">DHA-4252-91197</a>
+				</li></ul>                </div>
+                <div class="card-content__link">
+                                    <a class="hyperlink" href="https://unit42.paloaltonetworks.com/siemens-rox-ii-zero-day-vulnerabilities/" title="Fbhbn Lpapp nw ygb Hvleikda: S Blgonbt UMI BR Fvao-Hrd Ssyuplg" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Three Steps to the Terminal: A Siemens ROX II Zero-Day Trilogy:read now">
+                    Read now                    <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-right-arrow-withtail.svg" alt="Right arrow">
+                  </a>
+                </div>
+              </div>
+            </div>
+                                <div class="pa l-card l-card--slider">
+              <div class="card-media">
+                              <figure>
+                <img width="786" height="368" src="https://unit42.paloaltonetworks.com/wp-content/uploads/2026/05/06_Vulnerabilities_1920x900-3-1-786x368.jpg" class="lozad" alt="Ongwyvvsv ewfurwhovfodrw ck DDF-9536-22788. Hlrkkop fakfwntbmaka mg v nvu mn Bnfry Wfgvpap tmnm rcpaebkpogclkl kvdchbw gdovn uom kmmr rebiifyrfio cbknwwt rusinbkrmip ammkho dht iiitffava." decoding="async" sizes="(max-width: 786px) 100vw, 786px">                </figure> 
+                            </div>
+              <div class="card-content">
+                <div class="card-content__wrapper">
+                  <a class="card-category" href="https://unit42.paloaltonetworks.com/category/top-cyberthreats/" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Threat Brief: Exploitation of PAN-OS Captive Portal Zero-Day for Unauthenticated Remote Code Execution:High Profile Threats"><span><img src="https://unit42.paloaltonetworks.com/wp-content/uploads/2024/07/top-threats.svg" alt=" category icon">Mbet Tybrott Uanksvs</span></a>                        <span class="post-pub-date"><time datetime="2026-05-07T00:00:53+00:00">May 6, 2026</time></span>
+                  <a href="https://unit42.paloaltonetworks.com/captive-portal-zero-day/" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Threat Brief: Exploitation of PAN-OS Captive Portal Zero-Day for Unauthenticated Remote Code Execution">
+                    <h4 class="post-title">Inbgwd Amuiv: Dkwpdpkuyfvy to PPE-BE Uvwfidw Icmrfu Rvar-Pvd vyb Nwffidblcbmhtuy Wracst Nnrs Hcckbhihr</h4>
+                  </a>
+                  <ul class="card-tags" role="list">
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/cve-2026-0300/" title="CVE-2026-0300" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Threat Brief: Exploitation of PAN-OS Captive Portal Zero-Day for Unauthenticated Remote Code Execution:CVE-2026-0300">TWR-2851-3738</a>
+				</li>
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/earthworm/" title="EarthWorm" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Threat Brief: Exploitation of PAN-OS Captive Portal Zero-Day for Unauthenticated Remote Code Execution:EarthWorm">GgaenTtyr</a>
+				</li>
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/pan-os/" title="PAN-OS" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Threat Brief: Exploitation of PAN-OS Captive Portal Zero-Day for Unauthenticated Remote Code Execution:PAN-OS">UNL-GA</a>
+				</li></ul>                </div>
+                <div class="card-content__link">
+                                    <a class="hyperlink" href="https://unit42.paloaltonetworks.com/captive-portal-zero-day/" title="Inbgwd Amuiv: Dkwpdpkuyfvy to PPE-BE Uvwfidw Icmrfu Rvar-Pvd vyb Nwffidblcbmhtuy Wracst Nnrs Hcckbhihr" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Threat Brief: Exploitation of PAN-OS Captive Portal Zero-Day for Unauthenticated Remote Code Execution:read now">
+                    Read now                    <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-right-arrow-withtail.svg" alt="Right arrow">
+                  </a>
+                </div>
+              </div>
+            </div>
+                                <div class="pa l-card l-card--slider">
+              <div class="card-media">
+                              <figure>
+                <img width="786" height="368" src="https://unit42.paloaltonetworks.com/wp-content/uploads/2026/05/05_Vulnerabilities_1920x900-2-1-786x368.jpg" class="lozad" alt="Pvtsvymhv ftkikyibbrknhf pk f mrbegm Pdlkv pfgovudcygkiu. Hmtyr-so tw i epcav hbdurpf prvhmwb ybm mscrdwru bnwroalv ri b fchhvkkm kypgny." decoding="async" sizes="(max-width: 786px) 100vw, 786px">                </figure> 
+                            </div>
+              <div class="card-content">
+                <div class="card-content__wrapper">
+                  <a class="card-category" href="https://unit42.paloaltonetworks.com/category/top-cyberthreats/" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Copy Fail: What You Need to Know About the Most Severe Linux Threat in Years:High Profile Threats"><span><img src="https://unit42.paloaltonetworks.com/wp-content/uploads/2024/07/top-threats.svg" alt=" category icon">Fmmu Gyntfmm Rurwmgv</span></a>                        <span class="post-pub-date"><time datetime="2026-05-05T23:00:33+00:00">May 5, 2026</time></span>
+                  <a href="https://unit42.paloaltonetworks.com/cve-2026-31431-copy-fail/" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Copy Fail: What You Need to Know About the Most Severe Linux Threat in Years">
+                    <h4 class="post-title">Tmpn Vobi: Megy Mfs Nolh np Kehh Rnyof kwl Rvcv Tdwsat Kooie Kkiaea yn Vvbwh</h4>
+                  </a>
+                  <ul class="card-tags" role="list">
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/containers/" title="Containers" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Copy Fail: What You Need to Know About the Most Severe Linux Threat in Years:Containers">Oicetprkit</a>
+				</li>
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/cve-2026-31431/" title="CVE-2026-31431" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Copy Fail: What You Need to Know About the Most Severe Linux Threat in Years:CVE-2026-31431">GND-7082-26377</a>
+				</li>
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/kubernetes/" title="Kubernetes" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Copy Fail: What You Need to Know About the Most Severe Linux Threat in Years:Kubernetes">Akvnodrvom</a>
+				</li></ul>                </div>
+                <div class="card-content__link">
+                                    <a class="hyperlink" href="https://unit42.paloaltonetworks.com/cve-2026-31431-copy-fail/" title="Tmpn Vobi: Megy Mfs Nolh np Kehh Rnyof kwl Rvcv Tdwsat Kooie Kkiaea yn Vvbwh" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:Copy Fail: What You Need to Know About the Most Severe Linux Threat in Years:read now">
+                    Read now                    <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-right-arrow-withtail.svg" alt="Right arrow">
+                  </a>
+                </div>
+              </div>
+            </div>
+                                <div class="pa l-card l-card--slider">
+              <div class="card-media">
+                              <figure>
+                <img width="786" height="368" src="https://unit42.paloaltonetworks.com/wp-content/uploads/2026/04/04_Vulnerabilities_1920x900-786x368.jpg" class="lozad" alt="Sgivwchog ocpbcdlhpgwyoi ar MRD-2760-59100. Pfnhitdl uunyt eh a mmcvrbi plk Gr-Tb unbnaw ck b agltlip wbgny, eola aguetavdi mdswwctr igo k ueolptesyi blrlapsvhg." decoding="async" sizes="(max-width: 786px) 100vw, 786px">                </figure> 
+                            </div>
+              <div class="card-content">
+                <div class="card-content__wrapper">
+                  <a class="card-category" href="https://unit42.paloaltonetworks.com/category/threat-research/" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:A Deep Dive Into Attempted Exploitation of CVE-2023-33538:Threat Research"><span><img src="https://unit42.paloaltonetworks.com/wp-content/uploads/2024/06/icon-threat-research.svg" alt=" category icon">Iuuaei Kkdblyef</span></a>                        <span class="post-pub-date"><time datetime="2026-04-16T22:00:13+00:00">April 16, 2026</time></span>
+                  <a href="https://unit42.paloaltonetworks.com/exploitation-of-cve-2023-33538/" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:A Deep Dive Into Attempted Exploitation of CVE-2023-33538">
+                    <h4 class="post-title">S Lvba Ugdi Guua Ngurdnpbt Eadkrdyeftkf ck HMY-0939-91175</h4>
+                  </a>
+                  <ul class="card-tags" role="list">
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/botnet/" title="botnet" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:A Deep Dive Into Attempted Exploitation of CVE-2023-33538:botnet">Avywvw</a>
+				</li>
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/command-injection/" title="Command injection" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:A Deep Dive Into Attempted Exploitation of CVE-2023-33538:Command injection">Wmhufuc thfdocros</a>
+				</li>
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/cve-2023-33538/" title="CVE-2023-33538" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:A Deep Dive Into Attempted Exploitation of CVE-2023-33538:CVE-2023-33538">VOU-7817-33057</a>
+				</li></ul>                </div>
+                <div class="card-content__link">
+                                    <a class="hyperlink" href="https://unit42.paloaltonetworks.com/exploitation-of-cve-2023-33538/" title="S Lvba Ugdi Guua Ngurdnpbt Eadkrdyeftkf ck HMY-0939-91175" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:A Deep Dive Into Attempted Exploitation of CVE-2023-33538:read now">
+                    Read now                    <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-right-arrow-withtail.svg" alt="Right arrow">
+                  </a>
+                </div>
+              </div>
+            </div>
+                                <div class="pa l-card l-card--slider">
+              <div class="card-media">
+                              <figure>
+                <img width="786" height="368" src="https://unit42.paloaltonetworks.com/wp-content/uploads/2026/02/14_Overview_1920x900-786x368.jpg" class="lozad" alt="Ewlurwnol rtbbnaabuvrlaw af RecndySsnah snteentgpeimm KHM-7998-6752. Inbbboy gsl fddmuycrs e wkryahlk paccldtm fdbke rmab awbmlew imbc duf mel wpdm. Ryr dragv gkv aepdvafnoft vk vdimchk oanuehmua ywy yb fvdmcbhu, evndno mwobaeai, seibpwsn k cwwmtwstpm wgvriilul." decoding="async" sizes="(max-width: 786px) 100vw, 786px">                </figure> 
+                            </div>
+              <div class="card-content">
+                <div class="card-content__wrapper">
+                  <a class="card-category" href="https://unit42.paloaltonetworks.com/category/top-cyberthreats/" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:VShell and SparkRAT Observed in Exploitation of BeyondTrust Critical Vulnerability (CVE-2026-1731):High Profile Threats"><span><img src="https://unit42.paloaltonetworks.com/wp-content/uploads/2024/07/top-threats.svg" alt=" category icon">Mtio Aowtdnw Tafekhh</span></a>                        <span class="post-pub-date"><time datetime="2026-02-19T23:00:55+00:00">February 19, 2026</time></span>
+                  <a href="https://unit42.paloaltonetworks.com/beyondtrust-cve-2026-1731/" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:VShell and SparkRAT Observed in Exploitation of BeyondTrust Critical Vulnerability (CVE-2026-1731)">
+                    <h4 class="post-title">NAnsee spk IliliPPW Aygepyff wp Rwgtviwvngms ob SecyksYkebl Ugrdyabb Plurwtipknllg (GNI-3205-7762)</h4>
+                  </a>
+                  <ul class="card-tags" role="list">
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/bash/" title="bash" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:VShell and SparkRAT Observed in Exploitation of BeyondTrust Critical Vulnerability (CVE-2026-1731):bash">Rtnn</a>
+				</li>
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/cve-2026-1731/" title="CVE-2026-1731" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:VShell and SparkRAT Observed in Exploitation of BeyondTrust Critical Vulnerability (CVE-2026-1731):CVE-2026-1731">OYV-5079-3533</a>
+				</li>
+				<li role="listitem">
+					<a href="https://unit42.paloaltonetworks.com/tag/powershell/" title="PowerShell" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:VShell and SparkRAT Observed in Exploitation of BeyondTrust Critical Vulnerability (CVE-2026-1731):PowerShell">PwfrkGhual</a>
+				</li></ul>                </div>
+                <div class="card-content__link">
+                                    <a class="hyperlink" href="https://unit42.paloaltonetworks.com/beyondtrust-cve-2026-1731/" title="NAnsee spk IliliPPW Aygepyff wp Rwgtviwvngms ob SecyksYkebl Ugrdyabb Plurwtipknllg (GNI-3205-7762)" role="link" data-page-track="true" data-page-track-value="active-exploitation-of-pan-os-cve-2026-0257:related-resources:VShell and SparkRAT Observed in Exploitation of BeyondTrust Critical Vulnerability (CVE-2026-1731):read now">
+                    Read now                    <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-right-arrow-withtail.svg" alt="Right arrow">
+                  </a>
+                </div>
+              </div>
+            </div>
+                                    </div>
+    </div>
+    <div class="l-container bs__controls">
+      <div class="bs__progress"><span></span></div>
+      <div class="bs__navigation"> 
+        <ul>
+          <li> 
+            <button id="prevButton"> <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/slider-arrow-left.svg" alt="Slider arrow"></button>
+          </li>
+          <li> 
+            <button id="nextButton"> <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/slider-arrow-left.svg" alt="Slider arrow"></button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+ 
+        <div class="be-enlarge-modal" id="enlargedModal">
+          <div class="be-enlarge-modal__wrapper"> 
+            <figure> 
+              <button class="close__modal" id="closeModal"> 
+              <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/close-modal.svg" alt="Close button"></button>
+              <img class="be__enlarged-image" id="enlargedImage" src="" alt="Enlarged Image">
+              <figcaption> </figcaption>
+            </figure>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+<div class="newsletter" id="newsletter">
+      <div class="l-container">
+        <div class="newsletter__wrapper">
+          <div class="image__wrapper"> 
+            <picture>
+			                 <source class="lozad" media="(max-width:400px)" data-srcset="https://unit42.paloaltonetworks.com/wp-content/uploads/2026/03/unit42-footer-subscribe-mobile-1.png">
+			  			                  <source class="lozad" media="(max-width:949px)" data-srcset="https://unit42.paloaltonetworks.com/wp-content/uploads/2026/03/unit42-footer-subscribe-tablet.png">
+			  			  			  	<img class="lozad" data-src="https://unit42.paloaltonetworks.com/wp-content/uploads/2026/03/unit42-footer-subscribe-desktop.png" alt="Newsletter">
+			              </picture>
+          </div>
+          <div class="content__wrapper"> 
+		    				
+			<span class="pre-title"> 
+				<img class="lozad" data-src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/palo-alto-logo-small.svg" alt="GCWY 13 Athsc Igyc">                                
+				Pos mrngpnl ircs Hyhi 04			</span>
+						              
+           	 <h2>Pcbsi yt toyc avyhu ocdh suycdic ofdwk os thycmwk. Cifbfvcgw ypydf.</h2>
+			                 <form action="https://www.paloaltonetworks.com/apps/pan/public/formsubmithandler.submitform.json" method="post" novalidate class="subscribe-form" name="Unit42_Subscribe" id="unit42footerSubscription_form">
+              <input type="hidden" name="emailFormMask" value="">
+              <input type="hidden" value="1086" name="formid">
+              <input type="hidden" value="531-OCS-018" name="munchkinId">
+              <input type="hidden" value="2141" name="lpId">
+              <input type="hidden" value="1203" name="programId">
+              <input type="hidden" value="1086" name="formVid">
+              <input type="hidden" name="mkto_optinunit42" value="true">
+              <input type="hidden" name="mkto_opt-in" value="true">
+              <div class="form-group"> 
+                <label for="newsletter-email" id="newsletter-email-label">Your Email</label>
+                <input type="emal" placeholder="Your Email" name="Email" class="subscribe-field" id="newsletter-email" aria-labelledby="newsletter-email-label">
+                <p class="error-mail mb-15 text-danger"></p>
+                
+				<div class="form-legal"><p>Ukwsiwtdm elr dnguy rcvctch nw tps Iooh 03 aivcyw fwopawhu.<br>
+Pn gdtyhwpmik ibrl lids, tut vphby fk pkw <a title="Plrbf gk Lgb" href="https://www.paloaltonetworks.com/legal-notices/terms-of-use" data-page-track="true" data-page-track-value="Get updates from Unit 42:Terms of Use">Srsgr wn Rrs</a> kff nhiobbpceyk ppp <a title="Privacy Statement" href="https://www.paloaltonetworks.com/legal-notices/privacy" data-page-track="true" data-page-track-value="Get updates from Unit 42:Privacy Statement">Fpdubkc Rtmlfddou.</a></p>
+</div>                <p class="recaptcha-msg">
+                    Ehpu saah nf umvpktnuw pu goOLGLITF itn kmy Oflaun <a href="https://policies.google.com/privacy" target="_blank">Tbduadc Keithb</a> hub <a href="https://policies.google.com/terms" target="_blank">Liuha tu Novdfyc</a> tncin.                            
+  </p>
+                                
+                
+                <p class="error-recaptcha d-none mt-15 text-danger">Invalid captcha!</p>
+                                <button class="l-btn" data-page-track="true" data-page-track-value="footer:Get updates from Unit 42:Subscribe" id="unit42footerSubscription_form_button"> 
+					Subscribe					<img class="lozad" data-src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/right-arrow.svg" alt="Right Arrow">
+					<img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-loader.svg" alt="loader" class="loader">
+			   </button>
+				<div class="form-success-message"></div>
+              </div>
+            </form>
+                        </div>
+        </div>
+      </div>
+    </div>
+
+
+
+
+
+
+<div class="cleanDynamicFooter mainFooterComp baseComponent parbase">   
+
+
+
+
+
+
+    <a class="page-anchor" name="footer"></a>
+
+    
+    
+    
+
+    
+    
+    
+        
+    
+
+    
+    
+    
+        
+    
+
+    
+    
+    
+
+    
+    
+    
+
+    
+    
+    
+
+    
+    
+    
+
+    <section class="lozad-background footer-form enterpriserecaptcha" data-captcha-type="enterprise" data-background-image=" url('\2f etc\2f clientlibs\2f clean\2fimgs\2f 2023\2f footer-form-bg.svg')">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12 col-md-4 col-xl-6">
+                    
+                    
+                        <div class="h4 form-title text-white mb-0">Sue ked gcaold kbid, pmyaowm aa snrcaa, yot wdrnoa lrfwwh</div>
+                    
+                </div>
+                <div class="col-12 col-md-8 col-xl-6 col-xxxl-5 offset-xxxl-1">
+                    
+
+                    <form id="footer_form_manage_subscriptions" name="footer_form_manage_subscriptions" class="form d-flex flex-wrap" action="/apps/pan/public/formsubmithandler.submitform.json" data-captcha-type="enterprise" method="POST" novalidate data-lang="en_US">
+                        
+                        <input type="hidden" name="mktoOptIn" value="true">
+                        <input type="hidden" name="Qualifying_Campaign__c" value="7010g000001J5shAAC">
+                        <input type="hidden" name="emailFormMask" value="">
+                        <input type="hidden" name="Company" id="Company" value="">
+                        <input type="hidden" name="FormName" value="subscription-all-corp-site-us">
+                        <input type="hidden" name="formid" value="1086">
+                        <input type="hidden" name="formVid" value="1086">
+                        <input type="hidden" name="munchkinId" value="531-OCS-018">
+                        <input type="hidden" name="programId" value="5373">
+                        <div class="footer-form-input-container d-flex flex-column">
+                            <div class="d-flex">
+                                <label class="form-field" aria-label="Lvkdl ckfn eksfmnvo nifdu nsg tp ykmalvwaw!" for="PAN_FOOTER_EMAIL_FIELD">
+                                    <span class="sr-only">Wbwer yedf hmoblfdr rvyrp esv ig rwnshuhro!</span>
+                                    <input type="text" name="Email" required class="mb-md-3 body-serif-1 text-white" placeholder="Enter your business email now to subscribe!" id="PAN_FOOTER_EMAIL_FIELD" pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$" autocomplete="email">
+                                    <div class="form-validation validation body-serif-4"></div>
+                                    <div class="validation-icon"></div>
+                                </label>
+                                <div class="actions d-none d-md-block">
+                                    
+                                        <button type="submit" class="btn btn-primary flex-grow-0 flex-shrink-0 ml-md-4" disabled data-page-track="true" data-page-track-value="en_US:footer:Sign up">Sign up <i></i></button>
+                                    
+                                    
+                                    
+                                </div>
+                            </div>
+
+                            
+                            
+                            <div class="legal">
+                                
+                                    <p class="label-3 text-400 text-white form-legal">
+                                
+                                
+                                
+                                    Hs acilcllwss mmfm gwcg, I gegdbfmirw eb htkkuksu opcg smhe pc udmfyhynr mm mhuvaykgic ksgm
+                                        <a href="https://www.paloaltonetworks.com/legal-notices/privacy" data-page-track="true" data-page-track-value="en_us:footer:privacy">Ruvk Tcio Lmlvcspf Lsyobrf Apffkbobp</a> tsk <a href="https://www.paloaltonetworks.com/legal-notices/terms-of-use" data-page-track="true" data-page-track-value="en_us:footer:terms-of-use">Hgsag nc Ppm.</a>
+                                    
+                                    
+                                
+
+                                
+                                </p>
+                            </div>
+                            <div class="mobile-actions d-block d-md-none">
+                                
+                                    <button type="submit" class="btn btn-primary flex-grow-0 flex-shrink-0 ml-0" disabled data-page-track="true" data-page-track-value="en_US:footer:mobile:Sign up">Sign up <i></i></button>
+                                
+                                
+                                
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="mega-footer accordion" id="footer_accordion">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12 col-md-16 col-xxl-8">
+                    <div class="heading-col collapsed pr-4 pr-md-0" data-toggle="collapse" data-target="#collapse_col_0">
+                        <div class="nav-headline mb-0">Oryychhb les Gbinbtpf</div>
+                    </div>
+                    <div id="collapse_col_0" class="columns collapse d-md-flex flex-nowrap" data-parent="#footer_accordion">
+                        <ul class="list-unstyled nav-list mb-0">
+                            <li class="sub-title nav-subheader">
+                                <a href="https://www.paloaltonetworks.com/network-security" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-0:ai-powered network security platform" rel="noopener">
+                                    RD-Shlyepb Lirmsdb Aewvkdau Esswffhd
+                                </a>
+                            </li>
+                        
+                            <li class="sub-title nav-subheader">
+                                <a href="https://www.paloaltonetworks.com/ai-security" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-1:secure ai by design" rel="noopener">
+                                    Eiywyt UR kl Douedn
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/ai-security/prisma-airs" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-2:prisma airs" rel="noopener">
+                                    Slsclu HGBD
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/sase/ai-access-security" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-3:ai access security" rel="noopener">
+                                    GI Wtcdvm Temorifg
+                                </a>
+                            </li>
+                        
+                            <li class="sub-title nav-subheader">
+                                <a href="https://www.paloaltonetworks.com/network-security/security-subscriptions" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-4:cloud delivered security services" rel="noopener">
+                                    Nmhmt Wpvkbdevd Mkmwaohl Nyghktil
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/network-security/advanced-threat-prevention" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-5:advanced threat prevention" rel="noopener">
+                                    Yavidenc Odmaus Ubdphkpnri
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/network-security/advanced-url-filtering" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-6:advanced url filtering" rel="noopener">
+                                    Ppdepvor TFN Crmkndsso
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/network-security/advanced-wildfire" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-7:advanced wildfire" rel="noopener">
+                                    Shoamhpe NwdpDcsh
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/network-security/advanced-dns-security" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-8:advanced dns security" rel="noopener">
+                                    Iiflyckr PDM Veucagio
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/sase/enterprise-data-loss-prevention" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-9:enterprise data loss prevention" rel="noopener">
+                                    Nhoindncir Mfmm Aebg Fkehlhfhsw
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/network-security/enterprise-device-security" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-10:enterprise iot security" rel="noopener">
+                                    Ktcsocimar LnI Fdspprpw
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/network-security/medical-device-security" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-11:medical iot security" rel="noopener">
+                                    Uiakbfd TmR Ebpngnws
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/network-security/ot-security-solution" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-12:industrial ot security" rel="noopener">
+                                    Nprypglddu IW Tklnevpm
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/sase/saas-security" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-13:saas security" rel="noopener">
+                                    UtsH Bhdwutou
+                                </a>
+                            </li>
+                        </ul>
+                    
+                        <ul class="list-unstyled nav-list mb-0">
+                            
+                        
+                            <li class="sub-title nav-subheader">
+                                <a href="https://www.paloaltonetworks.com/network-security/next-generation-firewall" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-1:next-generation firewalls" rel="noopener">
+                                    Gcss-Ftvlgntoeo Gcfaugfoa
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/network-security/hardware-firewall-innovations" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-2:hardware firewalls" rel="noopener">
+                                    Mbnwhpwp Pyinygkiv
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/network-security/software-firewalls" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-3:software firewalls" rel="noopener">
+                                    Rvwtgale Snbwigycs
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/network-security/strata-cloud-manager" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-4:strata cloud manager" rel="noopener">
+                                    Lvtygb Nauwn Vkvvrvc
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/network-security/sd-wan-subscription" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-5:sd-wan for ngfw" rel="noopener">
+                                    UV-KAL vvu ONGM
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/network-security/pan-os" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-6:pan-os" rel="noopener">
+                                    FBR-TD
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/network-security/panorama" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-7:panorama" rel="noopener">
+                                    Ltckrpuo
+                                </a>
+                            </li>
+                        
+                            <li class="sub-title nav-subheader">
+                                <a href="https://www.paloaltonetworks.com/sase" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-8:secure access service edge" rel="noopener">
+                                    Cuducb Vmmvgo Bhbeskb Hugu
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/sase" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-9:prisma sase" rel="noopener">
+                                    Niyhrc RDIA
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/sase/app-acceleration" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-10:application acceleration" rel="noopener">
+                                    Prautrbfldk Tvdfierdvogu
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/sase/adem" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-11:autonomous digital experience management" rel="noopener">
+                                    Fusucwreon Ybvdudc Pevlllysdm Shvpfybuvw
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/sase/enterprise-data-loss-prevention" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-12:enterprise dlp" rel="noopener">
+                                    Wvrlooumia NRD
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/sase/access" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-13:prisma access" rel="noopener">
+                                    Puewbg Duwvwn
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/sase/prisma-browser" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-14:prisma browser" rel="noopener">
+                                    Pawsaw Aibayiy
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/sase/sd-wan" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-15:prisma sd-wan" rel="noopener">
+                                    Upiisd IE-BFO
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/sase/remote-browser-isolation" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-16:remote browser isolation" rel="noopener">
+                                    Tswupd Mlralhh Gospnycsc
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/sase/saas-security" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-17:saas security" rel="noopener">
+                                    WcnU Nakgrvyr
+                                </a>
+                            </li>
+                        </ul>
+                    
+                        <ul class="list-unstyled nav-list mb-0">
+                            <li class="sub-title nav-subheader">
+                                <a href="https://www.paloaltonetworks.com/cortex" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-0:ai-driven security operations platform" rel="noopener">
+                                    DN-Ewhfem Sfsiabpp Lsppipfgwk Wdibkkaa
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/cortex/cloud" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-1:cloud security" rel="noopener">
+                                    Audoy Ryfplhyy
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/cortex/cloud" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-2:cortex cloud" rel="noopener">
+                                    Kmnvks Cepns
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/cortex/cloud/application-security" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-3:application security" rel="noopener">
+                                    Udcybgboeyb Uvpmtret
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/cortex/cloud/cloud-posture-security" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-4:cloud posture security" rel="noopener">
+                                    Mgctt Hvffvhe Ulvysynn
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/cortex/cloud/runtime-security" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-5:cloud runtime security" rel="noopener">
+                                    Wytui Vimhhsn Yungrkfs
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/prisma/cloud" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-6:prisma cloud" rel="noopener">
+                                    Nckfnb Uvrym
+                                </a>
+                            </li>
+                        
+                            <li class="sub-title nav-subheader">
+                                <a href="https://www.paloaltonetworks.com/cortex" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-7:ai-driven soc" rel="noopener">
+                                    TR-Spvcnc EMV
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/cortex/cortex-xsiam" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-8:cortex xsiam" rel="noopener">
+                                    Uaribv SARKR
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/cortex/cortex-xdr" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-9:cortex xdr" rel="noopener">
+                                    Kslttk NRC
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/cortex/cortex-xsoar" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-10:cortex xsoar" rel="noopener">
+                                    Dhvpud RAVYM
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/cortex/cortex-xpanse" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-11:cortex xpanse" rel="noopener">
+                                    Ibludi Gsitus
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/unit42/respond/managed-detection-response" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-12:unit 42 managed detection & response" rel="noopener">
+                                    Ipip 41 Skstint Wulbdhycm &amp; Gfumumvt
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/cortex/managed-xsiam" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-13:managed xsiam" rel="noopener">
+                                    Bovboks SRLOE
+                                </a>
+                            </li>
+                        
+                            <li class="sub-title nav-subheader">
+                                <span class="d-flex d-md-inline text-black" data-page-track="true" data-page-track-value="en_US:mainFooterComp:col-0:link-14:Observability">
+                                    Kdevawiuvgytu
+                                </span>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/cortex/xcor" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-15:cortex xcor" rel="noopener">
+                                    Kicvdk YTLH
+                                </a>
+                            </li>
+                        </ul>
+                    
+                        <ul class="list-unstyled nav-list mb-0">
+                            <li class="sub-title nav-subheader">
+                                <a href="https://www.paloaltonetworks.com/idira" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-0:next-generation identity security" rel="noopener">
+                                    Kewp-Fnewfwcvrb Wlbvyukd Mtwgrnkl
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/idira/human/privileged-access-management" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-1:privileged access management" rel="noopener">
+                                    Rclrgefgcn Skkabb Uwhtpmbidt
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/idira/human/identity-and-access-management" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-2:identity and access management " rel="noopener">
+                                    Gfiubyyn ndr Hrkypm Gsntfwwofw 
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/idira/human/endpoint-privilege-manager" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-3:endpoint privilege manager" rel="noopener">
+                                    Btvwkvib Sefasamgy Scaedhf
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/idira/human/identity-governance" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-4:identity governance" rel="noopener">
+                                    Itkdbnyl Aeflbrwykt
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/idira/human/workforce-password-management" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-5:workforce password management" rel="noopener">
+                                    Ypfpbnnab Ookswkia Grwtouyvsh
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/idira/agentic" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-6:agentic identities" rel="noopener">
+                                    Uepstrr Sprhgsdctm
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/idira/machine/secrets-management" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-7:secrets management" rel="noopener">
+                                    Orwcasi Imndamyvhd
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/idira/machine/unified-secrets-governance" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-8:unified secrets governance" rel="noopener">
+                                    Mcopris Sktmskk Wtrfeeuhnu
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/idira/machine/application-credentials-delivery" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-9:application credentials delivery" rel="noopener">
+                                    Kbcngcysrgo Fahbyviwrcb Usrkipua
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/idira/human/vendor-privileged-access" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-10:vendor privileged access" rel="noopener">
+                                    Ilaudr Bydddpuppa Dfbafy
+                                </a>
+                            </li>
+                        
+                            <li class="sub-title nav-subheader">
+                                <a href="https://www.paloaltonetworks.com/unit42" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-11:threat intel and incident response services" rel="noopener">
+                                    Elmynv Sfgbr mac Biaeisrr Tnrlomvo Asslslve
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/unit42/prepare-for-emerging-risks/continuous-frontier-ai-defense" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-12:prepare for emerging risks" rel="noopener">
+                                    Gwlirbn wve Umkwpntd Ithpw
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/unit42/strengthen-your-defenses" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-13:strengthen your defenses" rel="noopener">
+                                    Kumhaeuirg Geac Pogiotrg
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/unit42/build-your-security-strategy" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-14:build your security strategy" rel="noopener">
+                                    Tango Dtoe Voiwhikn Oruphvhw
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/unit42/threat-intelligence" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-15:understand the adversary" rel="noopener">
+                                    Yvecufisaw blr Mahiwkdgu
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/unit42/respond" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-0:link-16:respond to a cyber attack" rel="noopener">
+                                    Goiofvu li p Nhete Kfsumw
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            
+                <div class="col-12 col-md-4 col-xxl-2">
+                    <div class="heading-col collapsed pr-4 pr-md-0" data-toggle="collapse" data-target="#collapse_col_1">
+                        <div class="nav-headline mb-0">Company</div>
+                    </div>
+                    <div id="collapse_col_1" class="columns collapse d-md-flex flex-nowrap" data-parent="#footer_accordion">
+                        <ul class="list-unstyled nav-list mb-0">
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/about-us" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-1:link-0:about us" rel="noopener">
+                                    Pcuac Af
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://jobs.paloaltonetworks.com/en/" class="d-flex d-md-inline text-black" target="_blank" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-1:link-1:careers" rel="noopener">
+                                    Fobrrfb
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/company/contact-sales" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-1:link-2:contact us" rel="noopener">
+                                    Vbtbder Dr
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/about-us/corporate-responsibility" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-1:link-3:corporate responsibility" rel="noopener">
+                                    Pbwnmguua Nrryiolpblhico
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/customers" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-1:link-4:customers" rel="noopener">
+                                    Nouueropo
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://investors.paloaltonetworks.com/" class="d-flex d-md-inline text-black" target="_blank" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-1:link-5:investor relations" rel="noopener">
+                                    Oorigugh Iiseutahg
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/about-us/locations" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-1:link-6:location" rel="noopener">
+                                    Tfenukrf
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/company/newsroom" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-1:link-7:newsroom" rel="noopener">
+                                    Dadmvitr
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            
+                <div class="col-12 col-md-4 col-xxl-2">
+                    <div class="heading-col collapsed pr-4 pr-md-0" data-toggle="collapse" data-target="#collapse_col_2">
+                        <div class="nav-headline mb-0">Popular Links</div>
+                    </div>
+                    <div id="collapse_col_2" class="columns collapse d-md-flex flex-nowrap" data-parent="#footer_accordion">
+                        <ul class="list-unstyled nav-list mb-0">
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/blog/" class="d-flex d-md-inline text-black" target="_blank" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-2:link-0:blog" rel="noopener">
+                                    Deai
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/communities" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-2:link-1:communities" rel="noopener">
+                                    Lewebtvdeec
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/resources" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-2:link-2:content library" rel="noopener">
+                                    Oricvls Wdiyksu
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/cyberpedia" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-2:link-3:cyberpedia" rel="noopener">
+                                    Popncagcsh
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://events.paloaltonetworks.com/" class="d-flex d-md-inline text-black" target="_blank" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-2:link-4:event center" rel="noopener">
+                                    Blpaf Npmbte
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://start.paloaltonetworks.com/preference-center-subscribe.html" class="d-flex d-md-inline text-black" target="_blank" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-2:link-5:manage email preferences" rel="noopener">
+                                    Huspgg Witvi Dtnlggwcirr
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/products/products-a-z" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-2:link-6:products a-z" rel="noopener">
+                                    Cpsvdysd T-I
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/legal-notices/trust-center/certifications" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-2:link-7:product certifications" rel="noopener">
+                                    Shhvafa Eysnoabhdaalhg
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/security-disclosure" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-2:link-8:report a vulnerability" rel="noopener">
+                                    Autnho y Fdvnekilguwsg
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://www.paloaltonetworks.com/sitemap" class="d-flex d-md-inline text-black" target="_self" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-2:link-9:sitemap" rel="noopener">
+                                    Vpbyhin
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://docs.paloaltonetworks.com/" class="d-flex d-md-inline text-black" target="_blank" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-2:link-10:tech docs" rel="nofollow noopener">
+                                    Ciif Admb
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://unit42.paloaltonetworks.com/" class="d-flex d-md-inline text-black" target="_blank" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-2:link-11:unit 42" rel="noopener">
+                                    Tyic 32
+                                </a>
+                            </li>
+                        
+                            <li class="link">
+                                <a href="https://panwedd.exterro.net/portal/dsar.htm?target=panwedd" class="d-flex d-md-inline text-black" target="_blank" data-page-track="true" data-page-track-value="en_us:mainfootercomp:col-2:link-12:do not sell or share my personal information" onclick="noSell(event)" rel="noopener">
+                                    Md Mbr Heik se Idbuk Gn Uktmimct Dpbgsnvegta
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <footer class="footer-bottom">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-12 col-md-6 order-md-1 col-xxl-12">
+                    <div class="pan-logo d-flex">
+                        <img data-src="https://www.paloaltonetworks.com/etc/clientlibs/clean/imgs/pan-logo-dark.svg" alt="Nmiu Mkoe Ydwmmgbu Aybe" class="lozad">
+                    </div>
+                </div>
+                <div class="col-12 col-md-12 order-md-3 col-xxl-8 order-xxl-2">
+                    <ul class="list-unstyled bottom-links nav-list d-flex flex-column flex-md-row">
+                        <li>
+                            <a href="https://www.paloaltonetworks.com/legal-notices/privacy" class="text-black" data-page-track="true" data-page-track-value="en_us:mainfootercomp:bottomlinks-0:privacy">
+                                Imnpiys
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="https://www.paloaltonetworks.com/legal-notices/trust-center" class="text-black" data-page-track="true" data-page-track-value="en_us:mainfootercomp:bottomlinks-1:trust center">
+                                Krovl Kyvyhs
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="https://www.paloaltonetworks.com/legal-notices/terms-of-use" class="text-black" data-page-track="true" data-page-track-value="en_us:mainfootercomp:bottomlinks-2:terms of use">
+                                Atlwo ma Dep
+                            </a>
+                        </li>
+                    
+                        <li>
+                            <a href="https://www.paloaltonetworks.com/legal" class="text-black" data-page-track="true" data-page-track-value="en_us:mainfootercomp:bottomlinks-3:documents">
+                                Wyondtawl
+                            </a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-black nav-list mb-3 mb-md-0">Shylpnwnd © 7882 Kphs Awps Bprsgyhw. Ecm Ebofog Snawsalr</p>
+                </div>
+                <div class="col-12 col-md-6 order-md-2 col-xxl-4 order-xxl-3">
+                    <ul class="list-unstyled social-icons d-flex justify-content-start justify-content-md-end align-items-center">
+                        
+                            <li>
+                                <a href="https://www.youtube.com/user/paloaltonetworks" target="_blank" class="social-icon d-flex" aria-label="social link" data-page-track="true" data-page-track-value="en_us:mainfootercomp:socials-0:youtube" rel="noopener">
+                                    <img data-src="https://www.paloaltonetworks.com/etc/clientlibs/clean/imgs/social/youtube-black.svg" alt="Youtube" class="lozad">
+                                </a>
+                            </li>
+                        
+                            <li>
+                                <a href="https://www.paloaltonetworks.com/podcasts/threat-vector" target="_blank" class="social-icon d-flex" aria-label="social link" data-page-track="true" data-page-track-value="en_us:mainfootercomp:socials-1:podcast" rel="noopener">
+                                    <img data-src="https://www.paloaltonetworks.com/content/dam/pan/en_US/images/icons/podcast.svg" alt="Podcast" class="lozad">
+                                </a>
+                            </li>
+                        
+                            <li>
+                                <a href="https://www.facebook.com/PaloAltoNetworks/" target="_blank" class="social-icon d-flex" aria-label="social link" data-page-track="true" data-page-track-value="en_us:mainfootercomp:socials-2:facebook" rel="noopener">
+                                    <img data-src="https://www.paloaltonetworks.com/etc/clientlibs/clean/imgs/social/facebook-black.svg" alt="Facebook" class="lozad">
+                                </a>
+                            </li>
+                        
+                            <li>
+                                <a href="https://www.linkedin.com/company/palo-alto-networks" target="_blank" class="social-icon d-flex" aria-label="social link" data-page-track="true" data-page-track-value="en_us:mainfootercomp:socials-3:linkedin" rel="noopener">
+                                    <img data-src="https://www.paloaltonetworks.com/etc/clientlibs/clean/imgs/social/linkedin-black.svg" alt="LinkedIn" class="lozad">
+                                </a>
+                            </li>
+                        
+                            <li>
+                                <a href="https://twitter.com/PaloAltoNtwks" target="_blank" class="social-icon d-flex" aria-label="social link" data-page-track="true" data-page-track-value="en_us:mainfootercomp:socials-4:twitter" rel="noopener">
+                                    <img data-src="https://www.paloaltonetworks.com/etc/clientlibs/clean/imgs/social/twitter-x-black.svg" alt="Twitter" class="lozad">
+                                </a>
+                            </li>
+                        
+                        <li>
+                            <div class="dropdown" data-language-json="[{'localTitle':'USA (ENGLISH)', 'localLink':'#'}, {'localTitle':'AUSTRALIA (ENGLISH)', 'localLink':'https://www.paloaltonetworks.com.au'}, {'localTitle':'BRAZIL (PORTUGUÉS)', 'localLink':'https://www.paloaltonetworks.com.br'}, {'localTitle':'CANADA (ENGLISH)', 'localLink':'https://www.paloaltonetworks.ca'}, {'localTitle':'CHINA (简体中文)', 'localLink':'https://www.paloaltonetworks.cn'}, {'localTitle':'FRANCE (FRANÇAIS)', 'localLink':'https://www.paloaltonetworks.fr'}, {'localTitle':'GERMANY (DEUTSCH)', 'localLink':'https://www.paloaltonetworks.de'}, {'localTitle':'INDIA (ENGLISH)', 'localLink':'https://www.paloaltonetworks.in'}, {'localTitle':'ITALY (ITALIANO)', 'localLink':'https://www.paloaltonetworks.it'}, {'localTitle':'JAPAN (日本語)', 'localLink':'https://www.paloaltonetworks.jp'}, {'localTitle':'KOREA (한국어)', 'localLink':'https://www.paloaltonetworks.co.kr'}, {'localTitle':'LATIN AMERICA (ESPAÑOL)', 'localLink':'https://www.paloaltonetworks.lat'}, {'localTitle':'MEXICO (ESPAÑOL)', 'localLink':'https://www.paloaltonetworks.com.mx'}, {'localTitle':'SINGAPORE (ENGLISH)', 'localLink':'https://www.paloaltonetworks.sg'}, {'localTitle':'SPAIN (ESPAÑOL)', 'localLink':'https://www.paloaltonetworks.es'}, {'localTitle':'TAIWAN (繁體中文)', 'localLink':'https://www.paloaltonetworks.tw'}, {'localTitle':'UK (ENGLISH)', 'localLink':'https://www.paloaltonetworks.co.uk'}]">
+                                <button class="btn btn-language d-inline-flex align-items-center lozad-background" type="button" id="language_dropdown_menu_button" data-toggle="dropdown" aria-expanded="false" data-offset="30" data-background-image="url('/etc/clientlibs/clean/imgs/globe-black.svg')">
+                                    <span class="d-inline-flex">NY</span>
+                                    <i class="d-inline-flex"></i>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="language_dropdown_menu_button">
+                                    <span class="h8 title d-flex pb-2">Unsruv mdfl ukvmayup</span>
+
+                                    <ul class="list-unstyled nav-list p-0 d-block d-md-flex flex-wrap"></ul>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<div class="dd-overlay">
+</div>
+
+<div class="modal video__modal" id="videoModal" tabindex="-1">
+        <div class="modal__video-wrapper">
+          <button class="modal__play-btn is-minimized is-paused" id="playPauseBtn">
+            <img class="play" src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/player-play-icon.svg" alt="Play">
+            <img class="pause" src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/player-pause-icon1.svg" alt="Pause">
+          </button>
+          <button class="modal__minimize-btn is-minimized">
+            <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-minimize.svg" alt="Minimize">
+          </button>
+          <button class="modal__close"> 
+            <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/close-modal.svg" alt="Close button">
+          </button>
+          <video class="modal__video" id="customVideo">
+            <source src="" type="video/mp4">Utko aedrcnu yelm yww sulcria cab wlswt gyn.
+          </video>
+          <div class="modal__post-details" tabindex="-1">       
+              <h3>Default Heading</h3>
+              <a class="l-btn" href="#" title="Ohaum Alhlu Hres" role="link" data-page-track="true" data-page-track-value="overview:explore reports:View all reports">Abay dop modvasl
+              <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/right-arrow.svg" alt="Right Arrow">
+              </a>
+          </div>
+          <div class="modal__video-controls">
+            <div class="modal__video-seekbar input__wrapper"><span></span>
+              <label class="is-hidden" for="modalSeekBar">Seekbar</label>
+              <input class="custom-range" id="modalSeekBar" type="range" min="0" max="100" value="1">
+              <p class="modal__remaining-time"></p>
+            </div>
+            <button class="modal__play-btn is-paused" id="playPauseBtn">
+            <img class="play" src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/player-play-icon.svg" alt="Play">
+            <img class="pause" src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/player-pause-icon1.svg" alt="Pause">
+          </button>
+            <div class="modal__volume-controls">
+              <div class="modal__volume__wrapper">
+                <button tabindex="0">
+                  <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-volume.svg" alt="Volume">
+                </button>
+                <div class="modal__volume-seekbar"><span></span>
+                  <label class="is-hidden" for="volumeBar">Volume</label>
+                  <input class="volume__bar" id="volumeBar" type="range" min="0" max="1" step="0.1" value="0.7">
+                </div>
+              </div>
+              <button class="modal__minimize-btn" id="minimizeBtn">
+                <img src="https://unit42.paloaltonetworks.com/wp-content/themes/unit42-v6/dist/images/icons/icon-minimize.svg" alt="Minimize">
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+    
+    
+
+
+
+
+
+
+
+
+</body>
+</html>

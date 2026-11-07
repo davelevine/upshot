@@ -325,7 +325,7 @@ def add_reading_times(items, known=None, feeds=None):
     for i in items:
         if not i.get("minutes") and (known or {}).get(i["url"]):
             i["minutes"] = known[i["url"]]
-    payload = {"items": [{k: i.get(k) for k in ("url", "publisher", "minutes")} for i in items], "feeds": feeds or {}}
+    payload = {"items": [{k: i.get(k) for k in ("url", "publisher", "title", "minutes")} for i in items], "feeds": feeds or {}}
     try:
         r = subprocess.run(["node", str(ROOT / "extract.mjs")], input=json.dumps(payload), capture_output=True, text=True, timeout=1800)
     except (OSError, subprocess.TimeoutExpired) as e:

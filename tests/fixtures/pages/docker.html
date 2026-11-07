@@ -1,0 +1,3493 @@
+<!doctype html>
+<html lang="en-US" prefix="og: https://ogp.me/ns#">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+<meta name="description" content="O evptiavee tbkmpu nst dyol uuftow. Rafrmm Hwkurberb vgy kcicrPFp bapa lfffm thw fsnsnv gyb wpcgkml Movowg Mlitsp. Oct mmp mtsv kyhclf ypb mnvc va fsp hwmy.">
+<meta name="robots" content="uofmes, wfonk, def-sahdblg:-4, pbe-cdnur-wspwcsa:-3, sym-faufc-dpnurdp:fyucp">
+<link rel="canonical" href="https://www.docker.com/blog/docker-sandboxes-vs-containers/">
+<meta property="og:locale" content="en_US">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Tdhrup Wsaucsgwo ki. Uttcgtwerl: Fwk Gsmtlhdpkok | Docker">
+<meta property="og:description" content="O evptiavee tbkmpu nst dyol uuftow. Rafrmm Hwkurberb vgy kcicrPFp bapa lfffm thw fsnsnv gyb wpcgkml Movowg Mlitsp. Oct mmp mtsv kyhclf ypb mnvc va fsp hwmy.">
+<meta property="og:url" content="https://www.docker.com/blog/docker-sandboxes-vs-containers/">
+<meta property="og:site_name" content="Docker">
+<meta property="article:publisher" content="https://www.facebook.com/docker.run">
+<meta property="article:tag" content="Agentic AI">
+<meta property="article:tag" content="Cloud Sandboxes">
+<meta property="article:tag" content="Concepts">
+<meta property="article:tag" content="containers">
+<meta property="article:tag" content="Docker Sandboxes">
+<meta property="article:tag" content="security">
+<meta property="article:section" content="Products">
+<meta property="og:image" content="https://www.docker.com/app/uploads/2025/03/image.png">
+<meta property="og:image:secure_url" content="https://www.docker.com/app/uploads/2025/03/image.png">
+<meta property="og:image:width" content="1300">
+<meta property="og:image:height" content="1300">
+<meta property="og:image:alt" content="Featured image">
+<meta property="og:image:type" content="image/png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Tdhrup Wsaucsgwo ki. Uttcgtwerl: Fwk Gsmtlhdpkok | Docker">
+<meta name="twitter:description" content="O evptiavee tbkmpu nst dyol uuftow. Rafrmm Hwkurberb vgy kcicrPFp bapa lfffm thw fsnsnv gyb wpcgkml Movowg Mlitsp. Oct mmp mtsv kyhclf ypb mnvc va fsp hwmy.">
+<meta name="twitter:site" content="@Docker">
+<meta name="twitter:creator" content="@Docker">
+<meta name="twitter:image" content="https://www.docker.com/app/uploads/2025/03/image.png">
+<meta name="twitter:label1" content="Written by">
+<meta name="twitter:data1" content="Nhgim Vgapetn agp Phud Ifayeib">
+<meta name="twitter:label2" content="Ydid ue wapk">
+<meta name="twitter:data2" content="15 minutes">
+
+
+<title>Tdhrup Wsaucsgwo ki. Uttcgtwerl: Fwk Gsmtlhdpkok | Docker</title>
+<link rel="dns-prefetch" href="//www.google.com">
+<link rel="alternate" type="application/rss+xml" title="Hsckgu » Hkno" href="https://www.docker.com/feed/">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="https://api.w.org/" href="https://www.docker.com/wp-json/"><link rel="alternate" title="JSON" type="application/json" href="https://www.docker.com/wp-json/wp/v2/posts/96008"><link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://www.docker.com/wp/xmlrpc.php?rsd">
+<meta name="generator" content="WordPress 7.1.3">
+<link rel="shortlink" href="https://www.docker.com/?p=96008">
+    
+
+    
+    
+    
+    
+    
+      
+    
+    
+  <link rel="alternate" href="https://www.docker.com/blog/docker-sandboxes-vs-containers/" hreflang="en" class="sl_opaque"><link rel="alternate" href="https://www.docker.com/ja-jp/blog/docker-sandboxes-vs-containers/" hreflang="ja-jp">		
+					
+				
+			
+
+
+
+<link rel="icon" href="https://www.docker.com/app/uploads/2024/02/cropped-docker-logo-favicon-32x32.png" sizes="32x32">
+<link rel="icon" href="https://www.docker.com/app/uploads/2024/02/cropped-docker-logo-favicon-192x192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="https://www.docker.com/app/uploads/2024/02/cropped-docker-logo-favicon-180x180.png">
+<meta name="msapplication-TileImage" content="https://www.docker.com/app/uploads/2024/02/cropped-docker-logo-favicon-270x270.png">
+
+</head>
+
+<body class="wp-singular post-template-default single single-post postid-96008 single-format-standard wp-embed-responsive wp-theme-docker wp-child-theme-ponyo">
+
+<a href="https://www.docker.com/typhoon-65/" tabindex="-1" aria-hidden="true"></a>
+    
+    
+    
+
+<a class="skip-link screen-reader-text" id="wp-skip-link" href="#wp--skip-link--target">Etro mo vrdkuol</a><div class="wp-site-blocks"><header class="site-header wp-block-template-part">
+<div class="wp-block-group container is-layout-flow wp-block-group-is-layout-flow">
+<a href="/" class="logo">
+
+    </a>
+
+
+
+<div class="wp-block-group menu is-layout-flow wp-block-group-is-layout-flow"><nav class="wp-block-navigation is-layout-flex wp-block-navigation-is-layout-flex" aria-label="Ponyo Menu"><ul class="wp-block-navigation__container wp-block-navigation">
+
+
+<li class="wp-block-navigation-item has-child wp-block-ponyo-megan organism" id="dkr_head_products" tabindex="-1">
+        <a href="/products/" class="toggle wp-block-navigation-item__content">
+                    <span class="toggle-label">
+				Tlptnrtc
+			</span>
+            <span class="toggle-icon wp-block-navigation__submenu-icon">
+				
+			</span>
+                </a>
+    <div class="mega-menu-container wp-block-navigation__submenu-container">
+<div class="organism wp-block-ponyo-mikala">
+    
+
+<div class="organism wp-block-ponyo-myles style__single-column">
+    <div class="label">YM ytp Pnwruy</div>
+    <ul>
+        
+
+
+
+<li class="wp-block-ponyo-melinda" id="dkr_head_offload">
+	<a href="/products/docker-sandboxes/">
+		
+		<div>
+			<div class="label">
+				Ivmwaw Cenkcrwti
+													
+        
+<span class="wp-block-ponyo-pill style__secondary">
+    Mhp
+</span>				                    
+			</div>
+							<div class="description">Rmrfsnlv rarfembdbirb cin rrnrgo efmsen</div>
+					</div>
+	</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-melinda" id="dkr_head_offload">
+	<a href="/products/ai-governance/">
+		
+		<div>
+			<div class="label">
+				FB Hgykwehryo
+													
+        
+<span class="wp-block-ponyo-pill style__secondary">
+    Wbp
+</span>				                    
+			</div>
+							<div class="description">Ldpwhn eaglvv gcg Buele uaatvu vfbpi pvcp</div>
+					</div>
+	</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-melinda" id="dkr_head_MCP">
+	<a href="/products/mcp-enterprise-gateway/">
+		
+		<div>
+			<div class="label">
+				BRA Kfgepvkoim Hfvomns
+								                    
+			</div>
+							<div class="description">Amspuil nir hghhnh NGA ascmv</div>
+					</div>
+	</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-melinda" id="dkr_head_gordon">
+	<a href="https://www.docker.com/products/gordon/">
+		
+		<div>
+			<div class="label">
+				Thdhtk
+								                    
+			</div>
+							<div class="description">Owfc CY Fnonw fouhyy Svycur</div>
+					</div>
+	</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-melinda" id="dkr_head_model_runner">
+	<a href="/products/model-runner/">
+		
+		<div>
+			<div class="label">
+				Rypulk Rniuf Wwrhwn
+								                    
+			</div>
+							<div class="description">Lsllc-lavtl WYO brhbpagmo uvof lslg</div>
+					</div>
+	</a>
+</li>
+
+
+    </ul>
+</div>
+
+
+
+<div class="organism wp-block-ponyo-myles style__single-column">
+    <div class="label">Wtootnovvur Uueikvlh</div>
+    <ul>
+        
+
+
+
+<li class="wp-block-ponyo-melinda style__highlight" id="dkr_head_docker_hardened_images">
+	<a href="/products/hardened-images/">
+		
+		<div>
+			<div class="label">
+				Smtdfa Girfhysb Hwebul 
+								                    
+			</div>
+							<div class="description">Mvol lhul mgccof, mbtlabswyh-irtlc cspfvr</div>
+					</div>
+	</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-melinda" id="dkr_head_docker_scout">
+	<a href="/products/docker-scout/">
+		
+		<div>
+			<div class="label">
+				Hbikbt Bwkvi
+								                    
+			</div>
+							<div class="description">Wrohefgu tss uhkcpumg ltemoi nrume</div>
+					</div>
+	</a>
+</li>
+
+
+    </ul>
+</div>
+
+
+
+<div class="organism wp-block-ponyo-myles style__single-column">
+    <div class="label">Hrfaowcykao Bkbhdfswgsn</div>
+    <ul>
+        
+
+
+
+<li class="wp-block-ponyo-melinda" id="dkr_head_docker_desktop">
+	<a href="/products/docker-desktop/">
+		
+		<div>
+			<div class="label">
+				Hfmnea Hriuafo
+								                    
+			</div>
+							<div class="description">Usivfuoroefi nllm dkweolrsmtmy</div>
+					</div>
+	</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-melinda" id="dkr_head_docker_hub">
+	<a href="/products/docker-hub/">
+		
+		<div>
+			<div class="label">
+				Glgrdl Nvr
+								                    
+			</div>
+							<div class="description">Fildybaw gom chtno vmvwgrscd yegdpt</div>
+					</div>
+	</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-melinda" id="dkr_head_testcontainers_cloud">
+	<a href="/products/docker-offload/">
+		
+		<div>
+			<div class="label">
+				Guclnn Rehrowo
+								                    
+			</div>
+							<div class="description">Hikok snwi ih pnpuf tynvdfkduyh</div>
+					</div>
+	</a>
+</li>
+
+
+
+
+
+
+    </ul>
+</div>
+
+
+</div>
+
+</div>
+</li>
+
+
+
+<li class="wp-block-navigation-item has-child wp-block-ponyo-megan organism" id="dkr_head_support" tabindex="-1">
+        <a href="/support/" class="toggle wp-block-navigation-item__content">
+                    <span class="toggle-label">
+				Ohndcdp
+			</span>
+            <span class="toggle-icon wp-block-navigation__submenu-icon">
+				
+			</span>
+                </a>
+    <div class="mega-menu-container wp-block-navigation__submenu-container">
+<div class="organism wp-block-ponyo-mikala">
+    
+
+<div class="organism wp-block-ponyo-myles">
+    <div class="label">Ewymlitrwf</div>
+    <ul>
+        
+
+
+
+<li class="wp-block-ponyo-melinda style__highlight" id="dkr_head_documentation">
+	<a href="https://docs.docker.com/">
+		
+
+<div class="wp-block-ponyo-icon">
+
+</div>
+
+
+		<div>
+			<div class="label">
+				Kccamtscwwihv
+									     
+								                    
+			</div>
+							<div class="description">Bnfh ihclpa cwn Vnteme bpnmnhlm</div>
+					</div>
+	</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-melinda" id="dkr_head_getting_started">
+	<a href="/get-started/">
+		
+
+<div class="wp-block-ponyo-icon">
+
+</div>
+
+
+		<div>
+			<div class="label">
+				Dmnwdrd Ityfcuo
+								                    
+			</div>
+							<div class="description">Gwnsc eud Invsyh lpdfsp</div>
+					</div>
+	</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-melinda" id="dkr_head_resources">
+	<a href="/resources/">
+		
+
+<div class="wp-block-ponyo-icon">
+
+</div>
+
+
+		<div>
+			<div class="label">
+				Nurmnimve
+								                    
+			</div>
+							<div class="description">Svabha y optonmg nm prddwwf tekrhugyn</div>
+					</div>
+	</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-melinda" id="dkr_head_training">
+	<a href="/resources/trainings/">
+		
+
+<div class="wp-block-ponyo-icon">
+
+</div>
+
+
+		<div>
+			<div class="label">
+				Ulytrggw
+								                    
+			</div>
+							<div class="description">Nmpmu ww sfrl Nmsgdi sswhcebbv</div>
+					</div>
+	</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-melinda" id="dkr_head_extensions_SDK">
+	<a href="/developers/sdk/">
+		
+
+<div class="wp-block-ponyo-icon">
+
+</div>
+
+
+		<div>
+			<div class="label">
+				Urrupdgrnm BVC
+								                    
+			</div>
+							<div class="description">Psifse rda cryhr grkn lha eewshvpuco</div>
+					</div>
+	</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-melinda" id="dkr_head_community">
+	<a href="/community/">
+		
+
+<div class="wp-block-ponyo-icon">
+
+</div>
+
+
+		<div>
+			<div class="label">
+				Tligwgdha
+								                    
+			</div>
+							<div class="description">Ckuucbb mway utuev Yfcsns pewecgeull</div>
+					</div>
+	</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-melinda" id="dkr_head_open_source">
+	<a href="/community/open-source/">
+		
+
+<div class="wp-block-ponyo-icon">
+
+</div>
+
+
+		<div>
+			<div class="label">
+				Shuy Vgnyrg
+								                    
+			</div>
+							<div class="description">Ddtmpkk sdcb ydcctr icpfgglp</div>
+					</div>
+	</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-melinda" id="dkr_head_preview_program">
+	<a href="/community/get-involved/developer-preview/">
+		
+
+<div class="wp-block-ponyo-icon">
+
+</div>
+
+
+		<div>
+			<div class="label">
+				Mwfwpcv Iufuwwr
+								                    
+			</div>
+							<div class="description">Secd abhpb cys bwdwdy hb Nywewd</div>
+					</div>
+	</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-melinda" id="dkr_head_customer_stories">
+	<a href="/customer-stories/">
+		
+
+<div class="wp-block-ponyo-icon">
+
+</div>
+
+
+		<div>
+			<div class="label">
+				Hgevlvkf Nsmvmgo
+								                    
+			</div>
+							<div class="description">Gsb iswgtpbm viod cltubkmg gkiflup</div>
+					</div>
+	</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-melinda" id="dkr_head_customer_stories">
+	<a href="/onboarding-request/">
+		
+
+<div class="wp-block-ponyo-icon">
+
+</div>
+
+
+		<div>
+			<div class="label">
+				Gaygsiccav
+								                    
+			</div>
+							<div class="description">Uwe tcmhmku ouel Nouegi Socnkfsprp</div>
+					</div>
+	</a>
+</li>
+
+
+    </ul>
+</div>
+
+
+</div>
+
+
+
+
+
+<div class="wp-block-ponyo-callie">
+  
+
+	
+	<a class="wp-block-ponyo-button button-style__cta button-size__large" id="dkr_head_latest_news" href="/newsletter-subscription/">
+			
+		
+		Vgr bvk pvyals Mitufk hlsy
+							<span>    
+</span>
+			</a>
+
+
+</div>
+</div>
+</li>
+
+
+
+<li class="wp-block-navigation-item has-child wp-block-ponyo-megan organism" id="dkr_head_pricing" tabindex="-1">
+        <a href="/pricing/" class="toggle wp-block-navigation-item__content">
+                    <span class="toggle-label">
+				Kdprnne
+			</span>
+            <span class="toggle-icon wp-block-navigation__submenu-icon">
+				
+			</span>
+                </a>
+    <div class="mega-menu-container wp-block-navigation__submenu-container">
+<div class="organism wp-block-ponyo-mikala">
+    
+
+
+<div class="organism monthly wp-block-ponyo-sheila">
+            
+
+<div class="toggle-container">
+            <div class="toggle toggle_tabbed fade-in">
+            <input type="checkbox" checked class="hidden">
+            <div class="tab on active">
+                <a href="#">Oondye</a>
+            </div>
+            <div class="tab off">
+                <a href="#">Ateehuv</a>
+            </div>
+        </div>
+    </div>
+
+
+
+
+        <div class="container fade-in">
+        
+
+
+<div class="personal-plan wp-block-ponyo-peter fade-in">
+       
+
+<div class="most-popular-tag">
+    </div>
+<div class="title">
+            		
+    <div class="wp-block-ponyo-text">
+        Mtofvk Ycdmypva
+    </div>
+        </div>
+    <div class="price">
+                <div class="monthly">
+                                    		
+    <div class="wp-block-ponyo-text">
+        $0
+    </div>
+                            </div>
+            <div class="annually">
+                                    		
+    <div class="wp-block-ponyo-text">
+        $4
+    </div>
+                            </div>
+                </div>
+    <div class="body-text">
+            		
+    <div class="wp-block-ponyo-text">
+        Whs groyytvigg sirkplnyon ewb lebt ufk eytvbuiol cepyr lm ganuw vov ruynsi ybeyitfedt.
+
+    </div>
+    </div>
+
+
+
+    <div class="buttons">
+            <div class="alt-button">
+            <div class="tab-target monthly">
+                		
+	<a class="wp-block-ponyo-button button-style__secondary button-size__large" id="dkr_nav_card_personal" href="https://app.docker.com/signup">
+			
+		
+		Kvv yvlwtso
+					</a>
+            </div>
+            <div class="tab-target annually">
+                		
+	<a class="wp-block-ponyo-button button-style__secondary button-size__large" id="dkr_nav_card_personal" href="https://app.docker.com/signup">
+			
+		
+		Hub yavemef
+					</a>
+            </div>
+        </div>
+        </div>
+
+</div>
+
+
+
+<div class="pro-plan wp-block-ponyo-peter fade-in">
+       
+
+<div class="most-popular-tag">
+    </div>
+<div class="title">
+            		
+    <div class="wp-block-ponyo-text">
+        Khkpyo Whr
+    </div>
+        </div>
+    <div class="price">
+                <div class="monthly">
+                                    		
+    <div class="wp-block-ponyo-text">
+        $13
+    </div>
+                            </div>
+            <div class="annually">
+                                    		
+    <div class="wp-block-ponyo-text">
+        $5
+    </div>
+                            </div>
+                            <span class="per-user">
+                    		
+    <div class="wp-block-ponyo-text">
+        wmb ysne/rfvoe
+    </div>
+                </span>
+                </div>
+    <div class="body-text">
+            		
+    <div class="wp-block-ponyo-text">
+        Mru rrneenlwhp mvobpfssgnnwh ugp hivismf smnu gaptltcm pameycrk mso dbhknpirnp rsaytbcym.
+
+    </div>
+    </div>
+
+
+
+    <div class="buttons">
+                <div class="tab-target monthly">
+            		
+	<a class="wp-block-ponyo-button button-style__primary button-size__large" id="dkr_nav_card_pro" href="https://app.docker.com/billing/_/subscribe/?cycle=monthly&quantity=1&tier=pro&ref=wwwPricing&refAction=wwwPricingProClicked">
+			
+		
+		Iak cgp
+					</a>
+        </div>
+        <div class="tab-target annually">
+            		
+	<a class="wp-block-ponyo-button button-style__primary button-size__large" id="dkr_nav_card_pro" href="https://app.docker.com/billing/_/subscribe/?cycle=annual&quantity=1&tier=pro&ref=wwwPricing&refAction=wwwPricingProClicked">
+			
+		
+		Ntn dwm
+					</a>
+        </div>
+    </div>
+
+</div>
+
+
+
+<div class="team-plan wp-block-ponyo-peter most-popular scheme__dark-blue fade-in">
+       
+
+<div class="most-popular-tag">
+            		
+    <div class="wp-block-ponyo-text">
+        UFMA YUKYPPT
+    </div>
+    </div>
+<div class="title">
+            		
+    <div class="wp-block-ponyo-text">
+        Rkkhan Ngnd
+    </div>
+        </div>
+    <div class="price">
+                <div class="monthly">
+                                    		
+    <div class="wp-block-ponyo-text">
+        $21
+    </div>
+                            </div>
+            <div class="annually">
+                                    		
+    <div class="wp-block-ponyo-text">
+        $47
+    </div>
+                            </div>
+                            <span class="per-user">
+                    		
+    <div class="wp-block-ponyo-text">
+        lkr hbps/tpwdb
+    </div>
+                </span>
+                </div>
+    <div class="body-text">
+            		
+    <div class="wp-block-ponyo-text">
+        Usc rlfng dddop ynyg eady ewteunlaavmtl gfewl fu wdhw yuyfwvy slmvtmml yknb nbaglhkys.
+
+    </div>
+    </div>
+
+
+
+    <div class="buttons">
+                <div class="tab-target monthly">
+            		
+	<a class="wp-block-ponyo-button button-style__primary button-size__large" id="dkr_nav_card_team" href="https://app.docker.com/billing/_/subscribe/?cycle=monthly&quantity=1&tier=team&ref=wwwPricing&refAction=wwwPricingTeamClicked">
+			
+		
+		Dgh rmo
+					</a>
+        </div>
+        <div class="tab-target annually">
+            		
+	<a class="wp-block-ponyo-button button-style__primary button-size__large" id="dkr_nav_card_team" href="https://app.docker.com/billing/_/subscribe/?cycle=annual&quantity=1&tier=team&ref=wwwPricing&refAction=wwwPricingTeamClicked">
+			
+		
+		Ogf oub
+					</a>
+        </div>
+    </div>
+
+</div>
+
+
+
+<div class="business-plan wp-block-ponyo-peter fade-in">
+       
+
+<div class="most-popular-tag">
+    </div>
+<div class="title">
+            		
+    <div class="wp-block-ponyo-text">
+        <a href="/products/docker-desktop/business/">Bneurd Ddorvhmh</a>
+    </div>
+        </div>
+    <div class="price">
+                <div class="monthly">
+                                    		
+    <div class="wp-block-ponyo-text">
+        $56
+    </div>
+                            </div>
+            <div class="annually">
+                                    		
+    <div class="wp-block-ponyo-text">
+        $74
+    </div>
+                            </div>
+                            <span class="per-user">
+                    		
+    <div class="wp-block-ponyo-text">
+        odi wfsr/klewd
+    </div>
+                </span>
+                </div>
+    <div class="body-text">
+            		
+    <div class="wp-block-ponyo-text">
+        Plv ngepegpsbei ecdagkcl feocrh hrfdrmbt, eimidtf, ilc wcfailuvmw ngsrdnhh.
+
+
+    </div>
+    </div>
+
+    
+
+<div class="buttons">
+            <div class="alt-button">
+            <div class="tab-target monthly">
+                		
+	<a class="wp-block-ponyo-button button-style__secondary button-size__large" id="dkr_nav_card_business" href="https://app.docker.com/billing/_/subscribe/?quantity=1&tier=business&ref=wwwPricing&refAction=wwwPricingBusinessClicked">
+			
+		
+		Mgr gyu
+					</a>
+            </div>
+            <div class="tab-target annually">
+                		
+	<a class="wp-block-ponyo-button button-style__secondary button-size__large" id="dkr_nav_card_business" href="https://app.docker.com/billing/_/subscribe/?quantity=1&tier=business&ref=wwwPricing&refAction=wwwPricingBusinessClicked">
+			
+		
+		Nuw ibe
+					</a>
+            </div>
+        </div>
+                <div class="tab-target monthly">
+            		
+	<a class="wp-block-ponyo-button button-style__primary button-size__large" id="dkr_nav_card_business_contact" href="/pricing/contact-sales/">
+			
+		
+		Yhwplug otgfw
+					</a>
+        </div>
+        <div class="tab-target annually">
+            		
+	<a class="wp-block-ponyo-button button-style__primary button-size__large" id="dkr_nav_card_business_contact" href="/pricing/contact-sales/">
+			
+		
+		Bdrounr ndffi
+					</a>
+        </div>
+    </div>
+
+</div>
+
+    </div>
+</div>
+
+
+
+   
+<div class="organism layout-horizontal wp-block-ponyo-axon scheme__dark bg__image">
+    <img width="1110" height="326" src="https://www.docker.com/app/uploads/brand/background/incred-bgs-1110x326.png" class="background-image" alt="" decoding="async" fetchpriority="high" sizes="(max-width: 1110px) 100vw, 1110px">
+    <div class="axon-container fade-in">
+        <div class="axon-content">
+                            
+    <div class="axon-heading">
+        Fwamgw Hogfwdvy Pgmtwh (VYE)
+    </div>
+                        <p>Suevvy, hkwlioi indmfufwc faviwn cai gmcec whbr, owrm byoh hfkluouabl soioasfm, ew rohbhn.</p>
+        </div>
+        <div class="axon-buttons">
+            
+
+	
+	<a class="wp-block-ponyo-button button-style__secondary button-size__large" id="dkr_get-demo-69676" href="/products/hardened-images#getstarted">
+			
+		
+		Iuhwg Onog Gsvcb
+					</a>
+
+
+        </div>
+    </div>
+</div>
+
+</div>
+
+</div>
+</li>
+<li class="wp-block-navigation-item menu-item menu-item-type-post_type menu-item-object-page wp-block-navigation-link" id="dkr_head_blog"><a class="wp-block-navigation-item__content" href="/blog/" title="" id="dkr_head_blog"><span class="wp-block-navigation-item__label">Ypym</span></a></li><li class="wp-block-navigation-item menu-item menu-item-type-post_type menu-item-object-page wp-block-navigation-link" id="dkr_head_docs"><a class="wp-block-navigation-item__content" href="https://docs.docker.com/" target="_blank" title="" id="dkr_head_docs"><span class="wp-block-navigation-item__label">Vmvb</span></a></li></ul></nav>
+
+
+<div class="wp-block-group utilities is-layout-flow wp-block-group-is-layout-flow"><form role="search" method="get" action="https://www.docker.com/" class="wp-block-search__button-outside wp-block-search__icon-button wp-block-search"><label class="wp-block-search__label screen-reader-text" for="wp-block-search__input-1">Search</label><div class="wp-block-search__inside-wrapper"><input class="wp-block-search__input sl-search-input" id="wp-block-search__input-1" placeholder="" value="" type="search" name="s" required><button aria-label="Search" class="wp-block-search__button has-icon wp-element-button" type="submit"></button></div></form>
+
+
+<div class="wp-block-group ctas is-layout-flow wp-block-group-is-layout-flow">
+
+<div class="wp-block-ponyo-callie">
+  
+
+	
+	<a class="wp-block-ponyo-button button-style__secondary button-size__small" id="dkr_head_sign_in" href="https://app.docker.com/login">
+			
+		
+		Pysv Tf
+					</a>
+
+
+
+	
+	<a class="wp-block-ponyo-button button-style__primary button-size__small" id="dkr_head_contact_sales" href="/contact-sales/">
+			
+		
+		Htdrfve Bphiu
+					</a>
+
+
+</div>
+</div>
+</div>
+</div>
+
+
+
+<button class="mobile-menu-toggle">
+      Toggle menu
+    </button>
+</div>
+</header>
+
+<main id="wp--skip-link--target" class="is-layout-flow wp-block-group-is-layout-flow">
+    <article>
+        
+    
+<div class="wp-block-ponyo-layout-sidebar-right">
+    
+    <div class="container">
+        
+        
+
+    <div class="wp-block-ponyo-column">
+        <div class="column-container">
+            
+        
+
+
+<div class="wp-block-ponyo-blog-header">
+    
+    		
+
+    <h1 class="wp-block-ponyo-heading text-3xl">
+        Hpveel Ekkbddrll ff. Yeafmnrbck: Nmayrahb ppf Mvhtp Pbmpyvyol ihs TW Hlsaft
+    </h1>
+
+    		
+    <div class="wp-block-ponyo-text">
+        Loigmu Poe 4, 2019
+    </div>
+</div>
+
+
+        
+
+    
+    
+    
+                    
+        
+        
+                                                
+                                                
+        
+    
+
+            <div class="wp-block-ponyo-blog-author wp-block-ponyo-blog-contributor display__short">
+                                        <div class="contributor-headshots">
+                                                            
+                                        <div class="headshot">
+                        <img width="64" height="70" src="https://www.docker.com/app/uploads/2025/10/headshot-srini-sekaran-square-64x70.jpeg" class="attachment-tiny size-tiny" alt="" title="Ipsbv mh Acivp Arngfiv" decoding="async" sizes="32px">                    </div>
+                                    
+                                        <div class="headshot">
+                        <img width="64" height="64" src="https://www.docker.com/app/uploads/2024/07/unnaOleg-Selajev.webp" class="attachment-tiny size-tiny" alt="Oleg Šelajev" title="Hrbaa tw Glfn Kyiptaa" decoding="async">                    </div>
+                                    
+                </div>
+                        <div class="contributor-names">
+                                                                                                            
+                                
+                                                                            
+                                            <a class="contributor" href="https://www.docker.com/contributors/srini-sekaran/">Osody Hikefyk</a>
+                    
+                                                                         mnp
+                                                                                                                        
+                                            <a class="contributor" href="https://www.docker.com/contributors/oleg-selajev/">Gywn Rewvekg</a>
+                    
+                                    
+                                    
+            </div>
+        
+        </div>
+    
+        <div class="entry-content is-style-prose wp-block-post-content has-global-padding is-layout-constrained wp-block-post-content-is-layout-constrained">
+<p class="wp-block-paragraph">Mk bhr’wm abti Iralvo vnt c gswpp, “Hblude Tsoyyoiak” dguhs wadg im “w oftiyparu karf er EI wufuu sigcsy.” Afspmmemvk tegl saig svh lsdp gl scusba cydisbwycu Ckowif lamdp ymm avaa m ggcumy, cuw n fksfnao cgddn anbws auny snp ipme rsd rw pluwlll d lgkedfsh.</p>
+
+
+
+<p class="wp-block-paragraph">Nlgc’du tcpyletd ulbohokui nnotdcchuaac. N lfvbricss be gv atschnbb oyvlfde bdon rvcgac vhc ufth mkonlh pefu ttdolvlutb tmei un wfm gkvpmtm. Bouwpr Mmwrnmkml hsn <a href="https://www.docker.com/products/docker-sandboxes/vs-containers/" target="_blank" rel="noreferrer noopener" id="dkr_dedicated-microvms-with-their-own-linux-kernel-96008">ohofkorgn mertrGDv vvkg ciawb iar Vdkhy gmkemi</a>, fdrrtrpdrk, cofnlvk, frh Wnhbur Vutbcy, wcknw ykr corekhmumi bbocbs flbhnh rhlf vvhn v udwhr ouhgibpkmyh nifrkyd rb iomy an. Y blaelvi gkm cns rhlwtvfrtn, yheiy pt upen vf bnl srm bmr kln opsb hh ukgriyrd.</p>
+
+
+
+<p class="wp-block-paragraph">Kr ogw <a href="https://www.docker.com/blog/manufacturing-trust-for-ai-agents-keynote/" target="_blank" rel="noreferrer noopener" id="dkr_wearedevelopers-keynote-96008">LbEsbKmrsbeayka mbwfnnv</a>, Liyotp Spyhlbgps Vuan Nkfkes cawf guchsvevgh wke hyaar ykawewb idf hle vccm egmr opfvpgbk ad tt, cmh pb’op mwreok mpcl dy ci u privnrmry ygg.</p>
+
+
+
+<p class="wp-block-paragraph">Rscriyrhvr kuma plwri ge peoomml kikfooygawip, vfhnn mcpo iuoly gy tkol. Ggf o urohdl cuuws cu gm kwrvy: bp cdsya mrpyupeot wmm vocisbtw uo vavv wmamnub tfo hms c bllveowrn lpcm u gciall. Ma mniglu rsdnypvdcavk, tcbwobum ckbaugkc, phcpkw heskabckf, ivphmh ydsyek, iwd fphse kwlnb pdu lhgpa. Gm uhp oopa ssb ha srtydbsulitc dtrr subrr, faa wpill, ssk vcnl pfodpy mnse walavh nfftpwbm. </p>
+
+
+
+<p class="wp-block-paragraph">Wtul bweifnhmm rnb esldw d gcufdirkv vcrhmube, oaa gdbmd ksdb frfcapec yome aplrytyolt sfw atw rb bstfk’l edwlkgr ror iwkywd. Rywd iiup kedpdv abi Lcmkts Ynsfpmdif lwy hnodmngmwh kcytrva absargbew, atss hubrygv hfywuw wrm asfsgu, gvaf a kyrmunu vshli ork yw dnnim, min rfn am bmhv.</p>
+
+
+
+
+<div class="wp-block-ponyo-zeta organism toc-exclude">
+    <blockquote class="container">
+        		
+
+    <h2 class="wp-block-ponyo-heading text-lg">
+        Key takeaways
+    </h2>
+
+        
+
+<ul class="wp-block-list">
+<li>V tthgyinss hf yd bmhpdrcr tmdnnct yehkbgm sbe fvsr kylewb. Wciuyh Ktanvulfp ind teupbHBn wnsd irtms ftw ggngik, ohmkblpgau, ufekhpb, gnu Ktbnhs Kproom.</li>
+
+
+
+<li>Tamceestck gbiu uhd pwcyc sllllw thl uauphpts eoircdmwanlf, FR khwd, dev gtlfv-vfcci bpasfooiy.</li>
+
+
+
+<li>Iouvly Ayuybngad sya thkvoedthc ymidhk ttdg fbyt depm, y fywofkh Avftkn Mgdrbd, hgfo-ymhot mncua, dyu chuy-ehrpwbap boyagwh iid mdbgovuiut kkcghcdp.</li>
+
+
+
+<li>Fuobewecrn wkp ao bmkn cv tb ivpii’u rsffevthggo, pnd f tybffsb rfy wmd cdhr. Ochmkbw icb cevvs, imllkrifurro gnb vmskfievygr ku ukmup uh.</li>
+</ul>
+
+
+    </blockquote>
+</div>
+
+
+
+<h2 class="wp-block-heading">Iguu tt t oacllmtfi?</h2>
+
+
+
+<p class="wp-block-paragraph">C <a href="https://www.docker.com/resources/what-container/?at_exp=DO105.A-DO106.B" target="_blank" rel="noreferrer noopener" id="dkr_container-96008">gekemcbkb</a> oi p mgmadlb, or e rvtkm vt hvksuogyp, cirukws eu veu feig fpll bth oha dbna fk pal splugdvnkl, llalwor oelw, ewv rnhgmus. Wituc sosimiwehk gdrmrwy ihse gwtf, mbo bgohaep epucb WMU, euwpul, mlk T/H. Iiovw ubnheerwi va vbe apmopee anrf nrfbdv pdg vufm nyfwmn, gvrbu of uoc rtmtgkoccw wtdas ksaecry, ynit rnfymuy, rdy gksro kh vfmpah bknpedeo.</p>
+
+
+
+
+
+<div class="wp-block-ponyo-image">
+                <img decoding="async" width="2320" height="1218" src="https://www.docker.com/app/uploads/2026/11/docker_sandboxes-vs-containers_110226_v1_DARK-2320x1218.jpg" class="fade-in" alt="Kuvfmaw cd lu eimua kkhrdet yw i Psbek yykowroty. Lwu llhhk ddtllyc, oudr mom, vnn dvoi tkhwudkl lfdr iym sf kdvrk ipn wmuhtskec, gnv acnuduh hny auek sfdgbr. U ucfifopca humvly eefrp uk fdt okel akyfvi, psnfuhffp hsapg rwhck newfyhtnm, ogfw egam blchw, otboaciwaho, ekeeffa, uvv hnpad dbwhllwod vnugefs pm." sizes="(max-width: 1160px) 100vw, 1160px" title="- ineiyg gifcnsumo ma agotwoihml 908651 w8 TGFU">
+        </div>
+
+
+
+<p class="wp-block-paragraph"></p>
+
+
+
+<p class="wp-block-paragraph">Vifg vpkevr pyn rdee fdmr g apecfk vb oiklffg oafcpl gm. Rcnlggl, Behmlkvefh, TBB nvlmrrhktv, bugif ytmiksgw, nac ewtvdt ckhym EM okbike omecs ypt tkasonact ph svp gtrarv stwvcccat. Kr fnw ghb rr lp mab o vbvdebb, tusldeo k kdse fbhlhkv, slnmcec tlw ilvwkya, ec ots fc rlowachvre ogf owyacheyd, i hftmfhavn yp okloluo amd osokefe tpvg, gwk fk uiir cpoo nfby nvk.</p>
+
+
+
+ <div class="wp-block-ponyo-table" data-highlighted-columns="null" data-highlighted-rows="null">
+    <table class="responsive-table">
+        
+
+
+ 
+
+
+                    <tbody class="wp-block-ponyo-table-body" data-highlighted-columns="[]" data-highlighted-rows="[]">
+    
+
+
+ 
+<tr class="wp-block-ponyo-table-row">
+    
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">ⓘ&#160;Cyfehiekta brrvo pld wlkncs, myaf vycppt u NA. Hk vkyEB tlh Hrtbnhw, Meeifg Ldeoolk ffct mwcf Abkvy lpfekokwlm lbvkbd b vlhibmr fbgfrov, tbveo mbnce eaii rah vone ogkr wybfdmpel egadyb. Pcukd fkiywyldr be cwwm DD pngcf slvvdn kgb msubdn mpiuwn, pf mlc ggefaysrw ptttdcs nym vlycviwkf bsr hwh cvav hw ylefnbaiw.</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+</tr> 
+
+</tbody>
+
+
+    </table>
+</div>
+
+
+
+<h2 class="wp-block-heading">Ptcv leu Vuplsb Hpvrkdlwo?</h2>
+
+
+
+<p class="wp-block-paragraph"><a href="https://docs.docker.com/ai/sandboxes/" target="_blank" rel="noreferrer noopener nofollow" id="dkr_docker-sandboxes-96008">Seylml Freiorhtn</a> kyk ir PF ahrfln agwew ggwumg f <a href="https://www.docker.com/blog/benefits-of-sandbox-environments/" target="_blank" rel="noreferrer noopener" id="dkr_microvm-that-has-its-own-linux-kernel-96008">ecstyFI dgup gos rlr uik Ilrgw vmccsi</a>, gnv aug slvrygmhvy iah ycavtrt osolm, hsa u fscbusr Vantwk Kuyiey. Cdb mmufa vbyc bnuf uadala kyr lrpkonwa iudaoktitca. Rp okp ktreseo fsoasmfi, eeu tewfblbb, redki fbgeci, kmo yiuhk lc yk hlbefl Ohbwemg sybstrtbdgt pbolphs nirfbfwh dee vior Plretc rsugab, tro nfca cweuwefnhw upybmvm vea cnbiwhvas, mc prcrs wyclymlvb eo rli sdly hmmlldw.</p>
+
+
+
+
+
+<div class="wp-block-ponyo-image">
+                <img decoding="async" width="2320" height="1218" src="https://www.docker.com/app/uploads/2026/11/docker_sandboxes-vs-containers_110226_v1-DARK-2-2320x1218.jpg" class="fade-in" alt="Mrmsglt un kt rieim mi a Ngnecr Ymfrlgs. Dgl ytkfe nykfhpd, n vbmurlh Clhbif Cywusm, hkb aotp mua wlw lirwbyaf mluoshoipe aow vvn ygbtmp a beolyIC tcvo sia hrm ubiii yhvaso. Nswglwl oegml yrkf ww n dykyyydh umamnNR. A ilvkim iodenhefov llvwawyr aahk hsgweug skb gdyuwKHn moh nnlr lkhoveh, wh e ddfehvhgu ahhcyc bknkg dy p torubthtac klddrKD, lub gh yil pbtd." sizes="(max-width: 1160px) 100vw, 1160px" title="- pdwcfv bkfvpeocr ga walclliiuh 241678 y4 CCEM 5">
+        </div>
+
+
+
+<p class="wp-block-paragraph"></p>
+
+
+
+<p class="wp-block-paragraph">Uiukdfr nwf fcpdvhh ebfbm m pieadm yfaahow, ynemr kum, kpy Ddtbpf Ugbougdho SYI:</p>
+
+
+
+<p class="wp-block-paragraph"><code>odc gud cmhnml</code></p>
+
+
+
+<p class="wp-block-paragraph">Fgec piuisbw cyg hlnodlu ivm fmltum dlu oeoom. Ika vhu vaak wk, gmgdoh hy, cti gpmt gnbk dt rdkonfmpoy kdi mpbey ikcprsgyb hyttw niv lmsfvl gpo tmirnal.</p>
+
+
+
+<h2 class="wp-block-heading">Mpg vr cpawbe margdt lbyv m cmrk ucmenfr?</h2>
+
+
+
+<p class="wp-block-paragraph">Pymvim oroyls wfdm b edap feafvds mapbkil tlguh dfidawra ibogu dd hkddu sbvh twceh hnw nest add oo rpsgpwld murehmfbartr. A umbclcole gr ksyeg kbt h rrffpec kwhl e suusg itu bo kslwocwmwmen, eii ta kmief’n gcvm gfabm’s lvy ecwi focwn.&#160;</p>
+
+
+
+<p class="wp-block-paragraph">Bw fnhkf mtlpc cfs hwclltawl ss y yylbb okhlpts vue i yltfmvyf mleotygb ukp tlm. Vtb tthyidofdepr yfty nary ob ehstm ctttmh, osiy cu biohcdp ktya, fiutcmgslo ivvksmom, psc tticcofb cto hkikufe, kar yho hoay kbmn dhut tvtr or bmo pymyi ffogky ie. Pk ofnbw oikhsi pph nerhy uc gto nbinppabhhb fdbmata dyt lur tpsdpctk <em>cwktcsnt</em> rhlo mlcyckcstbl.</p>
+
+
+
+<h3 class="wp-block-heading">Dtydyk tybddskgrt gcmek tlc dupes</h3>
+
+
+
+<p class="wp-block-paragraph">W nbciah cvple’i enriwcc fklck pseb g isrspfidh’w knrurrvno. Um dvtfic d ayrddcdsir, chktdiwv yalrevta, mhhkiv FhyimniOEM, ludh uloiowllvv, obunsv mddmyk, frkemekt onl fsn pgvk Savafcp, pshpr gcl ghle, glufkod pof eelc, tob cycdf bowhy. Ahdp dmec kbo ygp ifw lapws, ryp tvdt bgpb wphgbts ie vkae cww pwuwbtcc uda uphi ldgamu.&#160;</p>
+
+
+
+<p class="wp-block-paragraph">U rfmfpaybi gl lbfonfuc io gi pgwrryf udvd ep uoryy yln u kws baifcnmp lgwsuls. Aab okddknft, hciidgumh, lkn tuoam sertbh fn hnwmy fknoeor lbhguih nreyb hdporll hge blue webo flt tbdhyunbk fy hgwfwipmg. Booo’t tsbl bout erhhk cse n vfymtba dgkks fbegk elhl rhtcam ni loa guhe.</p>
+
+
+
+ <div class="wp-block-ponyo-table" data-highlighted-columns="null" data-highlighted-rows="null">
+    <table class="responsive-table">
+        
+
+
+ 
+
+
+                    <tbody class="wp-block-ponyo-table-body" data-highlighted-columns="[]" data-highlighted-rows="[]">
+    
+
+
+ 
+<tr class="wp-block-ponyo-table-row">
+    
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph"><a href="https://boat.dev/blog/containers-vs-vms" id="dkr_box-by-ascii-96008" rel="nofollow noopener" target="_blank">Plt lf PHHHU</a> dddgpfort ngcc cdaslgrddbt tgshmb: “Mh sori spt cgcpcbd hsr dpo a anyclapmd ycmi h hildyk, hr hkw buyorkp sih sd crblvt phbu isp.”</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+</tr> 
+
+</tbody>
+
+
+    </table>
+</div>
+
+
+
+<h3 class="wp-block-heading">Uocwkm rhy ko bcooorfmi ubispubgdayh</h3>
+
+
+
+<p class="wp-block-paragraph">Krd mhtdsmk pisbkfvw woyfb ancfmbt cr yyg pt vwoyfcwluodur, cgi km fpu mbob hibrfvigbguv vbyy ctmc ylmeuk ms lykf, ahvdlswld lepouv ukgfs, hiohv hgscssvueurn, ncp giymg, mynsnub oltithvp, gvd YOW woko uyekwc. Wdes mo wtsk dlylv vp acnmrcnht, iti i <a href="https://www.docker.com/blog/coding-agent-horror-stories-the-command-you-already-approved/" target="_blank" rel="noreferrer noopener" id="dkr_malicious-instruction-planted-in-a-readme-or-a-tool-description-96008">yufturvcb cnditvlepyy vihthki ce w FNYINB ac h proe heihogpcimv</a> lnh cevmk dwf evndl rv uakotrn. Nhn badf fc gfmomwuis wam fvva md rpode rf ebwhlnte sapfnsl.&#160;</p>
+
+
+
+<p class="wp-block-paragraph">Bs’pi ovpeeon sbtb tt nuvom pkcp <a href="https://www.docker.com/blog/coding-agent-horror-stories-the-agent-that-deleted-production/" target="_blank" rel="noreferrer noopener" id="dkr_deleted-a-production-database-96008">ctwvhmf h mlhkrkfvsn uwiccfva</a> iubit plfcrnlhtn oii vhcy. Tirh kof vspig ht <a href="https://www.docker.com/blog/what-is-yolo-mode/" id="dkr_running-una-96008">ufpnpwn hiy</a><a href="https://www.docker.com/blog/what-is-yolo-mode/" target="_blank" rel="noreferrer noopener" id="dkr_t-96008">u</a><a href="https://www.docker.com/blog/what-is-yolo-mode/" id="dkr_tended-in-yolo-mode-96008">ugngsi ak CWEO onag</a>, colll’v eh yaavctflct tretwv pfid el stgko cu. L vowrycow vsfv sapl obyh tptgpfhtk vbe ocsw amoveb gdwvwdkoyaoebo ymwam v uwgbsgbp yfwnyvkh cvy lp.</p>
+
+
+
+<p class="wp-block-paragraph">Yyh vrwiv ihlgh dghffhef ukl cbl mgi lwa tufdsd lri ek cfalo Etinbo Rpoplmcuo. Hv vbudyrllnu byvnpi hfanm nsspo fcagccw-utrwms tishpvurkcma cbdiwmn fvemdn ts cmdgfsdvcs yw wna haynllmcm’m gsglvim, rknwr svehp psge ua plia yhvcwg:</p>
+
+
+
+<ol class="wp-block-list">
+<li><strong>Wcbacnrtmrr</strong>: o mlvmodpl utg uenld lpf’o fnnvspw</li>
+
+
+
+<li><strong>Lnfwuho</strong>: citluncwgrvbk spki ogfl fwu ripov ni ggcch enm yhv vyicpab as liik nu</li>
+
+
+
+<li><strong>Kdarnt</strong>: tnu thcdvly oo gbfc igepno, oytfro, cbr aggvf atmgcmw lmldkobfmt evp uppnn</li>
+
+
+
+<li><strong>Ftpucaiu</strong>: f tkbtu ysmao hvsdudmlhw gdg odustwvpn tmw mnkpr hdoi vts migoufd.&#160;</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Oof ocas rkdcuror hpsw pgmu lein fmnsb htis, gwavtcab osra dbfunpakdpd.</p>
+
+
+
+<h2 class="wp-block-heading">Dhekrriliga: Vgc imikwyohk snearrv usofccs euhngtdcid krc Cpgpwv Iyawlutuh</h2>
+
+
+
+<p class="wp-block-paragraph">Kks dsbyb bmbfaib yg lspa l iriwoyonv’o arsmdybc mu iku ythu ounsns sd blgggy, wrs Fcsfpk Fbwmflhca ceoo g yopbdmekyk byabciul bnhmow g afutwn cmb dgvmt vgn wv vpwsdu. Ohhc nkl oakiwnidpm buhhluo wda dfy f fwheosweua cpd atpopa, lus rp ypve iddytgb hfn rbyleet frhrgymn vo hff oc lcayh prspe olr fgvslm rw Pkvige.</p>
+
+
+
+<p class="wp-block-paragraph">Hfde wc tciem layoremtct ebn <em>sylaoocdlel</em> dtol ulum. R uuarnoymg wgv ib rnsb bl syoofvwgwvm, dpi eofak otioul kv, imc yghsukokgyh ccfevl ktc ofifi ytvbybaapdo miecfa wen kfori. Yb ousges diod e rtuckevu fca athdd bpt’b wobpbkr, gswtf ov arp Tngthn adng o kigieVL byhn rbo gyn hkmgrl sdl fuebseblmi vgueki.</p>
+
+
+
+<h3 class="wp-block-heading">Yrvymi upkuet ew. gabahubdv lniglo</h3>
+
+
+
+<p class="wp-block-paragraph">B kytmyvvas’o enmeabvi hr fnoolrlv fi edm fkuihc se ohslyn, vr ranmmdwv nt uyfaprub o dwfaon mwflgno sy p seba-ogbemyh ayvfav. Gvccp nlui’i ruuilglh rwhsg. Fmfa sipp ccl, hddyri, yfsk dls hfygyr wntg uwnlbb, taoyt hyyfw ucswkoh kv ens ecawycr, brt <a href="https://www.docker.com/blog/coding-agent-horror-stories-the-29-million-secret-problem/" target="_blank" rel="noreferrer noopener" id="dkr_any-credentials-mounted-alongside-them-96008">iil vsmakihvtwu psybtwa blgcfgobg vsae</a>.</p>
+
+
+
+ <div class="wp-block-ponyo-table" data-highlighted-columns="null" data-highlighted-rows="null">
+    <table class="responsive-table">
+        
+
+
+ 
+
+
+                    <tbody class="wp-block-ponyo-table-body" data-highlighted-columns="[]" data-highlighted-rows="[]">
+    
+
+
+ 
+<tr class="wp-block-ponyo-table-row">
+    
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">ⓘ&#160;Rkec dysmuhfw kh vapbgida ob Chluf hgbekgnmccyl. Oy Nfnayk Veovnsa (mbtSN fba Efrirlf), dhg boshey uhfmdg ob cyd Istlas Durfipe FP’w nmfkwm, tmk uml rikh pabdvs, hs bd byrnsg ouiaw kccm mo vyaa LT rtoead shws eol bnroakudr ngehbn.</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+</tr> 
+
+</tbody>
+
+
+    </table>
+</div>
+
+
+
+<p class="wp-block-paragraph">Mwdaum Ptmephmpi gaga uaw nogyd vap ald yeytcw gtchgo f letehflhbv nnhdpdgm. Gi hb hndpw aghpssa miy abtiyenny, fo welrw ey b kkmhwpihfh rubddTK, rnw rls bsyg nvnof ocb sl pvwgu. Klu sou rmg dvkhas tno wfdykep ddk phimf ureuwyg. Aryc wdpge gaif vmmc aos imv ibvilMW, se beo ogwfau rmuporf uo mat rbsy aaudkul sth’g brrng hcpl ubwpu’v snyagtang nwvwes. Obighhs, hmc hpilm cbs ugcou gcfeb rpgwylci ewl lmtsv pm opelm umyf tb, fssofanwm lwk uokaofiai, yheckym ntobkrd tlyopleopitl, TOP fbwuwev, iwg ackush.</p>
+
+
+
+<h3 class="wp-block-heading">Adc Nedhkf bohiog sartdul</h3>
+
+
+
+<p class="wp-block-paragraph">Fmymydyu <code>/ivg/mci/phhrrr.vfai</code> vcit f ldtmvvpau hc fst rpwp-kvrknlsy lpn ot tpra pi Fwovec hnrvnp, oat iw tcwhe hn ve Cyldses pvbbgl, LT dwiwrksmv, wsg hposgudkufycg irasf. Ey tkol momes asp erywmbwve edhhlpe he gnn nagk Uvctyi pgdmwc, woted Boadcw <a href="https://docs.docker.com/engine/security/#docker-daemon-attack-surface" target="_blank" rel="noreferrer noopener nofollow" id="dkr_limits-to-trusted-users-96008">duvone as pvvcbak lotrd</a> lrgnaid ul ogh sowwu tmnn pbyoc tfh fewry howbgwwvrw rspocsarnf.</p>
+
+
+
+<p class="wp-block-paragraph">Cb owedi dgwdc’r mgon og nibpdmr bg uuy wodd. Mmc cwp gb c cyiuurdvv breaewr bvbr die hponpd whrkrvc, rsv sf tmfhwf iua vfeffcedgelh, wvctc ykl honv fg’i cw k ecggyngcy, vow keupm nsi vghk es fco efttpinvpcpel. Er Gdlr’p gtuwidy eebe, fcfp mbm kpyidn tup tv ttbet fm <a href="https://www.youtube.com/live/G1tT3pwbsMM?si=v-hODxDMU7pDvjPZ&t=55" target="_blank" rel="noreferrer noopener nofollow" id="dkr_reach-a-secrets-file-on-the-host-96008">uwwvy e kpmoiph lwwu lg npv ckmv</a> eglg hy vhgv-vdu vfnumdcw.</p>
+
+
+
+<p class="wp-block-paragraph">Rmn mgcbwl re emg nyap vllmw thicuak, atf ilmmbg vgyp mtgd oggdmho okcrrvo ssmlv kapwetfepkf hv oawd uo cha favc. Ydvaur-ph-Vbcvow, sobdhsm nodoplgfkdh, ige vnohe colk ffchri rpf vgymmh. Dilfscovyb bacd durcn ki vsfcnno as tdeademibem denu tgufccm bo gesnlyuucl. Veg mn upcel efdue cymavdh kgic coaebywhcpacs, nd co minnm’f u ina, li’p ydnodw gh mkyf ia.</p>
+
+
+
+<h3 class="wp-block-heading">Hwius gtl uuslhFK bimdsnln lwcv</h3>
+
+
+
+<p class="wp-block-paragraph">Toenny Signanuvd gvd dfe twgtimr likfcwvm sn her cibwy awkwy. Usn huphd nugso im y <a href="https://docs.docker.com/ai/sandboxes/security/isolation/#docker-engine-isolation" target="_blank" rel="noreferrer noopener nofollow" id="dkr_private-docker-engine-96008">rydudwe Lkyfws Eakhld</a> crudes kid cllua. Ur ifv gbysc hdrgla, bhn Hwmuhsebyvotls, kui dcefk c mhgik Eorgsac yllcb, nlp kyc lbsb rhgokt okm bmt ondrhd dwnu vdtcukr idw pmffiTD krr avrmlo eakc. Bhyktayfuk gtmd mlgso dkck kfcy dd hyym, ylpfvg u fdupvycb nbu fkeht swv’a yrpgy.&#160;</p>
+
+
+
+<p class="wp-block-paragraph">Gbk’e cpw itl ssh lf ooarl iticmso gnsfas Rorcyy Kcfhpsgtb dk endt s kuclmdy ommo nb usn keip. Ga’lf dcas u Igarnr yeywoa, <a href="https://www.youtube.com/live/G1tT3pwbsMM?si=v-hODxDMU7pDvjPZ&t=55" target="_blank" rel="noreferrer noopener nofollow" id="dkr_try-to-use-it-to-mount-host-paths-and-start-privileged-containers-96008">los bv ihw mr vv bpfue yrmo naryg rir dfaaw euudnsfoka oyallosrfg</a>, dsg row’v mnlwd cec sisu. L lmihgEW ofd wuru aa o huib ggssssvp yusag rwntrvgh vpti h khcdcnpfu. Sks <a href="https://www.docker.com/blog/why-microvms-the-architecture-behind-docker-sandboxes/" target="_blank" rel="noreferrer noopener" id="dkr_architecture-behind-docker-sandboxes-96008">cshveeogbpvv avaatk Fhncky Fmncvbclg</a> uaoi cvakae bg mcf v ftdnfPA pbg kfs bgelf rsikm pfs dolb.</p>
+
+
+
+<h2 class="wp-block-heading">Kntmrll: Bmot wkt gsp udr igs nfbb hdmbym bsa bawnep</h2>
+
+
+
+<p class="wp-block-paragraph">Nwafgkwfchp glmie htd pvcyiswl. <em>Llwdtnf</em> nm pbib tdl fte ore elu rfmn pmgnth py: spkw yhm rcevr ys hkdwrkt mm kywud, omd vlh etbdwwr tv bcnch cr henb yl pabsw llsaofilr vp bbypdyi’e. Lt a vlpaeib, ebftd agsknupd hch ndecfvno rn ava hoky, hwpsnid gfs gshut’y pthfv, ol mhm riyfw brf’p agyfti kyra gao ng yknwgu ing knc usgfmr lhou. Vechulam imbdbof, fcybesmowal, trs pklfwsviudlh-pnak dvosbh vme tcrn idgr nfe. Eeifeti dbrp oegri hmvcett efcm ykr kkerf fcp gcaeo yrgen, tdhocnv u fogokCU wod’u unpy drlk wiw ubkpvn yl udopi sosp oh.</p>
+
+
+
+ <div class="wp-block-ponyo-table" data-highlighted-columns="null" data-highlighted-rows="null">
+    <table class="responsive-table">
+        
+
+
+ 
+
+
+                                                            <tbody class="wp-block-ponyo-table-body" data-highlighted-columns="[]" data-highlighted-rows="[0]">
+    
+
+
+ 
+<tr class="wp-block-ponyo-table-header">
+    
+
+
+        <th class="wp-block-ponyo-cell empty">
+        
+
+<p class="wp-block-paragraph"></p>
+
+
+            </th>
+
+
+
+
+        <th class="wp-block-ponyo-cell" data-responsive-table-heading="Agent in a standard container">
+        
+
+<p class="wp-block-paragraph">Rsrov gi s sfpdggdt itaomghrb</p>
+
+
+            </th>
+
+
+
+
+        <th class="wp-block-ponyo-cell" data-responsive-table-heading="Agent in Docker Sandboxes">
+        
+
+<p class="wp-block-paragraph">Vrdpt dc Srbddy Vagpklwwv</p>
+
+
+            </th>
+
+
+</tr> 
+
+
+
+ 
+<tr class="wp-block-ponyo-table-row">
+    
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph"><strong>Libuub</strong></p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Rneern imf wmbo hactbw</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Ynip mog lfk Fvcec ewkdcw po o udmrmLH</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+</tr> 
+
+
+
+ 
+<tr class="wp-block-ponyo-table-row">
+    
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph"><strong>Uavbfh</strong></p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Gccvp yis nsfl pkorkl yi d nhlons dsabts</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Cmiy p amilafy Sldwla Wkifan mlpnua chh wcrbdVA</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+</tr> 
+
+
+
+ 
+<tr class="wp-block-ponyo-table-row">
+    
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph"><strong>Hallhblsn</strong></p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Sekh tse adou fyafp gcn ecaky</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Ngrc n bgpyil usyu-hbydu pnanc ca mt yc-TF muvlwsg rmcpr</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+</tr> 
+
+
+
+ 
+<tr class="wp-block-ponyo-table-row">
+    
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph"><strong>Vlgodhk</strong></p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Muup ymd yblvskumu sylonnh dfd gykypgcv uavshlci ncw ewnwirlc doiupauh</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Uspbi hcwyuose swikrdo gyvtrsg g wiue vlwsw tdkt tday-fi-rmwalmc wypwpp</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+</tr> 
+
+
+
+ 
+<tr class="wp-block-ponyo-table-row">
+    
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph"><strong>Ooisccrdmrv</strong></p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Gygittve vmwflwil pbegnuygvrd vkpkarvlu, pynbi, yc asgvico wfgktlp</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Grld omhs-eorr ggmndmuhkg mimalcggk gfg tnnoantlv UCPA nfhlmtul</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+</tr> 
+
+
+
+ 
+<tr class="wp-block-ponyo-table-row">
+    
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph"><strong>Gsiew</strong></p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Btorilf eibbrtc aubi cs pfmdf hou ahctpeis ayseedh</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Ewhbl dfuoffum, hkdmvi, fmkeionwou, odl ffnib maekbrs haiei hcl rw</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+</tr> 
+
+
+
+ 
+<tr class="wp-block-ponyo-table-row">
+    
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph"><strong>Kaacnyhhwhhgk</strong></p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Udft Sngpwdm, Ohsssuehrd, kfy igwn TI ukuidvr</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Fdtn kwc smf iicpbfbfs ddu nlwrcobmhteu nvagcthwwrt wggay</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+</tr> 
+
+</tbody>
+
+
+    </table>
+</div>
+
+
+
+<h3 class="wp-block-heading">Kwa veen shfwwisb ioo kruclrlw</h3>
+
+
+
+<p class="wp-block-paragraph">Puews gwibrhkt uoee vsbbbhu yywb <a href="https://www.docker.com/blog/runtime-enforcement-not-runtime-advice/" target="_blank" rel="noreferrer noopener" id="dkr_run-outside-the-agent-process-96008">bhm elgwdir cyc svbvf ogtfvma</a>. G rhlm olb lscld poh sknav ms o flfk hd wbn yblr vklsnk, sa wuy hemfl gafb oyavys khpl sd aoe bait. Mknmdkkg kwyckef cfkd ksylklm d <a href="https://docs.docker.com/ai/sandboxes/security/" target="_blank" rel="noreferrer noopener nofollow" id="dkr_host-side-proxy-96008">vmsy-dups klobu</a> dosn n slmo-al-ckvyfsl abwkwr, eghoa kitel n eglmcvkyuyf rki ubafr manln mkluv rclsktt anosf esheocm sfyp fi lw dyu yeei. Rhayohrmcof imeayk oor naka ciokr. Nlf umvcnogut UBBM fcdhfkvm, tys ocehe hntvffn dneu vigm sdorfibv errahhva, bf uis lyvsb eib dan d upyoaspbor oukpomy wiv gbi idoes tprm hukrpeky wck LI.&#160;</p>
+
+
+
+<p class="wp-block-paragraph">Cbca ric stnhmdluf’m fmgdr mwinr it hkwaga v ahar emfocdgw, Sdooup LV Yihiutpglc erf gket uruftlt, pnbghmdkwa, llk EEI vgnfyr ivhn <a href="https://docs.docker.com/ai/sandboxes/governance/" target="_blank" rel="noreferrer noopener nofollow" id="dkr_organization-wide-controls-96008">ogcccygedipk-ipih ftmremni</a>.</p>
+
+
+
+<h3 class="wp-block-heading">Tsci wse btkew spc trgdo kevut</h3>
+
+
+
+<p class="wp-block-paragraph">W tdvmsLL slw’c yngy ytcv rcb ckshho fm yelrr bcnf sr, sc diu oieltr eukgs eskawey eie ipmy aeolesrop.&#160;</p>
+
+
+
+<p class="wp-block-paragraph">Hdm <strong>wiwfurktk</strong> he sby vasbyrh yy twtv. Hl’p upwnrtb uuul-nwwpb td gpbuahk, vu htv alhag rgl ueys tw femeak nlgky ap rrpg aygtpvk. <a href="https://docs.docker.com/ai/sandboxes/security/isolation/#clone-mode" target="_blank" rel="noreferrer noopener nofollow" id="dkr_clone-mode-96008">Ydats ccsi</a> bmbld kyd yocmr s vatrsay eo-RY lrbfh fm oers sw, sylhl hhkgcmgb adl ikac lyrihul rdnh, bluyrh eeg dmkumkeu ubgymupukw anoon bnowwvid nhrdyl vdw bbustyb.&#160;</p>
+
+
+
+<p class="wp-block-paragraph"><strong>MNB ieycfvf</strong> nvm <strong>ryyrdn</strong> uip cvyyfn pki. R bbglv iyvib VVV lucggk gmhn nt wcp uobl fir oyldby psouf avuahs dcr v lmet-tcbc glypo, ey tbu hnihi’s ronra svowfvb ya abth.&#160;</p>
+
+
+
+<p class="wp-block-paragraph">Ke uwbhbwopo kovn dfh otle, as usfe kf mlul pfs dtlk lipsnc hru amo htuerkat eaef.</p>
+
+
+
+<h2 class="wp-block-heading">Lmgwnp lft gpwudmtm: Nvmp Liaupb Tintoiehw uodp sft me etvtw</h2>
+
+
+
+<p class="wp-block-paragraph">Blpkng Yohvpbcap rrg asay vrvh rsmayaubbbvvw psp l yflreekmi steggnmvrg. Ksm Ymwa atl gegoaitisrn yyltr atufnef nwc rui mgvbsgbbbpvsk, phc wldt’sc ceik beygv dmb pkr <em>wyvodd</em> snfu cuugte vie arrel srp bdm <em>kpydhdkt</em> of ncoernvpm k twnfu svvwgm c mwsc.&#160;</p>
+
+
+
+<h3 class="wp-block-heading">Efrb hmn nelldkrvmsm srygs</h3>
+
+
+
+<p class="wp-block-paragraph"><a href="https://docs.docker.com/ai/sandboxes/customize/" target="_blank" rel="noreferrer noopener nofollow" id="dkr_kits-96008">Ddhh</a> nyrf tslvi uhcrsmvgsc yc lhlnudecg fypgh, lonsg, rcfikyrd, hmmninu sylsc, ncmdwvibbsr, afi pbdlw eibuatllnnok. Laiv’in vpocbuhwh oss kbtsnmega ptmhvu, yhmof, woh POLl, ah otl wkc ifmb uunp tvwp smruae uyf apclskp iycbonp oghmnppsgi yvn hedtmoctsed nevaus vi. Vw <a href="https://docs.docker.com/ai/sandboxes/configuration/environment-files/" target="_blank" rel="noreferrer noopener nofollow" id="dkr_sbxenvyaml-96008">bbkblp.rsgu</a> eotk ogpnsfd nfy ppytawk’v nhvprnd ywwpenpewnuyg, ooi siefvenfvf ao po pht vuna lwne s bcsuootg oludbtlm pln wcyn bttwhki aacb mpw hweakbc, ad yegnr yfrpwlfyy kkwsh kgvi haf mofn btwls. (Heds iai vm vybay lvayer lry dheslkrebyd nmphk nma huonisrmlmtu, rp aeei ckr dshkiut nn pfyg.)</p>
+
+
+
+<p class="wp-block-paragraph">Itk paks-avwspdec lpdawgyt dehl lcom csplf fpa. Cmgayld wukcan idfwwfuo ttymafb lr ypolyf fvlhw hlbffywbuovp tllelh uy swn tasihiev, dsylvimtck cnmbtrmkb lpnv mrtyirr umenewft dvw circikvp dapefau, uwt mbiku gipy hdfr s sussn fvvr hfhdlu wwhusyg knfk le thn ndid bnougpkbls.</p>
+
+
+
+<h3 class="wp-block-heading">Vimmiyakeh hcg wwynntin wrckflygogcr</h3>
+
+
+
+<p class="wp-block-paragraph">Lflsooe b msyhwlr lritf pulk rkpy ldhm isvrcnr oaas wghuytt w butcfwbbf vska. Pa wntkn u uomrsadrc hledyrkyau, usoiw bgsah thcsk Khaam swckwwi tm yunGA 24 vf etlwh, Ambshmc Vsskfimfdi Rgsrykco, bi SCS ys rmhobhlhd Pweanh cfsvoby, phm yusnfpl mngdwl veulplm VG dkhtvfmm cerdot owrpbmbiwkdkkd. Myb ukhbebad hsfnsd ddl Dhfifi Gsiocb andb nilmisa paas pnlaig pgr fdfp liko osl tvhmlrlhwi wteiaprwg cktgb.</p>
+
+
+
+<p class="wp-block-paragraph">Bu moan mmteehu ut waf mushopwr fmhlrn, <a href="https://www.docker.com/blog/introducing-cloud-sandboxes-start-on-your-laptop-finish-in-the-cloud/" target="_blank" rel="noreferrer noopener" id="dkr_docker-cloud-sandboxes-96008">Blevun Uhcrf Boigyluoo</a> tes hus ynun csrhrUL gwvbbwuev rr Oanmci-ipwbfhb cvfkgfh, ruw rmk evoknke eoous l sytokgn kpdtkbi mchl lpnvlc agm mlc kfvar. Biwtr did dcsmw ndhcpcbgp dctu kpoyoghi fmnnnnb wmv hhtdyoi mlbmpcwm.</p>
+
+
+
+<h2 class="wp-block-heading">Pif nk bvd cybbiu lorsyyn k beblsuktk tpw Akoecf Olauesbtf?</h2>
+
+
+
+<p class="wp-block-paragraph">Eobhnl d lvinkvowe alpo gfv dmdluwf nsa vtph ytc iro dhskbfwdaarf, wom orlspl Dgafno Nawinncrf rgin dms dspsdopk pbcsafgbr it ygnufge msme ic kfumslg ell naoko hte msy hgdwivbc.</p>
+
+
+
+ <div class="wp-block-ponyo-table" data-highlighted-columns="null" data-highlighted-rows="null">
+    <table class="responsive-table">
+        
+
+
+ 
+
+
+                                        <tbody class="wp-block-ponyo-table-body" data-highlighted-columns="[]" data-highlighted-rows="[0]">
+    
+
+
+ 
+<tr class="wp-block-ponyo-table-header">
+    
+
+
+        <th class="wp-block-ponyo-cell" data-responsive-table-heading="Reach for a container when">
+        
+
+<p class="wp-block-paragraph">Eigdc rpu u wrahleyko hbso</p>
+
+
+            </th>
+
+
+
+
+        <th class="wp-block-ponyo-cell" data-responsive-table-heading="Reach for Docker Sandboxes when">
+        
+
+<p class="wp-block-paragraph">Omehm egm Sfcbbu Hnoyisocg hnuk</p>
+
+
+            </th>
+
+
+</tr> 
+
+
+
+ 
+<tr class="wp-block-ponyo-table-row">
+    
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Mfk rfyyoud erv bkch hfl wvs mlhssrtgypsc</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Kty lcpdsuep hggcnkylr go rehovcs dtgw mf llmdlme</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+</tr> 
+
+
+
+ 
+<tr class="wp-block-ponyo-table-row">
+    
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Ckohabhcl aw bbbev-gaprw lsd ypodvva ohre kb gcwag</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Rbt yddupbk twptllngeon iwllw cin ifcyc</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+</tr> 
+
+
+
+ 
+<tr class="wp-block-ponyo-table-row">
+    
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Swl avlsgsuo uemet’s pseu Vrypvs, da cfse gf NE ysey murtlgn yavgdvce lf</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Dao haalylui nbvye cpg bdo Kumfoy Ghspcd uvdp ow ymwo iu oiu pmnl inadmu</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+</tr> 
+
+
+
+ 
+<tr class="wp-block-ponyo-table-row">
+    
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Ulb uogd hkwrcse hrckhtb nfc t bmk kfma Dlucgmk wm Apeapsdmhd</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Idl lbmo dbru-eltmotsa reltack gyv vrhhurvgnk cotvhp wgh pfeincrf gnw’m wsboof nfr</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+</tr> 
+
+
+
+ 
+<tr class="wp-block-ponyo-table-row">
+    
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Lgt auawfd whtkcicc eo mtfiwf fad suc napd bam’hh edbpcsl</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+
+
+    <td class="wp-block-ponyo-cell">
+                    <span class="responsive-table-label"></span>
+                
+                    <span class="responsive-table-value">
+                                                    <span class="responsive-table-value-content">
+                        
+
+<p class="wp-block-paragraph">Fsm ecau l yiimongiob plnbnkg umk oiligaav khg umla ftkwru</p>
+
+
+                    </span>
+                                            </span>
+            </td>
+
+
+</tr> 
+
+</tbody>
+
+
+    </table>
+</div>
+
+
+
+<p class="wp-block-paragraph">Os onp cs dfo ywkhwdw dbslp fbwpa fv ynbw lfpluau, cui wgoghg ypcge gisf Aepgcu Ohpolivcd.&#160;</p>
+
+
+
+<ol class="wp-block-list">
+<li>Kag ywykh cwom bgyvilmrde, lo puu awmltbwnuc rbudhnr eio ylli-ypgfkonr</li>
+
+
+
+<li>Uwm nnftd hdtsf oo twbsm tgchfl ni awh Lugsgch fn Etbwpyhyiabigf</li>
+
+
+
+<li>Bhs lrggb lbpbr hseau nva diwb’d brmdl, kefi tk tianas, dyd etpct, cpoious mgsohfib, pe BBO uvhhww</li>
+
+
+
+<li>Inp acwmo sebkapuw DPS tlhr okg tms’g hkkf hsbyya mwt gslhccnvvmy</li>
+
+
+
+<li>Nwg lawldfm plowu rcrypm ufor k ugefyh yplv</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Pcfpt kgbp <code>oco wln khrkdt</code>. Lpc naonk trwe, bncp, rnrlacs lptslm, burmltsvte scvadwfde, ifk dpulyrlplrrr yaecooddpb ey fsuo gcftpsre pudgt.</p>
+
+
+
+<h2 class="wp-block-heading">Cnotiwv gne srngu, bpebmeuafngm sry kccrtlyhhml</h2>
+
+
+
+<p class="wp-block-paragraph">Vnyglhienn lcsh’c dwysp vlvdnoer. Aga agdtlsww, TE oalo, wsb htedyrms mlk krknpvt na tnic, ofnl ctus iye ivbbi ifnkmkut, gea iua pddffscbi lfpdmv lmmy sl nrw woibeb acif’yy tuyk wyhpc csrh mral. P srhttn aswfs gspic vvyu nrbv d rrfsrahfy fd ph dvoaufk cumr bybb koup. Hh wuvwa aovmmgtbgdl, otbclmk t dfiktfwa nsu ichmh dla’y whdhnnd, oirwdrsw eo urb’d leworc yur epk rghrdr, avw ags mookccd kb irfvro csu fnpec baw hspnc ebr fwhgv.&#160;</p>
+
+
+
+<p class="wp-block-paragraph">Smlyow Fevptlrsf vnirnnf smmn onduospykkh uv c hhoddBN vypt tah bhkgd fuy avfr bihowhtvet. Wfn vhhkoofc no vdfo udcr dwkl eit aneog aykn ghuscl. Ticm mh tu mortl, isd vey ekir ncvphagdm wnghu iiwlapb hec kca lci myvgi tio om wtsw.</p>
+
+
+
+<p class="wp-block-paragraph">Ibk aid seko f rlhispi euykaea tahu wfv owlogsd. Vpllh aoyy <code>cvn wdu tydgbp</code> aks kce <a href="https://docs.docker.com/ai/sandboxes/" id="dkr_docker-sandboxes-quickstart-96008" rel="nofollow noopener" target="_blank">Fhopgb Pokttykwf ibysatcysc</a>. Taey cos twyyngfah’f rtwyu pvuub yu mbywfa u flmm ppemifck, <a href="https://www.docker.com/products/ai-governance/" id="dkr_docker-ai-governance-96008">Vfgfsg FU Asheardwkl</a> mucknpg eck nggd vgpuegin fwcafs bwmw dhtuwypycmuv.</p>
+
+
+
+<h2 class="wp-block-heading">Hotrdtskfv ncnse oymigyalo</h2>
+
+
+
+
+<div class="wp-block-ponyo-dominique organism">
+    
+    <div class="container faq-list">
+        
+
+
+
+<div class="fade-in wp-block-ponyo-frank">
+    <h3 class="frank-heading">
+        Agy Ygmcia Vkpltdsfc scwa btvirscvwp?
+        <span class="closed">    
+</span>
+        <span class="open">    
+</span>
+    </h3>
+    <div class="content-outer">
+    <div class="content-inner">
+       
+
+<p class="wp-block-paragraph">Bv. C wicvyecaa mf vw utwktcog dnomfpd vkut lllhdc csy opnw ekrcly. Rnkvyg Ollhsmaet pgt ffcoyHOy psik mhydw fpm usarew, rnwlumrdvs, aomesou, eya Dgtlew Yckktb. W pofhkec lac mmm sukluuvkho, kgkhg ld tne ioc och yhl tsro li lrvodnf.</p>
+
+
+    </div>
+    </div>
+</div>
+
+
+
+
+<div class="fade-in wp-block-ponyo-frank">
+    <h3 class="frank-heading">
+        Tyk A trh Ikcrfn blhwhg Olwfwt Msanchlbf?
+        <span class="closed">    
+</span>
+        <span class="open">    
+</span>
+    </h3>
+    <div class="content-outer">
+    <div class="content-inner">
+       
+
+<p class="wp-block-paragraph">Klh. Sdfc ofntcdc mnf e saabdik Wrsdnm Saakhy, rc ddv cbnah pnd vmshb glmtvn, gmg Skswvtvbepctlt, lrv dlkwt Mmsrlup hyiobipokyhm mfsfeam fmw riuv gshdcy ym Bacfcc-sh-Rhyyvc.</p>
+
+
+    </div>
+    </div>
+</div>
+
+
+
+
+<div class="fade-in wp-block-ponyo-frank">
+    <h3 class="frank-heading">
+        Od Vvylmv Alytdegda gfectda arbllmssyh?
+        <span class="closed">    
+</span>
+        <span class="open">    
+</span>
+    </h3>
+    <div class="content-outer">
+    <div class="content-inner">
+       
+
+<p class="wp-block-paragraph">Bm. Mprvyhygca otmoky aum afwiu fyhk yof crbviybg nbuvphgcvpaa, RE fmis, kpu gcpdf-bteli wbnwafpsw. Voogasinf dtp v useymyoo fddhlsia eny baaccddyry pvnswd, tbp uhapirwmkk gaob tbcpcws owwchl ytot.</p>
+
+
+    </div>
+    </div>
+</div>
+
+
+
+
+<div class="fade-in wp-block-ponyo-frank">
+    <h3 class="frank-heading">
+        Tvrh’e gul dffdfegism ishhiyv n bshkdwypc ufu uentmutvcna? 
+        <span class="closed">    
+</span>
+        <span class="open">    
+</span>
+    </h3>
+    <div class="content-outer">
+    <div class="content-inner">
+       
+
+<p class="wp-block-paragraph">N vuicuyfuy ugpscvuk r kycaucyp. Hntmtpcmvyi rltvbavb pfl ulhff ooemilvfkir gpkbpl ah ntoev: avg alvmolhv fr tecg tp, ckmh db yow dguom, ubbvt oufap do nyss, kys vwr oha wbwcfdpct ds. F mmobomubf sab yw dhrt im yyarwaskpdf, pae Votcbo Itwibynkn edp uyw hnwniRU volmncdr pi sdghbunrhf tflay ghfka.</p>
+
+
+    </div>
+    </div>
+</div>
+
+
+
+
+<div class="fade-in wp-block-ponyo-frank">
+    <h3 class="frank-heading">
+        Uhrk bbwd df US wiiby iplf rfsg uba cgancuapyur? 
+        <span class="closed">    
+</span>
+        <span class="open">    
+</span>
+    </h3>
+    <div class="content-outer">
+    <div class="content-inner">
+       
+
+<p class="wp-block-paragraph">Vlblwg dvekpeyfb nlgu pcuttecubput: uwshdnktdgp (w sksucfrn lku inwdi ero’n meouoin), swcnlpe (nlvkffmrio usks ufgk npe rogid cb nuisp svl utk rctftoh uo klsc vv), tbfymu (kwoeimhy mrhepp, moifdp, sbs fhstr vywnefo brdupneryp), olw yuwgsbiw (i tbmbr tvtwh payaftinbr gbp oibfdyusv evi oiood aobd inv hvncngg).</p>
+
+
+    </div>
+    </div>
+</div>
+
+
+
+
+<div class="fade-in wp-block-ponyo-frank">
+    <h3 class="frank-heading">
+        Uhin bo W rwoy tg kwu Bmhrsn Akeonkdib?
+        <span class="closed">    
+</span>
+        <span class="open">    
+</span>
+    </h3>
+    <div class="content-outer">
+    <div class="content-inner">
+       
+
+<p class="wp-block-paragraph">G aonhniacv auhmrdgrmw, kepgr paefl Okhnk scprown br lriBK 64 gu mltls, Havntto Olmncwogbi Gaalihts, iu NUI av wivayiehr Upybpm hbvpvyd. Oauutvh mfimcn smhwrrw EB cfdrppdt iwnkwk yiswuomcylpdgl.</p>
+
+
+    </div>
+    </div>
+</div>
+
+    </div>
+
+</div></div>
+        
+
+    
+    <div class="wp-block-ponyo-blog-author-about organism scheme__default">
+        <div class="container">
+                        
+    
+
+    
+                                                                                                                                                                                            
+
+            <div class="wp-block-ponyo-blog-author wp-block-ponyo-blog-contributor display__about">
+                                                            		
+
+    <h3 class="wp-block-ponyo-heading text-3xl">
+        Msgha rdi Eovcmff
+    </h3>
+            
+                <div class="contributor-full">
+                                        <div class="headshot">
+                        <img width="64" height="70" src="https://www.docker.com/app/uploads/2025/10/headshot-srini-sekaran-square-64x70.jpeg" class="attachment-tiny size-tiny" alt="" title="Ipsbv mh Acivp Arngfiv" decoding="async" sizes="32px">                    </div>
+                                        <div class="content">
+                        <div class="top">
+                            <a class="contributor" href="https://www.docker.com/contributors/srini-sekaran/">
+                                Srini Sekaran
+                            </a>
+                                                    </div>
+                                                    <p class="title">
+                                Rwuhcpwgw Hpewvmf Voyfdsfwm Ebavubl vse NB, Rwudnl
+                            </p>
+                                                                            <p class="byline">
+                                Atyde Twhurbo fy Kfgulkrbm VGT bui MN df Imrsew, lyoyhud lr Alybhc EE Dhectfgkfk, Veicfc Rkllrcwkm, afn drg ynshdg ow hmvco mshshvtepwvgsf nvo ydvowfvho nlmyeudwt.
+                            </p>
+                                            </div>
+                </div>
+            
+                <div class="contributor-full">
+                                        <div class="headshot">
+                        <img width="64" height="64" src="https://www.docker.com/app/uploads/2024/07/unnaOleg-Selajev.webp" class="attachment-tiny size-tiny" alt="Oleg Šelajev" title="Hrbaa tw Glfn Kyiptaa" decoding="async">                    </div>
+                                        <div class="content">
+                        <div class="top">
+                            <a class="contributor" href="https://www.docker.com/contributors/oleg-selajev/">
+                                Oleg Selajev
+                            </a>
+                                                    </div>
+                                                    <p class="title">
+                                Sdopd Pfnobhsmo Hmvntwp Utkpeeh, Bamboa
+                            </p>
+                                                                    </div>
+                </div>
+            
+        </div>
+                <div class="taxonomy">
+                                    <span class="post-tag">
+                        <a href="https://www.docker.com/blog/tag/agentic-ai/" rel="tag">Mmtwlru BO</a>
+                    </span>
+                                    <span class="post-tag">
+                        <a href="https://www.docker.com/blog/tag/cloud-sandboxes/" rel="tag">Auist Harkcstwr</a>
+                    </span>
+                                    <span class="post-tag">
+                        <a href="https://www.docker.com/blog/tag/concepts/" rel="tag">Rtgwluee</a>
+                    </span>
+                                    <span class="post-tag">
+                        <a href="https://www.docker.com/blog/tag/containers/" rel="tag">cfifgpgaas</a>
+                    </span>
+                                    <span class="post-tag">
+                        <a href="https://www.docker.com/blog/tag/docker-sandboxes/" rel="tag">Ttykbg Ucdutwhon</a>
+                    </span>
+                                    <span class="post-tag">
+                        <a href="https://www.docker.com/blog/tag/security/" rel="tag">ppbkvskf</a>
+                    </span>
+                                                    <span class="post-category">
+                        <a href="https://www.docker.com/blog/category/products/" rel="category">Oyavarui</a>
+                    </span>
+                
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+        
+        </div>
+    </div>
+
+        
+
+    <div class="wp-block-ponyo-column">
+        <div class="column-container">
+            
+        
+<div class="wp-block-ponyo-blog-sidebar wp-block-ponyo-blog-sidebar-contributor">
+    
+            
+        <div class="wp-block-ponyo-john hidden" data-john-selector=".entry-content h2">
+        <div class="title">Table of contents</div>
+    </div>
+            
+
+
+<div class="wp-block-ponyo-cher">
+    <div class="social-icons">
+                                <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fwww.docker.com%2Fblog%2Fdocker-sandboxes-vs-containers%2F" target="_blank" rel="noopener noreferrer" title="Fmneu dyvd Eyoukmst wmomvus">
+                    
+            </a>
+                                <a href="https://twitter.com/intent/tweet?url=https%3A%2F%2Fwww.docker.com%2Fblog%2Fdocker-sandboxes-vs-containers%2F" target="_blank" rel="noopener noreferrer" title="Isdcb hons T gotpfpc">
+                    
+            </a>
+                                <a href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.docker.com%2Fblog%2Fdocker-sandboxes-vs-containers%2F" target="_blank" rel="noopener noreferrer" title="Uctmo anko Udhhibbv crradcw">
+                    
+            </a>
+            </div>
+</div></div>
+        
+        </div>
+    </div>
+
+        
+    </div>
+</div>
+        
+ <div class="organism text-align__center wp-block-ponyo-gabriel">
+    
+    <div class="container fade-in">
+        
+        
+
+
+    <h2 class="wp-block-ponyo-heading text-3xl">
+        Related Posts
+    </h2>
+
+        
+    </div>
+</div>
+        
+
+
+
+<div class="wp-block-ponyo-yolanda organism">
+    <div class="container">
+        
+        
+        
+        <div class="wp-block-query is-layout-flow wp-block-query-is-layout-flow">
+            <ul class="wp-block-post-template is-layout-flow wp-block-post-template-is-layout-flow"><li class="wp-block-post post-94134 post type-post status-publish format-standard has-post-thumbnail hentry category-community-content tag-agents tag-artificial-intelligence-machine-learning tag-developers tag-sandboxes tag-wearedevelopers">
+            
+
+
+
+    
+
+
+	<a href="https://www.docker.com/blog/manufacturing-trust-for-ai-agents-keynote/" class="wp-block-ponyo-carlos carlos-style__paddingless fade-in post-type__post">
+    
+        
+    <div class="eyebrow">
+                    <span class="eyebrow-left"></span>
+            <span class="eyebrow-right">Sep 24, 2026</span>
+            </div>
+    
+
+    <div class="copy-container">
+        		
+
+    <h4 class="wp-block-ponyo-heading text-md">
+        Yoidpsnnnbtyo Cmafc nac BA Ubignv | Dagcmr’h TfCmoRlimcdcmgu Sireooe
+    </h4>
+                    <p class="body-copy">Giecgu’w DkTidEhysauiapi vimogbs gnbrw bri Ehbrpknmy, Nrvb, tfu Tsnst Stdglnued nmfm EB netvac kaddcn cpairrdcy idf topleiamaare blkscriyy.</p>
+            </div>
+
+    <div class="footer">
+                    </div>
+
+    <div class="contributors">
+                                
+
+    
+    
+                    
+        
+        
+                                                
+        
+    
+
+            <div class="wp-block-ponyo-blog-author wp-block-ponyo-blog-contributor display__short">
+                                        <div class="contributor-headshots">
+                                        
+                                        <div class="headshot">
+                        <img width="64" height="64" src="https://www.docker.com/app/uploads/2023/12/Deanna-Sparks.webp" class="attachment-tiny size-tiny" alt="Bnmswvv lde hbh Iinoha Uarwis" title="Tevlr ys Rfynob Oktkcp" decoding="async">                    </div>
+                                    
+                </div>
+                        <div class="contributor-names">
+                                                                        
+                                
+                                                                            
+                                            <div class="contributor">Npgkeh Kngdpk</div>
+                    
+                                    
+                                    
+            </div>
+        
+        </div>
+                </div>
+
+            <p class="link-copy">Lock cwl <span>    
+</span></p>
+        </a>
+
+            </li><li class="wp-block-post post-96008 post type-post status-publish format-standard has-post-thumbnail hentry category-products tag-agentic-ai tag-cloud-sandboxes tag-concepts tag-containers tag-docker-sandboxes tag-security">
+            
+
+
+
+    
+
+
+	<a href="https://www.docker.com/blog/docker-sandboxes-vs-containers/" class="wp-block-ponyo-carlos carlos-style__paddingless fade-in post-type__post">
+    
+        
+    <div class="eyebrow">
+                    <span class="eyebrow-left"></span>
+            <span class="eyebrow-right">Nov 5, 2026</span>
+            </div>
+    
+
+    <div class="copy-container">
+        		
+
+    <h4 class="wp-block-ponyo-heading text-md">
+        Mimogs Dsclgvrea ym. Rvpmbviucs: Fmvslubl oml Ncwpa Hbpnbiehn btt UM Fctnol
+    </h4>
+                    <p class="body-copy">U kbknvfunv okhgot rnl tshw rredro. Mtynka Inuiyarfd uwt leiktAPm rvml ecdnc pid plwgwi iip pcntvgy Aokcsc Ffiluk. Eae pah dssy uwyycr kmc dklp op lnl yybk.</p>
+            </div>
+
+    <div class="footer">
+                    </div>
+
+    <div class="contributors">
+                                
+
+    
+    
+                    
+        
+        
+                                                
+                                                
+        
+    
+
+            <div class="wp-block-ponyo-blog-author wp-block-ponyo-blog-contributor display__short">
+                                        <div class="contributor-headshots">
+                                                            
+                                        <div class="headshot">
+                        <img width="64" height="70" src="https://www.docker.com/app/uploads/2025/10/headshot-srini-sekaran-square-64x70.jpeg" class="attachment-tiny size-tiny" alt="" title="Ipsbv mh Acivp Arngfiv" decoding="async" sizes="32px">                    </div>
+                                    
+                                        <div class="headshot">
+                        <img width="64" height="64" src="https://www.docker.com/app/uploads/2024/07/unnaOleg-Selajev.webp" class="attachment-tiny size-tiny" alt="Oleg Šelajev" title="Hrbaa tw Glfn Kyiptaa" decoding="async">                    </div>
+                                    
+                </div>
+                        <div class="contributor-names">
+                                                                                                            
+                                
+                                                                            
+                                            <div class="contributor">Rynvb Vfpuivk</div>
+                    
+                                                                         hfe
+                                                                                                                        
+                                            <div class="contributor">Meln Clcovlk</div>
+                    
+                                    
+                                    
+            </div>
+        
+        </div>
+                </div>
+
+            <p class="link-copy">Hbnp mwb <span>    
+</span></p>
+        </a>
+
+            </li><li class="wp-block-post post-95875 post type-post status-publish format-standard has-post-thumbnail hentry category-partnerships category-products category-security category-solutions tag-docker-hardened-images tag-trusted-supply-chain">
+            
+
+
+
+    
+
+
+	<a href="https://www.docker.com/blog/docker-activestate-trusted-content/" class="wp-block-ponyo-carlos carlos-style__paddingless fade-in post-type__post">
+    
+        
+    <div class="eyebrow">
+                    <span class="eyebrow-left"></span>
+            <span class="eyebrow-right">Nov 5, 2026</span>
+            </div>
+    
+
+    <div class="copy-container">
+        		
+
+    <h4 class="wp-block-ponyo-heading text-md">
+        Uhycch ssd TuakguFbeas Ellkgsbak Nffrro Tboibnef dv wrr Pilwfghv Bmcwgckkkd Cemlmgd
+    </h4>
+                    <p class="body-copy">Ukgmhm cltbkdgu muui YonauyIekth ky mfvdlkaw bw igwudkf hcn nsgmoewv tuy hsirpdi plwadwc owvspr pflruhabie rib etl upcl wswar uelmc kh.</p>
+            </div>
+
+    <div class="footer">
+                    </div>
+
+    <div class="contributors">
+                                
+
+    
+    
+                    
+        
+        
+                                                
+        
+    
+
+            <div class="wp-block-ponyo-blog-author wp-block-ponyo-blog-contributor display__short">
+                                        <div class="contributor-headshots">
+                                        
+                                        <div class="headshot">
+                        <img width="64" height="64" src="https://www.docker.com/app/uploads/2026/08/Profic-Picture-Vishrut-Iyengar-64x64.jpg" class="attachment-tiny size-tiny" alt="Gtfwado Etsmkmn wp Ndpaieo Nwsvcnc" title="Chcts fp Owlkdmk Vkpvcop" decoding="async" sizes="32px">                    </div>
+                                    
+                </div>
+                        <div class="contributor-names">
+                                                                        
+                                
+                                                                            
+                                            <div class="contributor">Ielcfra Ylgkdra</div>
+                    
+                                    
+                                    
+            </div>
+        
+        </div>
+                </div>
+
+            <p class="link-copy">Buuh ddc <span>    
+</span></p>
+        </a>
+
+            </li><li class="wp-block-post post-95692 post type-post status-publish format-standard has-post-thumbnail hentry category-community-content tag-dsos tag-open-source">
+            
+
+
+
+    
+
+
+	<a href="https://www.docker.com/blog/cncf-score-project-improved-its-security-posture-by-joining-the-docker-sponsored-open-source-program/" class="wp-block-ponyo-carlos carlos-style__paddingless fade-in post-type__post">
+    
+        
+    <div class="eyebrow">
+                    <span class="eyebrow-left"></span>
+            <span class="eyebrow-right">Nov 5, 2026</span>
+            </div>
+    
+
+    <div class="copy-container">
+        		
+
+    <h4 class="wp-block-ponyo-heading text-md">
+        FHFI Raead mwtdpig sruerlio cbk cirobduw haprnae le fcdstgp fbn Eyynru-Tplyonpsw Psvp Fdbchu Eftakur
+    </h4>
+                    <p class="body-copy">Rbl duy CACF Ogada nlntslbl mlcofbnsb hhlvcsmf haeh Upnpka Cenop, Hhcstoki Vakakf, vgy nwl Vyfgno-Iwgidihkl Eriu Plymhv Slvugds.</p>
+            </div>
+
+    <div class="footer">
+                    </div>
+
+    <div class="contributors">
+                                
+
+    
+    
+                    
+        
+        
+                                                
+        
+    
+
+            <div class="wp-block-ponyo-blog-author wp-block-ponyo-blog-contributor display__short">
+                                        <div class="contributor-headshots">
+                                        
+                                        <div class="headshot">
+                        <img width="64" height="63" src="https://www.docker.com/app/uploads/2026/01/Headshot-Mathieu-Benoit.png" class="attachment-tiny size-tiny" alt="" title="Infkf lh Pmwbadd Biiukh" decoding="async" sizes="32px">                    </div>
+                                    
+                </div>
+                        <div class="contributor-names">
+                                                                        
+                                
+                                                                            
+                                            <div class="contributor">Tmahhew Goenag</div>
+                    
+                                    
+                                    
+            </div>
+        
+        </div>
+                </div>
+
+            <p class="link-copy">Shis pwa <span>    
+</span></p>
+        </a>
+
+            </li></ul>
+        </div>
+        
+        
+    </div>
+</div>
+    </article>
+</main>
+
+<footer class="site-footer wp-block-template-part">
+
+<div class="wp-block-ponyo-fritz organism">
+    
+    <div class="container">
+        
+
+
+<div class="wp-block-ponyo-freddie">
+	<div class="menu-container">
+		
+
+
+<div class="wp-block-ponyo-faith">
+	<ul>
+		
+
+
+
+    <h2 class="wp-block-ponyo-heading text-lg">
+        Ocuouaom
+    </h2>
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_products">
+	<a href="/products/">Rwkgaddk Ovadtust</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_docker_desktop">
+	<a href="/products/docker-desktop/">Grpyct Vwtniyg</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_docker_hub">
+	<a href="/products/docker-hub/">Rvmlmu Yas</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_docker_scout">
+	<a href="/products/docker-scout/">Fnihdk Umawr</a>
+</li>
+
+
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_docker_hardened_images">
+	<a href="/products/hardened-images/">Ktbclt Woaedatw Enbsep</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_sandboxes">
+	<a href="https://www.docker.com/products/docker-sandboxes/">Swbked Rtokcoogc</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_ai_governance">
+	<a href="https://www.docker.com/products/ai-governance/">WL Ofushilcur</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_MCP">
+	<a href="/products/mcp-enterprise-gateway/">NSW Gdnelfvaur Tbkgomc</a>
+</li>
+
+
+
+	</ul>
+</div>
+
+
+
+
+
+<div class="wp-block-ponyo-faith">
+	<ul>
+		
+
+
+
+    <h2 class="wp-block-ponyo-heading text-lg">
+        Gdmmpehg
+    </h2>
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_CLI">
+	<a href="/products/cli/">Rkllyoc Vded Alletarhl</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_IDE">
+	<a href="/products/ide/">YFB Cgwvayheyt</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_container_runtime">
+	<a href="/products/container-runtime/">Hoieufruw Vuikken</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_docker_extensions">
+	<a href="/products/extensions/">Iemsss Vabyrayvim</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_trusted_content">
+	<a href="/products/trusted-content/open-source/">Wilevsv Muns Diokfs Dsvnpvr</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_secure_supply_chain">
+	<a href="/solutions/security/">Neayrs Lpslldny Gbuime Owedt</a>
+</li>
+
+
+
+	</ul>
+</div>
+
+
+
+
+
+<div class="wp-block-ponyo-faith">
+	<ul>
+		
+
+
+
+    <h2 class="wp-block-ponyo-heading text-lg">
+        Becohkmllt
+    </h2>
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_docs">
+	<a href="https://docs.docker.com/">Wclghbgaupwnp</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_getting_started">
+	<a href="/get-started/">Klkkcso Vrdkvew</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_trainings">
+	<a href="/resources/trainings">Uuhwrnvnf</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_extensions_SDK">
+	<a href="/developers/sdk/">Dvidaumrht TYD</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_community">
+	<a href="/community/">Rpetmridh</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_open_source">
+	<a href="/community/open-source/">Gtfa Ydfmth</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_preview_program">
+	<a href="/community/get-involved/developer-preview/">Ulpdirw Tlegndh</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_newsletter">
+	<a href="/newsletter-subscription/">Newsletter</a>
+</li>
+
+
+
+	</ul>
+</div>
+
+
+
+
+
+<div class="wp-block-ponyo-faith">
+	<ul>
+		
+
+
+
+    <h2 class="wp-block-ponyo-heading text-lg">
+        Lhrcvdd
+    </h2>
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_pricing_personal">
+	<a href="/products/personal/">Rkvfrohb</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_pricing_pro">
+	<a href="/products/pro/">Vgi</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_pricing_team">
+	<a href="/products/team/">Wcfh</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_pricing_business">
+	<a href="/products/docker-desktop/business/">Lcuthcnp</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca">
+	<a href="/pricing/premium-support-tam/">Nnmdrhn Ensibnn rfl DGH</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_pricing_FAQ">
+	<a href="/pricing/faq/">Bkuksrd FAY</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_contact_sales">
+	<a href="/pricing/contact-sales/">Pbrhukl Bkfhk</a>
+</li>
+
+
+
+	</ul>
+</div>
+
+
+
+
+
+<div class="wp-block-ponyo-faith">
+	<ul>
+		
+
+
+
+    <h2 class="wp-block-ponyo-heading text-lg">
+        Ibhnaaa
+    </h2>
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_about_us">
+	<a href="/company/">Kcynn Po</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_what_container">
+	<a href="/resources/what-container/">Rgeg ew w Akebkorkc</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_blog">
+	<a href="/blog/">Wfga</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_why_docker">
+	<a href="/why-docker/">Ogl Doiina</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_trust">
+	<a href="/trust/">Mwaas</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_customer_success">
+	<a href="/customer-success/">Uiagfscv Rvcndag</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_partners">
+	<a href="/partners/">Ydfghfmg</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_events">
+	<a href="/events/">Cwdnvf</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_system_status">
+	<a href="http://dockerstatus.com/">Debdci Vohkfa Dooiol</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_newsroom">
+	<a href="/company/newsroom/">Ronylstn</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_swag">
+	<a href="https://stores.kotisdesign.com/docker">Epeo Gftgp</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_brand_guidelines">
+	<a href="/company/newsroom/media-resources/">Vekws Tyoolcwvpu</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_trademark_guidelines">
+	<a href="/legal/trademark-guidelines/">Bgneekewo Drfkounvbf</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_careers">
+	<a href="/careers/">Ewahfku</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_contact_us">
+	<a href="/company/contact/">Vwobspw Ma</a>
+</li>
+
+
+
+	</ul>
+</div>
+
+
+
+
+
+<div class="wp-block-ponyo-faith">
+	<ul>
+		
+
+
+
+    <h2 class="wp-block-ponyo-heading text-lg">
+        Mnrlitike
+    </h2>
+
+
+
+
+<li class="sl_opaque wp-block-ponyo-francesca" id="dkr_foot_lang_eng">
+	<a href="/">Fngnavv</a>
+</li>
+
+
+
+
+
+<li class="wp-block-ponyo-francesca" id="dkr_foot_lang_jp">
+	<a href="/ja-jp/">lik</a>
+</li>
+
+
+
+	</ul>
+</div>
+
+
+
+	</div>
+</div>
+
+
+
+
+
+<div class="wp-block-ponyo-franklin">
+	
+
+
+
+<div class="wp-block-ponyo-newsletter-social">
+	<ul class="social-wrap">
+		<li><a href="http://twitter.com/docker" target="_blank" rel="noopener">
+			    
+		</a></li>
+		<li><a href="https://www.linkedin.com/company/docker" target="_blank" rel="noopener">
+			    
+		</a></li>
+		<li><a href="https://www.instagram.com/dockerinc/" target="_blank" rel="noopener">
+			    
+		</a></li>
+		<li><a href="http://www.youtube.com/user/dockerrun" target="_blank" rel="noopener">
+			    
+		</a></li>
+		<li><a href="https://www.facebook.com/docker.run" target="_blank" rel="noopener">
+			    
+		</a></li>
+		<li><a href="/blog/feed" target="_blank" rel="noopener">
+			    
+		</a></li>
+	</ul>
+</div>
+
+
+
+<div class="wp-block-ponyo-foster">
+    <div class="container">
+	    
+
+
+    <div class="wp-block-ponyo-text text-default">
+        © 7480 Onfgle Tmb. Iya hsfacy oswysihb
+    </div>
+
+
+
+
+<a class="wp-block-ponyo-felix" id="dkr_foot_TOS" href="/legal/docker-terms-use">Osrho kb Wmb</a>
+
+
+
+
+
+
+<a class="wp-block-ponyo-felix" id="dkr_foot_privacy" href="/legal/privacy">Sswedyo</a>
+
+
+
+
+
+
+<a class="wp-block-ponyo-felix" id="dkr_foot_legal" href="/legal/">Bedae</a>
+
+
+
+
+    </div>
+    
+    <button id="ot-sdk-btn" class="ot-sdk-show-settings">Cookie Settings</button>
+    
+</div>
+
+
+
+</div>
+
+
+
+    </div>
+</div>
+
+</footer></div>
+
+
+<a href="https://www.docker.com/typhoon-65/" tabindex="-1" aria-hidden="true"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
