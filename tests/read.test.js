@@ -162,6 +162,23 @@ test('tidy drops a newsletter pitch and whatever follows it', () => {
   assert.ok(!out.includes('newsletter')); assert.ok(!out.includes('biweekly'));
 });
 
+test('tidy drops what follows the article, labelled as a heading or not', () => {
+  const prose = 'A real sentence of the article, with enough words to count as prose. '.repeat(6);
+  const after = [
+    '<div>Keep Reading</div><p>Another story</p>', '<h2>About the Author</h2><p>A bio of them.</p>', '<h2>Written by</h2><p>A bio of them.</p>',
+    '<p>Back to top</p>', '<p>89 Comments</p>', '<p>Found this article interesting? Follow us for more.</p>',
+    '<p>Related: Some other story with a longer headline than chrome usually has in it at all</p>',
+    '<h2>Get the latest news in your inbox</h2><p>Sign up now.</p>',
+  ];
+  for (const tail of after) {
+    const { content: out } = tidy({ content: `<div><p>${prose}</p><p>${prose}</p>${tail}</div>`, title: 'T' }, 'https://x.test/a');
+    assert.equal(out.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(), `${prose}${prose}`.replace(/\s+/g, ' ').trim(), tail);
+  }
+  // A sentence that mentions these isn't the label.
+  const { content: kept } = tidy({ content: `<div><p>${prose}</p><p>Keep reading the logs until the error stops appearing in them.</p></div>`, title: 'T' }, 'https://x.test/a');
+  assert.ok(kept.includes('Keep reading the logs'));
+});
+
 test('tidy keeps prose and real sections that only look like chrome', () => {
   const prose = 'A real sentence of the article, with enough words to count as prose. '.repeat(6);
   const content = `<div><p>${prose}</p><p>To try it, <a href="https://x.test/s">sign up for the beta</a> today.</p><h2>Related Published CVEs</h2><p>${prose}</p><p>Share this idea with the wider community of readers who care.</p></div>`;

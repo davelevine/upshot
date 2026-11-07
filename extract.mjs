@@ -17,7 +17,7 @@ const PAGE_TIMEOUT = 15000; // some pages take 10s
 const FEED_TIMEOUT = 10000; // one full-article feed is 4MB
 const CONCURRENCY = 6;
 const TTL = 100 * 86400; // past the build's KEEP_DAYS (90), so expired articles are already off the site
-const VERSION = 2; // bump when extraction changes, and the next build redoes every stored article
+const VERSION = 3; // bump when extraction changes, and the next build redoes every stored article
 const TRANSIENT = ['timeout', 'error']; // not a verdict on the article: try again next run
 const CHALLENGE = /cf-challenge|_cf_chl_opt|Just a moment|Access Denied|Request unsuccessful|Incapsula/i; // about bot-protection vendors, not publishers
 const DROP = 'script, style, noscript, iframe, object, embed, form, input, button, link, meta, svg';
@@ -133,13 +133,14 @@ const MAX_TIDY_LOSS = 0.35; // past this, a rule has probably mistaken the artic
 const CHROME_WORDS = 12; // chrome is short, and a longer sentence that starts "Sign up" is probably prose
 const CHROME = [
   /^\d+ min(ute)?s?( read)?$/i, /^(share|tweet|copy link|print)( this( article| post| story)?)?:?$/i, /^(subscribe|sign up|newsletter)\b/i,
-  /^(tags?|topics?|filed under|categories):/i, /^(advertisement|sponsored)$/i, /^(related:|read next|you may also like)/i,
+  /^(tags?|topics?|filed under|categories):/i, /^(advertisement|sponsored)$/i, /^(read next|you may also like)/i, /^\d+ comments?$/i, /^back to top$/i, /^show more\s*show less$/i, /^posted on .+\d+ comments?$/i,
 ];
 const TOC_HEADING = /^((table of )?contents|in this (article|post)|on this page|jump to)$/i;
-const END_HEADING = /^(related( (posts?|articles?|stories|reading|content|links))?|read next|more from .+|you may also like|subscribe( to .+)?|sign up for .*newsletters?)$/i;
+const END_HEADING = /^(related( (posts?|articles?|stories|reading|content|links))?|read next|more from .+|you may also like|keep reading|about the authors?|written by|subscribe( to .+)?|sign up for .*newsletters?|get .+ in your inbox)$/i;
+const PROMO_LINE = /^(related:\s|found this article interesting\b)/i; // a line pointing elsewhere, which can run longer than other chrome
 const HEADINGS = 'h1, h2, h3, h4, h5, h6';
 const INLINE = /^(A|ABBR|B|CODE|EM|I|KBD|MARK|Q|S|SMALL|STRONG|SUB|SUP|TIME|U|SPAN)$/;
-const MEDIA = 'img, picture, video, audio, figure, pre, table, svg';
+const MEDIA = 'img, picture, video, audio, figure, pre, table';  // not svg: those are icons, and clean() drops them anyway
 const DATE_ONLY = /^(?=.*\d)(?:(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*|\d{1,4}(?:st|nd|rd|th)?|[-/.,\s])+$/i;
 
 const textOf = el => (el.textContent || '').replace(/\s+/g, ' ').trim();
@@ -209,10 +210,18 @@ export function tidy(article, url = '') {
     else unwrap(a);
   }
 
+  // The same labels on a plain block, for sites that don't mark them up as headings.
+  for (const el of [...root.querySelectorAll('div, p')]) {
+    if (!el.isConnected || el.children.length > 1 || inData(el) || !END_HEADING.test(textOf(el).replace(/:$/, ''))) continue;
+    while (el.nextSibling) el.nextSibling.remove();
+    removeWithEmptyParents(el, root);
+  }
+
   const byline = (article.byline || '').replace(/^by\s+/i, '').replace(/\s+/g, ' ').trim().toLowerCase();
   for (const el of [...root.querySelectorAll('*')]) {
     if (!el.isConnected || inData(el) || el.querySelector(MEDIA) || el.matches(HEADINGS)) continue;
     const text = textOf(el);
+    if (text && el.tagName === 'P' && PROMO_LINE.test(text) && wordCount(text) <= 30) { el.remove(); continue; }
     if (!text || wordCount(text) > CHROME_WORDS) continue;
     // Inline words inside a sentence belong to the sentence: "sign up for GitLab.com" is prose. Only a whole line can be chrome.
     if (INLINE.test(el.tagName)) { const parent = el.parentElement; if (parent && parent !== root && textOf(parent) !== text && !/^(DIV|SECTION|HEADER|LI)$/.test(parent.tagName)) continue; if (parent && /^(P|LI)$/.test(parent.tagName) && textOf(parent) !== text) continue; }
