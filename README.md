@@ -29,11 +29,12 @@ The week's tech news, minus the noise.
 
 Upshot is a set-it-and-forget-it news digest covering AI, security, architecture, software delivery and tech regulation. It reads a curated list of feeds, has an LLM keep only the stories worth your time, writes each one up in a sentence, and picks five weekly essentials, each with what to do about it. It's inspired by [watch.edebost.com](https://watch.edebost.com/).
 
-There's no server and no database. A scheduled GitHub Actions job does the work and commits a small JSON file, and a single static page renders it:
+There's no server and no database to look after. A scheduled GitHub Actions job does the work and commits a small JSON file, and a single static page renders it:
 
 - [`build.py`](build.py) fetches the feeds in [`feeds.opml`](feeds.opml), scores and summarizes new items with Claude Haiku, removes duplicate coverage, and writes [`site/data.json`](site/data.json) and [`site/rss.xml`](site/rss.xml).
 - [`site/index.html`](site/index.html) and [`site/app.js`](site/app.js) are the whole front end: no framework, no build step. [`site/_headers`](site/_headers) sets the Content-Security-Policy.
-- [`functions/api/read.js`](functions/api/read.js) powers the reader, pulling an article's text on demand when you open it.
+- [`extract.mjs`](extract.mjs) runs during the build, pulling each new story's text into Cloudflare KV for the reader.
+- [`functions/api/read.js`](functions/api/read.js) hands that text to the reader when you open an article.
 
 ### What you get
 
@@ -62,13 +63,13 @@ Everything older than 90 days is pruned, so the data stays small. It also looks 
 <details>
   <summary><strong>The reader, and what it does with your data</strong></summary>
 
-Opening an article calls `/api/read`, a Cloudflare Pages Function that fetches the page and extracts it with Mozilla's [Readability](https://github.com/mozilla/readability), the same approach as Firefox's reader view.
+Each build extracts new stories with Mozilla's [Readability](https://github.com/mozilla/readability), the same approach as Firefox's reader view, and stores the result in Cloudflare KV. Opening an article calls `/api/read`, a Cloudflare Pages Function that returns what's stored. Parsing happens in the build because it costs far more CPU than a function on the free plan is allowed per request.
 
-- **Nothing is stored or cached.** Responses are `no-store`, and the text exists only for as long as you're reading it.
-- **It says why when it can't.** Every response carries a reason: `ok`, `challenge` (the publisher blocks it), `shell`, `short`, `not_html`, `timeout` or `error`. Your screen already shows the story's summary from `data.json`, so a block never leaves it empty.
-- **Some blocked publishers still work.** If a publisher's feed carries whole articles, the reader fetches the article from the feed instead, live, so that's not stored either. `site/feeds.json` lists those feeds; it's written by the build, and holds no article text.
-- **It isn't an open proxy.** Only URLs that are already on the site are fetched.
-- **The page can't run anything from the source site.** Extracted HTML is stripped of scripts, frames, styles and event handlers on the server. It's then rendered in a sandboxed frame with no access to the page; the only script allowed in there is the site's own swipe and keyboard relay, admitted by a per-render nonce.
+- **Article text is stored, but not in this repository.** It sits in a private KV namespace and expires after 100 days, shortly after a story leaves the site. It's a snapshot from when the story was first read, so later corrections by the publisher won't appear.
+- **It says why when it can't.** Every response carries a reason: `ok`, `challenge` (the publisher blocks it), `shell`, `short`, `not_html` or `pending` (no article yet). Your screen already shows the story's summary from `data.json`, so a block never leaves it empty. Blocked stories are tried again on every build.
+- **Some blocked publishers still work.** If a publisher's feed carries whole articles, the build takes the article from the feed instead.
+- **It isn't a proxy.** The function never fetches anything, and only returns articles the build stored.
+- **The page can't run anything from the source site.** Extracted HTML is stripped of scripts, frames, styles and event handlers during the build. It's then rendered in a sandboxed frame with no access to the page; the only script allowed in there is the site's own swipe and keyboard relay, admitted by a per-render nonce.
 - **A strict Content-Security-Policy backs all of this up.** Scripts load only from the site itself, plus two inline scripts allowed by exact hash; no plugins, forms or base-URL changes; network requests go only to the site. A test keeps the hashes in step with the code.
 - **No login, no tracking.** Read and New markers live in your browser's local storage and never leave it.
 
@@ -148,7 +149,8 @@ Everything runs on GitHub Actions and Cloudflare Pages' free tiers. The only pai
 3. **Connect Cloudflare Pages.** Create a Pages project from your fork with production branch `main`, build command `npm ci`, and output directory `site`. Add a custom domain if you want one; the `*.pages.dev` address works as is.
 4. **Tell the build where the site lives.** Under **Settings → Secrets and variables → Actions → Variables**, add `SITE_URL` with your site's address (for example `https://news.example.com`). The build uses it for the RSS feed's links and to look up reading times through the site's reader.
 5. **Make it yours.** Point the GitHub links and the stale-build link in `site/index.html` at your fork, change the README badges, edit [`feeds.opml`](feeds.opml), and adjust the bars in [`build.py`](build.py) if you want more or fewer stories (see [Configuration](#configuration)).
-6. **Run the first build.** Under **Actions → Build → Run workflow**, start it on `main`. Set `backfill_days` to `30` to fill in the last month (only as far back as each feed still lists). Pages deploys the result a minute after the build commits.
+6. **Give the reader somewhere to keep articles.** In Cloudflare, create a Workers KV namespace and bind it to the Pages project as `ARTICLES`, for both Production and Preview. Create an API token with only the **Workers KV Storage: Edit** permission, then add `CF_API_TOKEN`, `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID` as repository secrets. Without them the digest still works, but the reader only shows each story's summary.
+7. **Run the first build.** Under **Actions → Build → Run workflow**, start it on `main`. Set `backfill_days` to `30` to fill in the last month (only as far back as each feed still lists). Pages deploys the result a minute after the build commits.
 
 <details>
   <summary><strong>Keeping the schedule on time</strong></summary>

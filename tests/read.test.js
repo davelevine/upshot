@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { classify, clean, extract, feedArticle, frameable, linkShare, onRequestGet } from '../functions/api/read.js';
+import { classify, clean, extract, feedArticle, feedReader, frameable, linkShare, readArticle, run } from '../extract.mjs';
+import { keyFor, onRequestGet } from '../functions/api/read.js';
 
 test('frameable honours X-Frame-Options and frame-ancestors', () => {
   const h = o => new Headers(o);
@@ -55,44 +56,100 @@ test('feedArticle finds an entry by its own link and ignores teasers', () => {
   assert.match(feedArticle(atom, 'https://x.test/atom'), /^<p>word/);
 });
 
-async function read(routes, feeds = {}, url = 'https://x.test/a') {
+const article = `<html><body><article><h1>T</h1><p>${'A proper sentence of the article. '.repeat(80)}</p></article></body></html>`;
+
+async function withFetch(routes, fn) {
   const real = globalThis.fetch;
-  globalThis.fetch = async u => { const r = routes[u]; if (r instanceof Error) throw r; return r; };
-  const assets = { '/data.json': { items: [{ url: 'https://x.test/a', publisher: 'P' }] }, '/feeds.json': feeds };
-  const env = { ASSETS: { fetch: async u => new Response(JSON.stringify(assets[new URL(u).pathname])) } };
-  try {
-    const res = await onRequestGet({ request: new Request('https://site.test/api/read?url=' + encodeURIComponent(url)), env });
-    return [res.status, await res.json(), res.headers.get('cache-control')];
-  } finally { globalThis.fetch = real; }
+  globalThis.fetch = async u => { const r = routes[u]; if (r instanceof Error) throw r; return r ?? new Response('', { status: 404 }); };
+  try { return await fn(); } finally { globalThis.fetch = real; }
 }
+const read = (routes, feeds = {}) => withFetch(routes, () => readArticle({ url: 'https://x.test/a', publisher: 'P' }, feedReader(feeds)));
 
-test('/api/read gives a reason for every outcome', async () => {
-  const article = `<html><body><article><h1>T</h1><p>${'A proper sentence of the article. '.repeat(80)}</p></article></body></html>`;
-  let [status, r, cache] = await read({ 'https://x.test/a': page(200, {}, article) });
-  assert.equal(status, 200); assert.equal(r.reason, 'ok'); assert.ok(r.content); assert.equal(cache, 'no-store');
+test('readArticle gives a reason for every outcome', async () => {
+  let r = await read({ 'https://x.test/a': page(200, {}, article) });
+  assert.equal(r.reason, 'ok'); assert.ok(r.content);
 
-  [, r] = await read({ 'https://x.test/a': page(403, {}, 'blocked') });
+  r = await read({ 'https://x.test/a': page(403, {}, 'blocked') });
   assert.equal(r.reason, 'challenge'); assert.equal(r.frameable, false); assert.equal(r.content, undefined);
 
-  [, r] = await read({ 'https://x.test/a': page(200, {}, '<div id="__next"></div>') });
+  r = await read({ 'https://x.test/a': page(200, {}, '<div id="__next"></div>') });
   assert.equal(r.reason, 'shell'); assert.equal(r.frameable, true);
 
-  [, r] = await read({ 'https://x.test/a': Object.assign(new Error('slow'), { name: 'TimeoutError' }) });
+  r = await read({ 'https://x.test/a': Object.assign(new Error('slow'), { name: 'TimeoutError' }) });
   assert.equal(r.reason, 'timeout');
 
-  [, r] = await read({ 'https://x.test/a': new Error('boom') });
+  r = await read({ 'https://x.test/a': new Error('boom') });
   assert.equal(r.reason, 'error');
-
-  [status] = await read({}, {}, 'https://elsewhere.test/not-on-the-site');
-  assert.equal(status, 404);  // never an open proxy
 });
 
-test('/api/read falls back to a whole-article feed, cleaned the same way', async () => {
-  const feed = `<rss><item><link>https://x.test/a</link><content:encoded><![CDATA[<script>x()</script><p>${words(400)}</p>]]></content:encoded></item></rss>`;
-  const routes = { 'https://x.test/a': page(403, {}, 'blocked'), 'https://feed.test/rss': { ok: true, text: async () => feed } };
-  const [, r] = await read(routes, { P: 'https://feed.test/rss' });
+const wholeFeed = `<rss><item><link>https://x.test/a</link><content:encoded><![CDATA[<script>x()</script><p>${words(400)}</p>]]></content:encoded></item></rss>`;
+
+test('readArticle falls back to a whole-article feed, cleaned the same way', async () => {
+  const r = await read({ 'https://x.test/a': page(403, {}, 'blocked'), 'https://feed.test/rss': { ok: true, text: async () => wholeFeed } }, { P: 'https://feed.test/rss' });
   assert.equal(r.reason, 'ok'); assert.equal(r.source, 'feed');
   assert.doesNotMatch(r.content, /script/);
+});
+
+function fakeKv(initial = []) {
+  const keys = new Map(initial);
+  const kv = { puts: [], list: async () => new Map(keys), put: async entries => { kv.puts.push(...entries); } };
+  return kv;
+}
+
+test('run skips stored articles, and stores new ones with an expiry and a word count', async () => {
+  const kv = fakeKv([[await keyFor('https://x.test/done'), { reason: 'ok', words: 900 }]]);
+  const items = [{ url: 'https://x.test/done', publisher: 'P' }, { url: 'https://x.test/a', publisher: 'P' }];
+  const out = await withFetch({ 'https://x.test/a': page(200, {}, article) }, () => run({ items, feeds: {} }, kv));
+  assert.equal(out.words['https://x.test/done'], 900);
+  assert.ok(out.words['https://x.test/a'] > 400);
+  assert.equal(kv.puts.length, 1);
+  const [entry] = kv.puts;
+  assert.equal(entry.key, await keyFor('https://x.test/a'));
+  assert.equal(entry.metadata.reason, 'ok');
+  assert.ok(entry.expiration_ttl > 90 * 86400);
+  assert.equal(JSON.parse(entry.value).reason, 'ok');
+});
+
+test('run retries blocked stories, but only writes when something changed', async () => {
+  const items = [{ url: 'https://x.test/a', publisher: 'P' }];
+  const blocked = [[await keyFor('https://x.test/a'), { reason: 'challenge', words: 0 }]];
+  let kv = fakeKv(blocked);
+  let out = await withFetch({ 'https://x.test/a': page(403, {}, 'blocked') }, () => run({ items, feeds: {} }, kv));
+  assert.equal(out.words['https://x.test/a'], 0);
+  assert.equal(kv.puts.length, 0);
+
+  kv = fakeKv(blocked);
+  out = await withFetch({ 'https://x.test/a': page(200, {}, article) }, () => run({ items, feeds: {} }, kv));
+  assert.equal(kv.puts[0].metadata.reason, 'ok');  // the block lifted
+});
+
+test('run stores nothing on a transient failure, so the next run tries again', async () => {
+  const kv = fakeKv();
+  const out = await withFetch({ 'https://x.test/a': new Error('boom') }, () => run({ items: [{ url: 'https://x.test/a', publisher: 'P' }], feeds: {} }, kv));
+  assert.deepEqual(out.words, {});
+  assert.equal(kv.puts.length, 0);
+});
+
+test('run without a store only fetches stories missing a reading time', async () => {
+  const items = [{ url: 'https://x.test/done', publisher: 'P', minutes: 4 }, { url: 'https://x.test/a', publisher: 'P' }];
+  const out = await withFetch({ 'https://x.test/a': page(200, {}, article) }, () => run({ items, feeds: {} }, null));
+  assert.deepEqual(Object.keys(out.words), ['https://x.test/a']);
+});
+
+test('/api/read returns what the build stored, and pending otherwise', async () => {
+  const url = 'https://x.test/a';
+  const ask = async (env, u = url) => {
+    const res = await onRequestGet({ request: new Request('https://site.test/api/read?url=' + encodeURIComponent(u)), env });
+    return [res.status, await res.json(), res.headers.get('cache-control')];
+  };
+  const k = await keyFor(url);
+  const env = { ARTICLES: { get: async wanted => (wanted === k ? JSON.stringify({ url, reason: 'ok', frameable: false, content: '<p>x</p>' }) : null) } };
+  let [status, r, cache] = await ask(env);
+  assert.equal(status, 200); assert.equal(r.content, '<p>x</p>'); assert.equal(cache, 'no-store');
+  [, r] = await ask(env, 'https://elsewhere.test/not-stored');
+  assert.equal(r.reason, 'pending'); assert.equal(r.content, undefined);
+  [, r] = await ask({});  // no binding
+  assert.equal(r.reason, 'pending');
 });
 
 test('linkShare tells prose from a list of links', () => {

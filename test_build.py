@@ -131,33 +131,36 @@ def test_score_each_reports_failures_as_none(monkeypatch):
     assert build.score_each([{"url": "https://x.test/a", "title": "T", "publisher": "P", "excerpt": "E"}]) == {"https://x.test/a": None}
 
 
-def test_reading_times_use_the_sites_reader(monkeypatch):
-    import io
-    pages = {"https://x.test/long": {"content": "<p>" + "word " * 690 + "</p>"},   # 690 words -> 3 min
-             "https://x.test/blocked": {"frameable": False}}                       # no content -> 0, retried next run
-    seen = []
-    def fake_open(req, timeout):
-        if "url=" not in req.full_url:  # the fallback, fetching the page itself
-            raise build.urllib.error.HTTPError(req.full_url, 403, "blocked", {}, None)
-        target = build.urllib.parse.unquote(req.full_url.split("url=")[1])
-        seen.append(target)
-        if target not in pages:
-            raise build.urllib.error.HTTPError(req.full_url, 404, "not live yet", {}, None)
-        return io.BytesIO(json.dumps(pages[target]).encode())
-    monkeypatch.setattr(build.urllib.request, "urlopen", fake_open)
-    items = [{"url": "https://x.test/long"}, {"url": "https://x.test/blocked"}, {"url": "https://x.test/new"}, {"url": "https://x.test/done", "minutes": 5}]
-    build.add_reading_times(items)
-    assert [i.get("minutes") for i in items] == [3, 0, None, 5]
-    seen.clear()
-    build.add_reading_times(items)
-    assert sorted(seen) == ["https://x.test/blocked", "https://x.test/new"]  # a 0 is retried
+def fake_extract(monkeypatch, out, returncode=0):
+    calls = []
+    def run(cmd, input, **kw):
+        calls.append(json.loads(input))
+        return build.subprocess.CompletedProcess(cmd, returncode, json.dumps(out), "")
+    monkeypatch.setattr(build.subprocess, "run", run)
+    return calls
+
+
+def test_reading_times_come_from_the_extracted_articles(monkeypatch):
+    calls = fake_extract(monkeypatch, {"words": {"https://x.test/long": 690, "https://x.test/blocked": 0, "https://x.test/done": 2000}})
+    items = [{"url": "https://x.test/long", "publisher": "P"}, {"url": "https://x.test/blocked"}, {"url": "https://x.test/slow"}, {"url": "https://x.test/done", "minutes": 5}]
+    assert build.add_reading_times(items, feeds={"P": "https://x.test/rss"}) is None
+    assert [i.get("minutes") for i in items] == [3, 0, None, 5]  # no entry means try again; a known time stays
+    assert calls[0]["feeds"] == {"P": "https://x.test/rss"}
 
 
 def test_reading_times_prefer_whole_articles_in_feeds(monkeypatch):
-    monkeypatch.setattr(build.urllib.request, "urlopen", lambda *a, **k: 1 / 0)  # never reached for a known item
+    calls = fake_extract(monkeypatch, {"words": {"https://x.test/a": 200}})
     items = [{"url": "https://x.test/a", "minutes": 0}]
     build.add_reading_times(items, {"https://x.test/a": 7})
     assert items[0]["minutes"] == 7
+    assert calls[0]["items"][0]["minutes"] == 7
+
+
+def test_reading_times_report_when_the_store_cant_be_updated(monkeypatch):
+    fake_extract(monkeypatch, {"words": {}, "error": "KV 403"})
+    assert build.add_reading_times([{"url": "https://x.test/a"}]) == "KV 403"
+    fake_extract(monkeypatch, {}, returncode=1)
+    assert "exited 1" in build.add_reading_times([{"url": "https://x.test/a"}])
 
 
 def test_feed_minutes_ignores_teasers():
@@ -168,31 +171,11 @@ def test_feed_minutes_ignores_teasers():
     assert build.feed_minutes(fetched) == {"https://x.test/full": 3, "https://x.test/summary": 3}
 
 
-def test_reading_times_leave_transient_failures_for_next_run(monkeypatch):
-    import io
-    monkeypatch.setattr(build.urllib.request, "urlopen", lambda *a, **k: io.BytesIO(json.dumps({"reason": "timeout"}).encode()))
-    items = [{"url": "https://x.test/a"}]
-    build.add_reading_times(items)
-    assert "minutes" not in items[0]  # not recorded as unreadable
-
-
 def test_full_text_feeds_lists_only_feeds_with_whole_articles():
     long = "word " * 400
     fetched = {"https://full.test/rss": ("Full", [{"link": "a", "summary": "short"}, {"link": "b", "content": [{"value": long}]}]),
                "https://teaser.test/rss": ("Teaser", [{"link": "c", "summary": "short"}]), "https://dead.test/rss": None}
     assert build.full_text_feeds(fetched) == {"Full": "https://full.test/rss"}
-
-
-def test_page_words_needs_an_article_and_real_length(monkeypatch):
-    import io
-    body = {}
-    monkeypatch.setattr(build.urllib.request, "urlopen", lambda *a, **k: io.BytesIO(body["html"].encode()))
-    body["html"] = "<nav>" + "menu " * 900 + "</nav><article><script>x y</script><p>" + "word " * 500 + "</p></article>"
-    assert build.page_words("https://x.test/a") == 500       # the article, not the page around it
-    body["html"] = "<article>" + "word " * 20 + "</article>"
-    assert build.page_words("https://x.test/a") == 0         # a stub
-    body["html"] = "<div>" + "word " * 900 + "</div>"
-    assert build.page_words("https://x.test/a") == 0         # nothing marks the story
 
 
 def test_run_summary_counts_and_near_misses():
