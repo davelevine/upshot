@@ -2,6 +2,7 @@
 import gzip
 import hashlib
 import html
+import io
 import json
 import os
 import re
@@ -75,6 +76,8 @@ def fetch(feed):
     parsed = feedparser.parse(body)
     if not parsed.entries and parsed.bozo:
         raise ValueError(f"unparseable feed: {parsed.bozo_exception}")
+    first = next((e.get("link") for e in parsed.entries if e.get("link")), None)  # for feeds that don't name their site
+    SITE_LINKS[title] = parsed.feed.get("link") or (first and urllib.parse.urljoin(first, "/"))  # for the publisher's icon
     return title, parsed.entries
 
 
@@ -312,6 +315,63 @@ def og_image(data, today):
     d.text((x, 550), SITE_URL.split("//")[-1], font=small, fill=c["muted"])
     d.text((right, 550), f"{top['publisher']}  ·  {len(picks)} essential{'s' if len(picks) != 1 else ''} this week", font=small, fill=c["muted"], anchor="ra")
     return img
+
+
+SITE_LINKS = {}
+ICONS = SITE / "icons"
+ICON_UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36"
+
+
+def slug(name):
+    """Same rule as tests/fixtures/fetch.mjs slug() and app.js iconSlug()."""
+    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+
+
+def icon_candidates(page_html, base):
+    """Icon URLs to try for a site, best first: apple-touch-icon, then the largest declared icon, then the usual paths."""
+    found = []
+    for tag in re.findall(r"<link\b[^>]*>", page_html, re.I):
+        rel = (re.search(r'rel=["\']([^"\']+)', tag, re.I) or [None, ""])[1].lower()
+        href = re.search(r'href=["\']([^"\']+)', tag, re.I)
+        if not href or "icon" not in rel or "mask" in rel or href[1].lower().split("?")[0].endswith(".svg"):
+            continue
+        size = max((int(n) for n in re.findall(r"(\d+)x\d+", tag)), default=180 if "apple" in rel else 16)
+        found.append((("apple" in rel), size, urllib.parse.urljoin(base, html.unescape(href[1]))))
+    ranked = [u for _, _, u in sorted(found, key=lambda f: (f[0], f[1]), reverse=True)]
+    return list(dict.fromkeys(ranked + [urllib.parse.urljoin(base, "/apple-touch-icon.png"), urllib.parse.urljoin(base, "/favicon.ico")]))
+
+
+def fetch_icon(site):
+    """A 64px PNG of a site's icon, or None. Pillow reads PNG, ICO, JPEG, GIF and WebP; SVG-only sites get nothing."""
+    get = lambda u, n: urllib.request.urlopen(urllib.request.Request(u, headers={"User-Agent": ICON_UA}), timeout=10).read(n)
+    try:
+        page = get(site, 400_000).decode("utf-8", "replace")
+    except Exception:
+        page = ""
+    for url in icon_candidates(page, site):
+        try:
+            img = Image.open(io.BytesIO(get(url, 2_000_000)))
+            if hasattr(img, "ico"):  # an .ico holds several sizes; take the biggest
+                img.size = max(img.ico.sizes())
+            img = img.convert("RGBA")
+        except Exception:
+            continue
+        if min(img.size) >= 16:
+            return img.resize((64, 64), Image.LANCZOS)
+    return None
+
+
+def fetch_icons(publishers):
+    """Saves an icon for each publisher that doesn't have one yet; misses are retried next build. Returns the slugs with icons."""
+    ICONS.mkdir(exist_ok=True)
+    todo = {p: SITE_LINKS.get(p) for p in publishers if SITE_LINKS.get(p) and not (ICONS / f"{slug(p)}.png").exists()}
+    with ThreadPoolExecutor(8) as ex:
+        for p, img in zip(todo, ex.map(fetch_icon, todo.values())):
+            if img:
+                img.save(ICONS / f"{slug(p)}.png", optimize=True)
+            else:
+                print(f"no icon found for {p} ({todo[p]})")
+    return sorted(f.stem for f in ICONS.glob("*.png"))
 
 
 def write_og(data, today):
@@ -568,6 +628,7 @@ def main():
     reader_error = add_reading_times(data["items"], feed_minutes(fetched), full_text_feeds(fetched))
     data["generated_at"] = now().isoformat(timespec="seconds")
     SITE.mkdir(exist_ok=True)
+    data["icons"] = fetch_icons({i["publisher"] for i in data["items"]} | set(SITE_LINKS))
     data_path.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n")
     (SITE / "rss.xml").write_text(rss(data["items"]))
     write_og(data, today)

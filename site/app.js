@@ -8,7 +8,7 @@ const PAGE = 40;
 const STALE_MINUTES = 12 * 60;  // three missed builds
 const KEEP_DAYS = 90;  // build.py prunes older stories
 const io = new IntersectionObserver(([e]) => { if (e.isIntersecting && limit < shown.length) { limit += PAGE; renderPage(); } }, { rootMargin: '800px' });
-let items = [], filter = 'all', shown = [], limit = PAGE, generatedAt = null;
+let icons = new Set(), items = [], filter = 'all', shown = [], limit = PAGE, generatedAt = null;
 
 function dayLabel(iso) {
   const days = Math.round((new Date().setHours(0, 0, 0, 0) - new Date(iso + 'T00:00:00')) / 864e5);
@@ -196,6 +196,7 @@ function load() {
     items = data.items || [];
     indexSlugs();
     weekly = data.weekly;
+    icons = new Set(data.icons || []);
     pruneRead();
     renderFilters();
     renderWeekly(data.weekly);
@@ -238,9 +239,17 @@ function frameVars(theme) {
   probe.remove();
   return out;
 }
-function articleDoc(i, html, nonce, why, minutes) {
+const iconSlug = name => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');  // same rule as build.py slug()
+// Under the title, like Feedbin: when and by whom, then where from and how long.
+function storyMeta(i, byline, minutes) {
+  const [y, m, d] = i.date.split('-').map(Number);
+  const when = new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  const by = (byline || '').replace(/^by\s+/i, '').trim();
+  return `<div class="meta">${esc(when)}${by ? ` by ${esc(by)}` : ''}<br>${esc(i.publisher)}${minutes ? ` · ${minutes} min read` : ''}</div>`;
+}
+function articleDoc(i, html, nonce, why, minutes, byline) {
   return `<!doctype html><html data-theme="${document.documentElement.dataset.theme}"><head><meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: http: data:; media-src https:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${location.origin}; img-src https: http: data:; media-src https:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'">
 <base target="_blank"><style>
 :root { ${frameVars('light')} } :root[data-theme="dark"] { ${frameVars('dark')} }
 body { transition: background-color .35s ease, color .35s ease; }
@@ -249,7 +258,9 @@ main { max-width: 640px; margin: 0 auto; padding: 32px 24px 96px; }
 a { color: var(--accent); }
 h1 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 0 0 .4em; font-size: clamp(1.4rem, 1rem + 2vw, 1.75rem); font-weight: 700; line-height: 1.2; letter-spacing: -.01em; }
 h1 a { color: inherit; text-decoration: none; } h1 a:hover { text-decoration: underline; text-decoration-thickness: 2px; }
-.src { margin-bottom: 1.8em; color: var(--text-muted); font: 600 .8125rem/1.3 Inter, system-ui, sans-serif; letter-spacing: .07em; text-transform: uppercase; }
+@font-face { font-family: Inter; src: url("${location.origin}/fonts/InterVariable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+h1 { font-family: Inter, system-ui, sans-serif; letter-spacing: -.01em; }
+.meta { margin-bottom: 1.8em; color: var(--text-muted); font: .9375rem/1.45 Inter, system-ui, sans-serif; }
 .todo { margin: 0 0 1.8em; padding: 12px 16px; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; background: var(--bg-card); }
 .todo b { display: block; margin-bottom: 2px; color: var(--accent); font: 700 .75rem/1.5 Inter, system-ui, sans-serif; letter-spacing: .07em; text-transform: uppercase; }
 h2, h3, h4 { margin: 1.8em 0 .5em; font-weight: 700; line-height: 1.3; }
@@ -267,18 +278,18 @@ hr { border: 0; border-top: 1px solid var(--border); }
 .status { color: var(--text-muted); font: .9375rem/1.5 Inter, system-ui, sans-serif; }
 .pill { display: inline-block; padding: 10px 18px; border: 1px solid var(--accent); border-radius: 999px; font: 600 .9375rem/1.4 Inter, system-ui, sans-serif; text-decoration: none; }
 @media (max-width: 600px) { main { padding: 24px 18px 80px; } .pill { padding: 12px 18px; } }
-</style><script nonce="${nonce}">${SWIPE_REPORTER}<\/script></head><body><main><h1><a href="${esc(i.url)}" target="_blank" rel="noopener" title="Open the original">${esc(i.title)}</a></h1><div class="src">${esc(domain(i.url))}${minutes ? ` · ${minutes} min read` : ''}</div>${why ? `<div class="todo"><b>What to do</b>${esc(why)}</div>` : ''}${html}</main></body></html>`;
+</style><script nonce="${nonce}">${SWIPE_REPORTER}<\/script></head><body><main><h1><a href="${esc(i.url)}" target="_blank" rel="noopener" title="Open the original">${esc(i.title)}</a></h1>${storyMeta(i, byline, minutes)}${why ? `<div class="todo"><b>What to do</b>${esc(why)}</div>` : ''}${html}</main></body></html>`;
 }
 // What we already know about a story, from data.json: shown at once, and all that's left if the article can't be fetched.
 // While loading, the body holds back a moment: most articles arrive before the panel has landed, and then just appear.
 const storyCard = (i, status, loading) => `<div${loading ? ' class="late"' : ''}>${i.summary ? `<p>${esc(i.summary)}</p>` : ''}<p class="status">${status}</p>
 <a class="pill" href="${esc(i.url)}" target="_blank" rel="noopener">Read it on ${esc(domain(i.url))}</a></div>`;
 // Scripts run only by nonce (the swipe reporter); without allow-same-origin the frame can't touch this page.
-function showInReader(i, html, why, minutes) {
+function showInReader(i, html, why, minutes, byline) {
   const frame = document.createElement('iframe');
   frame.sandbox = 'allow-scripts allow-popups allow-popups-to-escape-sandbox';
   frame.title = i.title;
-  frame.srcdoc = articleDoc(i, html, crypto.randomUUID(), why, minutes);
+  frame.srcdoc = articleDoc(i, html, crypto.randomUUID(), why, minutes, byline);
   mountFrame(frame);
 }
 // Loads behind whatever's showing and takes over once drawn, so the pane never blinks empty between frames.
@@ -316,8 +327,13 @@ function openReader(i, { fromHash = false } = {}) {
   readerFor = i.url;
   markRead(i.url);
   const why = weekly?.items?.find(p => p.url === i.url)?.why;
-  $('reader-source').textContent = `${i.publisher} · ${domain(i.url)}`;
-  $('reader-source').href = i.url;
+  $('reader-original').href = i.url;
+  const icon = iconSlug(i.publisher);
+  $('reader-icon').hidden = !icons.has(icon);
+  if (icons.has(icon)) $('reader-icon').src = `/icons/${icon}.png`;
+  const at = shown.findIndex(x => x.url === i.url);
+  $('reader-prev').disabled = at <= 0;
+  $('reader-next').disabled = at < 0 || at >= shown.length - 1;
   showInReader(i, storyCard(i, 'Loading the full article…', true), why);  // before the fetch: the fetch can only upgrade this
   document.body.classList.add('reading');
   $('reader').setAttribute('aria-hidden', 'false');
@@ -325,14 +341,13 @@ function openReader(i, { fromHash = false } = {}) {
   if (fromHash) { history.replaceState({ reader: true }, '', readPath(i.url)); readerPushed = false; }
   else if (fresh) { history.pushState({ reader: true }, '', readPath(i.url)); readerPushed = true; }
   else history.replaceState({ reader: true }, '', readPath(i.url));
-  if (fresh) $('reader-close').focus({ preventScroll: true });
+  if (fresh) (lastInput === 'key' ? $('reader-close') : $('reader')).focus({ preventScroll: true });  // no ring after a tap
   let unreadable = 'The reader view isn\u2019t available right now.';
   fetch('/api/read?url=' + encodeURIComponent(i.url), { cache: 'no-store' }).then(r => r.json()).then(r => {
     if (readerFor !== i.url) return;  // another article was opened meanwhile
     if (r.content) {
       const minutes = readingMinutes(r.content);
-      showInReader(i, r.content, why, minutes);
-      $('reader-source').textContent += ` · ${minutes} min read`;
+      showInReader(i, r.content, why, minutes, r.byline);
     } else if (r.frameable) {
       const frame = document.createElement('iframe');
       frame.sandbox = 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms';
@@ -340,7 +355,6 @@ function openReader(i, { fromHash = false } = {}) {
       frame.src = i.url;
       frame.title = i.title;
       mountFrame(frame);
-      $('reader-source').textContent += ' · original page';
     } else {
       if (['shell', 'short', 'not_html'].includes(r.reason)) unreadable = 'This page needs the original site to display.';
       if (r.reason === 'challenge') unreadable = 'This publisher doesn\u2019t allow a reader view.';
@@ -353,6 +367,11 @@ function openReader(i, { fromHash = false } = {}) {
     showInReader(i, storyCard(i, unreadable), why);
   });
 }
+let lastInput = 'pointer';
+addEventListener('pointerdown', () => { lastInput = 'pointer'; }, true);
+addEventListener('keydown', () => { lastInput = 'key'; }, true);
+$('reader-prev').onclick = () => step(-1);
+$('reader-next').onclick = () => step(1);
 function closeReader() {
   const url = readerFor;
   readerFor = null;
