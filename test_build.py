@@ -48,6 +48,17 @@ def test_rss_dates_use_when_the_story_was_added():
     assert dates == ["Thu, 05 Nov 2026 14:30:00 +0000", "Wed, 04 Nov 2026 00:00:00 +0000"]
 
 
+def test_og_image_is_a_preview_card_with_or_without_picks():
+    from datetime import date
+    item = {"url": "https://x.test/a", "title": "A headline " * 20, "publisher": "P", "category": "security"}
+    data = {"items": [item], "weekly": {"items": [{"url": item["url"], "why": "Do the thing. " * 20}]}}
+    for d in (data, {"items": []}):
+        img = build.og_image(d, date(2026, 11, 7))
+        assert img.size == (1200, 630)
+    a, b = (build.og_image(data, date(2026, 11, 7)).tobytes() for _ in range(2))
+    assert a == b  # the same inputs draw the same card, so an unchanged day commits nothing
+
+
 def test_rss_is_well_formed():
     xml = build.rss([{"date": "2026-11-05", "title": "A & B <c>", "url": "https://x.test/?a=1&b=2",
                       "category": "ai", "summary": "s"}])
