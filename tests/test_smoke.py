@@ -265,8 +265,8 @@ def held_reader(browser, **context):
     held = []
     ctx.route("**/api/read?*", lambda route: held.append(route))
     pg.goto(URL)
-    pg.wait_for_selector(".weekly-card")
-    card = pg.locator(".weekly-card").first
+    pg.wait_for_selector(".weekly-card:not(.skeleton)")  # the loading placeholders share the class, with empty titles
+    card = pg.locator(".weekly-card:not(.skeleton)").first
     title = card.locator(".weekly-card-title").text_content()
     card.click()
     return pg, held, title, pg.frame_locator("#reader-body iframe:not(.loading)")
