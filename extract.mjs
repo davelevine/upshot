@@ -181,7 +181,10 @@ export function kvClient({ CF_API_TOKEN, CF_ACCOUNT_ID, CF_KV_NAMESPACE_ID }) {
       } while (cursor);
       return keys;
     },
-    put: entries => call('/bulk', { method: 'PUT', body: JSON.stringify(entries) }),
+    async put(entries) {
+      const failed = (await call('/bulk', { method: 'PUT', body: JSON.stringify(entries) })).result?.unsuccessful_keys || [];
+      if (failed.length) throw new Error(`KV rejected ${failed.length} of ${entries.length} articles`);
+    },
   };
 }
 

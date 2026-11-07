@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { classify, clean, extract, feedArticle, feedReader, frameable, linkShare, readArticle, run } from '../extract.mjs';
+import { classify, clean, extract, feedArticle, feedReader, frameable, kvClient, linkShare, readArticle, run } from '../extract.mjs';
 import { keyFor, onRequestGet } from '../functions/api/read.js';
 
 test('frameable honours X-Frame-Options and frame-ancestors', () => {
@@ -134,6 +134,16 @@ test('run without a store only fetches stories missing a reading time', async ()
   const items = [{ url: 'https://x.test/done', publisher: 'P', minutes: 4 }, { url: 'https://x.test/a', publisher: 'P' }];
   const out = await withFetch({ 'https://x.test/a': page(200, {}, article) }, () => run({ items, feeds: {} }, null));
   assert.deepEqual(Object.keys(out.words), ['https://x.test/a']);
+});
+
+test('kvClient reports keys the bulk write rejected, even on a 200', async () => {
+  const kv = kvClient({ CF_API_TOKEN: 't', CF_ACCOUNT_ID: 'a', CF_KV_NAMESPACE_ID: 'n' });
+  const real = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify({ success: true, result: { successful_key_count: 1, unsuccessful_keys: ['k2'] } }));
+  try {
+    await assert.rejects(kv.put([{ key: 'k1' }, { key: 'k2' }]), /rejected 1 of 2/);
+  } finally { globalThis.fetch = real; }
+  assert.equal(kvClient({}), null);
 });
 
 test('/api/read returns what the build stored, and pending otherwise', async () => {
