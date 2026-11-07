@@ -355,6 +355,17 @@ def test_reader_says_when_an_article_isnt_stored_yet(browser):
     frame.locator(".status", has_text="ready yet").wait_for()
 
 
+def test_unknown_paths_are_real_404s(browser):
+    # Without a 404 page, Pages serves index.html for everything, which breaks robots.txt and any tool probing for a file.
+    pg = browser.new_context().new_page()
+    for path in ("/no-such-page", "/llms.txt", "/.well-known/ard.json"):
+        res = pg.goto(URL.rstrip("/") + path)
+        assert res.status == 404, path
+        assert pg.locator("h1").inner_text() == "Page not found"
+    assert pg.goto(URL).status == 200
+    assert pg.locator("a.card").first.is_visible() or pg.wait_for_selector("a.card")
+
+
 def test_wide_screens_keep_the_filter_row(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 900})
     assert pg.locator("#filter-toggle").is_hidden() and pg.locator("#filters .filter-btn").first.is_visible()
