@@ -2,9 +2,14 @@
 <opml version="2.0">
   <head><title>Upshot feeds</title></head>
   <body>
+    <outline type="rss" text="Aikido" xmlUrl="https://www.aikido.dev/blog/rss.xml"/>
     <outline type="rss" text="Anthropic (community feed)" xmlUrl="https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_news.xml"/>
+    <outline type="rss" text="Anthropic Red Team" xmlUrl="https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_red.xml"/>
+    <outline type="rss" text="Anthropic Research" xmlUrl="https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_research.xml"/>
+    <outline type="rss" text="Ars Technica" xmlUrl="https://feeds.arstechnica.com/arstechnica/technology-lab"/>
     <outline type="rss" text="AWS Security Blog" xmlUrl="https://aws.amazon.com/blogs/security/feed/"/>
     <outline type="rss" text="BleepingComputer" xmlUrl="https://www.bleepingcomputer.com/feed/"/>
+    <outline type="rss" text="Claude Blog" xmlUrl="https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_claude.xml"/>
     <outline type="rss" text="Cloudflare Blog" xmlUrl="https://blog.cloudflare.com/rss/"/>
     <outline type="rss" text="CNCF" xmlUrl="https://www.cncf.io/feed"/>
     <outline type="rss" text="CrowdStrike" xmlUrl="https://www.crowdstrike.com/en-us/blog/feed"/>
@@ -18,6 +23,7 @@
     <outline type="rss" text="Google Cloud Blog" xmlUrl="https://cloudblog.withgoogle.com/rss/"/>
     <outline type="rss" text="Google DeepMind" xmlUrl="https://deepmind.google/blog/rss.xml"/>
     <outline type="rss" text="Google Research" xmlUrl="https://research.google/blog/rss"/>
+    <outline type="rss" text="Google Threat Intelligence" xmlUrl="https://cloudblog.withgoogle.com/topics/threat-intelligence/rss/"/>
     <outline type="rss" text="Hacker News 300+" xmlUrl="https://hnrss.org/frontpage?points=300"/>
     <outline type="rss" text="Hugging Face" xmlUrl="https://huggingface.co/blog/feed.xml"/>
     <outline type="rss" text="Huntress" xmlUrl="https://www.huntress.com/blog/rss.xml"/>
@@ -29,12 +35,15 @@
     <outline type="rss" text="Meta Newsroom" xmlUrl="https://about.fb.com/feed"/>
     <outline type="rss" text="Microsoft Security Blog" xmlUrl="https://www.microsoft.com/en-us/security/blog/feed/"/>
     <outline type="rss" text="Mistral" xmlUrl="https://mistral.ai/news/rss"/>
+    <outline type="rss" text="Mozilla Security" xmlUrl="https://blog.mozilla.org/security/feed/"/>
     <outline type="rss" text="Netflix TechBlog" xmlUrl="https://netflixtechblog.com/feed"/>
     <outline type="rss" text="NVIDIA Blog" xmlUrl="https://blogs.nvidia.com/feed/"/>
     <outline type="rss" text="OpenAI" xmlUrl="https://openai.com/news/rss.xml"/>
     <outline type="rss" text="OpenAI Alignment" xmlUrl="https://alignment.openai.com/rss.xml"/>
     <outline type="rss" text="OWASP Gen AI Security Project" xmlUrl="https://genai.owasp.org/feed/"/>
     <outline type="rss" text="Qwen" xmlUrl="https://qwenlm.github.io/blog/index.xml"/>
+    <outline type="rss" text="Railway" xmlUrl="https://blog.railway.com/rss.xml"/>
+    <outline type="rss" text="Rapid7" xmlUrl="https://www.rapid7.com/blog/rss/"/>
     <outline type="rss" text="Sansec" xmlUrl="https://sansec.io/atom.xml"/>
     <outline type="rss" text="Schneier on Security" xmlUrl="https://www.schneier.com/feed/atom/"/>
     <outline type="rss" text="SecurityWeek" xmlUrl="https://www.securityweek.com/feed/"/>
@@ -45,19 +54,10 @@
     <outline type="rss" text="The Hacker News" xmlUrl="https://feeds.feedburner.com/TheHackersNews"/>
     <outline type="rss" text="The Record" xmlUrl="https://therecord.media/feed"/>
     <outline type="rss" text="Trail of Bits" xmlUrl="https://blog.trailofbits.com/feed/"/>
-    <outline type="rss" text="Warp" xmlUrl="https://www.warp.dev/blog/feed.xml"/>
-    <outline type="rss" text="Anthropic Red Team" xmlUrl="https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_red.xml"/>
-    <outline type="rss" text="Anthropic Research" xmlUrl="https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_research.xml"/>
-    <outline type="rss" text="Claude Blog" xmlUrl="https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_claude.xml"/>
     <outline type="rss" text="UK AISI" xmlUrl="https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_aisi.xml"/>
-    <outline type="rss" text="Google Threat Intelligence" xmlUrl="https://cloudblog.withgoogle.com/topics/threat-intelligence/rss/"/>
     <outline type="rss" text="Unit 42" xmlUrl="https://unit42.paloaltonetworks.com/feed/"/>
-    <outline type="rss" text="Rapid7" xmlUrl="https://www.rapid7.com/blog/rss/"/>
-    <outline type="rss" text="Wordfence" xmlUrl="https://www.wordfence.com/blog/feed/"/>
+    <outline type="rss" text="Warp" xmlUrl="https://www.warp.dev/blog/feed.xml"/>
     <outline type="rss" text="Wiz" xmlUrl="https://www.wiz.io/feed/rss.xml"/>
-    <outline type="rss" text="Aikido" xmlUrl="https://www.aikido.dev/blog/rss.xml"/>
-    <outline type="rss" text="Mozilla Security" xmlUrl="https://blog.mozilla.org/security/feed/"/>
-    <outline type="rss" text="Railway" xmlUrl="https://blog.railway.com/rss.xml"/>
-    <outline type="rss" text="Ars Technica" xmlUrl="https://feeds.arstechnica.com/arstechnica/technology-lab"/>
+    <outline type="rss" text="Wordfence" xmlUrl="https://www.wordfence.com/blog/feed/"/>
   </body>
 </opml>
