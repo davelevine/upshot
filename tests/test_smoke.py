@@ -406,6 +406,36 @@ def test_share_opens_the_share_sheet_on_a_phone(browser):
     assert shared["url"] == url and shared["title"]
 
 
+def test_reader_links_are_short_and_survive_a_reload(browser):
+    pg = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
+    pg.goto(URL)
+    pg.wait_for_selector("a.card")
+    card = pg.locator("a.card").first
+    url, title = card.get_attribute("href"), card.locator(".card-title").inner_text()
+    card.click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    path = pg.evaluate("location.pathname")
+    assert path.startswith("/read/") and "%" not in path and "http" not in path and len(path) <= 70, path
+    pg.keyboard.press("j")  # stepping to the next story updates the link
+    pg.wait_for_function(f"location.pathname !== {path!r}")
+    assert pg.evaluate("location.pathname").startswith("/read/")
+    pg.goto(URL.rstrip("/") + path)  # a shared link opens that story
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    assert pg.locator("#reader-source").get_attribute("href") == url
+    pg.keyboard.press("Escape")
+    pg.wait_for_function("!document.body.classList.contains('reading')")
+    assert pg.evaluate("location.pathname") == "/"
+    # Old links still work, and become the short form.
+    pg.goto(URL.rstrip("/") + "/#read=" + urllib.parse.quote(url, safe=""))
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    assert pg.evaluate("location.pathname") == path and pg.evaluate("location.hash") == ""
+    # A story that has left the site falls back to the front page.
+    pg.goto(URL.rstrip("/") + "/read/a-story-that-is-not-here")
+    pg.wait_for_selector("a.card")
+    assert pg.evaluate("location.pathname") == "/" and not pg.evaluate("document.body.classList.contains('reading')")
+    assert title
+
+
 def test_unknown_paths_are_real_404s(browser):
     # Without a 404 page, Pages serves index.html for everything, which breaks robots.txt and any tool probing for a file.
     pg = browser.new_context().new_page()
