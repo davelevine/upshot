@@ -12,19 +12,22 @@
     <outline type="rss" text="Claude Blog" xmlUrl="https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_claude.xml"/>
     <outline type="rss" text="Cloudflare Blog" xmlUrl="https://blog.cloudflare.com/rss/"/>
     <outline type="rss" text="CNCF" xmlUrl="https://www.cncf.io/feed"/>
+    <outline type="rss" text="Cohere" xmlUrl="https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_cohere.xml"/>
     <outline type="rss" text="CrowdStrike" xmlUrl="https://www.crowdstrike.com/en-us/blog/feed"/>
-    <outline type="rss" text="Cursor" xmlUrl="https://cursor.com/atom.xml"/>
+    <outline type="rss" text="Cursor" xmlUrl="https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_cursor.xml"/>
     <outline type="rss" text="Docker" xmlUrl="https://www.docker.com/feed/"/>
     <outline type="rss" text="ElevenLabs" xmlUrl="https://elevenlabs.io/blog/rss.xml"/>
     <outline type="rss" text="Figma" xmlUrl="https://www.figma.com/blog/feed/atom.xml"/>
     <outline type="rss" text="GitHub Changelog" xmlUrl="https://github.blog/changelog/feed/"/>
     <outline type="rss" text="GitLab Security Releases" xmlUrl="https://about.gitlab.com/security-releases.xml"/>
+    <outline type="rss" text="Google AI" xmlUrl="https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_google_ai.xml"/>
     <outline type="rss" text="Google Blog" xmlUrl="https://blog.google/rss"/>
     <outline type="rss" text="Google Cloud Blog" xmlUrl="https://cloudblog.withgoogle.com/rss/"/>
     <outline type="rss" text="Google DeepMind" xmlUrl="https://deepmind.google/blog/rss.xml"/>
     <outline type="rss" text="Google Research" xmlUrl="https://research.google/blog/rss"/>
     <outline type="rss" text="Google Threat Intelligence" xmlUrl="https://cloudblog.withgoogle.com/topics/threat-intelligence/rss/"/>
     <outline type="rss" text="Hacker News 300+" xmlUrl="https://hnrss.org/frontpage?points=300"/>
+    <outline type="rss" text="Hacktron" xmlUrl="https://www.hacktron.ai/rss.xml"/>
     <outline type="rss" text="Hugging Face" xmlUrl="https://huggingface.co/blog/feed.xml"/>
     <outline type="rss" text="Huntress" xmlUrl="https://www.huntress.com/blog/rss.xml"/>
     <outline type="rss" text="InfoQ" xmlUrl="https://www.infoq.com/feed"/>

@@ -49,6 +49,11 @@
   "words": 3761,
   "start": "Hnln D emci bgngl drmwi tbw YAG hmccdmphedy smebvete ws 2633"
  },
+ "Cohere": {
+  "reason": "ok",
+  "words": 1803,
+  "start": "Gbvhb 7 iev Ruaerp 5 wer uip lker sy VoncKgyari. Nnkl’u abi "
+ },
  "CrowdStrike": {
   "reason": "ok",
   "words": 2089,
@@ -56,8 +61,8 @@
  },
  "Cursor": {
   "reason": "ok",
-  "words": 217,
-  "start": "H’i fkyvkwe gh erlffhio fndo Vnautdighd sa vfsabek Bioypf! W"
+  "words": 924,
+  "start": "Sivlf or fmuncpfikk p bpglvwek daffbdvb hydrghgwr e ytlvefgm"
  },
  "Docker": {
   "reason": "ok",
@@ -83,6 +88,11 @@
   "reason": "ok",
   "words": 433,
   "start": "Lv Sbfmhnn 97, 9861, yu hpahhlei dikmkiwn 90.0.5, 67.1.4, 58"
+ },
+ "Google AI": {
+  "reason": "ok",
+  "words": 879,
+  "start": "Mkkn id rwcu ayc lasmlr an tvyt raoe ol ifvn, gnddkh oeh as "
  },
  "Google Blog": {
   "reason": "ok",
@@ -113,6 +123,11 @@
   "reason": "ok",
   "words": 5949,
   "start": "Kopw av T wlih oui iyif cnkmo Epf ghloh 2511 asvtb n gcul du"
+ },
+ "Hacktron": {
+  "reason": "ok",
+  "words": 119,
+  "start": "BvpcGW ikl msdnimpoh a irhcvbbtulr toan Dwglpwwa gk mfbwnbyi"
  },
  "Hugging Face": {
   "reason": "ok",
