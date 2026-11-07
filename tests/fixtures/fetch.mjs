@@ -13,7 +13,7 @@ const ROOT = join(HERE, '..', '..');
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36';
 const MIN_SCRAMBLE_WORDS = 3; // shorter is a name or a label, which is structure rather than writing
 // What the reader's cleanup has to recognise, so it stays real. It's what page furniture says, not what any article does.
-const CHROME = /^\s*(\d+ min(ute)?s?( read)?|share( this( article| post| story)?)?:?|tweet|copy link|print|(table of )?contents|on this page|in this (article|post)|jump to|related( posts?| articles?| stories)?:?|read next|you may also like|advertisement|sponsored|tags?:|topics?:|filed under:?|categories:?|subscribe( to .*)?|sign up( for .*)?|newsletter|[|•·—–-]+|(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]* \d{1,2},? \d{4})\s*$/i;
+const CHROME = /^\s*(\d+ min(ute)?s?( read)?|share( this( article| post| story)?)?:?|tweet|copy link|print|(table of )?contents|on this page|in this (article|post)|jump to|related( posts?| articles?| stories)?:?|read next|you may also like|advertisement|sponsored|tags?:|topics?:|filed under:?|categories:?|subscribe( to .*)?|sign up( for .*)?|newsletter|keep reading|back to top|about the authors?|written by|\d+ comments?|found this article interesting.*|show more\s*show less|posted on .+\d+ comments?|related: .*|get .+ in your inbox|[|•·—–-]+|(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]* \d{1,2},? \d{4})\s*$/i;
 const LETTERS = 'etaoinshrdlucmfwypvbgk';
 
 export const slug = publisher => publisher.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');

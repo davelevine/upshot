@@ -14,7 +14,7 @@ const read = name => readFileSync(join(DIR, name), 'utf8');
 const META = JSON.parse(read('meta.json'));
 const EXPECTED = existsSync(join(DIR, 'expected.json')) ? JSON.parse(read('expected.json')) : {};
 const FEEDS = [...read('../../feeds.opml').matchAll(/<outline[^>]*\stext="([^"]+)"[^>]*\sxmlUrl="([^"]+)"/g)].map(m => [m[1].replace(/&amp;/g, '&'), m[2].replace(/&amp;/g, '&')]);
-const CHROME = /^(\d+ min(ute)?s?( read)?|(share|tweet|copy link)( this( article| post| story)?)?:?|table of contents|related posts|advertisement|sponsored)$/i;
+const CHROME = /^(\d+ min(ute)?s?( read)?|(share|tweet|copy link)( this( article| post| story)?)?:?|table of contents|related posts|advertisement|sponsored|keep reading|back to top|about the authors?|written by|\d+ comments?)$/i;
 const TOLERANCE = 0.1;
 
 async function pipeline(meta) {
