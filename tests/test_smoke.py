@@ -129,7 +129,7 @@ def test_phone_filter_drawer(browser):
     pg.wait_for_function("() => !document.getElementById('filters').getAnimations().length")
     for chip in pg.locator("#filters .filter-btn").all():
         assert chip.is_visible() and chip.bounding_box()["x"] + chip.bounding_box()["width"] <= 320  # all reachable, wrapped
-    assert pg.evaluate("Math.round(document.getElementById('filters').getBoundingClientRect().top) === Math.round(document.querySelector('.subheader').getBoundingClientRect().bottom)")
+    assert pg.evaluate("Math.round(document.getElementById('filters').getBoundingClientRect().top) === Math.round(document.querySelector('header').getBoundingClientRect().bottom)")
     pg.tap("#filters .filter-btn[data-f='security']")
     pg.locator("#filters .filter-btn").first.wait_for(state="hidden")
     assert pg.locator("#filter-label").inner_text() == "Security"
@@ -177,12 +177,13 @@ def test_stale_band_appears_after_twelve_hours(browser):
     assert pg.locator("#updated").is_hidden()  # one slot, two states
 
 
-def test_stale_band_keeps_the_filter_drawer_under_the_search_row(browser):
+def test_stale_band_sits_under_the_header_and_the_drawer_still_drops_from_it(browser):
     pg = stale_site(browser, 14, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
     assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    assert pg.evaluate("Math.round(document.getElementById('stale').getBoundingClientRect().top) === Math.round(document.querySelector('header').getBoundingClientRect().bottom)")
     pg.tap("#filter-toggle")
     pg.wait_for_function("() => !document.getElementById('filters').getAnimations().length")
-    assert pg.evaluate("Math.round(document.getElementById('filters').getBoundingClientRect().top) === Math.round(document.querySelector('.subheader').getBoundingClientRect().bottom)")
+    assert pg.evaluate("Math.round(document.getElementById('filters').getBoundingClientRect().top) === Math.round(document.querySelector('header').getBoundingClientRect().bottom)")
 
 
 def test_day_minutes_show_only_when_every_story_has_one(browser):
@@ -708,14 +709,23 @@ def test_the_search_bar_and_slash_open_the_palette(browser):
     ph = browser.new_context(viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True).new_page()
     ph.goto(URL)
     ph.wait_for_selector("a.card")
+    for sel in ("#search-wrap", "#filter-toggle"):  # header icons on phones, beside the menu
+        box = ph.locator(sel).bounding_box()
+        assert box["width"] == 44 and box["height"] == 44 and box["y"] + 44 <= 52
     ph.tap("#search")
     ph.locator("#palette").wait_for()
-    cancel = ph.locator("#palette-close")  # no Esc key on a phone, and the palette covers the backdrop
-    assert cancel.inner_text() == "Cancel" and cancel.bounding_box()["height"] >= 44
-    cancel.tap()
+    # Below the header, and the search icon becomes the close button (no Esc key on a phone).
+    assert ph.locator("#palette").bounding_box()["y"] >= 52
+    close, icon = ph.locator("#palette-close").bounding_box(), ph.locator("#search-wrap").bounding_box()
+    assert (close["x"], close["y"], close["width"], close["height"]) == (icon["x"], icon["y"], 44, 44)
+    ph.locator("#palette-close").tap()
     ph.locator("#palette").wait_for(state="hidden")
     ph.wait_for_timeout(200)
     assert ph.locator("#palette").is_hidden()
+    ph.tap("#search")
+    ph.locator("#palette").wait_for()
+    ph.mouse.click(20, 26)  # anywhere on the header closes it too
+    ph.locator("#palette").wait_for(state="hidden")
 
 
 def test_share_icon_matches_the_device(browser):
