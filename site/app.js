@@ -605,7 +605,8 @@ function renderPalette() {
     if (t.includes(ql)) return t.startsWith(ql) ? 3 : 2;
     return `${i.summary} ${i.publisher} ${domain(i.url)}`.toLowerCase().includes(ql) ? 1 : 0;
   };
-  pal.results = items.map(i => [rank(i), i]).filter(([r]) => r).sort((a, b) => b[0] - a[0]).slice(0, 30).map(([, i]) => i);
+  // Every match: it's the only search now, and 90 days of stories is a few hundred at most.
+  pal.results = items.map(i => [rank(i), i]).filter(([r]) => r).sort((a, b) => b[0] - a[0]).map(([, i]) => i);
   pal.sel = 0;
   $('palette-list').innerHTML = pal.results.length ? pal.results.map((i, n) => { const c = cat(i.category); return `
     <li role="option" id="p-${n}" data-n="${n}" aria-selected="${n === 0}">
