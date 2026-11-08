@@ -12,6 +12,17 @@
    "minutes": 3
   },
   {
+   "date": "2026-11-08",
+   "title": "Entire's Git Forge Rethinks Git Collaboration for Coding Agents",
+   "url": "https://www.infoq.com/news/2026/11/entire-git-forge-coding-agents/",
+   "publisher": "InfoQ",
+   "category": "sdlc",
+   "summary": "InfoQ reports on Entire, a Git forge built for collaboration between human developers and AI coding agents, questioning whether the pull request model suits agent-speed development.",
+   "relevance": 6,
+   "added": "2026-11-08T12:18:06+00:00",
+   "minutes": 3
+  },
+  {
    "date": "2026-11-07",
    "title": "SonicWall warns of new SSL-VPN MFA bypass flaw exploited in attacks",
    "url": "https://www.bleepingcomputer.com/news/security/sonicwall-warns-of-new-ssl-vpn-mfa-bypass-flaw-exploited-in-attacks/",
@@ -32,6 +43,17 @@
    "relevance": 6,
    "added": "2026-11-08T00:18:08+00:00",
    "minutes": 4
+  },
+  {
+   "date": "2026-11-07",
+   "title": "MaxxBench – \"Nice DeepSWE score. But is it true?\"",
+   "url": "https://maxxbench.unlap.ai/research/why-maxxbench/",
+   "publisher": "Hacker News 300+",
+   "category": "ai",
+   "summary": "MaxxBench publishes a research post questioning whether a reported DeepSWE benchmark score is valid, drawing 332 points on Hacker News.",
+   "relevance": 6,
+   "added": "2026-11-08T12:18:06+00:00",
+   "minutes": 12
   },
   {
    "date": "2026-11-07",
@@ -1151,7 +1173,7 @@
    }
   ]
  },
- "generated_at": "2026-11-08T08:18:09+00:00",
+ "generated_at": "2026-11-08T12:18:08+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
