@@ -241,6 +241,18 @@ def test_back_to_top_never_covers_the_end_links(browser):
     assert pg.evaluate("!document.getElementById('end').hidden") and not pg.evaluate(overlap)
 
 
+def test_back_to_top_reacts_to_hover(browser):
+    pg = open_site(browser, viewport={"width": 1300, "height": 700})
+    pg.evaluate("window.scrollTo({top: 2000, behavior: 'instant'})")
+    top = pg.locator("#top")
+    top.wait_for()
+    look = "e => { const c = getComputedStyle(e); return [c.backgroundColor, c.color]; }"
+    before = top.evaluate(look)
+    top.hover()
+    pg.wait_for_timeout(250)
+    assert top.evaluate(look) != before and top.evaluate("e => getComputedStyle(e).transform") == "none"
+
+
 def test_timestamp_shares_the_headings_baseline(browser):
     baseline = """() => { const box = s => { const r = document.createRange(); r.selectNodeContents(document.querySelector(s));
             return r.getBoundingClientRect(); }, base = s => { const e = document.querySelector(s), m = document.createElement('span');

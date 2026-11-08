@@ -185,6 +185,9 @@
     border-radius: 999px; background: var(--bg-card); color: var(--accent); cursor: pointer; box-shadow: 0 8px 24px rgba(0, 0, 0, .2); }
   .back-to-top[hidden] { display: none; }
   .back-to-top svg { width: 18px; height: 18px; }
+  .back-to-top { transition: background-color .15s ease, color .15s ease; }
+  .back-to-top:active { background: var(--accent); color: var(--accent-contrast); }
+  @media (hover: hover) { .back-to-top:hover { background: var(--accent); color: var(--accent-contrast); } }  /* fills in, rather than moving */
   .card.read .card-title { color: var(--text-muted); font-weight: 500; }
   .new { flex: 0 0 auto; padding: 1px 7px; border-radius: 999px; background: var(--accent); color: var(--accent-contrast); font-size: .6875rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
   .skeleton { pointer-events: none; }
