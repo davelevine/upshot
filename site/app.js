@@ -510,17 +510,15 @@ $('keys').addEventListener('click', e => { if (e.target === $('keys')) $('keys')
 
 // Share the publisher's article, not this site's reader link: that's what the recipient wants.
 // The browser's own share sheet where it has one (phones, and Chrome, Edge and Safari on Windows and Mac); otherwise a menu.
-const shareKind = navigator.share ? (/Android/i.test(navigator.userAgent) ? 'android' : 'apple') : 'menu';
+// The same menu everywhere; where the browser has a share sheet, "More…" opens it.
+const shareKind = /Android/i.test(navigator.userAgent) ? 'android' : 'apple';  // which icon
 $('reader-send').dataset.kind = shareKind;
+$('send-more').hidden = !navigator.share;
 const closeShare = () => { $('send-pop').hidden = true; $('reader-send').setAttribute('aria-expanded', 'false'); };
 $('reader-send').onclick = async e => {
   e.stopPropagation();
   const i = items.find(x => x.url === readerFor);
   if (!i) return;
-  if (shareKind !== 'menu') {
-    try { await navigator.share({ title: i.title, url: i.url }); } catch {}  // dismissed
-    return;
-  }
   const open = $('send-pop').hidden;
   closeMenus();
   if (!open) return;
@@ -540,7 +538,14 @@ let sendTo = {};
 // Opened on click, not as links: ad blockers hide links whose address is a share page.
 $('send-pop').onclick = e => {
   e.stopPropagation();
-  const url = sendTo[e.target.closest('button')?.id];
+  const id = e.target.closest('button')?.id;
+  if (id === 'send-more') {
+    closeShare();
+    const i = items.find(x => x.url === readerFor);
+    if (i) navigator.share({ title: i.title, url: i.url }).catch(() => {});  // dismissed
+    return;
+  }
+  const url = sendTo[id];
   if (!url) return;
   closeShare();
   if (url.startsWith('mailto:')) location.href = url;

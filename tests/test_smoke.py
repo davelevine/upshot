@@ -228,9 +228,12 @@ def test_end_of_feed_message(browser):
 
 def test_back_to_top_never_covers_the_end_links(browser):
     pg = open_site(browser, viewport={"width": 412, "height": 520}, has_touch=True, is_mobile=True)
-    for _ in range(60):
+    for _ in range(300):  # until the feed runs out, not a fixed count: a busy machine loads pages more slowly
         pg.evaluate("window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'instant'})")
+        if pg.evaluate("!document.getElementById('end').hidden"):
+            break
         pg.wait_for_timeout(50)
+    pg.evaluate("window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'instant'})")
     pg.locator("#top").wait_for()
     overlap = """() => { const t = document.getElementById('top').getBoundingClientRect();
         return [...document.querySelectorAll('#end a')].map(a => a.getBoundingClientRect())
@@ -385,8 +388,8 @@ def test_share_copies_the_publishers_url_on_desktop(browser):
     pg.wait_for_selector("a.card")
     url = pg.locator("a.card").first.get_attribute("href")
     pg.locator("a.card").first.click()
-    pg.locator("#reader-send").click()  # no share sheet in this browser: a menu
-    names = pg.locator("#send-pop [role=menuitem]").all_inner_texts()
+    pg.locator("#reader-send").click()
+    names = pg.locator("#send-pop [role=menuitem]:not([hidden])").all_inner_texts()  # no share sheet here, so no "More…"
     assert names == ["Copy link", "Email", "Bluesky", "Reddit", "LinkedIn"]
     box = pg.locator("#send-pop").bounding_box()
     assert box["x"] >= 0 and box["x"] + box["width"] <= 1300  # fully on screen
@@ -397,7 +400,7 @@ def test_share_copies_the_publishers_url_on_desktop(browser):
         pg.locator("#reader-send").click()  # choosing one closes the menu
     opened = [u for u in pg.evaluate("window.__opened") if u]
     assert opened[0].startswith("https://bsky.app/intent/compose?text=") and enc in opened[1] and enc in opened[2]
-    assert pg.locator("#send-pop svg").count() == 5  # an icon for each
+    assert pg.locator("#send-pop [role=menuitem]:not([hidden]) svg").count() == 5  # an icon for each; no "More…" without a share sheet
     pg.locator("#reader-size").click()  # opening the text size menu closes this one
     assert pg.locator("#send-pop").is_hidden() and pg.locator("#size-pop").is_visible()
     pg.locator("#reader-send").click()  # and the other way round
@@ -418,8 +421,13 @@ def test_share_opens_the_share_sheet_on_a_phone(browser):
     pg.wait_for_selector("a.card")
     url = pg.locator("a.card").first.get_attribute("href")
     pg.locator("a.card").first.tap()
-    pg.locator("#reader-send").tap()
-    pg.wait_for_function("window.__shared")
+    pg.locator("#reader-send").tap()  # the same menu as desktop, with the system sheet under "More…"
+    names = pg.locator("#send-pop [role=menuitem]").all_inner_texts()
+    assert names == ["Copy link", "Email", "Bluesky", "Reddit", "LinkedIn", "More\u2026"], names
+    box = pg.locator("#send-pop").bounding_box()
+    assert box["x"] >= 0 and box["x"] + box["width"] <= 412
+    pg.locator("#send-more").tap()
+    pg.wait_for_function("() => window.__shared")
     shared = pg.evaluate("window.__shared")
     assert shared["url"] == url and shared["title"]
 
@@ -662,7 +670,7 @@ def test_share_icon_matches_the_device(browser):
     desktop = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
     desktop.goto(URL)
     desktop.wait_for_selector("a.card")
-    assert desktop.locator("#reader-send").get_attribute("data-kind") == "menu"
+    assert desktop.locator("#reader-send").get_attribute("data-kind") == "apple"
     assert desktop.locator("#reader-send .send-apple").evaluate("e => getComputedStyle(e).display") == "block"  # the box and arrow, not a link icon
     mac = browser.new_context(viewport={"width": 1300, "height": 900})
     mac.add_init_script("navigator.share = () => Promise.resolve();")  # a desktop browser with a share sheet uses it
