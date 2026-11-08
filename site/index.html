@@ -303,7 +303,9 @@
   .size-pop button:hover { background: var(--bg-card-hover); color: var(--text); }
   .size-pop button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
   .size-pop [data-size="0"] { font-size: 13px; } .size-pop [data-size="1"] { font-size: 16px; } .size-pop [data-size="2"] { font-size: 20px; } .size-pop [data-size="3"] { font-size: 24px; }
-  .reader-icon { flex: none; width: 22px; height: 22px; padding: 2px; border-radius: 6px; background: #fff; }  /* white tile: most favicons are drawn for light tabs */
+  .reader-icon { flex: none; width: 22px; height: 22px; border-radius: 5px; }
+  /* Single-colour artwork on transparency would vanish against a background of its own tone, so it's inverted there. */
+  [data-theme="dark"] .reader-icon[data-art="dark"], [data-theme="light"] .reader-icon[data-art="light"] { filter: invert(1); }
   #reader:focus { outline: none; }  /* focused on a tap open, so no ring appears on the close button */
   .close-back, .reader-nav { display: none; }
   .reader-nav { flex: 0 0 auto; justify-content: center; gap: 48px; height: 52px; border-top: 1px solid var(--border); }

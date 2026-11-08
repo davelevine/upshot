@@ -81,6 +81,19 @@ def test_stories_are_dated_in_the_site_time_zone():
     assert item["date"] == "2026-11-06"
 
 
+def test_icon_art_flags_only_single_colour_artwork_on_transparency(tmp_path):
+    from PIL import Image, ImageDraw
+    def icon(name, fill, bg=(0, 0, 0, 0)):
+        img = Image.new("RGBA", (64, 64), bg)
+        ImageDraw.Draw(img).ellipse((12, 12, 52, 52), fill=fill)
+        img.save(tmp_path / name)
+        return tmp_path / name
+    assert build.icon_art(icon("octocat.png", (20, 20, 20, 255))) == "dark"
+    assert build.icon_art(icon("white.png", (250, 250, 250, 255))) == "light"
+    assert build.icon_art(icon("red.png", (150, 20, 30, 255))) is None            # coloured: left alone
+    assert build.icon_art(icon("tile.png", (20, 20, 20, 255), (255, 255, 255, 255))) is None  # on its own tile
+
+
 def test_rss_is_well_formed():
     xml = build.rss([{"date": "2026-11-05", "title": "A & B <c>", "url": "https://x.test/?a=1&b=2",
                       "category": "ai", "summary": "s"}])

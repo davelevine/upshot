@@ -18,7 +18,7 @@ const FEED_TIMEOUT = 10000; // one full-article feed is 4MB
 const CONCURRENCY = 6;
 const MAX_WRITES = 100; // per build: free KV allows 1,000 writes a day, and builds run 6+ times; the rest wait for the next build
 const TTL = 100 * 86400; // past the build's KEEP_DAYS (90), so expired articles are already off the site
-const VERSION = 4; // bump when extraction changes, and the next build redoes every stored article
+const VERSION = 5; // bump when extraction changes, and the next build redoes every stored article
 const TRANSIENT = ['timeout', 'error']; // not a verdict on the article: try again next run
 const CHALLENGE = /cf-challenge|_cf_chl_opt|Just a moment|Access Denied|Request unsuccessful|Incapsula/i; // about bot-protection vendors, not publishers
 const DROP = 'script, style, noscript, iframe, object, embed, form, input, button, link, meta, svg';
@@ -201,6 +201,18 @@ export function tidy(article, url = '') {
       unit = up;
     }
     unit.remove();
+  }
+  // Banners: a block that is only a linked image, no caption, whose link leaves both the article's site and the image's
+  // host (and isn't the image itself). Real figures link to the full-size image, or carry a caption.
+  const site = h => { try { return new URL(h, url || undefined).hostname.split('.').slice(-2).join('.'); } catch { return ''; } };
+  for (const link of [...root.querySelectorAll('a[href]')]) {
+    const img = link.querySelector('img');
+    if (!link.isConnected || !img || textOf(link) || link.closest('figure')?.querySelector('figcaption')) continue;
+    const href = link.getAttribute('href'), to = site(href);
+    if (!to || to === site(url) || to === site(img.getAttribute('src') || '') || /\.(png|jpe?g|gif|webp|avif|svg)(\?|$)/i.test(href)) continue;
+    let block = link;
+    while (block.parentElement && block.parentElement !== root && !textOf(block.parentElement)) block = block.parentElement;
+    block.remove();
   }
   root.querySelectorAll('p a h1, p a h2, p a h3, p a h4, p a h5, p a h6, p a p').forEach(el => el.remove());  // link preview cards, inside a sentence
   // Blocks that are nearly all same-page links are tables of contents, which go nowhere in the sandbox.

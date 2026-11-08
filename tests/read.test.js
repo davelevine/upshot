@@ -193,6 +193,19 @@ test('tidy removes paid placements by their tracking codes, and only them', () =
   for (const kept of ['advisory', 'See the', 'newsletter version']) assert.ok(out.includes(kept), kept);  // article text, and a non-ad utm link
 });
 
+test('tidy removes banners: a lone linked image that leads off both the site and the image host', () => {
+  const prose = 'A real sentence of the article, with enough words to count as prose. '.repeat(6);
+  const content = `<div><p>${prose}</p>
+    <div><p><a href="https://promo.example/landing"><img src="https://cdn.test/banner.jpg"></a></p></div>
+    <p><a href="https://cdn.test/full.png"><img src="https://cdn.test/diagram.png"></a></p>
+    <p><a href="https://x.test/author/jane"><img src="https://img.test/jane.jpg"></a></p>
+    <figure><a href="https://elsewhere.test/tool"><img src="https://cdn.test/screenshot.png"></a><figcaption>The tool.</figcaption></figure>
+    <p>${prose} <a href="https://elsewhere.test/source"><img src="https://cdn.test/inline.png"> with text</a></p></div>`;
+  const { content: out } = tidy({ content, title: 'T' }, 'https://x.test/a');
+  assert.ok(!out.includes('banner.jpg'));
+  for (const kept of ['diagram.png', 'jane.jpg', 'screenshot.png', 'inline.png']) assert.ok(out.includes(kept), kept);
+});
+
 test('tidy keeps prose and real sections that only look like chrome', () => {
   const prose = 'A real sentence of the article, with enough words to count as prose. '.repeat(6);
   const content = `<div><p>${prose}</p><p>To try it, <a href="https://x.test/s">sign up for the beta</a> today.</p><h2>Related Published CVEs</h2><p>${prose}</p><p>Share this idea with the wider community of readers who care.</p></div>`;

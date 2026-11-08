@@ -360,7 +360,10 @@ def fetch_icon(site):
         except Exception:
             continue
         if min(img.size) >= 16:
-            return img.resize((64, 64), Image.LANCZOS)
+            img = img.resize((64, 64), Image.LANCZOS)
+            if sum(a > 128 for a in img.getchannel("A").getdata()) < 64 * 64 * 0.05:
+                continue  # nearly all transparent: draws as nothing
+            return img
     return None
 
 
@@ -375,6 +378,19 @@ def fetch_icons(publishers):
             else:
                 print(f"no icon found for {p} ({todo[p]})")
     return sorted(f.stem for f in ICONS.glob("*.png"))
+
+
+def icon_art(path):
+    """"dark" or "light" for single-colour artwork on a transparent background, which would vanish against a background
+    of the same tone: the reader inverts it there. Coloured icons, and ones on their own solid tile, get None."""
+    img = Image.open(path).convert("RGBA")
+    ink = [(r, g, b) for r, g, b, a in img.getdata() if a > 128]
+    if not ink or len(ink) > 64 * 64 * 0.9:
+        return None
+    if sum(max(p) - min(p) for p in ink) / len(ink) > 40:  # coloured: inverting would wreck it
+        return None
+    light = sum(0.2126 * r + 0.7152 * g + 0.0722 * b for r, g, b in ink) / len(ink)
+    return "dark" if light < 80 else "light" if light > 200 else None
 
 
 def write_og(data, today):
@@ -639,6 +655,7 @@ def main():
     SITE.mkdir(exist_ok=True)
     data["tz"] = SITE_TZ.key
     data["icons"] = fetch_icons({i["publisher"] for i in data["items"]} | set(SITE_LINKS))
+    data["iconArt"] = {s: art for s in data["icons"] if (art := icon_art(ICONS / f"{s}.png"))}
     data_path.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n")
     (SITE / "rss.xml").write_text(rss(data["items"]))
     write_og(data, today)
