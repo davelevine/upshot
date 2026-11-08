@@ -394,6 +394,11 @@ def test_share_copies_the_publishers_url_on_desktop(browser):
     for sel in ("#share-email", "#share-reddit", "#share-linkedin"):
         assert enc in pg.locator(sel).get_attribute("href"), sel
     assert pg.locator("#share-bluesky").get_attribute("href").startswith("https://bsky.app/intent/compose?text=")
+    assert pg.locator("#share-pop svg").count() == 5  # an icon for each
+    pg.locator("#reader-size").click()  # opening the text size menu closes this one
+    assert pg.locator("#share-pop").is_hidden() and pg.locator("#size-pop").is_visible()
+    pg.locator("#reader-share").click()  # and the other way round
+    assert pg.locator("#size-pop").is_hidden() and pg.locator("#share-pop").is_visible()
     pg.keyboard.press("Escape")  # closes the menu, not the reader
     assert pg.locator("#share-pop").is_hidden() and pg.evaluate("document.body.classList.contains('reading')")
     pg.locator("#reader-share").click()

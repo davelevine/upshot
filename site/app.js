@@ -385,6 +385,7 @@ const closeSize = () => { $('size-pop').hidden = true; $('reader-size').setAttri
 $('reader-size').onclick = e => {
   e.stopPropagation();
   const open = $('size-pop').hidden;
+  closeMenus();  // one menu at a time: these clicks don't reach the page-wide close
   $('size-pop').hidden = !open;
   $('reader-size').setAttribute('aria-expanded', String(open));
   if (open) $('size-pop').querySelector('[aria-pressed="true"]').focus({ preventScroll: true });
@@ -521,7 +522,7 @@ $('reader-share').onclick = async e => {
     return;
   }
   const open = $('share-pop').hidden;
-  closeShare();
+  closeMenus();
   if (!open) return;
   const u = encodeURIComponent(i.url), t = encodeURIComponent(i.title);
   $('share-email').href = `mailto:?subject=${t}&body=${u}`;
@@ -532,6 +533,7 @@ $('reader-share').onclick = async e => {
   $('reader-share').setAttribute('aria-expanded', 'true');
   $('share-copy').focus({ preventScroll: true });
 };
+function closeMenus() { closeSize(); closeShare(); }
 $('share-pop').onclick = e => { e.stopPropagation(); if (e.target.closest('a')) closeShare(); };
 document.addEventListener('click', closeShare);
 addEventListener('blur', closeShare);
