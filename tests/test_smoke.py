@@ -709,6 +709,12 @@ def test_the_search_bar_and_slash_open_the_palette(browser):
     ph.wait_for_selector("a.card")
     ph.tap("#search")
     ph.locator("#palette").wait_for()
+    cancel = ph.locator("#palette-close")  # no Esc key on a phone, and the palette covers the backdrop
+    assert cancel.inner_text() == "Cancel" and cancel.bounding_box()["height"] >= 44
+    cancel.tap()
+    ph.locator("#palette").wait_for(state="hidden")
+    ph.wait_for_timeout(200)
+    assert ph.locator("#palette").is_hidden()
 
 
 def test_share_icon_matches_the_device(browser):

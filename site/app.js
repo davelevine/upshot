@@ -649,6 +649,7 @@ $('palette-q').addEventListener('keydown', e => {
 $('palette-list').addEventListener('click', e => { const li = e.target.closest('li[data-n]'); if (li) choosePalette(+li.dataset.n); });
 $('palette-list').addEventListener('mousemove', e => { const li = e.target.closest('li[data-n]'); if (li && +li.dataset.n !== pal.sel) selectPalette(+li.dataset.n, false); });
 $('palette-backdrop').addEventListener('click', () => closePalette());
+$('palette-close').addEventListener('click', () => closePalette());
 document.addEventListener('auxclick', e => { const a = e.target.closest('a.card, a.weekly-card'); if (a && e.button === 1) markRead(a.getAttribute('href')); });
 // Plain clicks on an article open the reader; modified and middle clicks still open the site.
 document.addEventListener('click', e => {
