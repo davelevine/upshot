@@ -643,7 +643,8 @@ def test_share_icon_matches_the_device(browser):
     desktop.goto(URL)
     desktop.wait_for_selector("a.card")
     assert desktop.locator("#reader-share").get_attribute("data-kind") == "copy"
-    assert desktop.locator("#reader-share").get_attribute("aria-label") == "Copy link"
+    assert desktop.locator("#reader-share").get_attribute("aria-label") == "Share: copies the link"
+    assert desktop.locator("#reader-share .share-apple").evaluate("e => getComputedStyle(e).display") == "block"  # the box and arrow, not a link icon
     for ua, kind in (("Mozilla/5.0 (Linux; Android 16; Pixel 9 Pro) AppleWebKit/537.36 Chrome/131 Mobile Safari/537.36", "android"),
                      ("Mozilla/5.0 (iPhone; CPU iPhone OS 19_0 like Mac OS X) AppleWebKit/605.1.15 Version/19.0 Mobile/15E148 Safari/604.1", "apple")):
         ctx = browser.new_context(viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True, user_agent=ua)

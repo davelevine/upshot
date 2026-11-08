@@ -509,7 +509,7 @@ $('keys').addEventListener('click', e => { if (e.target === $('keys')) $('keys')
 // Share the publisher's article, not this site's reader link: that's what the recipient wants.
 const shareKind = navigator.share && matchMedia('(pointer: coarse)').matches ? (/Android/i.test(navigator.userAgent) ? 'android' : 'apple') : 'copy';
 $('reader-share').dataset.kind = shareKind;
-if (shareKind === 'copy') { $('reader-share').title = 'Copy link'; $('reader-share').setAttribute('aria-label', 'Copy link'); }
+if (shareKind === 'copy') { $('reader-share').title = 'Share: copies the link'; $('reader-share').setAttribute('aria-label', 'Share: copies the link'); }
 $('reader-share').onclick = async () => {
   const i = items.find(x => x.url === readerFor);
   if (!i) return;
