@@ -17,6 +17,7 @@
     <outline type="rss" text="Cursor" xmlUrl="https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_cursor.xml"/>
     <outline type="rss" text="Docker" xmlUrl="https://www.docker.com/feed/"/>
     <outline type="rss" text="ElevenLabs" xmlUrl="https://elevenlabs.io/blog/rss.xml"/>
+    <outline type="rss" text="Epoch AI" xmlUrl="https://epoch.ai/atom.xml"/>
     <outline type="rss" text="Figma" xmlUrl="https://www.figma.com/blog/feed/atom.xml"/>
     <outline type="rss" text="GitHub Changelog" xmlUrl="https://github.blog/changelog/feed/"/>
     <outline type="rss" text="GitLab Security Releases" xmlUrl="https://about.gitlab.com/security-releases.xml"/>
@@ -36,10 +37,12 @@
     <outline type="rss" text="Martin Fowler" xmlUrl="https://martinfowler.com/feed.atom"/>
     <outline type="rss" text="Meta Engineering" xmlUrl="https://engineering.fb.com/feed/"/>
     <outline type="rss" text="Meta Newsroom" xmlUrl="https://about.fb.com/feed"/>
+    <outline type="rss" text="METR" xmlUrl="https://metr.org/feed.xml"/>
     <outline type="rss" text="Microsoft Security Blog" xmlUrl="https://www.microsoft.com/en-us/security/blog/feed/"/>
     <outline type="rss" text="Mistral" xmlUrl="https://mistral.ai/news/rss"/>
     <outline type="rss" text="Mozilla Security" xmlUrl="https://blog.mozilla.org/security/feed/"/>
     <outline type="rss" text="Netflix TechBlog" xmlUrl="https://netflixtechblog.com/feed"/>
+    <outline type="rss" text="noyb" xmlUrl="https://noyb.eu/en/rss"/>
     <outline type="rss" text="NVIDIA Blog" xmlUrl="https://blogs.nvidia.com/feed/"/>
     <outline type="rss" text="OpenAI" xmlUrl="https://openai.com/news/rss.xml"/>
     <outline type="rss" text="OpenAI Alignment" xmlUrl="https://alignment.openai.com/rss.xml"/>
@@ -49,6 +52,7 @@
     <outline type="rss" text="Sansec" xmlUrl="https://sansec.io/atom.xml"/>
     <outline type="rss" text="Schneier on Security" xmlUrl="https://www.schneier.com/feed/atom/"/>
     <outline type="rss" text="SecurityWeek" xmlUrl="https://www.securityweek.com/feed/"/>
+    <outline type="rss" text="Shopify Engineering" xmlUrl="https://shopify.engineering/blog.atom"/>
     <outline type="rss" text="Simon Willison" xmlUrl="https://simonwillison.net/atom/everything/"/>
     <outline type="rss" text="Socket" xmlUrl="https://socket.dev/api/blog/feed.atom"/>
     <outline type="rss" text="Tailscale" xmlUrl="https://tailscale.com/blog/index.xml"/>
@@ -59,6 +63,7 @@
     <outline type="rss" text="UK AISI" xmlUrl="https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_aisi.xml"/>
     <outline type="rss" text="Unit 42" xmlUrl="https://unit42.paloaltonetworks.com/feed/"/>
     <outline type="rss" text="Warp" xmlUrl="https://www.warp.dev/blog/feed.xml"/>
+    <outline type="rss" text="watchTowr Labs" xmlUrl="https://labs.watchtowr.com/rss/"/>
     <outline type="rss" text="Wiz" xmlUrl="https://www.wiz.io/feed/rss.xml"/>
     <outline type="rss" text="Wordfence" xmlUrl="https://www.wordfence.com/blog/feed/"/>
   </body>
