@@ -2,14 +2,14 @@
  "items": [
   {
    "date": "2026-11-08",
-   "title": "Google Cloud Adds Self-Managed VMware Cloud Foundation on Bare Metal",
-   "url": "https://www.infoq.com/news/2026/11/google-cloud-self-managed-vmware/",
-   "publisher": "InfoQ",
+   "title": "Lima v2.3: Native on Windows, VMnet on Linux, and menu TUI",
+   "url": "https://www.cncf.io/blog/2026/11/08/lima-v2-3-native-on-windows-vmnet-on-linux-and-menu-tui/",
+   "publisher": "CNCF",
    "category": "architecture",
-   "summary": "Google Cloud made self-managed VMware Cloud Foundation 9.x on Z3 bare metal generally available in 22 regions, giving customers root access and lifecycle control.",
+   "summary": "Lima v2.3 adds native Windows guest support without extra dependencies, VMnet networking on Linux, and a menu-based TUI.",
    "relevance": 6,
-   "added": "2026-11-08T08:18:07+00:00",
-   "minutes": 3
+   "added": "2026-11-08T15:21:33+00:00",
+   "minutes": 8
   },
   {
    "date": "2026-11-08",
@@ -1173,7 +1173,7 @@
    }
   ]
  },
- "generated_at": "2026-11-08T12:18:08+00:00",
+ "generated_at": "2026-11-08T15:21:35+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
