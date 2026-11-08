@@ -496,7 +496,7 @@ function onKey(key, mod, e) {
   const reading = document.body.classList.contains('reading');
   if ($('keys').open) return;  // the dialog handles its own Esc
   if (key === 'escape' && !$('size-pop').hidden) { closeSize(); return $('reader-size').focus(); }
-  if (key === 'escape' && !$('share-pop').hidden) { closeShare(); return $('reader-share').focus(); }
+  if (key === 'escape' && !$('send-pop').hidden) { closeShare(); return $('reader-send').focus(); }
   if (key === 'escape' && reading) return dismiss();
   if (key === 'k' && mod) { e?.preventDefault(); return openPalette(); }
   if (mod || e?.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;
@@ -511,9 +511,9 @@ $('keys').addEventListener('click', e => { if (e.target === $('keys')) $('keys')
 // Share the publisher's article, not this site's reader link: that's what the recipient wants.
 // The browser's own share sheet where it has one (phones, and Chrome, Edge and Safari on Windows and Mac); otherwise a menu.
 const shareKind = navigator.share ? (/Android/i.test(navigator.userAgent) ? 'android' : 'apple') : 'menu';
-$('reader-share').dataset.kind = shareKind;
-const closeShare = () => { $('share-pop').hidden = true; $('reader-share').setAttribute('aria-expanded', 'false'); };
-$('reader-share').onclick = async e => {
+$('reader-send').dataset.kind = shareKind;
+const closeShare = () => { $('send-pop').hidden = true; $('reader-send').setAttribute('aria-expanded', 'false'); };
+$('reader-send').onclick = async e => {
   e.stopPropagation();
   const i = items.find(x => x.url === readerFor);
   if (!i) return;
@@ -521,29 +521,40 @@ $('reader-share').onclick = async e => {
     try { await navigator.share({ title: i.title, url: i.url }); } catch {}  // dismissed
     return;
   }
-  const open = $('share-pop').hidden;
+  const open = $('send-pop').hidden;
   closeMenus();
   if (!open) return;
   const u = encodeURIComponent(i.url), t = encodeURIComponent(i.title);
-  $('share-email').href = `mailto:?subject=${t}&body=${u}`;
-  $('share-bluesky').href = `https://bsky.app/intent/compose?text=${encodeURIComponent(`${i.title} ${i.url}`)}`;
-  $('share-reddit').href = `https://www.reddit.com/submit?url=${u}&title=${t}`;
-  $('share-linkedin').href = `https://www.linkedin.com/sharing/share-offsite/?url=${u}`;
-  $('share-pop').hidden = false;
-  $('reader-share').setAttribute('aria-expanded', 'true');
-  $('share-copy').focus({ preventScroll: true });
+  sendTo = {
+    'send-email': `mailto:?subject=${t}&body=${u}`,
+    'send-bluesky': `https://bsky.app/intent/compose?text=${encodeURIComponent(`${i.title} ${i.url}`)}`,
+    'send-reddit': `https://www.reddit.com/submit?url=${u}&title=${t}`,
+    'send-linkedin': `https://www.linkedin.com/sharing/share-offsite/?url=${u}`,
+  };
+  $('send-pop').hidden = false;
+  $('reader-send').setAttribute('aria-expanded', 'true');
+  $('send-copy').focus({ preventScroll: true });
 };
 function closeMenus() { closeSize(); closeShare(); }
-$('share-pop').onclick = e => { e.stopPropagation(); if (e.target.closest('a')) closeShare(); };
+let sendTo = {};
+// Opened on click, not as links: ad blockers hide links whose address is a share page.
+$('send-pop').onclick = e => {
+  e.stopPropagation();
+  const url = sendTo[e.target.closest('button')?.id];
+  if (!url) return;
+  closeShare();
+  if (url.startsWith('mailto:')) location.href = url;
+  else window.open(url, '_blank', 'noopener,noreferrer');
+};
 document.addEventListener('click', closeShare);
 addEventListener('blur', closeShare);
-$('share-copy').onclick = async () => {
+$('send-copy').onclick = async () => {
   closeShare();
   const i = items.find(x => x.url === readerFor);
   if (!i) return;
   let msg = 'Copied';
   try { await navigator.clipboard.writeText(i.url); } catch { msg = 'Couldn\u2019t copy'; }
-  const done = $('share-done');
+  const done = $('send-done');
   done.textContent = msg; done.hidden = false; $('status').textContent = msg === 'Copied' ? 'Link copied' : msg;
   clearTimeout(done.timer);
   done.timer = setTimeout(() => { done.hidden = true; }, 1600);

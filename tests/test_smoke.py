@@ -385,26 +385,29 @@ def test_share_copies_the_publishers_url_on_desktop(browser):
     pg.wait_for_selector("a.card")
     url = pg.locator("a.card").first.get_attribute("href")
     pg.locator("a.card").first.click()
-    pg.locator("#reader-share").click()  # no share sheet in this browser: a menu
-    names = pg.locator("#share-pop [role=menuitem]").all_inner_texts()
+    pg.locator("#reader-send").click()  # no share sheet in this browser: a menu
+    names = pg.locator("#send-pop [role=menuitem]").all_inner_texts()
     assert names == ["Copy link", "Email", "Bluesky", "Reddit", "LinkedIn"]
-    box = pg.locator("#share-pop").bounding_box()
+    box = pg.locator("#send-pop").bounding_box()
     assert box["x"] >= 0 and box["x"] + box["width"] <= 1300  # fully on screen
     enc = urllib.parse.quote(url, safe="")
-    for sel in ("#share-email", "#share-reddit", "#share-linkedin"):
-        assert enc in pg.locator(sel).get_attribute("href"), sel
-    assert pg.locator("#share-bluesky").get_attribute("href").startswith("https://bsky.app/intent/compose?text=")
-    assert pg.locator("#share-pop svg").count() == 5  # an icon for each
+    pg.evaluate("window.__opened = []; window.open = (u) => { window.__opened.push(u); return null; }")
+    for sel in ("#send-bluesky", "#send-reddit", "#send-linkedin"):
+        pg.locator(sel).click()
+        pg.locator("#reader-send").click()  # choosing one closes the menu
+    opened = [u for u in pg.evaluate("window.__opened") if u]
+    assert opened[0].startswith("https://bsky.app/intent/compose?text=") and enc in opened[1] and enc in opened[2]
+    assert pg.locator("#send-pop svg").count() == 5  # an icon for each
     pg.locator("#reader-size").click()  # opening the text size menu closes this one
-    assert pg.locator("#share-pop").is_hidden() and pg.locator("#size-pop").is_visible()
-    pg.locator("#reader-share").click()  # and the other way round
-    assert pg.locator("#size-pop").is_hidden() and pg.locator("#share-pop").is_visible()
+    assert pg.locator("#send-pop").is_hidden() and pg.locator("#size-pop").is_visible()
+    pg.locator("#reader-send").click()  # and the other way round
+    assert pg.locator("#size-pop").is_hidden() and pg.locator("#send-pop").is_visible()
     pg.keyboard.press("Escape")  # closes the menu, not the reader
-    assert pg.locator("#share-pop").is_hidden() and pg.evaluate("document.body.classList.contains('reading')")
-    pg.locator("#reader-share").click()
-    pg.locator("#share-copy").click()
-    pg.locator("#share-done", has_text="Copied").wait_for()
-    assert pg.evaluate("navigator.clipboard.readText()") == url and pg.locator("#share-pop").is_hidden()
+    assert pg.locator("#send-pop").is_hidden() and pg.evaluate("document.body.classList.contains('reading')")
+    pg.locator("#reader-send").click()
+    pg.locator("#send-copy").click()
+    pg.locator("#send-done", has_text="Copied").wait_for()
+    assert pg.evaluate("navigator.clipboard.readText()") == url and pg.locator("#send-pop").is_hidden()
 
 
 def test_share_opens_the_share_sheet_on_a_phone(browser):
@@ -415,7 +418,7 @@ def test_share_opens_the_share_sheet_on_a_phone(browser):
     pg.wait_for_selector("a.card")
     url = pg.locator("a.card").first.get_attribute("href")
     pg.locator("a.card").first.tap()
-    pg.locator("#reader-share").tap()
+    pg.locator("#reader-send").tap()
     pg.wait_for_function("window.__shared")
     shared = pg.evaluate("window.__shared")
     assert shared["url"] == url and shared["title"]
@@ -659,14 +662,14 @@ def test_share_icon_matches_the_device(browser):
     desktop = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
     desktop.goto(URL)
     desktop.wait_for_selector("a.card")
-    assert desktop.locator("#reader-share").get_attribute("data-kind") == "menu"
-    assert desktop.locator("#reader-share .share-apple").evaluate("e => getComputedStyle(e).display") == "block"  # the box and arrow, not a link icon
+    assert desktop.locator("#reader-send").get_attribute("data-kind") == "menu"
+    assert desktop.locator("#reader-send .send-apple").evaluate("e => getComputedStyle(e).display") == "block"  # the box and arrow, not a link icon
     mac = browser.new_context(viewport={"width": 1300, "height": 900})
     mac.add_init_script("navigator.share = () => Promise.resolve();")  # a desktop browser with a share sheet uses it
     mp = mac.new_page()
     mp.goto(URL)
     mp.wait_for_selector("a.card")
-    assert mp.locator("#reader-share").get_attribute("data-kind") == "apple"
+    assert mp.locator("#reader-send").get_attribute("data-kind") == "apple"
     for ua, kind in (("Mozilla/5.0 (Linux; Android 16; Pixel 9 Pro) AppleWebKit/537.36 Chrome/131 Mobile Safari/537.36", "android"),
                      ("Mozilla/5.0 (iPhone; CPU iPhone OS 19_0 like Mac OS X) AppleWebKit/605.1.15 Version/19.0 Mobile/15E148 Safari/604.1", "apple")):
         ctx = browser.new_context(viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True, user_agent=ua)
@@ -674,7 +677,18 @@ def test_share_icon_matches_the_device(browser):
         pg = ctx.new_page()
         pg.goto(URL)
         pg.wait_for_selector("a.card")
-        assert pg.locator("#reader-share").get_attribute("data-kind") == kind, ua
+        assert pg.locator("#reader-send").get_attribute("data-kind") == kind, ua
+
+
+def test_share_survives_ad_blockers_social_lists(browser):
+    # Ad blockers' social lists hide share widgets by name and by link address, which removed the whole button.
+    pg = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
+    pg.goto(URL)
+    pg.wait_for_selector("a.card")
+    named = pg.evaluate("[...document.querySelectorAll('[id*=share], [class*=share]')].map(e => e.id || e.className)")
+    assert named == [], named
+    links = pg.evaluate("[...document.querySelectorAll('#send-pop a, #reader-send a')].length")
+    assert links == 0
 
 
 def test_search_palette(browser):
