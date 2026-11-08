@@ -288,10 +288,11 @@
   .reader-backdrop { position: fixed; inset: 0; z-index: 200; background: rgba(0, 0, 0, .45); opacity: 0; pointer-events: none; transition: opacity var(--slide-out) ease; }
   .reader { position: fixed; top: 0; right: 0; bottom: 0; z-index: 201; width: min(820px, 100vw); display: flex; flex-direction: column;
     background: var(--bg); border-left: 1px solid var(--border); box-shadow: 0 24px 64px rgba(0, 0, 0, .3); transform: translateX(100%); visibility: hidden;
+    pointer-events: none;  /* sliding away after a close, it mustn't catch a click meant for the page under it */
     transition: transform var(--slide-out) var(--ease-out), visibility 0s var(--slide-out); }
   body.reading { overflow: hidden; }
   body.reading .reader-backdrop { opacity: calc(1 - var(--drag, 0)); pointer-events: auto; transition: opacity var(--slide-in) ease; }
-  body.reading .reader { transform: translateX(calc(var(--drag, 0) * 100%)); visibility: visible; transition: transform var(--slide-in) var(--ease-in); }
+  body.reading .reader { transform: translateX(calc(var(--drag, 0) * 100%)); visibility: visible; pointer-events: auto; transition: transform var(--slide-in) var(--ease-in); }
   body.dragging .reader, body.dragging .reader-backdrop, body.dragging .feed { transition: none !important; }
   /* Phones: the feed slides aside under the reader and follows a swipe back, like a native back gesture. */
   @media (max-width: 640px) {
