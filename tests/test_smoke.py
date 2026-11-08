@@ -599,9 +599,11 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     assert box.locator(".do b").inner_text().upper() == "WHAT TO DO"  # the hand-picked note, last
     assert frame.locator(".todo").count() == 1  # one box, not two
     pg.keyboard.press("Escape")
-    pg.locator(".weekly-card:not(.skeleton)").nth(1).click()  # an essential without one: the old callout
+    second = pg.locator(".weekly-card:not(.skeleton)").nth(1)
+    title = second.locator(".weekly-card-title").inner_text()
+    second.click()  # an essential without one: the old callout
     frame = pg.frame_locator("#reader-body iframe:not(.loading)")
-    frame.locator(".todo").wait_for()
+    frame.locator("h1", has_text=title[:30]).wait_for()  # this article's frame, not the last one's
     assert frame.locator(".tldr").count() == 0 and "what to do" in frame.locator(".todo").inner_text().lower()
 
 
