@@ -33,14 +33,13 @@ CATEGORIES = ["ai", "security", "architecture", "sdlc", "regulation", "other"]
 KEEP_DAYS = 90        # items and seen-URLs older than this are pruned
 FRESH_DAYS = int(os.environ.get("FRESH_DAYS", 3))  # ignore feed entries published longer ago than this
 PER_FEED = int(os.environ.get("PER_FEED", 10))     # newest N entries per feed per run (caps huge feeds)
-# 1-10 relevance an item needs to be kept, set from how Haiku actually scores: it gives plenty of security
-# stories an 8, but a strong architecture, SDLC or AI piece rarely gets above a 6.
-MIN_RELEVANCE = {"ai": 6, "security": 8, "architecture": 6, "sdlc": 6, "regulation": 8, "other": 7}
-CATEGORY_MAX = {"ai": 2, "security": 2, "architecture": 1, "sdlc": 1}  # per day, keeps the mix balanced
+# The one rule: a story is published if it clears its category's bar and isn't a repeat. The bars differ only to
+# calibrate for how Haiku scores: plenty of security stories get an 8, a strong architecture or SDLC piece a 6.
+MIN_RELEVANCE = {"ai": 7, "security": 8, "architecture": 6, "sdlc": 6, "regulation": 8, "other": 7}
 # Report on stories first published elsewhere: the original source wins ties and replaces their copy of a repeat.
 NEWS_SOURCES = {"Ars Technica", "BleepingComputer", "InfoQ", "SecurityWeek", "The Hacker News", "The Record"}
 DEDUPE_DAYS = 7       # new items are checked for repeats of the last N days' headlines
-DAILY_MAX = 10        # safety cap for big news days; the relevance bar does the real filtering
+DAILY_MAX = 10        # safety valve for an exceptional day; the bars do the real filtering
 DEAD_AFTER_DAYS = 14  # a feed failing this long gets reported
 SILENT_AFTER_DAYS = 45  # a feed that loads but hasn't posted in this long gets reported
 BATCH = 20            # stories per repeat check
@@ -470,36 +469,17 @@ def repeats(dup_of, n, covered_ids, recent_titles):
     return bool(dup_of) and norm(dup_of) in recent_titles
 
 
-LATE_TIE_SCORE = 8  # a late story that ties the day's weakest still gets in at this score or above
-
-
 def cap_per_day(items, published=()):
-    """Newest day first; within a day, each category's most relevant up to CATEGORY_MAX, then at most DAILY_MAX.
-    Ties go to the original source over a news outlet, then keep their order.
-    Stories already on the site (`published`, as ids of their dicts, which survive a source upgrade) always stay. A story
-    arriving after its category's slots are taken can still go over the cap if it's better than the weakest one there,
-    or ties it at LATE_TIE_SCORE or more: a strong late story isn't turned away, and nothing readers have seen is removed."""
+    """Newest day first. Each day keeps every story already on the site (`published`: ids of their dicts), then the
+    best new ones up to DAILY_MAX. Within a day: most relevant first, the original source ahead of a news outlet."""
     rank = lambda i: (-i.get("relevance", 0), i.get("publisher") in NEWS_SOURCES)
-    on_site = lambda i: id(i) in published
     by_day = {}
     for i in items:
         by_day.setdefault(i["date"], []).append(i)
     out = []
     for day in sorted(by_day, reverse=True):
-        kept = [i for i in by_day[day] if on_site(i)]
-        counts, floor = {}, {}
-        for i in kept:
-            cat = i.get("category")
-            counts[cat] = counts.get(cat, 0) + 1
-            floor[cat] = min(floor.get(cat, 99), i.get("relevance", 0))
-        fresh = []
-        for i in sorted((i for i in by_day[day] if not on_site(i)), key=rank):
-            cat, score = i.get("category"), i.get("relevance", 0)
-            within = counts.get(cat, 0) < CATEGORY_MAX.get(cat, DAILY_MAX)
-            late = cat in floor and (score > floor[cat] or (score >= LATE_TIE_SCORE and score >= floor[cat]))
-            if (within or late) and len(kept) + len(fresh) < DAILY_MAX:
-                fresh.append(i)
-                counts[cat] = counts.get(cat, 0) + 1
+        kept = [i for i in by_day[day] if id(i) in published]
+        fresh = sorted((i for i in by_day[day] if id(i) not in published), key=rank)[:max(0, DAILY_MAX - len(kept))]
         out += sorted(kept + fresh, key=rank)
     return out
 
@@ -610,7 +590,7 @@ def add_tldrs(items, texts, limit=TLDR_LIMIT):
     return len(todo)
 
 
-def run_summary(feeds, feeds_failed, new, scores, kept, repeated, health):
+def run_summary(feeds, feeds_failed, new, scores, kept, repeated, health, over_max=()):
     """Markdown for the Actions run page: what this build saw, kept and nearly kept."""
     title = {i["url"]: i for i in new}
     scored = {u: r for u, r in scores.items() if r}
@@ -624,6 +604,8 @@ def run_summary(feeds, feeds_failed, new, scores, kept, repeated, health):
     ]
     if kept:
         lines += ["### Kept", "", "| Category | Score | Source | Story |", "|---|---|---|---|", *(row(r, i) for i, r in kept), ""]
+    if over_max:
+        lines += [f"### Over the daily max ({DAILY_MAX})", "", "| Category | Score | Source | Story |", "|---|---|---|---|", *(row(r, i) for i, r in over_max), ""]
     if repeated:
         lines += ["### Dropped as repeats", "", *(f"- {i['publisher']}: {i['title']}" for i in repeated), ""]
     if near:
@@ -778,6 +760,9 @@ def main():
 
     keep = (today - timedelta(days=KEEP_DAYS)).isoformat()
     data["items"] = cap_per_day([i for i in data["items"] if i["date"] >= keep], published)
+    on_site = {i["url"] for i in data["items"]}
+    over_max = [(i, r) for i, r in kept if i["url"] not in on_site]  # cleared the bar on an exceptional day
+    kept = [(i, r) for i, r in kept if i["url"] in on_site]
     state["seen"] = {u: d for u, d in seen.items() if d >= keep}
 
     weekly = data.get("weekly")
@@ -807,7 +792,7 @@ def main():
     health = feed_health_report(names, dead, silent, {u: m for u, m in MOVED.items() if u in names}, suggestions)
     (ROOT / "feed-health.md").write_text(health)
 
-    write_summary(len(feeds), sum(r is None for r in fetched.values()), new, scores, kept, repeated, health)
+    write_summary(len(feeds), sum(r is None for r in fetched.values()), new, scores, kept, repeated, health, over_max)
 
     if new and failed == len(new):
         sys.exit("every scoring call failed; check CLAUDE_CODE_OAUTH_TOKEN and the Claude Code CLI")
