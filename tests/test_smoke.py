@@ -603,6 +603,8 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     pg.keyboard.press("Escape")
     wait_until_closed(pg)  # Esc closes through history.back(), which lands a moment later: click before it and the tile is still inert
     second = pg.locator(".weekly-card:not(.skeleton)").nth(1)
+    # Still sliding out over this tile for a moment: a click meant for the tile must not land in the old article.
+    assert pg.evaluate("getComputedStyle(document.getElementById('reader')).pointerEvents") == "none"
     title = second.locator(".weekly-card-title").inner_text()
     second.click()  # an essential without one: the old callout
     frame = pg.frame_locator("#reader-body iframe:not(.loading)")
