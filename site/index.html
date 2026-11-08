@@ -114,9 +114,10 @@
   #search { cursor: pointer; }  /* opens the search palette, like ⌘K */
   kbd { padding: 3px 6px; border: 1px solid var(--border-strong); border-bottom-width: 2px; border-radius: 5px; background: var(--bg); color: var(--text-muted); font: 600 .7rem/1 Inter, system-ui, sans-serif; white-space: nowrap; }
   .search-kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; }
-  .palette-backdrop { position: fixed; inset: 0; z-index: 300; background: rgba(0, 0, 0, .5); }
-  .palette { position: fixed; z-index: 301; top: 12vh; left: 50%; transform: translateX(-50%); width: min(640px, calc(100vw - 24px)); max-height: 70vh; display: flex; flex-direction: column;
-    overflow: hidden; background: var(--bg-card); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); box-shadow: 0 24px 64px rgba(0, 0, 0, .35); }
+  .palette::backdrop { background: rgba(0, 0, 0, .5); }
+  .palette { position: fixed; inset: 12vh auto auto 50%; transform: translateX(-50%); width: min(640px, calc(100vw - 24px)); max-width: none; max-height: 70vh; margin: 0; padding: 0; flex-direction: column;
+    overflow: hidden; color: inherit; background: var(--bg-card); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); box-shadow: 0 24px 64px rgba(0, 0, 0, .35); }
+  .palette[open] { display: flex; }
   .palette-input { display: flex; align-items: center; gap: 10px; padding: 0 14px; border-bottom: 1px solid var(--border); }
   .palette-input svg { flex: none; width: 18px; height: 18px; color: var(--text-muted); }
   #palette-q { flex: 1; min-width: 0; height: 52px; border: 0; outline: none; background: none; color: var(--text); font: inherit; font-size: 1rem; }
@@ -274,12 +275,12 @@
     .site-foot { padding-bottom: 72px; }  /* clears the back-to-top button */
     /* Under the header, which stays clear; tapping it closes. */
     .palette { top: 60px; left: 8px; right: 8px; width: auto; transform: none; max-height: calc(100dvh - 68px); }
-    .palette-backdrop { background: linear-gradient(transparent 52px, rgba(0, 0, 0, .5) 52px); }
+    .palette::backdrop { background: linear-gradient(transparent 52px, rgba(0, 0, 0, .5) 52px); }
     .palette-foot { display: none; }
     /* No Esc key here: the close button sits over the header's search icon, so it turns into an X. */
     .palette-close { position: fixed; top: 4px; right: 102px; display: grid; place-items: center; width: 44px; height: 44px; color: var(--text-muted); }
     .palette-close kbd { display: none; } .palette-close svg { display: block; width: 24px; height: 24px; }
-    body:has(#palette:not([hidden])) .search-wrap > svg { visibility: hidden; }
+    body:has(#palette[open]) .search-wrap > svg { visibility: hidden; }
   }
   /* The reader's slide: the same both ways, moving at once and settling. Phones travel less, so take less time. */
   :root { --slide-in: .32s; --slide-out: .32s; --ease-in: cubic-bezier(.25, .6, .25, 1); --ease-out: cubic-bezier(.25, .6, .25, 1); }
@@ -423,8 +424,7 @@
     <button class="icon-btn" id="reader-next" type="button" aria-label="Next article" title="Next article"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
   </div>
 </div>
-<div class="palette-backdrop" id="palette-backdrop" hidden></div>
-<div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Search articles" hidden>
+<dialog class="palette" id="palette" aria-label="Search articles">
   <div class="palette-input">
     <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
     <input id="palette-q" type="text" role="combobox" aria-expanded="true" aria-controls="palette-list" aria-autocomplete="list" placeholder="Search articles…" autocomplete="off" spellcheck="false">
@@ -432,7 +432,7 @@
   </div>
   <ul class="palette-list" id="palette-list" role="listbox" aria-label="Results"></ul>
   <div class="palette-foot"><span><kbd>↑</kbd><kbd>↓</kbd> choose</span><span><kbd>↵</kbd> read</span><span><kbd>Esc</kbd> close</span></div>
-</div>
+</dialog>
 <dialog class="keys" id="keys" aria-labelledby="keys-title">
   <h2 id="keys-title">Keyboard shortcuts</h2>
   <dl>

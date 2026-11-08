@@ -699,6 +699,7 @@ def test_the_search_bar_and_slash_open_the_palette(browser):
         pg.wait_for_selector("a.card")
         pg.click("#search") if opener == "click" else pg.keyboard.press("/")
         pg.locator("#palette").wait_for()
+        assert pg.evaluate("document.getElementById('palette').matches(':modal')")  # native: Esc and the phone's back button close it
         assert pg.evaluate("document.activeElement.id") == "palette-q"
         pg.keyboard.type("openai")
         assert pg.locator("#palette-list li[data-n]").count() > 0
@@ -809,4 +810,59 @@ def test_swipe_back_on_a_phone(browser):
         pg.wait_for_timeout(16)
     cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
     wait_until_closed(pg)
+    assert pg.problems == []
+
+
+def test_search_highlight_never_splits_an_entity(browser):
+    pg = open_site(browser, viewport={"width": 1300, "height": 900})
+    assert pg.evaluate("highlight(\"Tom & Jerry's\", 'm')") == "To<mark>m</mark> &amp; Jerry&#39;s"  # not &a<mark>m</mark>p;
+    assert pg.evaluate("highlight('a.b', '.')") == "a<mark>.</mark>b"  # the query is literal, not a pattern
+    assert pg.problems == []
+
+
+def test_page_keys_stay_out_of_the_open_search_panel(browser):
+    pg = open_site(browser, viewport={"width": 1300, "height": 900})
+    pg.locator("a.card").first.click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    url = pg.url
+    pg.keyboard.press("Control+k")
+    pg.locator("#palette").wait_for()
+    pg.locator(".palette-foot").click()  # focus leaves the input for the dialog itself
+    pg.keyboard.press("j")
+    assert pg.url == url  # the reader behind didn't move
+    pg.keyboard.press("Escape")
+    pg.locator("#palette").wait_for(state="hidden")
+    assert reading(pg)  # Esc closed only the panel
+    assert pg.problems == []
+
+
+def test_j_does_nothing_when_the_open_story_is_filtered_out(browser):
+    pg = open_site(browser, viewport={"width": 1300, "height": 900})
+    pg.locator(".filter-btn", has_text="Security").click()
+    pg.keyboard.press("Control+k")
+    other = pg.evaluate("items.find(i => i.category !== 'security').title")
+    pg.keyboard.type(other)
+    pg.keyboard.press("Enter")
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    url = pg.url
+    assert pg.locator("#reader-next").is_disabled()
+    pg.keyboard.press("j")
+    pg.wait_for_timeout(200)
+    assert pg.url == url
+    assert pg.problems == []
+
+
+def test_closing_after_forward_doesnt_strand_a_history_entry(browser):
+    pg = open_site(browser, viewport={"width": 1300, "height": 900})
+    pg.locator("a.card").first.click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.go_back()
+    wait_until_closed(pg)
+    pg.go_forward()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.locator("#reader-close").click()
+    wait_until_closed(pg)
+    assert pg.evaluate("location.pathname") == "/"
+    pg.go_back()  # one Back leaves, not a second copy of the feed
+    assert pg.url == "about:blank"
     assert pg.problems == []
