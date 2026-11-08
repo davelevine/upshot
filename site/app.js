@@ -285,7 +285,7 @@ pre { overflow-x: auto; padding: 12px 14px; border-radius: 8px; background: var(
 pre code { padding: 0; background: none; font: inherit; }
 table { display: block; overflow-x: auto; border-collapse: collapse; font-size: .875rem; } th, td { padding: 4px 8px; border: 1px solid var(--border); } th { font-weight: 700; }
 hr { border: 0; border-top: 1px solid var(--border); }
-.late { animation: late .2s ease .3s both; } @keyframes late { from { opacity: 0; } }
+.late { animation: late .2s ease .4s both; } @keyframes late { from { opacity: 0; } }
 .status { color: var(--text-muted); font: .9375rem/1.5 Inter, system-ui, sans-serif; }
 .pill { display: inline-block; padding: 10px 18px; border: 1px solid var(--accent); border-radius: 999px; font: 600 .9375rem/1.4 Inter, system-ui, sans-serif; text-decoration: none; }
 @media (max-width: 600px) { main { padding: 24px 18px 80px; } .pill { padding: 12px 18px; } }
@@ -415,7 +415,7 @@ function closeReader() {
   document.querySelectorAll('.feed, #top').forEach(el => { el.inert = false; });
   const card = url && cardFor(url);  // back to where you were, even after j/k through several articles
   if (card) { card.focus({ preventScroll: true }); card.scrollIntoView({ block: 'nearest' }); }
-  setTimeout(() => { if (!readerFor) $('reader-body').replaceChildren(); }, 250);
+  setTimeout(() => { if (!readerFor) $('reader-body').replaceChildren(); }, 350);  // after the slide out
 }
 function dismiss() {
   if (readerPushed && history.state?.reader) return history.back();

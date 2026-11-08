@@ -254,13 +254,16 @@
     .palette { top: 8px; max-height: calc(100vh - 16px); }
     .palette-foot { display: none; }
   }
-  .reader-backdrop { position: fixed; inset: 0; z-index: 200; background: rgba(0, 0, 0, .45); opacity: 0; pointer-events: none; transition: opacity .18s; }
+  /* The reader's slide: unhurried in, with a long ease-out, and a little quicker out. Phones travel less, so take less time. */
+  :root { --slide-in: .4s; --slide-out: .3s; --ease-in: cubic-bezier(.4, .3, .2, 1); --ease-out: cubic-bezier(.4, 0, .9, .4); }
+  @media (max-width: 640px) { :root { --slide-in: .34s; --slide-out: .26s; } }
+  .reader-backdrop { position: fixed; inset: 0; z-index: 200; background: rgba(0, 0, 0, .45); opacity: 0; pointer-events: none; transition: opacity var(--slide-out) ease; }
   .reader { position: fixed; top: 0; right: 0; bottom: 0; z-index: 201; width: min(820px, 100vw); display: flex; flex-direction: column;
     background: var(--bg); border-left: 1px solid var(--border); box-shadow: 0 24px 64px rgba(0, 0, 0, .3); transform: translateX(100%); visibility: hidden;
-    transition: transform .22s cubic-bezier(.2, 0, 0, 1), visibility 0s .22s; }
+    transition: transform var(--slide-out) var(--ease-out), visibility 0s var(--slide-out); }
   body.reading { overflow: hidden; }
-  body.reading .reader-backdrop { opacity: calc(1 - var(--drag, 0)); pointer-events: auto; }
-  body.reading .reader { transform: translateX(calc(var(--drag, 0) * 100%)); visibility: visible; transition: transform .22s cubic-bezier(.2, 0, 0, 1); }
+  body.reading .reader-backdrop { opacity: calc(1 - var(--drag, 0)); pointer-events: auto; transition: opacity var(--slide-in) ease; }
+  body.reading .reader { transform: translateX(calc(var(--drag, 0) * 100%)); visibility: visible; transition: transform var(--slide-in) var(--ease-in); }
   body.dragging .reader, body.dragging .reader-backdrop, body.dragging .feed { transition: none !important; }
   /* Phones: the feed slides aside under the reader and follows a swipe back, like a native back gesture. */
   @media (max-width: 640px) {
@@ -268,8 +271,8 @@
     .reader-icon { margin-left: -6px; }  /* sits close to the chevron, as Feedbin's does */  /* full-screen here, swiped back like a page: a back chevron */
     .reader .reader-nav { display: flex; }
     .reader-nav .icon-btn, .reader-bar .icon-btn { width: 44px; height: 44px; }
-    .feed { transition: transform .22s cubic-bezier(.2, 0, 0, 1); }
-    body.reading .feed { transform: translateX(calc(-25% * (1 - var(--drag, 0)))); }
+    .feed { transition: transform var(--slide-out) var(--ease-out); }
+    body.reading .feed { transform: translateX(calc(-25% * (1 - var(--drag, 0)))); transition: transform var(--slide-in) var(--ease-in); }
   }
   .reader-bar { display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 12px; border-bottom: 1px solid var(--border); flex: 0 0 auto; }
   .reader-spacer { flex: 1; }

@@ -193,6 +193,7 @@ def test_day_minutes_show_only_when_every_story_has_one(browser):
         data = route.fetch().json()
         a, b, c = data["items"][:3]
         data["items"] = [{**a, "date": today, "minutes": 4}, {**b, "date": today, "minutes": 3}, {**c, "date": yesterday, "minutes": 0}]
+        data["tz"] = "UTC"  # the dates above are UTC ones; the page labels days in data.json's zone
         route.fulfill(json=data)
     ctx.route("**/data.json*", patched)
     pg.goto(URL)
@@ -281,7 +282,7 @@ def test_reader_shows_the_story_before_the_fetch_finishes(browser):
     assert frame.locator(".status").inner_text() == "Loading the full article\u2026"
     assert frame.locator("main p").first.inner_text() != ""  # the summary
     # Its body holds back past the panel's slide, so a fast article replaces the card before it's ever seen.
-    assert frame.locator(".late").evaluate("e => getComputedStyle(e).animationDelay") == "0.3s"
+    assert frame.locator(".late").evaluate("e => getComputedStyle(e).animationDelay") == "0.4s"
     for _ in range(50):
         if held:
             break
