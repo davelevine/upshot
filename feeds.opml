@@ -16,6 +16,7 @@
     <outline type="rss" text="CrowdStrike" xmlUrl="https://www.crowdstrike.com/en-us/blog/feed"/>
     <outline type="rss" text="Cursor" xmlUrl="https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_cursor.xml"/>
     <outline type="rss" text="Docker" xmlUrl="https://www.docker.com/feed/"/>
+    <outline type="rss" text="DoublePulsar" xmlUrl="https://doublepulsar.com/feed"/>
     <outline type="rss" text="ElevenLabs" xmlUrl="https://elevenlabs.io/blog/rss.xml"/>
     <outline type="rss" text="Epoch AI" xmlUrl="https://epoch.ai/atom.xml"/>
     <outline type="rss" text="Figma" xmlUrl="https://www.figma.com/blog/feed/atom.xml"/>
@@ -25,6 +26,7 @@
     <outline type="rss" text="Google Blog" xmlUrl="https://blog.google/rss"/>
     <outline type="rss" text="Google Cloud Blog" xmlUrl="https://cloudblog.withgoogle.com/rss/"/>
     <outline type="rss" text="Google DeepMind" xmlUrl="https://deepmind.google/blog/rss.xml"/>
+    <outline type="rss" text="Google Project Zero" xmlUrl="https://projectzero.google/feed.xml"/>
     <outline type="rss" text="Google Research" xmlUrl="https://research.google/blog/rss"/>
     <outline type="rss" text="Google Threat Intelligence" xmlUrl="https://cloudblog.withgoogle.com/topics/threat-intelligence/rss/"/>
     <outline type="rss" text="Hacker News 300+" xmlUrl="https://hnrss.org/frontpage?points=300"/>
@@ -62,6 +64,7 @@
     <outline type="rss" text="Trail of Bits" xmlUrl="https://blog.trailofbits.com/feed/"/>
     <outline type="rss" text="UK AISI" xmlUrl="https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_aisi.xml"/>
     <outline type="rss" text="Unit 42" xmlUrl="https://unit42.paloaltonetworks.com/feed/"/>
+    <outline type="rss" text="Volexity" xmlUrl="https://www.volexity.com/feed/"/>
     <outline type="rss" text="Warp" xmlUrl="https://www.warp.dev/blog/feed.xml"/>
     <outline type="rss" text="watchTowr Labs" xmlUrl="https://labs.watchtowr.com/rss/"/>
     <outline type="rss" text="Wiz" xmlUrl="https://www.wiz.io/feed/rss.xml"/>
