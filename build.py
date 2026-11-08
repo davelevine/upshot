@@ -425,22 +425,27 @@ def repeats(dup_of, n, covered_ids, recent_titles):
     return bool(dup_of) and norm(dup_of) in recent_titles
 
 
-def cap_per_day(items):
+def cap_per_day(items, published=()):
     """Newest day first; within a day, each category's most relevant up to CATEGORY_MAX, then the DAILY_MAX most
-    relevant overall. Ties go to the original source over a news outlet, then keep their order."""
+    relevant overall. Ties go to the original source over a news outlet, then keep their order.
+    Stories already on the site (`published`, as ids of their dicts, which survive a source upgrade) always stay and
+    take their slots first: a better story arriving later misses the day rather than replacing one readers have seen."""
     rank = lambda i: (-i.get("relevance", 0), i.get("publisher") in NEWS_SOURCES)
+    on_site = lambda i: id(i) in published
     by_day = {}
     for i in items:
         by_day.setdefault(i["date"], []).append(i)
     out = []
     for day in sorted(by_day, reverse=True):
-        counts, picked = {}, []
-        for i in sorted(by_day[day], key=rank):
+        counts, kept, fresh = {}, [], []
+        for i in sorted(by_day[day], key=lambda i: (not on_site(i), *rank(i))):
             cat = i.get("category")
             counts[cat] = counts.get(cat, 0) + 1
-            if counts[cat] <= CATEGORY_MAX.get(cat, DAILY_MAX):
-                picked.append(i)
-        out += picked[:DAILY_MAX]
+            if on_site(i):
+                kept.append(i)
+            elif counts[cat] <= CATEGORY_MAX.get(cat, DAILY_MAX) and len(kept) + len(fresh) < DAILY_MAX:
+                fresh.append(i)
+        out += sorted(kept + fresh, key=rank)
     return out
 
 
@@ -549,6 +554,7 @@ def main():
     state = json.loads(STATE.read_text()) if STATE.exists() else {"seen": {}, "failing_since": {}}
     data_path = SITE / "data.json"
     data = json.loads(data_path.read_text()) if data_path.exists() else {"items": [], "weekly": None}
+    published = {id(i) for i in data["items"]}  # on the site already: these never give up their place
     seen = state["seen"]
     feeds = read_opml(ROOT / "feeds.opml")
 
@@ -618,7 +624,7 @@ def main():
                                     "added": now().isoformat(timespec="seconds")})  # drives "new since last visit"
 
     keep = (today - timedelta(days=KEEP_DAYS)).isoformat()
-    data["items"] = cap_per_day([i for i in data["items"] if i["date"] >= keep])
+    data["items"] = cap_per_day([i for i in data["items"] if i["date"] >= keep], published)
     state["seen"] = {u: d for u, d in seen.items() if d >= keep}
 
     weekly = data.get("weekly")

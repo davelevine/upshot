@@ -96,6 +96,20 @@ def test_cap_per_day_keeps_most_relevant():
     assert out[-1]["url"] == "old"                                                          # newest day first
 
 
+def test_cap_per_day_never_drops_a_published_story():
+    day = lambda cat, rel, pub, url: {"date": "2026-11-08", "category": cat, "relevance": rel, "publisher": pub, "url": url}
+    infoq = day("architecture", 6, "InfoQ", "infoq")   # on the site since this morning
+    cncf = day("architecture", 6, "CNCF", "cncf")       # arrives later; would win the tie as the original source
+    better = day("architecture", 9, "Figma", "figma")   # or even outscore it
+    out = build.cap_per_day([infoq, cncf, better], published={id(infoq)})
+    assert [i["url"] for i in out] == ["infoq"]  # the day's one architecture slot stays taken
+    many = [day("other", 5, "P", f"p{n}") for n in range(build.DAILY_MAX)]
+    out = build.cap_per_day(many + [day("other", 9, "P", "late")], published={id(i) for i in many})
+    assert "late" not in [i["url"] for i in out] and len(out) == build.DAILY_MAX
+    out = build.cap_per_day([cncf, better])  # nothing published yet: the usual ranking
+    assert [i["url"] for i in out] == ["figma"]
+
+
 def test_cap_per_day_balances_categories_and_prefers_original_sources():
     day = lambda cat, rel, pub, url: {"date": "2026-01-02", "category": cat, "relevance": rel, "publisher": pub, "url": url}
     out = build.cap_per_day([
