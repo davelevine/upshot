@@ -58,7 +58,7 @@ Every four hours the Build workflow runs `build.py`:
 6. **Pick the essentials:** once a day, the model chooses the week's five.
 7. **Publish:** writes the data and RSS, remembers seen URLs in `state.json`, commits, and Cloudflare Pages deploys on the push.
 
-Everything older than 90 days is pruned, so the data stays small. It also looks after itself: a feed that has failed for two weeks lands in a single "Dead feeds" issue, and a run where every LLM call fails exits with an error so GitHub emails you.
+Everything older than 90 days is pruned, so the data stays small. It also looks after itself: a feed that has failed for two weeks, gone quiet or moved lands in a single "Feed health" issue that closes itself once it's fixed, and a run where every LLM call fails exits with an error so GitHub emails you.
 
 <details>
   <summary><strong>The reader, and what it does with your data</strong></summary>
@@ -187,7 +187,7 @@ Leave the built-in schedule in place as a fallback; a duplicate run finds nothin
   <summary><strong>Optional extras</strong></summary>
 
 - **Renovate:** install the [Renovate app](https://github.com/apps/renovate) on the fork; [`renovate.json`](renovate.json) is already set up.
-- **Dead feeds:** a feed that fails every fetch for two weeks gets listed in one "Dead feeds" issue; no other setup needed.
+- **Feed health:** one "Feed health" issue lists feeds that have failed every fetch for two weeks, feeds that load but have no readable dates or no post in 45 days, and feeds that permanently redirect (with the new address). For failing and quiet feeds it suggests any feeds the publisher's homepage advertises. It updates every build and closes itself when all feeds are healthy; no other setup needed.
 
 </details>
 
