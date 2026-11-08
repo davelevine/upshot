@@ -385,9 +385,21 @@ def test_share_copies_the_publishers_url_on_desktop(browser):
     pg.wait_for_selector("a.card")
     url = pg.locator("a.card").first.get_attribute("href")
     pg.locator("a.card").first.click()
+    pg.locator("#reader-share").click()  # no share sheet in this browser: a menu
+    names = pg.locator("#share-pop [role=menuitem]").all_inner_texts()
+    assert names == ["Copy link", "Email", "Bluesky", "Reddit", "LinkedIn"]
+    box = pg.locator("#share-pop").bounding_box()
+    assert box["x"] >= 0 and box["x"] + box["width"] <= 1300  # fully on screen
+    enc = urllib.parse.quote(url, safe="")
+    for sel in ("#share-email", "#share-reddit", "#share-linkedin"):
+        assert enc in pg.locator(sel).get_attribute("href"), sel
+    assert pg.locator("#share-bluesky").get_attribute("href").startswith("https://bsky.app/intent/compose?text=")
+    pg.keyboard.press("Escape")  # closes the menu, not the reader
+    assert pg.locator("#share-pop").is_hidden() and pg.evaluate("document.body.classList.contains('reading')")
     pg.locator("#reader-share").click()
+    pg.locator("#share-copy").click()
     pg.locator("#share-done", has_text="Copied").wait_for()
-    assert pg.evaluate("navigator.clipboard.readText()") == url
+    assert pg.evaluate("navigator.clipboard.readText()") == url and pg.locator("#share-pop").is_hidden()
 
 
 def test_share_opens_the_share_sheet_on_a_phone(browser):
@@ -642,9 +654,14 @@ def test_share_icon_matches_the_device(browser):
     desktop = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
     desktop.goto(URL)
     desktop.wait_for_selector("a.card")
-    assert desktop.locator("#reader-share").get_attribute("data-kind") == "copy"
-    assert desktop.locator("#reader-share").get_attribute("aria-label") == "Share: copies the link"
+    assert desktop.locator("#reader-share").get_attribute("data-kind") == "menu"
     assert desktop.locator("#reader-share .share-apple").evaluate("e => getComputedStyle(e).display") == "block"  # the box and arrow, not a link icon
+    mac = browser.new_context(viewport={"width": 1300, "height": 900})
+    mac.add_init_script("navigator.share = () => Promise.resolve();")  # a desktop browser with a share sheet uses it
+    mp = mac.new_page()
+    mp.goto(URL)
+    mp.wait_for_selector("a.card")
+    assert mp.locator("#reader-share").get_attribute("data-kind") == "apple"
     for ua, kind in (("Mozilla/5.0 (Linux; Android 16; Pixel 9 Pro) AppleWebKit/537.36 Chrome/131 Mobile Safari/537.36", "android"),
                      ("Mozilla/5.0 (iPhone; CPU iPhone OS 19_0 like Mac OS X) AppleWebKit/605.1.15 Version/19.0 Mobile/15E148 Safari/604.1", "apple")):
         ctx = browser.new_context(viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True, user_agent=ua)

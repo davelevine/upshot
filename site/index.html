@@ -58,6 +58,14 @@
   .share-done { color: var(--accent); font-size: .8125rem; }
   /* Android's share icon on Android; the box and arrow everywhere else, including desktop, where the button copies the link. */
   #reader-share svg { display: none; }
+  /* Where the browser has no share sheet: a menu of ways to share. */
+  .share-wrap { position: relative; }
+  .popover.share-pop { left: auto; right: 0; width: auto; min-width: 180px; display: flex; flex-direction: column; padding: 6px; }
+  .popover.share-pop[hidden] { display: none; }
+  .share-pop > * { display: flex; align-items: center; min-height: 44px; padding: 0 12px; border: 0; border-radius: var(--radius-sm); background: none;
+    color: var(--text); font: 500 .9375rem/1.2 Inter, system-ui, sans-serif; text-align: left; text-decoration: none; cursor: pointer; }
+  .share-pop > *:hover { background: var(--bg-card-hover); }
+  #reader-share[aria-expanded="true"] { background: var(--bg-card-hover); color: var(--text); }
   #reader-share:not([data-kind="android"]) .share-apple, #reader-share[data-kind="android"] .share-android { display: block; }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   /* Theme switch: colors change in one frame and a view transition crossfades the page (see app.js). */
@@ -255,9 +263,9 @@
     .palette { top: 8px; max-height: calc(100vh - 16px); }
     .palette-foot { display: none; }
   }
-  /* The reader's slide: both ways move at once and settle; out is a little quicker. Phones travel less, so take less time. */
-  :root { --slide-in: .32s; --slide-out: .24s; --ease-in: cubic-bezier(.25, .6, .25, 1); --ease-out: cubic-bezier(.25, .6, .25, 1); }
-  @media (max-width: 640px) { :root { --slide-in: .28s; --slide-out: .22s; } }
+  /* The reader's slide: the same both ways, moving at once and settling. Phones travel less, so take less time. */
+  :root { --slide-in: .32s; --slide-out: .32s; --ease-in: cubic-bezier(.25, .6, .25, 1); --ease-out: cubic-bezier(.25, .6, .25, 1); }
+  @media (max-width: 640px) { :root { --slide-in: .28s; --slide-out: .28s; } }
   .reader-backdrop { position: fixed; inset: 0; z-index: 200; background: rgba(0, 0, 0, .45); opacity: 0; pointer-events: none; transition: opacity var(--slide-out) ease; }
   .reader { position: fixed; top: 0; right: 0; bottom: 0; z-index: 201; width: min(820px, 100vw); display: flex; flex-direction: column;
     background: var(--bg); border-left: 1px solid var(--border); box-shadow: 0 24px 64px rgba(0, 0, 0, .3); transform: translateX(100%); visibility: hidden;
@@ -373,7 +381,16 @@
         <button type="button" data-size="0" aria-label="Small" title="Small">A</button><button type="button" data-size="1" aria-label="Medium" title="Medium">A</button><button type="button" data-size="2" aria-label="Large" title="Large">A</button><button type="button" data-size="3" aria-label="Larger" title="Larger">A</button>
       </span>
     </span>
-    <button class="icon-btn" id="reader-share" type="button" title="Share article" aria-label="Share article" data-kind="apple"><svg class="share-apple" viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg><svg class="share-android" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+    <span class="share-wrap">
+      <button class="icon-btn" id="reader-share" type="button" title="Share article" aria-label="Share article" aria-expanded="false" aria-controls="share-pop" data-kind="apple"><svg class="share-apple" viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg><svg class="share-android" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+      <span class="popover share-pop" id="share-pop" role="menu" aria-label="Share" hidden>
+        <button type="button" role="menuitem" id="share-copy">Copy link</button>
+        <a role="menuitem" id="share-email" target="_blank" rel="noopener noreferrer">Email</a>
+        <a role="menuitem" id="share-bluesky" target="_blank" rel="noopener noreferrer">Bluesky</a>
+        <a role="menuitem" id="share-reddit" target="_blank" rel="noopener noreferrer">Reddit</a>
+        <a role="menuitem" id="share-linkedin" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      </span>
+    </span>
     <button class="icon-btn" id="reader-theme" type="button" title="Toggle dark mode" aria-label="Toggle dark mode">
       <svg class="only-light" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       <svg class="only-dark" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
