@@ -232,18 +232,24 @@
   }
   @media (max-width: 640px) {
     header { padding: 0 14px; }
-    .subheader { padding: 8px 14px; }
-    .stale { margin: -8px -14px 8px; padding: 0 14px; }
-    .subheader:has(.stale:not([hidden])) .filters, .subheader:has(.stale:not([hidden])) .filters::backdrop { top: 141px; }
-    .filter-toggle { display: inline-flex; flex: none; align-items: center; justify-content: center; gap: 6px; min-width: 44px; height: 44px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text-muted); font: inherit; font-size: .875rem; font-weight: 600; cursor: pointer; }
-    .filter-toggle svg { width: 20px; height: 20px; }
+    /* Search and filters become header icons beside the menu; only the stale band (rare) stays below. */
+    .subheader { display: contents; }
+    .stale { margin: 0; padding: 0 14px; }
+    .search-row { position: fixed; top: 0; right: 58px; z-index: 101; height: 52px; align-items: center; gap: 0; max-width: none; margin: 0; }
+    .search-wrap { flex: none; width: 44px; height: 44px; }
+    .search-wrap > svg { left: 50%; width: 24px; height: 24px; transform: translate(-50%, -50%); }
+    #search, #search:focus { height: 44px; padding: 0; border-color: transparent; background: none; color: transparent; }
+    #search::placeholder { color: transparent; }
+    .filter-toggle { display: inline-flex; flex: none; align-items: center; justify-content: center; gap: 6px; min-width: 44px; height: 44px; padding: 0 9px; border: 1px solid transparent; border-radius: var(--radius-sm); background: none; color: var(--text-muted); font: inherit; font-size: .875rem; font-weight: 600; cursor: pointer; }
+    .filter-toggle svg { width: 24px; height: 24px; }
+    #filter-label:empty { display: none; }  /* or its gap widens the icon */
     .filter-toggle.active { border-color: var(--accent); background: var(--accent-soft); color: var(--tag-text); }
     .subheader:has(.filters:popover-open) .filter-toggle { border-color: var(--border-strong); background: var(--bg-card-hover); }
-    /* Same drawer as the menu, under the pinned search row (52px header + 61px row). */
-    .filters { position: fixed; inset: 113px 0 auto; flex-wrap: wrap; width: 100%; max-width: none; min-height: 0; margin: 0; padding: 12px 14px 14px; overflow: visible; border-bottom: 1px solid var(--border-strong);
+    /* Same drawer as the menu, under the header. */
+    .filters { position: fixed; inset: 52px 0 auto; flex-wrap: wrap; width: 100%; max-width: none; min-height: 0; margin: 0; padding: 12px 14px 14px; overflow: visible; border-bottom: 1px solid var(--border-strong);
       background: var(--bg); box-shadow: 0 12px 24px rgba(0, 0, 0, .25); clip-path: inset(0 0 100% 0);
       transition: clip-path .22s cubic-bezier(.2, 0, 0, 1), display .22s allow-discrete, overlay .22s allow-discrete; }
-    .filters::backdrop { top: 113px; background: transparent; transition: background .22s ease, display .22s allow-discrete, overlay .22s allow-discrete; }
+    .filters::backdrop { top: 52px; background: transparent; transition: background .22s ease, display .22s allow-discrete, overlay .22s allow-discrete; }
     .filters:not(:popover-open) { display: none; }
     body:has(.filters:popover-open) > :not(header, .subheader) { pointer-events: none; }  /* a tap outside only closes the drawer */
     .filters:popover-open { clip-path: inset(0 0 -40px 0); }
@@ -255,7 +261,6 @@
     .filter-btn { min-height: 44px; }
     .icon-btn, .nav-btn { width: 44px; height: 44px; }
     .icon-btn svg { width: 24px; height: 24px; }
-    #search { min-height: 44px; font-size: 1rem; }
     .palette-list li { min-height: 44px; }
     .weekly, .items { padding-left: 14px; padding-right: 14px; }
     .weekly-header { gap: 8px; }
