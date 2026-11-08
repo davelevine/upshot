@@ -47,7 +47,6 @@ function renderFilters() {
 
 function renderItems(keepLimit) {
   const ql = $('search').value.trim().toLowerCase();
-  $('search-wrap').classList.toggle('has-value', !!ql);
   shown = items.filter(i => (filter === 'all' || cat(i.category) === filter) &&
     (!ql || `${i.title} ${i.summary} ${i.publisher} ${domain(i.url)}`.toLowerCase().includes(ql)));
   $('status').textContent = ql ? `${shown.length} articles found` : '';
@@ -153,11 +152,11 @@ $('filters').onclick = e => {
   renderItems();
   if ($('filters').matches(':popover-open')) $('filters').hidePopover();
 };
-$('search').oninput = () => renderItems();
+// The search bar opens the palette, the same search as ⌘K, rather than filtering the feed in place.
+$('search').addEventListener('focus', () => { $('search').blur(); openPalette(); });
 io.observe($('sentinel'));
 addEventListener('scroll', () => { $('top').hidden = scrollY < 800; }, { passive: true });
 $('top').onclick = () => scrollTo({ top: 0, behavior: 'smooth' });
-$('clear').onclick = () => { $('search').value = ''; renderItems(); $('search').focus(); };
 
 // Read and "new since last visit" state lives only in this browser.
 let weekly = null;
@@ -285,7 +284,7 @@ pre { overflow-x: auto; padding: 12px 14px; border-radius: 8px; background: var(
 pre code { padding: 0; background: none; font: inherit; }
 table { display: block; overflow-x: auto; border-collapse: collapse; font-size: .875rem; } th, td { padding: 4px 8px; border: 1px solid var(--border); } th { font-weight: 700; }
 hr { border: 0; border-top: 1px solid var(--border); }
-.late { animation: late .2s ease .3s both; } @keyframes late { from { opacity: 0; } }
+.late { animation: late .2s ease .4s both; } @keyframes late { from { opacity: 0; } }
 .status { color: var(--text-muted); font: .9375rem/1.5 Inter, system-ui, sans-serif; }
 .pill { display: inline-block; padding: 10px 18px; border: 1px solid var(--accent); border-radius: 999px; font: 600 .9375rem/1.4 Inter, system-ui, sans-serif; text-decoration: none; }
 @media (max-width: 600px) { main { padding: 24px 18px 80px; } .pill { padding: 12px 18px; } }
@@ -386,6 +385,7 @@ const closeSize = () => { $('size-pop').hidden = true; $('reader-size').setAttri
 $('reader-size').onclick = e => {
   e.stopPropagation();
   const open = $('size-pop').hidden;
+  closeMenus();  // one menu at a time: these clicks don't reach the page-wide close
   $('size-pop').hidden = !open;
   $('reader-size').setAttribute('aria-expanded', String(open));
   if (open) $('size-pop').querySelector('[aria-pressed="true"]').focus({ preventScroll: true });
@@ -415,7 +415,7 @@ function closeReader() {
   document.querySelectorAll('.feed, #top').forEach(el => { el.inert = false; });
   const card = url && cardFor(url);  // back to where you were, even after j/k through several articles
   if (card) { card.focus({ preventScroll: true }); card.scrollIntoView({ block: 'nearest' }); }
-  setTimeout(() => { if (!readerFor) $('reader-body').replaceChildren(); }, 250);
+  setTimeout(() => { if (!readerFor) $('reader-body').replaceChildren(); }, 350);  // after the slide out
 }
 function dismiss() {
   if (readerPushed && history.state?.reader) return history.back();
@@ -496,11 +496,12 @@ function onKey(key, mod, e) {
   const reading = document.body.classList.contains('reading');
   if ($('keys').open) return;  // the dialog handles its own Esc
   if (key === 'escape' && !$('size-pop').hidden) { closeSize(); return $('reader-size').focus(); }
+  if (key === 'escape' && !$('send-pop').hidden) { closeShare(); return $('reader-send').focus(); }
   if (key === 'escape' && reading) return dismiss();
   if (key === 'k' && mod) { e?.preventDefault(); return openPalette(); }
   if (mod || e?.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;
   if (key === '?') { e?.preventDefault(); $('keys').showModal(); }
-  else if (key === '/' && !reading) { e?.preventDefault(); $('search').focus(); }
+  else if (key === '/' && !reading) { e?.preventDefault(); openPalette(); }
   else if (key === 'j' || key === 'arrowright') { e?.preventDefault(); step(1); }
   else if (key === 'k' || key === 'arrowleft') { e?.preventDefault(); step(-1); }
 }
@@ -508,16 +509,57 @@ addEventListener('keydown', e => onKey(e.key.toLowerCase(), e.metaKey || e.ctrlK
 $('keys').addEventListener('click', e => { if (e.target === $('keys')) $('keys').close(); });  // a click on the backdrop
 
 // Share the publisher's article, not this site's reader link: that's what the recipient wants.
-$('reader-share').onclick = async () => {
+// The browser's own share sheet where it has one (phones, and Chrome, Edge and Safari on Windows and Mac); otherwise a menu.
+// The same menu everywhere; where the browser has a share sheet, "More…" opens it.
+const shareKind = /Android/i.test(navigator.userAgent) ? 'android' : 'apple';  // which icon
+$('reader-send').dataset.kind = shareKind;
+$('send-more').hidden = !navigator.share;
+const closeShare = () => { $('send-pop').hidden = true; $('reader-send').setAttribute('aria-expanded', 'false'); };
+$('reader-send').onclick = async e => {
+  e.stopPropagation();
   const i = items.find(x => x.url === readerFor);
   if (!i) return;
-  if (navigator.share && matchMedia('(pointer: coarse)').matches) {  // phones: the native share sheet
-    try { await navigator.share({ title: i.title, url: i.url }); } catch {}  // dismissed
+  const open = $('send-pop').hidden;
+  closeMenus();
+  if (!open) return;
+  const u = encodeURIComponent(i.url), t = encodeURIComponent(i.title);
+  sendTo = {
+    'send-email': `mailto:?subject=${t}&body=${u}`,
+    'send-bluesky': `https://bsky.app/intent/compose?text=${encodeURIComponent(`${i.title} ${i.url}`)}`,
+    'send-reddit': `https://www.reddit.com/submit?url=${u}&title=${t}`,
+    'send-linkedin': `https://www.linkedin.com/sharing/share-offsite/?url=${u}`,
+  };
+  $('send-pop').hidden = false;
+  $('reader-send').setAttribute('aria-expanded', 'true');
+  $('send-copy').focus({ preventScroll: true });
+};
+function closeMenus() { closeSize(); closeShare(); }
+let sendTo = {};
+// Opened on click, not as links: ad blockers hide links whose address is a share page.
+$('send-pop').onclick = e => {
+  e.stopPropagation();
+  const id = e.target.closest('button')?.id;
+  if (id === 'send-more') {
+    closeShare();
+    const i = items.find(x => x.url === readerFor);
+    if (i) navigator.share({ title: i.title, url: i.url }).catch(() => {});  // dismissed
     return;
   }
+  const url = sendTo[id];
+  if (!url) return;
+  closeShare();
+  if (url.startsWith('mailto:')) location.href = url;
+  else window.open(url, '_blank', 'noopener,noreferrer');
+};
+document.addEventListener('click', closeShare);
+addEventListener('blur', closeShare);
+$('send-copy').onclick = async () => {
+  closeShare();
+  const i = items.find(x => x.url === readerFor);
+  if (!i) return;
   let msg = 'Copied';
   try { await navigator.clipboard.writeText(i.url); } catch { msg = 'Couldn\u2019t copy'; }
-  const done = $('share-done');
+  const done = $('send-done');
   done.textContent = msg; done.hidden = false; $('status').textContent = msg === 'Copied' ? 'Link copied' : msg;
   clearTimeout(done.timer);
   done.timer = setTimeout(() => { done.hidden = true; }, 1600);

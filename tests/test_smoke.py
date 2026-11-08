@@ -193,6 +193,7 @@ def test_day_minutes_show_only_when_every_story_has_one(browser):
         data = route.fetch().json()
         a, b, c = data["items"][:3]
         data["items"] = [{**a, "date": today, "minutes": 4}, {**b, "date": today, "minutes": 3}, {**c, "date": yesterday, "minutes": 0}]
+        data["tz"] = "UTC"  # the dates above are UTC ones; the page labels days in data.json's zone
         route.fulfill(json=data)
     ctx.route("**/data.json*", patched)
     pg.goto(URL)
@@ -222,26 +223,34 @@ def test_end_of_feed_message(browser):
         pg.mouse.wheel(0, 3000)
         pg.wait_for_timeout(100)
     assert pg.inner_text("#end-msg") == f"That\u2019s all {re.search(r'\d+', security).group()} Security stories."
-    pg.click("#filters .filter-btn[data-f='all']")
-    pg.fill("#search", "zzzz-no-such-story")
-    pg.wait_for_selector(".empty")
-    assert end.is_hidden()  # the empty state already says so
-    pg.fill("#search", "openai")
-    pg.wait_for_function("() => document.getElementById('end-msg').textContent.includes('matching')")
-    assert re.fullmatch(r"That\u2019s (all \d+ stories|the only story) matching \u201copenai\u201d\.", pg.inner_text("#end-msg"))
     assert pg.problems == []
 
 
 def test_back_to_top_never_covers_the_end_links(browser):
     pg = open_site(browser, viewport={"width": 412, "height": 520}, has_touch=True, is_mobile=True)
-    for _ in range(60):
+    for _ in range(300):  # until the feed runs out, not a fixed count: a busy machine loads pages more slowly
         pg.evaluate("window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'instant'})")
+        if pg.evaluate("!document.getElementById('end').hidden"):
+            break
         pg.wait_for_timeout(50)
+    pg.evaluate("window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'instant'})")
     pg.locator("#top").wait_for()
     overlap = """() => { const t = document.getElementById('top').getBoundingClientRect();
         return [...document.querySelectorAll('#end a')].map(a => a.getBoundingClientRect())
             .some(r => r.left < t.right && r.right > t.left && r.top < t.bottom && r.bottom > t.top); }"""
     assert pg.evaluate("!document.getElementById('end').hidden") and not pg.evaluate(overlap)
+
+
+def test_back_to_top_reacts_to_hover(browser):
+    pg = open_site(browser, viewport={"width": 1300, "height": 700})
+    pg.evaluate("window.scrollTo({top: 2000, behavior: 'instant'})")
+    top = pg.locator("#top")
+    top.wait_for()
+    look = "e => { const c = getComputedStyle(e); return [c.backgroundColor, c.color]; }"
+    before = top.evaluate(look)
+    top.hover()
+    pg.wait_for_timeout(250)
+    assert top.evaluate(look) != before and top.evaluate("e => getComputedStyle(e).transform") == "none"
 
 
 def test_timestamp_shares_the_headings_baseline(browser):
@@ -281,7 +290,7 @@ def test_reader_shows_the_story_before_the_fetch_finishes(browser):
     assert frame.locator(".status").inner_text() == "Loading the full article\u2026"
     assert frame.locator("main p").first.inner_text() != ""  # the summary
     # Its body holds back past the panel's slide, so a fast article replaces the card before it's ever seen.
-    assert frame.locator(".late").evaluate("e => getComputedStyle(e).animationDelay") == "0.3s"
+    assert frame.locator(".late").evaluate("e => getComputedStyle(e).animationDelay") == "0.4s"
     for _ in range(50):
         if held:
             break
@@ -391,9 +400,29 @@ def test_share_copies_the_publishers_url_on_desktop(browser):
     pg.wait_for_selector("a.card")
     url = pg.locator("a.card").first.get_attribute("href")
     pg.locator("a.card").first.click()
-    pg.locator("#reader-share").click()
-    pg.locator("#share-done", has_text="Copied").wait_for()
-    assert pg.evaluate("navigator.clipboard.readText()") == url
+    pg.locator("#reader-send").click()
+    names = pg.locator("#send-pop [role=menuitem]:not([hidden])").all_inner_texts()  # no share sheet here, so no "More…"
+    assert names == ["Copy link", "Email", "Bluesky", "Reddit", "LinkedIn"]
+    box = pg.locator("#send-pop").bounding_box()
+    assert box["x"] >= 0 and box["x"] + box["width"] <= 1300  # fully on screen
+    enc = urllib.parse.quote(url, safe="")
+    pg.evaluate("window.__opened = []; window.open = (u) => { window.__opened.push(u); return null; }")
+    for sel in ("#send-bluesky", "#send-reddit", "#send-linkedin"):
+        pg.locator(sel).click()
+        pg.locator("#reader-send").click()  # choosing one closes the menu
+    opened = [u for u in pg.evaluate("window.__opened") if u]
+    assert opened[0].startswith("https://bsky.app/intent/compose?text=") and enc in opened[1] and enc in opened[2]
+    assert pg.locator("#send-pop [role=menuitem]:not([hidden]) svg").count() == 5  # an icon for each; no "More…" without a share sheet
+    pg.locator("#reader-size").click()  # opening the text size menu closes this one
+    assert pg.locator("#send-pop").is_hidden() and pg.locator("#size-pop").is_visible()
+    pg.locator("#reader-send").click()  # and the other way round
+    assert pg.locator("#size-pop").is_hidden() and pg.locator("#send-pop").is_visible()
+    pg.keyboard.press("Escape")  # closes the menu, not the reader
+    assert pg.locator("#send-pop").is_hidden() and pg.evaluate("document.body.classList.contains('reading')")
+    pg.locator("#reader-send").click()
+    pg.locator("#send-copy").click()
+    pg.locator("#send-done", has_text="Copied").wait_for()
+    assert pg.evaluate("navigator.clipboard.readText()") == url and pg.locator("#send-pop").is_hidden()
 
 
 def test_share_opens_the_share_sheet_on_a_phone(browser):
@@ -404,8 +433,13 @@ def test_share_opens_the_share_sheet_on_a_phone(browser):
     pg.wait_for_selector("a.card")
     url = pg.locator("a.card").first.get_attribute("href")
     pg.locator("a.card").first.tap()
-    pg.locator("#reader-share").tap()
-    pg.wait_for_function("window.__shared")
+    pg.locator("#reader-send").tap()  # the same menu as desktop, with the system sheet under "More…"
+    names = pg.locator("#send-pop [role=menuitem]").all_inner_texts()
+    assert names == ["Copy link", "Email", "Bluesky", "Reddit", "LinkedIn", "More\u2026"], names
+    box = pg.locator("#send-pop").bounding_box()
+    assert box["x"] >= 0 and box["x"] + box["width"] <= 412
+    pg.locator("#send-more").tap()
+    pg.wait_for_function("() => window.__shared")
     shared = pg.evaluate("window.__shared")
     assert shared["url"] == url and shared["title"]
 
@@ -621,6 +655,60 @@ def test_reader_and_frame_relay_run_under_csp(browser):
     pg.keyboard.press("Escape")
     wait_until_closed(pg)
     assert pg.problems == []
+
+
+def test_the_search_bar_and_slash_open_the_palette(browser):
+    for opener in ("click", "slash"):
+        pg = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
+        pg.goto(URL)
+        pg.wait_for_selector("a.card")
+        pg.click("#search") if opener == "click" else pg.keyboard.press("/")
+        pg.locator("#palette").wait_for()
+        assert pg.evaluate("document.activeElement.id") == "palette-q"
+        pg.keyboard.type("openai")
+        assert pg.locator("#palette-list li[data-n]").count() > 0
+        pg.keyboard.press("Escape")
+        pg.locator("#palette").wait_for(state="hidden")
+        pg.wait_for_timeout(200)
+        assert pg.locator("#palette").is_hidden()  # closing doesn't bounce focus back into the bar and reopen it
+    ph = browser.new_context(viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True).new_page()
+    ph.goto(URL)
+    ph.wait_for_selector("a.card")
+    ph.tap("#search")
+    ph.locator("#palette").wait_for()
+
+
+def test_share_icon_matches_the_device(browser):
+    desktop = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
+    desktop.goto(URL)
+    desktop.wait_for_selector("a.card")
+    assert desktop.locator("#reader-send").get_attribute("data-kind") == "apple"
+    assert desktop.locator("#reader-send .send-apple").evaluate("e => getComputedStyle(e).display") == "block"  # the box and arrow, not a link icon
+    mac = browser.new_context(viewport={"width": 1300, "height": 900})
+    mac.add_init_script("navigator.share = () => Promise.resolve();")  # a desktop browser with a share sheet uses it
+    mp = mac.new_page()
+    mp.goto(URL)
+    mp.wait_for_selector("a.card")
+    assert mp.locator("#reader-send").get_attribute("data-kind") == "apple"
+    for ua, kind in (("Mozilla/5.0 (Linux; Android 16; Pixel 9 Pro) AppleWebKit/537.36 Chrome/131 Mobile Safari/537.36", "android"),
+                     ("Mozilla/5.0 (iPhone; CPU iPhone OS 19_0 like Mac OS X) AppleWebKit/605.1.15 Version/19.0 Mobile/15E148 Safari/604.1", "apple")):
+        ctx = browser.new_context(viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True, user_agent=ua)
+        ctx.add_init_script("navigator.share = () => Promise.resolve();")
+        pg = ctx.new_page()
+        pg.goto(URL)
+        pg.wait_for_selector("a.card")
+        assert pg.locator("#reader-send").get_attribute("data-kind") == kind, ua
+
+
+def test_share_survives_ad_blockers_social_lists(browser):
+    # Ad blockers' social lists hide share widgets by name and by link address, which removed the whole button.
+    pg = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
+    pg.goto(URL)
+    pg.wait_for_selector("a.card")
+    named = pg.evaluate("[...document.querySelectorAll('[id*=share], [class*=share]')].map(e => e.id || e.className)")
+    assert named == [], named
+    links = pg.evaluate("[...document.querySelectorAll('#send-pop a, #reader-send a')].length")
+    assert links == 0
 
 
 def test_search_palette(browser):
