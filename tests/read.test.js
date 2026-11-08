@@ -319,3 +319,14 @@ test('extract leaves alone a short post with a few links, and gives up on a page
   const only = `<div>${Array.from({ length: 30 }, (_, k) => `<p><a href="/p${k}">A link to another story, number ${k}, in a long list of them.</a></p>`).join('')}</div>`;
   assert.equal(extract(`<html><head><title>T</title></head><body>${only}</body></html>`), null);
 });
+
+test('tidy keeps a lead picture wrapped in a paragraph or a link, but not the byline before it', () => {
+  const prose = 'Attackers are exploiting the flaw to bypass multi-factor authentication on exposed appliances, the vendor said.';
+  for (const lead of ['<p><img src="https://x.test/lead.jpg" alt="Lead"></p>', '<p><a href="https://x.test/big.jpg"><img src="https://x.test/lead.jpg" alt="Lead"></a></p>']) {
+    const { content: out } = tidy({ content: `<div><p>By Ada Lovelace</p>${lead}<p>${prose}</p><p>${prose}</p></div>`, title: 'T', byline: 'Ada Lovelace' }, 'https://x.test/a');
+    assert.match(out, /lead\.jpg/);
+    assert.doesNotMatch(out, /Ada Lovelace/);
+  }
+  const avatar = '<p><a href="/ada"><img src="https://x.test/ada.png" width="32" height="32" alt="Ada"></a></p>';
+  assert.doesNotMatch(tidy({ content: `<div>${avatar}<p>${prose}</p><p>${prose}</p></div>`, title: 'T' }, 'https://x.test/a').content, /ada\.png/);
+});
