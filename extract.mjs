@@ -16,6 +16,7 @@ const MAX_LINK_SHARE = 0.5; // more of an "article" than this is links: it's a l
 const PAGE_TIMEOUT = 15000; // some pages take 10s
 const FEED_TIMEOUT = 10000; // one full-article feed is 4MB
 const CONCURRENCY = 6;
+const MAX_TEXT = 40000; // characters of article text handed to the build for its TL;DR
 const MAX_WRITES = 100; // per build: free KV allows 1,000 writes a day, and builds run 6+ times; the rest wait for the next build
 const TTL = 100 * 86400; // past the build's KEEP_DAYS (90), so expired articles are already off the site
 const VERSION = 5; // bump when extraction changes, and the next build redoes every stored article
@@ -360,6 +361,7 @@ export function kvClient({ CF_API_TOKEN, CF_ACCOUNT_ID, CF_KV_NAMESPACE_ID }) {
       } while (cursor);
       return keys;
     },
+    get: key => call(`/values/${encodeURIComponent(key)}`),  // the stored record; a read, not a write
     async put(entries) {
       const failed = (await call('/bulk', { method: 'PUT', body: JSON.stringify(entries) })).result?.unsuccessful_keys || [];
       if (failed.length) throw new Error(`KV rejected ${failed.length} of ${entries.length} articles`);
@@ -368,10 +370,15 @@ export function kvClient({ CF_API_TOKEN, CF_ACCOUNT_ID, CF_KV_NAMESPACE_ID }) {
 }
 
 // Stores what's new or was blocked last time, and reports every story's word count. 0 means blocked; no entry means try again.
-export async function run({ items, feeds }, kv) {
+// An article's text, plain, for the build to summarise.
+export const plainText = html => (parseHTML(`<!doctype html><html><body>${html
+  .replace(/<\/(p|div|li|h[1-6]|tr|td|th|pre|blockquote|figcaption|section|ul|ol|dd|dt)>/gi, '$& ').replace(/<br\s*\/?>/gi, ' ')}</body></html>`).document.body.textContent || '')
+  .replace(/\s+/g, ' ').trim().slice(0, MAX_TEXT);
+
+export async function run({ items, feeds, textFor = [] }, kv) {
   const stored = kv ? await kv.list() : new Map();
   const keys = new Map(await Promise.all(items.map(async i => [i.url, await keyFor(i.url)])));
-  const words = {}, entries = [], counts = {}, feedText = feedReader(feeds);
+  const words = {}, entries = [], counts = {}, texts = {}, feedText = feedReader(feeds), wantText = new Set(textFor);
   const todo = items.filter(i => {
     const had = stored.get(keys.get(i.url));
     if (had?.reason === 'ok') words[i.url] = had.words;
@@ -391,15 +398,23 @@ export async function run({ items, feeds }, kv) {
       if (had?.reason === 'ok' && record.reason !== 'ok') continue;  // a block on the redo mustn't cost a good article
       const n = record.content ? visibleWords(record.content) : 0;
       words[item.url] = n;
+      if (record.reason === 'ok' && wantText.has(item.url)) texts[item.url] = plainText(record.content);
       if (record.reason !== 'ok' && had?.reason === record.reason) continue;  // still blocked the same way: nothing to write
       entries.push({ key, value: JSON.stringify(record), expiration_ttl: TTL, metadata: { reason: record.reason, words: n, v: VERSION } });
     }
   }));
+  // Text for stories that want a TL;DR and weren't read this run: from their stored article.
+  if (kv) {
+    for (const i of items) {
+      if (!wantText.has(i.url) || texts[i.url] || stored.get(keys.get(i.url))?.reason !== 'ok') continue;
+      try { const r = await kv.get(keys.get(i.url)); if (r?.content) texts[i.url] = plainText(r.content); } catch {}  // try again next build
+    }
+  }
   // Newest stories first (items are newest first), so a big redo can't hold back today's articles.
   const order = new Map(items.map((i, n) => [keys.get(i.url), n]));
   const writes = entries.sort((a, b) => order.get(a.key) - order.get(b.key)).slice(0, MAX_WRITES);
   if (kv && writes.length) await kv.put(writes);
-  return { words, counts, stored: kv ? writes.length : 0, deferred: entries.length - writes.length, total: stored.size };
+  return { words, texts, counts, stored: kv ? writes.length : 0, deferred: entries.length - writes.length, total: stored.size };
 }
 
 async function main() {
@@ -408,8 +423,8 @@ async function main() {
   if (!kv) console.error('::warning::no KV credentials: the reader has nothing to serve');
   let out = { words: {} };
   try {
-    const { words, counts, stored, deferred, total } = await run(input, kv);
-    out = { words };
+    const { words, texts, counts, stored, deferred, total } = await run(input, kv);
+    out = { words, texts };
     const line = `**Reader:** ${stored} articles written${deferred ? `, ${deferred} left for the next build (write cap)` : ''}, ${total} already in KV, this run ${JSON.stringify(counts)}`;
     console.error(line);
     if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${line}\n\n`);

@@ -267,6 +267,11 @@ function storyMeta(i, byline, minutes) {
   const by = (byline || '').replace(/^by\s+/i, '').trim();
   return `<div class="meta">${esc(when)}${by ? ` by ${esc(by)}` : ''}<br>${esc(i.publisher)}${minutes ? ` · ${minutes} min read` : ''}</div>`;
 }
+// The TL;DR (written and checked by the build) with, for weekly essentials, the hand-picked "What to do" as its last line.
+function summaryBox(tldr, why) {
+  if (!tldr?.length) return why ? `<div class="todo"><b>What to do</b>${esc(why)}</div>` : '';
+  return `<div class="todo tldr"><b>TL;DR</b><ul>${tldr.map(t => `<li>${esc(t)}</li>`).join('')}</ul>${why ? `<p class="do"><b>What to do</b>${esc(why)}</p>` : ''}</div>`;
+}
 function articleDoc(i, html, nonce, why, minutes, byline) {
   return `<!doctype html><html data-theme="${document.documentElement.dataset.theme}" data-size="${textSize}"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${location.origin}; img-src https: http: data:; media-src https:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'">
@@ -282,6 +287,8 @@ h1 { font-family: Inter, system-ui, sans-serif; letter-spacing: -.01em; }
 [data-size="0"] body { font-size: 1rem; } [data-size="2"] body { font-size: 1.1875rem; } [data-size="3"] body { font-size: 1.3125rem; }
 .meta { margin-bottom: 1.8em; color: var(--text-muted); font: .9375rem/1.45 Inter, system-ui, sans-serif; }
 .todo { margin: 0 0 1.8em; padding: 12px 16px; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; background: var(--bg-card); }
+.tldr ul { margin: .35em 0 0; padding-left: 1.15em; font: .9375rem/1.5 Inter, system-ui, sans-serif; } .tldr li + li { margin-top: .45em; }  /* sans: scanned, not read */
+.tldr .do { margin: .8em 0 0; padding-top: .7em; border-top: 1px solid var(--border); font: 500 .9375rem/1.5 Inter, system-ui, sans-serif; }
 .todo b { display: block; margin-bottom: 2px; color: var(--accent); font: 700 .75rem/1.5 Inter, system-ui, sans-serif; letter-spacing: .07em; text-transform: uppercase; }
 h2, h3, h4 { margin: 1.8em 0 .5em; font-weight: 700; line-height: 1.3; }
 h2 { font-size: 1.375rem; } h3 { font-size: 1.125rem; } h4 { font-size: 1rem; }
@@ -298,7 +305,7 @@ hr { border: 0; border-top: 1px solid var(--border); }
 .status { color: var(--text-muted); font: .9375rem/1.5 Inter, system-ui, sans-serif; }
 .pill { display: inline-block; padding: 10px 18px; border: 1px solid var(--accent); border-radius: 999px; font: 600 .9375rem/1.4 Inter, system-ui, sans-serif; text-decoration: none; }
 @media (max-width: 600px) { main { padding: 24px 18px 80px; } .pill { padding: 12px 18px; } }
-</style><script nonce="${nonce}">${SWIPE_REPORTER}<\/script></head><body><main><h1><a href="${esc(i.url)}" target="_blank" rel="noopener" title="Open the original">${esc(i.title)}</a></h1>${storyMeta(i, byline, minutes)}${why ? `<div class="todo"><b>What to do</b>${esc(why)}</div>` : ''}${html}</main></body></html>`;
+</style><script nonce="${nonce}">${SWIPE_REPORTER}<\/script></head><body><main><h1><a href="${esc(i.url)}" target="_blank" rel="noopener" title="Open the original">${esc(i.title)}</a></h1>${storyMeta(i, byline, minutes)}${summaryBox(i.tldr, why)}${html}</main></body></html>`;
 }
 // What we already know about a story, from data.json: shown at once, and all that's left if the article can't be fetched.
 // While loading, the body holds back a moment: most articles arrive before the panel has landed, and then just appear.
