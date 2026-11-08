@@ -711,6 +711,20 @@ def test_share_survives_ad_blockers_social_lists(browser):
     assert links == 0
 
 
+def test_palette_lists_every_match(browser):
+    pg = open_site(browser, viewport={"width": 1300, "height": 900})
+    total = pg.evaluate("fetch('/data.json').then(r => r.json()).then(d => d.items.length)")
+    pg.keyboard.press("/")
+    pg.locator("#palette").wait_for()
+    assert pg.locator("#palette-list li[data-n]").count() == total  # nothing typed: all of them
+    word = pg.evaluate("fetch('/data.json').then(r => r.json()).then(d => d.items.filter(i => i.category === 'ai').length)")
+    pg.keyboard.type("a")  # a broad query, matching well over the old cap of 30
+    shown = pg.locator("#palette-list li[data-n]").count()
+    expected = pg.evaluate("""fetch('/data.json').then(r => r.json()).then(d => d.items.filter(i =>
+        `${i.title} ${i.summary} ${i.publisher} ${new URL(i.url).hostname.replace(/^www\\./, '')}`.toLowerCase().includes('a')).length)""")
+    assert shown == expected and shown > 30, (shown, expected, word)
+
+
 def test_search_palette(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 900})
     _, title = first_card(pg)
