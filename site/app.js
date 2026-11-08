@@ -122,7 +122,9 @@ const syncThemeColor = () => {
   for (const b of [$('theme'), $('reader-theme')]) { b.setAttribute('aria-label', `Switch to ${next} mode`); b.title = `Switch to ${next} mode`; }
 };
 // Swap every color in one frame, then let a view transition crossfade the whole page; per-element
-// transitions would fade some parts and snap others.
+// transitions would fade some parts and snap others. The article frame switches by message, so the
+// crossfade waits for it to confirm (briefly): otherwise its "after" picture shows the old article.
+let frameThemed = null;
 $('theme').onclick = $('reader-theme').onclick = () => {
   const root = document.documentElement, t = root.dataset.theme === 'dark' ? 'light' : 'dark';
   const swap = () => {
@@ -131,7 +133,11 @@ $('theme').onclick = $('reader-theme').onclick = () => {
     getComputedStyle(root).color;  // commit the new colors before transitions come back
     root.classList.remove('theme-switching');
     syncThemeColor();
-    $('reader-body').querySelector('iframe[srcdoc]')?.contentWindow.postMessage({ tw: 'theme', theme: t }, '*');
+    const frame = $('reader-body').querySelector('iframe[srcdoc]');
+    if (!frame) return;
+    const themed = new Promise(done => { frameThemed = done; setTimeout(done, 150); });
+    frame.contentWindow.postMessage({ tw: 'theme', theme: t }, '*');
+    return themed.then(() => { frameThemed = null; });
   };
   if (document.startViewTransition) document.startViewTransition(swap);
   else swap();
@@ -229,7 +235,11 @@ addEventListener('touchmove', e => {
 const end = () => { if (s && s.ax === 'x') send('end'); s = null; };
 addEventListener('touchend', end); addEventListener('touchcancel', end);
 addEventListener('message', e => {  // the page's theme toggle
-  if (e.source === parent && e.data && e.data.tw === 'theme') document.documentElement.dataset.theme = e.data.theme;
+  if (e.source === parent && e.data && e.data.tw === 'theme') {
+    document.documentElement.dataset.theme = e.data.theme;
+    getComputedStyle(document.body).color;  // apply the new colors now, not at a paint the page's crossfade is holding back
+    parent.postMessage({ tw: 'themed' }, '*');
+  }
   if (e.source === parent && e.data && e.data.tw === 'size') document.documentElement.dataset.size = e.data.size;
 });
 addEventListener('keydown', e => {  // keys pressed while the article has focus never reach the page
@@ -261,7 +271,6 @@ function articleDoc(i, html, nonce, why, minutes, byline) {
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${location.origin}; img-src https: http: data:; media-src https:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'">
 <base target="_blank"><style>
 :root { ${frameVars('light')} } :root[data-theme="dark"] { ${frameVars('dark')} }
-body { transition: background-color .35s ease, color .35s ease; }
 body { margin: 0; background: var(--bg); color: var(--text); font: 1.0625rem/1.65 "Iowan Old Style", Charter, Georgia, serif; overflow-wrap: break-word; }
 main { max-width: 640px; margin: 0 auto; padding: 32px 24px 96px; }
 a { color: var(--accent); }
@@ -474,6 +483,7 @@ addEventListener('message', e => {
   else if (e.data.tw === 'move') dragMove(e.data.x);
   else if (e.data.tw === 'end') dragEnd();
   else if (e.data.tw === 'key') onKey(e.data.key, !!e.data.mod);
+  else if (e.data.tw === 'themed') frameThemed?.();
 });
 
 $('reader-close').onclick = dismiss;
