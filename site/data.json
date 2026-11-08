@@ -1114,33 +1114,33 @@
   }
  ],
  "weekly": {
-  "window_start": "2026-11-01",
-  "window_end": "2026-11-07",
-  "selected_on": "2026-11-07",
+  "window_start": "2026-11-02",
+  "window_end": "2026-11-08",
+  "selected_on": "2026-11-08",
   "items": [
    {
     "url": "https://www.bleepingcomputer.com/news/security/sonicwall-warns-of-new-ssl-vpn-mfa-bypass-flaw-exploited-in-attacks/",
-    "why": "Patch seven SonicOS flaws now; the SSL-VPN bypass is already being exploited."
-   },
-   {
-    "url": "https://socket.dev/blog/shai-hulud-descendant-malicious-ruby-gem",
-    "why": "Audit Ruby gem installs; revoke tokens only after isolating hosts, since revocation triggers wipes."
-   },
-   {
-    "url": "https://www.bleepingcomputer.com/news/security/zyxel-fixes-zero-day-exploited-to-hack-nearly-1-000-network-switches/",
-    "why": "Patch GS1900 switches now; nearly 1,000 devices were already compromised, with configs and credentials taken."
+    "why": "Patch SonicOS now; the SSL-VPN bypass is already being exploited against firewalls."
    },
    {
     "url": "https://thehackernews.com/2026/11/chainalysis-breach-exposes-all-users.html",
-    "why": "Assume your Chainalysis credentials and tokens are exposed; rotate them and expect service outages."
+    "why": "If you used Chainalysis services, rotate passwords and tokens now; hashes were exposed."
    },
    {
-    "url": "https://www.microsoft.com/en-us/security/blog/2026/11/05/threat-actors-use-agentic-ai-tooling-to-find-and-abuse-exposed-secrets/",
-    "why": "Scan repos for exposed OAuth app secrets and review tenant app consent activity."
+    "url": "https://thehackernews.com/2026/11/cpguard-update-channel-hijacked-to.html",
+    "why": "Hunt for cPGuard backdoors on Linux servers and rotate password hashes."
+   },
+   {
+    "url": "https://socket.dev/blog/shai-hulud-descendant-malicious-ruby-gem",
+    "why": "Don't revoke the stolen GitHub token before isolating hosts; revocation can trigger file wiping."
+   },
+   {
+    "url": "https://socket.dev/blog/github-to-block-pull-request-target",
+    "why": "Audit pull_request_target workflows before December 2, or they'll be blocked by default."
    }
   ]
  },
- "generated_at": "2026-11-08T04:18:14+00:00",
+ "generated_at": "2026-11-08T06:15:52+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
