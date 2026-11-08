@@ -19,7 +19,7 @@ const CONCURRENCY = 6;
 const MAX_TEXT = 40000; // characters of article text handed to the build for its TL;DR
 const MAX_WRITES = 100; // per build: free KV allows 1,000 writes a day, and builds run 6+ times; the rest wait for the next build
 const TTL = 100 * 86400; // past the build's KEEP_DAYS (90), so expired articles are already off the site
-const VERSION = 5; // bump when extraction changes, and the next build redoes every stored article
+const VERSION = 6; // bump when extraction changes, and the next build redoes every stored article
 const TRANSIENT = ['timeout', 'error']; // not a verdict on the article: try again next run
 const CHALLENGE = /cf-challenge|_cf_chl_opt|Just a moment|Access Denied|Request unsuccessful|Incapsula/i; // about bot-protection vendors, not publishers
 const DROP = 'script, style, noscript, iframe, object, embed, form, input, button, link, meta, svg';
@@ -173,6 +173,11 @@ function trimLeading(node) {
     if (child.nodeType === 3) { if (wordCount(child.textContent) >= 8) return true; if (child.textContent.trim()) child.remove(); continue; }
     if (child.nodeType !== 1) continue;
     if (/^(P|UL|OL|DL|BLOCKQUOTE|H[1-6]|IMG|FIGURE|PICTURE|VIDEO|PRE|TABLE)$/.test(child.tagName)) {
+      // A lead picture (bare, in a <p>, or linked) stays, but isn't the start of the text: keep trimming after it.
+      // Not an avatar or logo: those declare a small size.
+      const pictures = [child, ...child.querySelectorAll('img, picture, video')].filter(el => /^(IMG|PICTURE|VIDEO)$/.test(el.tagName));
+      const small = el => ['width', 'height'].some(a => +el.getAttribute(a) > 0 && +el.getAttribute(a) < 100);
+      if ((child.tagName === 'FIGURE' || !wordsOf(child)) && pictures.some(el => !small(el))) continue;
       if (isBody(child)) return true;
       child.remove();
     } else if (wordsOf(child) >= 30 || child.querySelector('img, figure, pre, table, video')) {  // a wrapper: the content starts inside it
