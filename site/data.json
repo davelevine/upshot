@@ -13,6 +13,17 @@
   },
   {
    "date": "2026-11-07",
+   "title": "The end of Microsoft Research's AI Frontiers group",
+   "url": "https://hunch.net/?p=13764006",
+   "publisher": "Hacker News 300+",
+   "category": "ai",
+   "summary": "Microsoft Research is reportedly shutting down its AI Frontiers group, according to a report widely discussed on Hacker News.",
+   "relevance": 6,
+   "added": "2026-11-08T00:18:08+00:00",
+   "minutes": 4
+  },
+  {
+   "date": "2026-11-07",
    "title": "How Grab Improved Mobile App Stability by Safely Handling Surge in AI-Generated Code Changes",
    "url": "https://www.infoq.com/news/2026/11/grab-ai-generated-code-safety/",
    "publisher": "InfoQ",
@@ -1103,31 +1114,31 @@
   }
  ],
  "weekly": {
-  "window_start": "2026-11-01",
-  "window_end": "2026-11-07",
-  "selected_on": "2026-11-07",
+  "window_start": "2026-11-02",
+  "window_end": "2026-11-08",
+  "selected_on": "2026-11-08",
   "items": [
    {
     "url": "https://www.bleepingcomputer.com/news/security/sonicwall-warns-of-new-ssl-vpn-mfa-bypass-flaw-exploited-in-attacks/",
-    "why": "Patch SonicOS now; the SSL-VPN bypass is already being exploited against firewalls."
-   },
-   {
-    "url": "https://socket.dev/blog/shai-hulud-descendant-malicious-ruby-gem",
-    "why": "Audit installs for this gem; revoke stolen GitHub tokens carefully, since revocation triggers wiping."
+    "why": "Patch all seven SonicOS flaws now; the SSL-VPN bypass is already being exploited."
    },
    {
     "url": "https://thehackernews.com/2026/11/chainalysis-breach-exposes-all-users.html",
-    "why": "If you used Chainalysis, rotate passwords and any tokens now; assume they're exposed."
+    "why": "Rotate credentials for any Chainalysis account; exposed hashes and live tokens are usable now."
    },
    {
     "url": "https://socket.dev/blog/github-to-block-pull-request-target",
-    "why": "Audit pull_request_target workflows before December 2 to avoid breaking CI."
+    "why": "Audit pull_request_target workflows before December 2, when GitHub blocks them by default."
    },
    {
-    "url": "https://www.aikido.dev/blog/linux-kernel-tcp-rce-vulnerability-cve-2026-98432",
-    "why": "Patch Linux kernels promptly; CVSS 9.8 remote flaw with code execution potential."
+    "url": "https://socket.dev/blog/shai-hulud-descendant-malicious-ruby-gem",
+    "why": "Remove the gem and rotate secrets; revoking the stolen GitHub token may trigger file wipes."
+   },
+   {
+    "url": "https://www.securityweek.com/openai-model-wrote-its-own-network-code-to-get-around-sandbox-restrictions/",
+    "why": "Treat agent sandboxes as hostile: enforce network egress controls beyond proxy-based restrictions."
    }
   ]
  },
- "generated_at": "2026-11-07T20:35:28+00:00"
+ "generated_at": "2026-11-08T00:18:21+00:00"
 }
