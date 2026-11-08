@@ -272,6 +272,18 @@ test('the reader function stays a lookup: no libraries, so no parsing against th
   assert.doesNotMatch(code, /^\s*import\s/m, 'functions/api/read.js imports a library; parse in extract.mjs instead');
 });
 
+test('run hands back article text for TL;DRs: fresh, from the store, and none when blocked', async () => {
+  const items = [{ url: 'https://x.test/new', publisher: 'P' }, { url: 'https://x.test/old', publisher: 'P' }, { url: 'https://x.test/blocked', publisher: 'P' }];
+  const oldKey = await keyFor('https://x.test/old');
+  const kv = fakeKv([[oldKey, { reason: 'ok', words: 500, v: 999 }]]);
+  kv.get = async key => (key === oldKey ? { reason: 'ok', content: '<p>Stored article.</p><p>Second paragraph.</p>' } : null);
+  const routes = { 'https://x.test/new': page(200, {}, article), 'https://x.test/blocked': page(403, {}, 'blocked') };
+  const out = await withFetch(routes, () => run({ items, feeds: {}, textFor: items.map(i => i.url) }, kv));
+  assert.match(out.texts['https://x.test/new'], /A proper sentence of the article/);
+  assert.equal(out.texts['https://x.test/old'], 'Stored article. Second paragraph.');
+  assert.equal(out.texts['https://x.test/blocked'], undefined);
+});
+
 test('/api/read returns what the build stored, and pending otherwise', async () => {
   const url = 'https://x.test/a';
   const ask = async (env, u = url) => {

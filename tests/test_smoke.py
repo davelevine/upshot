@@ -574,6 +574,37 @@ def test_today_means_the_sites_today_whatever_the_device_reports(browser):
         assert pg.locator(".date-label").first.inner_text().startswith("TODAY"), device_tz
 
 
+def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
+    ctx = browser.new_context(viewport={"width": 1300, "height": 900})
+    def with_tldr(route):
+        res = route.fetch()
+        data = res.json()
+        top = data["weekly"]["items"][0]["url"]
+        for i in data["items"]:
+            i.pop("tldr", None)
+            if i["url"] == top:
+                i["tldr"] = ["First fact & <detail>.", "Second fact.", "Third fact."]
+        route.fulfill(response=res, json=data)
+    ctx.route("**/data.json", with_tldr)
+    ctx.route("**/api/read?*", lambda r: r.fulfill(content_type="application/json", body=json.dumps({"reason": "pending", "frameable": False})))
+    pg = ctx.new_page()
+    pg.goto(URL)
+    pg.wait_for_selector(".weekly-card:not(.skeleton)")
+    pg.locator(".weekly-card:not(.skeleton)").first.click()  # an essential with a TL;DR
+    frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+    box = frame.locator(".tldr")
+    box.wait_for()
+    assert box.locator("> b").inner_text().upper() == "TL;DR"
+    assert box.locator("li").all_inner_texts() == ["First fact & <detail>.", "Second fact.", "Third fact."]  # escaped, as text
+    assert box.locator(".do b").inner_text().upper() == "WHAT TO DO"  # the hand-picked note, last
+    assert frame.locator(".todo").count() == 1  # one box, not two
+    pg.keyboard.press("Escape")
+    pg.locator(".weekly-card:not(.skeleton)").nth(1).click()  # an essential without one: the old callout
+    frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+    frame.locator(".todo").wait_for()
+    assert frame.locator(".tldr").count() == 0 and "what to do" in frame.locator(".todo").inner_text().lower()
+
+
 def test_unknown_paths_are_real_404s(browser):
     # Without a 404 page, Pages serves index.html for everything, which breaks robots.txt and any tool probing for a file.
     pg = browser.new_context().new_page()

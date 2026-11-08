@@ -510,14 +510,15 @@ def full_text_feeds(fetched):
             if res and any(max([words_in(c.get("value")) for c in e.get("content", [])] + [words_in(e.get("summary"))]) >= MIN_ARTICLE_WORDS for e in res[1])}
 
 
-def add_reading_times(items, known=None, feeds=None):
+def add_reading_times(items, known=None, feeds=None, texts=None):
     """Runs extract.mjs, which stores each new story's article for the reader, and fills in "minutes" from it or from whole
     articles in feeds (`known`). Only the number is kept here. 0 means blocked: shown as nothing, and retried. Never estimated
     from a summary, which would make every article about a minute. Returns an error if the reader's store couldn't be updated."""
     for i in items:
         if not i.get("minutes") and (known or {}).get(i["url"]):
             i["minutes"] = known[i["url"]]
-    payload = {"items": [{k: i.get(k) for k in ("url", "publisher", "title", "minutes")} for i in items], "feeds": feeds or {}}
+    payload = {"items": [{k: i.get(k) for k in ("url", "publisher", "title", "minutes")} for i in items], "feeds": feeds or {},
+               "textFor": [i["url"] for i in items if "tldr" not in i] if texts is not None else []}
     try:
         r = subprocess.run(["node", str(ROOT / "extract.mjs")], input=json.dumps(payload), capture_output=True, text=True, timeout=1800)
     except (OSError, subprocess.TimeoutExpired) as e:
@@ -527,11 +528,57 @@ def add_reading_times(items, known=None, feeds=None):
     if r.returncode:
         return f"extract.mjs exited {r.returncode}"
     out = json.loads(r.stdout)
+    if texts is not None:
+        texts.update(out.get("texts") or {})  # article text for TL;DRs, handed back rather than kept
     for i in items:
         words = out["words"].get(i["url"])
         if not i.get("minutes") and words is not None:
             i["minutes"] = max(1, round(words / WORDS_PER_MINUTE)) if words else 0
     return out.get("error")
+
+
+TLDR_LIMIT = 60  # summaries written per build; the first rollout spreads over two
+TLDR_PROMPT = """You write the TL;DR at the top of a tech news article, for a senior engineer who wants to act on it
+straight away. Return 2 to 4 bullets, each under 25 words. Lead with what happened, then who or what is affected,
+then the fix or action if the article gives one (if it gives none, leave action out rather than saying so). Use only facts stated in the article: never add a version, CVE,
+number, date or name that isn't in the text, and copy any you use exactly. No hype, no speculation, no
+"this article" framing. Plain sentences, no markdown."""
+TLDR_SCHEMA = {
+    "type": "object",
+    "properties": {"bullets": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 4}},
+    "required": ["bullets"], "additionalProperties": False,
+}
+
+
+def verify_tldr(bullets, text):
+    """Keeps the bullets whose every figure (anything with a digit: CVE IDs, versions, counts, dates, amounts) appears
+    word for word in the article. A wrong number in an "act now" summary is worse than no summary. [] under two left."""
+    flat = " ".join(text.lower().split())
+    def grounded(b):
+        figures = (t.strip("()[]{}\"'“”‘’.,;:!?") for t in b.split())
+        return all(f.lower() in flat for f in figures if any(c.isdigit() for c in f))
+    kept = [b.strip() for b in bullets if b.strip() and grounded(b)]
+    return kept if len(kept) >= 2 else []
+
+
+def add_tldrs(items, texts, limit=TLDR_LIMIT):
+    """Writes each story's TL;DR once, from its article text (`texts`, {url: text}), checked by verify_tldr. A story
+    whose summary didn't survive the check gets [], so it isn't retried; a failed call leaves it for the next build."""
+    todo = [i for i in items if "tldr" not in i and texts.get(i["url"])][:limit]
+
+    def one(item):
+        try:
+            bullets = llm(TLDR_PROMPT, json.dumps({"title": item["title"], "article": texts[item["url"]]}), TLDR_SCHEMA)
+        except Exception as e:
+            print(f"::warning::TL;DR failed for {item['url']}: {e}")
+            return item, None
+        return item, verify_tldr(bullets, texts[item["url"]])
+
+    with ThreadPoolExecutor(SCORE_WORKERS) as ex:
+        for item, tldr in ex.map(one, todo):
+            if tldr is not None:
+                item["tldr"] = tldr
+    return len(todo)
 
 
 def run_summary(feeds, feeds_failed, new, scores, kept, repeated, dead):
@@ -660,7 +707,9 @@ def main():
         except Exception as e:
             print(f"::warning::weekly pick failed: {e}")
 
-    reader_error = add_reading_times(data["items"], feed_minutes(fetched), full_text_feeds(fetched))
+    texts = {}
+    reader_error = add_reading_times(data["items"], feed_minutes(fetched), full_text_feeds(fetched), texts)
+    print(f"TL;DRs written: {add_tldrs(data['items'], texts)}")
     data["generated_at"] = now().isoformat(timespec="seconds")
     SITE.mkdir(exist_ok=True)
     data["tz"] = SITE_TZ.key

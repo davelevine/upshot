@@ -94,6 +94,34 @@ def test_icon_art_flags_only_single_colour_artwork_on_transparency(tmp_path):
     assert build.icon_art(icon("tile.png", (20, 20, 20, 255), (255, 255, 255, 255))) is None  # on its own tile
 
 
+def test_verify_tldr_drops_bullets_with_figures_the_article_lacks():
+    text = "SonicWall fixed CVE-2026-19868 (CVSS 7.1). Upgrade to SonicOS 7.3.4-7013 by November 20, 2026."
+    good = ["SonicWall fixed CVE-2026-19868, rated CVSS 7.1.", "Upgrade to SonicOS 7.3.4-7013 by November 20."]
+    assert build.verify_tldr(good + ["Also fixes CVE-2026-99999 in version 8.0."], text) == good  # invented figures go
+    assert build.verify_tldr(["Patch now.", "Upgrade to 9.9.9."], text) == []  # under two left: none at all
+
+
+def test_add_tldrs_writes_once_and_retries_failures(monkeypatch):
+    calls = []
+    def fake(system, user, schema):
+        calls.append(json.loads(user)["title"])
+        if "fail" in user:
+            raise RuntimeError("boom")
+        return ["It happened on 5 May.", "Patch to 2.1 now."]
+    monkeypatch.setattr(build, "llm", fake)
+    items = [{"url": "a", "title": "A"}, {"url": "b", "title": "fail"}, {"url": "c", "title": "C", "tldr": ["old"]}, {"url": "d", "title": "D"}]
+    texts = {"a": "Released 5 May; upgrade to 2.1.", "b": "fail", "c": "x", "d": "nothing numeric here"}
+    build.add_tldrs(items, texts)
+    assert items[0]["tldr"] == ["It happened on 5 May.", "Patch to 2.1 now."]
+    assert "tldr" not in items[1]           # failed: tried again next build
+    assert items[2]["tldr"] == ["old"]      # written once, never redone
+    assert items[3]["tldr"] == []           # figures not in the article: kept out, and not retried
+    assert sorted(calls) == ["A", "D", "fail"]
+    calls.clear()
+    build.add_tldrs([{"url": str(n), "title": str(n)} for n in range(5)], {str(n): "5 May 2.1" for n in range(5)}, limit=2)
+    assert len(calls) == 2
+
+
 def test_rss_is_well_formed():
     xml = build.rss([{"date": "2026-11-05", "title": "A & B <c>", "url": "https://x.test/?a=1&b=2",
                       "category": "ai", "summary": "s"}])
