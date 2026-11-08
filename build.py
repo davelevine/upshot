@@ -42,6 +42,7 @@ NEWS_SOURCES = {"Ars Technica", "BleepingComputer", "InfoQ", "SecurityWeek", "Th
 DEDUPE_DAYS = 7       # new items are checked for repeats of the last N days' headlines
 DAILY_MAX = 10        # safety cap for big news days; the relevance bar does the real filtering
 DEAD_AFTER_DAYS = 14  # a feed failing this long gets reported
+SILENT_AFTER_DAYS = 45  # a feed that loads but hasn't posted in this long gets reported
 BATCH = 20            # stories per repeat check
 SCORE_WORKERS = 6     # parallel scoring calls (each is a CLI process)
 UA = "upshot/1.0 (+https://github.com/davelevine/upshot)"
@@ -69,11 +70,27 @@ def clean_text(s, limit=600):
     return re.sub(r"\s+", " ", s).strip()[:limit]
 
 
+class PermanentRedirects(urllib.request.HTTPRedirectHandler):
+    """Notes where a URL now lives, but only if every hop was permanent: a 302 says nothing about the feed moving."""
+    def __init__(self):
+        self.hops = []
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        self.hops.append(code)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+MOVED = {}  # feed URL -> where it permanently redirects now
+
+
 def fetch(feed):
     title, url = feed
     req = urllib.request.Request(url, headers={"User-Agent": UA})
-    with urllib.request.urlopen(req, timeout=20) as resp:
+    redirects = PermanentRedirects()
+    with urllib.request.build_opener(redirects).open(req, timeout=20) as resp:
         body = resp.read()
+        if redirects.hops and all(c in (301, 308) for c in redirects.hops) and resp.geturl() != url:
+            MOVED[url] = resp.geturl()
     if body[:2] == b"\x1f\x8b":  # some servers gzip regardless of Accept-Encoding
         body = gzip.decompress(body)
     parsed = feedparser.parse(body)
@@ -84,9 +101,21 @@ def fetch(feed):
     return title, parsed.entries
 
 
+LOOSE_DATES = ("%b %d, %Y %H:%M:%S%z", "%b %d, %Y")  # "Nov 05, 2026 00:00:00-0600": feedparser can't read these
+
+
 def entry_time(e):
     t = e.get("published_parsed") or e.get("updated_parsed")
-    return datetime(*t[:6], tzinfo=timezone.utc) if t else None
+    if t:
+        return datetime(*t[:6], tzinfo=timezone.utc)
+    for raw in (e.get("published"), e.get("updated")):
+        for fmt in LOOSE_DATES:
+            try:
+                when = datetime.strptime((raw or "").strip(), fmt)
+            except ValueError:
+                continue
+            return (when if when.tzinfo else when.replace(tzinfo=timezone.utc)).astimezone(timezone.utc)
+    return None
 
 
 def candidates(publisher, entries, seen, cutoff):
@@ -581,7 +610,7 @@ def add_tldrs(items, texts, limit=TLDR_LIMIT):
     return len(todo)
 
 
-def run_summary(feeds, feeds_failed, new, scores, kept, repeated, dead):
+def run_summary(feeds, feeds_failed, new, scores, kept, repeated, health):
     """Markdown for the Actions run page: what this build saw, kept and nearly kept."""
     title = {i["url"]: i for i in new}
     scored = {u: r for u, r in scores.items() if r}
@@ -599,8 +628,8 @@ def run_summary(feeds, feeds_failed, new, scores, kept, repeated, dead):
         lines += ["### Dropped as repeats", "", *(f"- {i['publisher']}: {i['title']}" for i in repeated), ""]
     if near:
         lines += ["### One point under the bar", "", "| Category | Score | Source | Story |", "|---|---|---|---|", *(row(r, i) for r, i in near), ""]
-    if dead:
-        lines += ["### Dead feeds", "", *(f"- {u}" for u in dead), ""]
+    if health:
+        lines += ["## Feed health", "", health, ""]
     return "\n".join(lines) + "\n"
 
 
@@ -620,6 +649,57 @@ def update_feed_health(health, results, today):
             health.setdefault(url, today.isoformat())
     limit = (today - timedelta(days=DEAD_AFTER_DAYS)).isoformat()
     return sorted(u for u, since in health.items() if since <= limit)
+
+
+def silent_feeds(fetched, today):
+    """Feeds that load but have stopped saying anything usable: no entries, no readable dates, or no recent post."""
+    out = {}
+    for url, res in fetched.items():
+        if res is None:
+            continue
+        dated = [t for e in res[1] if (t := entry_time(e))]
+        if not res[1]:
+            out[url] = "no entries"
+        elif not dated:
+            out[url] = "entries have no readable dates, so every story is skipped"
+        elif (newest := max(dated).date()) < today - timedelta(days=SILENT_AFTER_DAYS):
+            out[url] = f"last post {newest.isoformat()}"
+    return out
+
+
+def feed_links(page_html, base):
+    """Feeds a page advertises with <link rel="alternate" type="application/rss+xml"> (or atom)."""
+    found = []
+    for tag in re.findall(r"<link\b[^>]*>", page_html, re.I):
+        kind = re.search(r'type=["\']application/(rss|atom)\+xml', tag, re.I)
+        href = re.search(r'href=["\']([^"\']+)', tag, re.I)
+        if kind and href and "alternate" in tag.lower():
+            found.append(urllib.parse.urljoin(base, html.unescape(href[1])))
+    return list(dict.fromkeys(found))
+
+
+def discover_feeds(site):
+    try:
+        req = urllib.request.Request(site, headers={"User-Agent": ICON_UA})
+        page = urllib.request.urlopen(req, timeout=10).read(400_000).decode("utf-8", "replace")
+    except Exception:
+        return []
+    return feed_links(page, site)
+
+
+def feed_health_report(names, dead, silent, moved, suggestions):
+    """Markdown for the Feed health issue and the run summary; empty when every feed is fine."""
+    line = lambda u, why: f"- **{names.get(u, u)}** `{u}`: {why}" + "".join(f"\n  - maybe `{s}`" for s in suggestions.get(u, []))
+    out = []
+    if dead:
+        out += [f"### Failing for {DEAD_AFTER_DAYS}+ days", "", *(line(u, "every fetch errors") for u in dead), ""]
+    if silent:
+        out += ["### Loading, but silent", "", *(line(u, why) for u, why in sorted(silent.items())), ""]
+    if moved:
+        out += ["### Moved (permanent redirect)", "", *(f"- **{names.get(u, u)}** `{u}` → `{to}`" for u, to in sorted(moved.items())), ""]
+    if not out:
+        return ""
+    return "Fix these in `feeds.opml`. This issue updates every build and closes itself once all feeds are healthy.\n\n" + "\n".join(out)
 
 
 def main():
@@ -719,9 +799,15 @@ def main():
     (SITE / "rss.xml").write_text(rss(data["items"]))
     write_og(data, today)
     STATE.write_text(json.dumps(state, indent=1, sort_keys=True) + "\n")
-    (ROOT / "dead-feeds.txt").write_text("".join(f"{u}\n" for u in dead))
+    names = {u: t for t, u in feeds}
+    silent = silent_feeds(fetched, today)
+    with ThreadPoolExecutor(8) as ex:  # rare: only feeds already in trouble
+        sites = {u: SITE_LINKS.get(names[u]) or urllib.parse.urljoin(u, "/") for u in [*dead, *silent]}
+        suggestions = dict(zip(sites, ex.map(lambda u: [f for f in discover_feeds(sites[u]) if f != u], sites)))
+    health = feed_health_report(names, dead, silent, {u: m for u, m in MOVED.items() if u in names}, suggestions)
+    (ROOT / "feed-health.md").write_text(health)
 
-    write_summary(len(feeds), sum(r is None for r in fetched.values()), new, scores, kept, repeated, dead)
+    write_summary(len(feeds), sum(r is None for r in fetched.values()), new, scores, kept, repeated, health)
 
     if new and failed == len(new):
         sys.exit("every scoring call failed; check CLAUDE_CODE_OAUTH_TOKEN and the Claude Code CLI")
