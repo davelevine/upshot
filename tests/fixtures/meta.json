@@ -97,6 +97,13 @@
   "contentType": "text/html; charset=UTF-8",
   "mitigated": null
  },
+ "DoublePulsar": {
+  "file": "doublepulsar.html",
+  "url": "https://doublepulsar.com/anthropic-hacked-to-deliver-remote-access-trojan-to-claude-developer-laptops-worldwide-1148a92baae2?gi=09d4f1bc0ec9&source=rss----8343faddf0ec---4",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
  "ElevenLabs": {
   "file": "elevenlabs.html",
   "url": "https://elevenlabs.io/blog/realtime-translation",
@@ -158,6 +165,13 @@
   "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-carbon/?utm_source=deepmind.google&utm_medium=referral&utm_campaign=gdm&utm_content=",
   "status": 200,
   "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Google Project Zero": {
+  "file": "google-project-zero.html",
+  "url": "https://projectzero.google/2026/10/fuzzing-v-AI.html",
+  "status": 200,
+  "contentType": "text/html",
   "mitigated": null
  },
  "Google Research": {
@@ -408,6 +422,13 @@
  "Unit 42": {
   "file": "unit-42.html",
   "url": "https://unit42.paloaltonetworks.com/active-exploitation-of-pan-os-cve-2026-0257/",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "Volexity": {
+  "file": "volexity.html",
+  "url": "https://www.volexity.com/blog/2026/10/16/mind-the-patch-gap-part-3-analysis-with-volexity-volcano-threat-intel-and-mcp/",
   "status": 200,
   "contentType": "text/html; charset=UTF-8",
   "mitigated": null
