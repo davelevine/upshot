@@ -726,6 +726,17 @@
    "minutes": 27
   },
   {
+   "date": "2026-10-22",
+   "title": "We gave AI agents a mobile dev environment",
+   "url": "https://shopify.engineering/remote-dev",
+   "publisher": "Shopify Engineering",
+   "category": "sdlc",
+   "summary": "Shopify describes Remote Dev, a remote environment letting AI agents build and test mobile apps in parallel without loading developer laptops.",
+   "relevance": 6,
+   "added": "2026-11-08T17:16:03+00:00",
+   "minutes": 8
+  },
+  {
    "date": "2026-10-21",
    "title": "Rapid Response: php2shell, Leaked Critical PHP Vulnerabilities (CVE-2026-109618 & CVE-2026-109619)",
    "url": "https://www.huntress.com/blog/php2shell-leaked-critical-php-vulnerabilities",
@@ -834,6 +845,17 @@
    "summary": "Anthropic Research describes using an internal Claude model to design minibinders that attach tightly to scorpion neurotoxins.",
    "relevance": 7,
    "minutes": 10
+  },
+  {
+   "date": "2026-10-20",
+   "title": "Cross-store product clustering across millions of stores",
+   "url": "https://shopify.engineering/catalog-clustering-part-ii",
+   "publisher": "Shopify Engineering",
+   "category": "architecture",
+   "summary": "Shopify Engineering describes clustering product listings across millions of stores using tiered matching models, graph partitioning, and learned merge decisions.",
+   "relevance": 6,
+   "added": "2026-11-08T17:16:03+00:00",
+   "minutes": 13
   },
   {
    "date": "2026-10-19",
@@ -1097,6 +1119,17 @@
   },
   {
    "date": "2026-10-09",
+   "title": "Death By A Thousand PaperCuts (PaperCut Pre-Auth RCE Chain and Patch Bypasses WT-2026-0141-0144/CVE-2026-82077/CVE-2026-82078/CVE-2026-81578)",
+   "url": "https://labs.watchtowr.com/death-by-a-thousand-papercuts-papercut-pre-auth-rce-chain-and-patch-bypasses-wt-2026-0141-0144-cve-2026-82077-cve-2026-82078-cve-2026-81578/",
+   "publisher": "watchTowr Labs",
+   "category": "security",
+   "summary": "watchTowr details a pre-auth RCE chain in PaperCut with patch bypasses, covered by CVE-2026-82077, CVE-2026-82078 and CVE-2026-81578.",
+   "relevance": 8,
+   "added": "2026-11-08T17:16:03+00:00",
+   "minutes": 13
+  },
+  {
+   "date": "2026-10-09",
    "title": "Investigating unintended model actions in our evaluations and internal use",
    "url": "https://www.anthropic.com/research/investigating-unintended-model-actions",
    "publisher": "Anthropic Research",
@@ -1173,7 +1206,7 @@
    }
   ]
  },
- "generated_at": "2026-11-08T16:57:54+00:00",
+ "generated_at": "2026-11-08T17:16:10+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
@@ -1206,11 +1239,12 @@
   "krebs-on-security",
   "martin-fowler",
   "meta-engineering",
-  "meta-newsroom",
+  "metr",
   "microsoft-security-blog",
   "mistral",
   "mozilla-security",
   "netflix-techblog",
+  "noyb",
   "nvidia-blog",
   "openai-alignment",
   "owasp-gen-ai-security-project",
@@ -1219,6 +1253,7 @@
   "sansec",
   "schneier-on-security",
   "securityweek",
+  "shopify-engineering",
   "simon-willison",
   "socket",
   "tailscale",
@@ -1229,7 +1264,15 @@
   "uk-aisi",
   "unit-42",
   "warp",
+  "watchtowr-labs",
   "wiz"
  ],
- "tz": "America/New_York"
+ "tz": "America/New_York",
+ "iconArt": {
+  "github-changelog": "dark",
+  "krebs-on-security": "dark",
+  "openai-alignment": "dark",
+  "the-github-blog": "dark",
+  "watchtowr-labs": "dark"
+ }
 }
