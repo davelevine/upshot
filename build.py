@@ -16,6 +16,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from email.utils import format_datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import feedparser
 from PIL import Image, ImageDraw, ImageFont
@@ -23,6 +24,8 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).parent
 SITE = ROOT / "site"
 STATE = ROOT / "state.json"
+# Stories are dated, and days labelled, in one time zone, so "Today" means the same thing on every device.
+SITE_TZ = ZoneInfo(os.environ.get("SITE_TZ") or "America/New_York")
 SITE_URL = (os.environ.get("SITE_URL") or "https://upshot.levine.io").rstrip("/")  # forks set the SITE_URL repo variable
 MODEL = os.environ.get("UPSHOT_MODEL", "claude-haiku-5-5")
 CLAUDE = os.environ.get("CLAUDE_BIN", "claude")  # Claude Code CLI
@@ -100,7 +103,7 @@ def candidates(publisher, entries, seen, cutoff):
             "url": url,
             "title": clean_text(e["title"], 300),
             "publisher": publisher,
-            "date": when.date().isoformat(),
+            "date": when.astimezone(SITE_TZ).date().isoformat(),
             "excerpt": clean_text(e.get("summary") or e.get("description")),
         })
     return sorted(out, key=lambda i: i["date"], reverse=True)[:PER_FEED]
@@ -542,7 +545,7 @@ def update_feed_health(health, results, today):
 
 
 def main():
-    today = now().date()
+    today = now().astimezone(SITE_TZ).date()
     state = json.loads(STATE.read_text()) if STATE.exists() else {"seen": {}, "failing_since": {}}
     data_path = SITE / "data.json"
     data = json.loads(data_path.read_text()) if data_path.exists() else {"items": [], "weekly": None}
@@ -628,6 +631,7 @@ def main():
     reader_error = add_reading_times(data["items"], feed_minutes(fetched), full_text_feeds(fetched))
     data["generated_at"] = now().isoformat(timespec="seconds")
     SITE.mkdir(exist_ok=True)
+    data["tz"] = SITE_TZ.key
     data["icons"] = fetch_icons({i["publisher"] for i in data["items"]} | set(SITE_LINKS))
     data_path.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n")
     (SITE / "rss.xml").write_text(rss(data["items"]))

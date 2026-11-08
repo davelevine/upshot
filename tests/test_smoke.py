@@ -521,6 +521,25 @@ def test_text_size_steps_and_is_remembered(browser):
     pg.wait_for_function("() => document.getElementById('size-pop').hidden")
 
 
+def test_today_means_the_sites_today_whatever_the_device_reports(browser):
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    today = datetime.now(ZoneInfo("America/New_York")).date().isoformat()
+    for device_tz in ("UTC", "Asia/Tokyo", "Pacific/Honolulu"):
+        ctx = browser.new_context(timezone_id=device_tz)
+        def dated_today(route):
+            res = route.fetch()
+            data = res.json()
+            data["tz"] = "America/New_York"
+            data["items"][0]["date"] = today
+            route.fulfill(response=res, json=data)
+        ctx.route("**/data.json", dated_today)
+        pg = ctx.new_page()
+        pg.goto(URL)
+        pg.wait_for_selector("a.card")
+        assert pg.locator(".date-label").first.inner_text().startswith("TODAY"), device_tz
+
+
 def test_unknown_paths_are_real_404s(browser):
     # Without a 404 page, Pages serves index.html for everything, which breaks robots.txt and any tool probing for a file.
     pg = browser.new_context().new_page()

@@ -218,6 +218,7 @@ The knobs live at the top of [`build.py`](build.py):
 | `DEAD_AFTER_DAYS` | 14 | Days of failures before a feed is reported |
 | `UPSHOT_MODEL` | `claude-haiku-5-5` | Model used for scoring, repeats and the weekly picks (env). The build fails if the CLI answers with a different model |
 | `CLAUDE_BIN` | `claude` | Path to the Claude Code CLI (env) |
+| `SITE_TZ` | `America/New_York` | The time zone stories are dated in and "Today" means, on every device (env; set as a repo variable in forks) |
 | `SITE_URL` | `https://upshot.levine.io` | The site's address, for the feeds' links (env; set as a repo variable in forks) |
 
 How often it runs is the `cron` line in [`build.yml`](.github/workflows/build.yml).

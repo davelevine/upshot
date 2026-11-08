@@ -74,6 +74,13 @@ def test_icon_slugs_match_the_test_fixtures_rule():
     assert build.slug("Anthropic (community feed)") == "anthropic-community-feed"
 
 
+def test_stories_are_dated_in_the_site_time_zone():
+    import time
+    late = {"link": "https://x.test/a", "title": "T", "published_parsed": time.strptime("2026-11-07 01:00", "%Y-%m-%d %H:%M")}  # 8pm on the 6th, Eastern
+    (item,) = build.candidates("P", [late], {}, datetime(2026, 11, 1, tzinfo=timezone.utc))
+    assert item["date"] == "2026-11-06"
+
+
 def test_rss_is_well_formed():
     xml = build.rss([{"date": "2026-11-05", "title": "A & B <c>", "url": "https://x.test/?a=1&b=2",
                       "category": "ai", "summary": "s"}])

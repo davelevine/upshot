@@ -58,6 +58,7 @@ jobs:
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
           CF_KV_NAMESPACE_ID: ${{ secrets.CF_KV_NAMESPACE_ID }}
           SITE_URL: ${{ vars.SITE_URL }}  # optional; build.py has a default
+          SITE_TZ: ${{ vars.SITE_TZ }}  # optional; the zone stories are dated and labelled in, default America/New_York
           FRESH_DAYS: ${{ inputs.backfill_days || 3 }}
           PER_FEED: ${{ inputs.backfill_days && 100 || 10 }}
 
