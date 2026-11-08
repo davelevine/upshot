@@ -131,7 +131,7 @@
   .palette-foot { display: flex; gap: 16px; padding: 8px 14px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: .72rem; }
   .palette-foot kbd { margin-right: 3px; }
   .palette-close { flex: none; padding: 0; border: 0; background: none; color: var(--accent); font: 500 1rem Inter, system-ui, sans-serif; cursor: pointer; }
-  .palette-close span { display: none; }
+  .palette-close svg { display: none; }
   /* A row on wide screens; a popover behind the filter button on phones. */
   .filters { position: static; display: flex; gap: 8px; width: auto; height: auto; padding: 14px 0 0; border: 0; background: none; color: inherit; min-height: 48px;  /* the chips arrive with the data; hold their row */ overflow-x: auto; scrollbar-width: none; }
   .filter-toggle { display: none; }
@@ -272,10 +272,14 @@
     .card-summary { font-size: .9375rem; }
     .back-to-top { right: 12px; bottom: 12px; }
     .site-foot { padding-bottom: 72px; }  /* clears the back-to-top button */
-    .palette { top: 8px; max-height: calc(100vh - 16px); }
+    /* Under the header, which stays clear; tapping it closes. */
+    .palette { top: 60px; left: 8px; right: 8px; width: auto; transform: none; max-height: calc(100dvh - 68px); }
+    .palette-backdrop { background: linear-gradient(transparent 52px, rgba(0, 0, 0, .5) 52px); }
     .palette-foot { display: none; }
-    .palette-close { min-width: 44px; min-height: 44px; }  /* the palette covers the backdrop here, and there's no Esc key */
-    .palette-close kbd { display: none; } .palette-close span { display: inline; }
+    /* No Esc key here: the close button sits over the header's search icon, so it turns into an X. */
+    .palette-close { position: fixed; top: 4px; right: 102px; display: grid; place-items: center; width: 44px; height: 44px; color: var(--text-muted); }
+    .palette-close kbd { display: none; } .palette-close svg { display: block; width: 24px; height: 24px; }
+    body:has(#palette:not([hidden])) .search-wrap > svg { visibility: hidden; }
   }
   /* The reader's slide: the same both ways, moving at once and settling. Phones travel less, so take less time. */
   :root { --slide-in: .32s; --slide-out: .32s; --ease-in: cubic-bezier(.25, .6, .25, 1); --ease-out: cubic-bezier(.25, .6, .25, 1); }
@@ -424,7 +428,7 @@
   <div class="palette-input">
     <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
     <input id="palette-q" type="text" role="combobox" aria-expanded="true" aria-controls="palette-list" aria-autocomplete="list" placeholder="Search articles…" autocomplete="off" spellcheck="false">
-    <button class="palette-close" id="palette-close" type="button" aria-label="Close search"><kbd>Esc</kbd><span>Cancel</span></button>
+    <button class="palette-close" id="palette-close" type="button" aria-label="Close search"><kbd>Esc</kbd><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
   </div>
   <ul class="palette-list" id="palette-list" role="listbox" aria-label="Results"></ul>
   <div class="palette-foot"><span><kbd>↑</kbd><kbd>↓</kbd> choose</span><span><kbd>↵</kbd> read</span><span><kbd>Esc</kbd> close</span></div>

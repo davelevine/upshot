@@ -714,12 +714,18 @@ def test_the_search_bar_and_slash_open_the_palette(browser):
         assert box["width"] == 44 and box["height"] == 44 and box["y"] + 44 <= 52
     ph.tap("#search")
     ph.locator("#palette").wait_for()
-    cancel = ph.locator("#palette-close")  # no Esc key on a phone, and the palette covers the backdrop
-    assert cancel.inner_text() == "Cancel" and cancel.bounding_box()["height"] >= 44
-    cancel.tap()
+    # Below the header, and the search icon becomes the close button (no Esc key on a phone).
+    assert ph.locator("#palette").bounding_box()["y"] >= 52
+    close, icon = ph.locator("#palette-close").bounding_box(), ph.locator("#search-wrap").bounding_box()
+    assert (close["x"], close["y"], close["width"], close["height"]) == (icon["x"], icon["y"], 44, 44)
+    ph.locator("#palette-close").tap()
     ph.locator("#palette").wait_for(state="hidden")
     ph.wait_for_timeout(200)
     assert ph.locator("#palette").is_hidden()
+    ph.tap("#search")
+    ph.locator("#palette").wait_for()
+    ph.mouse.click(20, 26)  # anywhere on the header closes it too
+    ph.locator("#palette").wait_for(state="hidden")
 
 
 def test_share_icon_matches_the_device(browser):
