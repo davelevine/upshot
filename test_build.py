@@ -112,15 +112,26 @@ def test_cap_per_day_keeps_most_relevant():
 def test_cap_per_day_never_drops_a_published_story():
     day = lambda cat, rel, pub, url: {"date": "2026-11-08", "category": cat, "relevance": rel, "publisher": pub, "url": url}
     infoq = day("architecture", 6, "InfoQ", "infoq")   # on the site since this morning
-    cncf = day("architecture", 6, "CNCF", "cncf")       # arrives later; would win the tie as the original source
-    better = day("architecture", 9, "Figma", "figma")   # or even outscore it
-    out = build.cap_per_day([infoq, cncf, better], published={id(infoq)})
-    assert [i["url"] for i in out] == ["infoq"]  # the day's one architecture slot stays taken
+    cncf = day("architecture", 6, "CNCF", "cncf")       # arrives later and only ties: the slot stays InfoQ's
+    out = build.cap_per_day([infoq, cncf], published={id(infoq)})
+    assert [i["url"] for i in out] == ["infoq"]
     many = [day("other", 5, "P", f"p{n}") for n in range(build.DAILY_MAX)]
     out = build.cap_per_day(many + [day("other", 9, "P", "late")], published={id(i) for i in many})
-    assert "late" not in [i["url"] for i in out] and len(out) == build.DAILY_MAX
-    out = build.cap_per_day([cncf, better])  # nothing published yet: the usual ranking
+    assert "late" not in [i["url"] for i in out] and len(out) == build.DAILY_MAX  # the daily safety cap still holds
+    out = build.cap_per_day([cncf, day("architecture", 9, "Figma", "figma")])  # nothing published yet: the usual ranking
     assert [i["url"] for i in out] == ["figma"]
+
+
+def test_a_strong_late_story_goes_over_the_cap_without_removing_anything():
+    day = lambda cat, rel, url: {"date": "2026-11-05", "category": cat, "relevance": rel, "publisher": "P", "url": url}
+    ai = [day("ai", 6, "a1"), day("ai", 7, "a2")]
+    sec = [day("security", 8, "s1"), day("security", 9, "s2")]
+    late = [day("ai", 7, "better"), day("ai", 6, "tie-low"), day("security", 8, "tie-8"), day("security", 7, "worse")]
+    out = [i["url"] for i in build.cap_per_day(ai + sec + late, published={id(i) for i in ai + sec})]
+    assert {"a1", "a2", "s1", "s2"} <= set(out)        # nothing published is removed
+    assert "better" in out                              # beats the day's weakest AI story (6)
+    assert "tie-8" in out                               # ties the weakest security story at 8
+    assert "tie-low" not in out and "worse" not in out  # a tie below 8, or a weaker story, stays out
 
 
 def test_cap_per_day_balances_categories_and_prefers_original_sources():

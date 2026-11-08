@@ -361,7 +361,7 @@ def fetch_icon(site):
             continue
         if min(img.size) >= 16:
             img = img.resize((64, 64), Image.LANCZOS)
-            if sum(a > 128 for a in img.getchannel("A").getdata()) < 64 * 64 * 0.05:
+            if sum(a > 128 for a in img.getchannel("A").get_flattened_data()) < 64 * 64 * 0.05:
                 continue  # nearly all transparent: draws as nothing
             return img
     return None
@@ -384,7 +384,7 @@ def icon_art(path):
     """"dark" or "light" for single-colour artwork on a transparent background, which would vanish against a background
     of the same tone: the reader inverts it there. Coloured icons, and ones on their own solid tile, get None."""
     img = Image.open(path).convert("RGBA")
-    ink = [(r, g, b) for r, g, b, a in img.getdata() if a > 128]
+    ink = [(r, g, b) for r, g, b, a in img.get_flattened_data() if a > 128]
     if not ink or len(ink) > 64 * 64 * 0.9:
         return None
     if sum(max(p) - min(p) for p in ink) / len(ink) > 40:  # coloured: inverting would wreck it
@@ -441,11 +441,15 @@ def repeats(dup_of, n, covered_ids, recent_titles):
     return bool(dup_of) and norm(dup_of) in recent_titles
 
 
+LATE_TIE_SCORE = 8  # a late story that ties the day's weakest still gets in at this score or above
+
+
 def cap_per_day(items, published=()):
-    """Newest day first; within a day, each category's most relevant up to CATEGORY_MAX, then the DAILY_MAX most
-    relevant overall. Ties go to the original source over a news outlet, then keep their order.
-    Stories already on the site (`published`, as ids of their dicts, which survive a source upgrade) always stay and
-    take their slots first: a better story arriving later misses the day rather than replacing one readers have seen."""
+    """Newest day first; within a day, each category's most relevant up to CATEGORY_MAX, then at most DAILY_MAX.
+    Ties go to the original source over a news outlet, then keep their order.
+    Stories already on the site (`published`, as ids of their dicts, which survive a source upgrade) always stay. A story
+    arriving after its category's slots are taken can still go over the cap if it's better than the weakest one there,
+    or ties it at LATE_TIE_SCORE or more: a strong late story isn't turned away, and nothing readers have seen is removed."""
     rank = lambda i: (-i.get("relevance", 0), i.get("publisher") in NEWS_SOURCES)
     on_site = lambda i: id(i) in published
     by_day = {}
@@ -453,14 +457,20 @@ def cap_per_day(items, published=()):
         by_day.setdefault(i["date"], []).append(i)
     out = []
     for day in sorted(by_day, reverse=True):
-        counts, kept, fresh = {}, [], []
-        for i in sorted(by_day[day], key=lambda i: (not on_site(i), *rank(i))):
+        kept = [i for i in by_day[day] if on_site(i)]
+        counts, floor = {}, {}
+        for i in kept:
             cat = i.get("category")
             counts[cat] = counts.get(cat, 0) + 1
-            if on_site(i):
-                kept.append(i)
-            elif counts[cat] <= CATEGORY_MAX.get(cat, DAILY_MAX) and len(kept) + len(fresh) < DAILY_MAX:
+            floor[cat] = min(floor.get(cat, 99), i.get("relevance", 0))
+        fresh = []
+        for i in sorted((i for i in by_day[day] if not on_site(i)), key=rank):
+            cat, score = i.get("category"), i.get("relevance", 0)
+            within = counts.get(cat, 0) < CATEGORY_MAX.get(cat, DAILY_MAX)
+            late = cat in floor and (score > floor[cat] or (score >= LATE_TIE_SCORE and score >= floor[cat]))
+            if (within or late) and len(kept) + len(fresh) < DAILY_MAX:
                 fresh.append(i)
+                counts[cat] = counts.get(cat, 0) + 1
         out += sorted(kept + fresh, key=rank)
     return out
 
