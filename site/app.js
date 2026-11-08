@@ -8,7 +8,7 @@ const PAGE = 40;
 const STALE_MINUTES = 12 * 60;  // three missed builds
 const KEEP_DAYS = 90;  // build.py prunes older stories
 const io = new IntersectionObserver(([e]) => { if (e.isIntersecting && limit < shown.length) { limit += PAGE; renderPage(); } }, { rootMargin: '800px' });
-let tz, icons = new Set(), items = [], filter = 'all', shown = [], limit = PAGE, generatedAt = null;
+let tz, iconArt = {}, icons = new Set(), items = [], filter = 'all', shown = [], limit = PAGE, generatedAt = null;
 
 // Today in the site's time zone (data.json's tz), not the device's: some browsers report UTC for privacy, which
 // turned the evening's stories into "Yesterday".
@@ -211,6 +211,7 @@ function load() {
     indexSlugs();
     weekly = data.weekly;
     icons = new Set(data.icons || []);
+    iconArt = data.iconArt || {};
     pruneRead();
     renderFilters();
     renderWeekly(data.weekly);
@@ -349,6 +350,7 @@ function openReader(i, { fromHash = false } = {}) {
   const icon = iconSlug(i.publisher);
   $('reader-icon').hidden = !icons.has(icon);
   if (icons.has(icon)) $('reader-icon').src = `/icons/${icon}.png`;
+  $('reader-icon').dataset.art = iconArt[icon] || '';
   const at = shown.findIndex(x => x.url === i.url);
   $('reader-prev').disabled = at <= 0;
   $('reader-next').disabled = at < 0 || at >= shown.length - 1;
