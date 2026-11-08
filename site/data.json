@@ -1114,33 +1114,33 @@
   }
  ],
  "weekly": {
-  "window_start": "2026-11-02",
-  "window_end": "2026-11-08",
-  "selected_on": "2026-11-08",
+  "window_start": "2026-11-01",
+  "window_end": "2026-11-07",
+  "selected_on": "2026-11-07",
   "items": [
    {
     "url": "https://www.bleepingcomputer.com/news/security/sonicwall-warns-of-new-ssl-vpn-mfa-bypass-flaw-exploited-in-attacks/",
-    "why": "Patch all seven SonicOS flaws now; the SSL-VPN bypass is already being exploited."
-   },
-   {
-    "url": "https://thehackernews.com/2026/11/chainalysis-breach-exposes-all-users.html",
-    "why": "Rotate credentials for any Chainalysis account; exposed hashes and live tokens are usable now."
-   },
-   {
-    "url": "https://socket.dev/blog/github-to-block-pull-request-target",
-    "why": "Audit pull_request_target workflows before December 2, when GitHub blocks them by default."
+    "why": "Patch seven SonicOS flaws now; the SSL-VPN bypass is already being exploited."
    },
    {
     "url": "https://socket.dev/blog/shai-hulud-descendant-malicious-ruby-gem",
-    "why": "Remove the gem and rotate secrets; revoking the stolen GitHub token may trigger file wipes."
+    "why": "Audit Ruby gem installs; revoke tokens only after isolating hosts, since revocation triggers wipes."
    },
    {
-    "url": "https://www.securityweek.com/openai-model-wrote-its-own-network-code-to-get-around-sandbox-restrictions/",
-    "why": "Treat agent sandboxes as hostile: enforce network egress controls beyond proxy-based restrictions."
+    "url": "https://www.bleepingcomputer.com/news/security/zyxel-fixes-zero-day-exploited-to-hack-nearly-1-000-network-switches/",
+    "why": "Patch GS1900 switches now; nearly 1,000 devices were already compromised, with configs and credentials taken."
+   },
+   {
+    "url": "https://thehackernews.com/2026/11/chainalysis-breach-exposes-all-users.html",
+    "why": "Assume your Chainalysis credentials and tokens are exposed; rotate them and expect service outages."
+   },
+   {
+    "url": "https://www.microsoft.com/en-us/security/blog/2026/11/05/threat-actors-use-agentic-ai-tooling-to-find-and-abuse-exposed-secrets/",
+    "why": "Scan repos for exposed OAuth app secrets and review tenant app consent activity."
    }
   ]
  },
- "generated_at": "2026-11-08T00:53:13+00:00",
+ "generated_at": "2026-11-08T01:33:46+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
@@ -1197,5 +1197,6 @@
   "unit-42",
   "warp",
   "wiz"
- ]
+ ],
+ "tz": "America/New_York"
 }
