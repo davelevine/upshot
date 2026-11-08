@@ -371,15 +371,28 @@ function openReader(i, { fromHash = false } = {}) {
 // Article text size, kept on this device: small, medium (the default), large, larger.
 const SIZES = ['small', 'medium', 'large', 'larger'];
 let textSize = Math.min(3, Math.max(0, +(localStorage.getItem('textSize') ?? 1) || 0));
-const labelSize = () => $('reader-size').setAttribute('aria-label', `Text size: ${SIZES[textSize]}`);
-labelSize();
-$('reader-size').onclick = () => {
-  textSize = (textSize + 1) % SIZES.length;
+const markSize = () => $('size-pop').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.size === textSize)));
+markSize();
+const closeSize = () => { $('size-pop').hidden = true; $('reader-size').setAttribute('aria-expanded', 'false'); };
+$('reader-size').onclick = e => {
+  e.stopPropagation();
+  const open = $('size-pop').hidden;
+  $('size-pop').hidden = !open;
+  $('reader-size').setAttribute('aria-expanded', String(open));
+  if (open) $('size-pop').querySelector('[aria-pressed="true"]').focus({ preventScroll: true });
+};
+$('size-pop').onclick = e => {
+  e.stopPropagation();
+  const b = e.target.closest('button');
+  if (!b) return;
+  textSize = +b.dataset.size;
   localStorage.setItem('textSize', textSize);
-  labelSize();
+  markSize();
   $('status').textContent = `Text size ${SIZES[textSize]}`;
   $('reader-body').querySelector('iframe[srcdoc]')?.contentWindow.postMessage({ tw: 'size', size: String(textSize) }, '*');
 };
+document.addEventListener('click', closeSize);
+addEventListener('blur', closeSize);  // a tap into the article lands in its frame, which blurs this window
 let lastInput = 'pointer';
 addEventListener('pointerdown', () => { lastInput = 'pointer'; }, true);
 addEventListener('keydown', () => { lastInput = 'key'; }, true);
@@ -473,6 +486,7 @@ function step(dir) {
 function onKey(key, mod, e) {
   const reading = document.body.classList.contains('reading');
   if ($('keys').open) return;  // the dialog handles its own Esc
+  if (key === 'escape' && !$('size-pop').hidden) { closeSize(); return $('reader-size').focus(); }
   if (key === 'escape' && reading) return dismiss();
   if (key === 'k' && mod) { e?.preventDefault(); return openPalette(); }
   if (mod || e?.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;

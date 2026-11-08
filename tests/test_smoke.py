@@ -498,12 +498,22 @@ def test_text_size_steps_and_is_remembered(browser):
     size = lambda: frame.locator("body").evaluate("e => parseFloat(getComputedStyle(e).fontSize)")
     start = size()
     pg.locator("#reader-size").tap()
-    pg.wait_for_function("() => document.getElementById('reader-size').getAttribute('aria-label') === 'Text size: large'")
-    frame.locator("html[data-size='2']").wait_for(state="attached")
+    sizes = pg.locator("#size-pop button")
+    assert sizes.count() == 4 and pg.locator("#size-pop [aria-pressed='true']").get_attribute("data-size") == "1"
+    sizes.nth(3).tap()  # straight to the largest, no cycling through the others
+    frame.locator("html[data-size='3']").wait_for(state="attached")
     assert size() > start
+    assert pg.locator("#size-pop [aria-pressed='true']").get_attribute("data-size") == "3"
+    sizes.nth(2).tap()
+    frame.locator("html[data-size='2']").wait_for(state="attached")
+    pg.keyboard.press("Escape")  # closes the panel, not the reader
+    assert not pg.locator("#size-pop").is_visible() and pg.evaluate("document.body.classList.contains('reading')")
     pg.reload()
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
     assert pg.frame_locator("#reader-body iframe:not(.loading)").locator("html").get_attribute("data-size") == "2"
+    pg.locator("#reader-size").tap()
+    pg.mouse.click(200, 600)  # a tap on the article closes the panel
+    pg.wait_for_function("() => document.getElementById('size-pop').hidden")
 
 
 def test_unknown_paths_are_real_404s(browser):

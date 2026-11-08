@@ -268,6 +268,16 @@
   .reader-bar { display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 12px; border-bottom: 1px solid var(--border); flex: 0 0 auto; }
   .reader-spacer { flex: 1; }
   .text-size { font: 600 .9375rem/1 Inter, system-ui, sans-serif; letter-spacing: -.01em; }
+  .text-size[aria-expanded="true"] { background: var(--bg-card-hover); color: var(--text); }
+  /* Text size: four A's in growing sizes, the current one marked. */
+  .size-wrap { position: relative; }
+  .size-pop { left: auto; right: 0; width: auto; display: flex; gap: 4px; padding: 6px; }
+  .size-pop[hidden] { display: none; }
+  .size-pop button { display: grid; place-items: end center; width: 44px; height: 44px; padding-bottom: 11px; border: 1px solid transparent; border-radius: var(--radius-sm);
+    background: none; color: var(--text-muted); font-family: Inter, system-ui, sans-serif; font-weight: 600; line-height: 1; cursor: pointer; }
+  .size-pop button:hover { background: var(--bg-card-hover); color: var(--text); }
+  .size-pop button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+  .size-pop [data-size="0"] { font-size: 13px; } .size-pop [data-size="1"] { font-size: 16px; } .size-pop [data-size="2"] { font-size: 20px; } .size-pop [data-size="3"] { font-size: 24px; }
   .reader-icon { flex: none; width: 28px; height: 28px; padding: 2px; border-radius: 7px; background: #fff; }  /* white tile: most favicons are drawn for light tabs */
   #reader:focus { outline: none; }  /* focused on a tap open, so no ring appears on the close button */
   .close-back, .reader-nav { display: none; }
@@ -348,7 +358,12 @@
     <img class="reader-icon" id="reader-icon" alt="" width="28" height="28" hidden>
     <span class="reader-spacer"></span>
     <span class="share-done" id="share-done" hidden>Copied</span>
-    <button class="icon-btn text-size" id="reader-size" type="button" title="Text size" aria-label="Text size: medium">Aa</button>
+    <span class="size-wrap">
+      <button class="icon-btn text-size" id="reader-size" type="button" title="Text size" aria-label="Text size" aria-expanded="false" aria-controls="size-pop">Aa</button>
+      <span class="popover size-pop" id="size-pop" role="group" aria-label="Text size" hidden>
+        <button type="button" data-size="0" aria-label="Small" title="Small">A</button><button type="button" data-size="1" aria-label="Medium" title="Medium">A</button><button type="button" data-size="2" aria-label="Large" title="Large">A</button><button type="button" data-size="3" aria-label="Larger" title="Larger">A</button>
+      </span>
+    </span>
     <button class="icon-btn" id="reader-share" type="button" title="Share article" aria-label="Share article"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>
     <button class="icon-btn" id="reader-theme" type="button" title="Toggle dark mode" aria-label="Toggle dark mode">
       <svg class="only-light" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
