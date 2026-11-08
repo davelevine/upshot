@@ -16,6 +16,7 @@ const MAX_LINK_SHARE = 0.5; // more of an "article" than this is links: it's a l
 const PAGE_TIMEOUT = 15000; // some pages take 10s
 const FEED_TIMEOUT = 10000; // one full-article feed is 4MB
 const CONCURRENCY = 6;
+const MAX_WRITES = 100; // per build: free KV allows 1,000 writes a day, and builds run 6+ times; the rest wait for the next build
 const TTL = 100 * 86400; // past the build's KEEP_DAYS (90), so expired articles are already off the site
 const VERSION = 3; // bump when extraction changes, and the next build redoes every stored article
 const TRANSIENT = ['timeout', 'error']; // not a verdict on the article: try again next run
@@ -366,8 +367,11 @@ export async function run({ items, feeds }, kv) {
       entries.push({ key, value: JSON.stringify(record), expiration_ttl: TTL, metadata: { reason: record.reason, words: n, v: VERSION } });
     }
   }));
-  if (kv && entries.length) await kv.put(entries);
-  return { words, counts, stored: kv ? entries.length : 0, total: stored.size };
+  // Newest stories first (items are newest first), so a big redo can't hold back today's articles.
+  const order = new Map(items.map((i, n) => [keys.get(i.url), n]));
+  const writes = entries.sort((a, b) => order.get(a.key) - order.get(b.key)).slice(0, MAX_WRITES);
+  if (kv && writes.length) await kv.put(writes);
+  return { words, counts, stored: kv ? writes.length : 0, deferred: entries.length - writes.length, total: stored.size };
 }
 
 async function main() {
@@ -376,9 +380,9 @@ async function main() {
   if (!kv) console.error('::warning::no KV credentials: the reader has nothing to serve');
   let out = { words: {} };
   try {
-    const { words, counts, stored, total } = await run(input, kv);
+    const { words, counts, stored, deferred, total } = await run(input, kv);
     out = { words };
-    const line = `**Reader:** ${stored} articles written, ${total} already in KV, this run ${JSON.stringify(counts)}`;
+    const line = `**Reader:** ${stored} articles written${deferred ? `, ${deferred} left for the next build (write cap)` : ''}, ${total} already in KV, this run ${JSON.stringify(counts)}`;
     console.error(line);
     if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${line}\n\n`);
   } catch (e) {

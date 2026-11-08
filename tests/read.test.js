@@ -228,6 +228,23 @@ test('kvClient reports keys the bulk write rejected, even on a 200', async () =>
   assert.equal(kvClient({}), null);
 });
 
+test('run writes at most MAX_WRITES articles a build, newest first', async () => {
+  const items = Array.from({ length: 120 }, (_, n) => ({ url: `https://x.test/${n}`, publisher: 'P' }));
+  const routes = Object.fromEntries(items.map(i => [i.url, page(200, {}, article)]));
+  const kv = fakeKv();
+  const out = await withFetch(routes, () => run({ items, feeds: {} }, kv));
+  assert.equal(kv.puts.length, 100);
+  assert.equal(out.deferred, 20);
+  const written = new Set(kv.puts.map(e => e.key));
+  assert.ok(written.has(await keyFor(items[0].url)) && !written.has(await keyFor(items[119].url)));  // newest kept
+});
+
+test('the reader function stays a lookup: no libraries, so no parsing against the CPU limit', async () => {
+  const { readFileSync } = await import('node:fs');
+  const code = readFileSync(new URL('../functions/api/read.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(code, /^\s*import\s/m, 'functions/api/read.js imports a library; parse in extract.mjs instead');
+});
+
 test('/api/read returns what the build stored, and pending otherwise', async () => {
   const url = 'https://x.test/a';
   const ask = async (env, u = url) => {
