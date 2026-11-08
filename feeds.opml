@@ -27,7 +27,7 @@
     <outline type="rss" text="Google Cloud Blog" xmlUrl="https://cloudblog.withgoogle.com/rss/"/>
     <outline type="rss" text="Google DeepMind" xmlUrl="https://deepmind.google/blog/rss.xml"/>
     <outline type="rss" text="Google Project Zero" xmlUrl="https://projectzero.google/feed.xml"/>
-    <outline type="rss" text="Google Research" xmlUrl="https://research.google/blog/rss"/>
+    <outline type="rss" text="Google Research" xmlUrl="https://research.google/blog/rss/"/>
     <outline type="rss" text="Google Threat Intelligence" xmlUrl="https://cloudblog.withgoogle.com/topics/threat-intelligence/rss/"/>
     <outline type="rss" text="Hacker News 300+" xmlUrl="https://hnrss.org/frontpage?points=300"/>
     <outline type="rss" text="Hacktron" xmlUrl="https://www.hacktron.ai/rss.xml"/>
