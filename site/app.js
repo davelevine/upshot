@@ -47,7 +47,6 @@ function renderFilters() {
 
 function renderItems(keepLimit) {
   const ql = $('search').value.trim().toLowerCase();
-  $('search-wrap').classList.toggle('has-value', !!ql);
   shown = items.filter(i => (filter === 'all' || cat(i.category) === filter) &&
     (!ql || `${i.title} ${i.summary} ${i.publisher} ${domain(i.url)}`.toLowerCase().includes(ql)));
   $('status').textContent = ql ? `${shown.length} articles found` : '';
@@ -153,11 +152,11 @@ $('filters').onclick = e => {
   renderItems();
   if ($('filters').matches(':popover-open')) $('filters').hidePopover();
 };
-$('search').oninput = () => renderItems();
+// The search bar opens the palette, the same search as ⌘K, rather than filtering the feed in place.
+$('search').addEventListener('focus', () => { $('search').blur(); openPalette(); });
 io.observe($('sentinel'));
 addEventListener('scroll', () => { $('top').hidden = scrollY < 800; }, { passive: true });
 $('top').onclick = () => scrollTo({ top: 0, behavior: 'smooth' });
-$('clear').onclick = () => { $('search').value = ''; renderItems(); $('search').focus(); };
 
 // Read and "new since last visit" state lives only in this browser.
 let weekly = null;
@@ -500,7 +499,7 @@ function onKey(key, mod, e) {
   if (key === 'k' && mod) { e?.preventDefault(); return openPalette(); }
   if (mod || e?.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;
   if (key === '?') { e?.preventDefault(); $('keys').showModal(); }
-  else if (key === '/' && !reading) { e?.preventDefault(); $('search').focus(); }
+  else if (key === '/' && !reading) { e?.preventDefault(); openPalette(); }
   else if (key === 'j' || key === 'arrowright') { e?.preventDefault(); step(1); }
   else if (key === 'k' || key === 'arrowleft') { e?.preventDefault(); step(-1); }
 }
@@ -508,10 +507,13 @@ addEventListener('keydown', e => onKey(e.key.toLowerCase(), e.metaKey || e.ctrlK
 $('keys').addEventListener('click', e => { if (e.target === $('keys')) $('keys').close(); });  // a click on the backdrop
 
 // Share the publisher's article, not this site's reader link: that's what the recipient wants.
+const shareKind = navigator.share && matchMedia('(pointer: coarse)').matches ? (/Android/i.test(navigator.userAgent) ? 'android' : 'apple') : 'copy';
+$('reader-share').dataset.kind = shareKind;
+if (shareKind === 'copy') { $('reader-share').title = 'Copy link'; $('reader-share').setAttribute('aria-label', 'Copy link'); }
 $('reader-share').onclick = async () => {
   const i = items.find(x => x.url === readerFor);
   if (!i) return;
-  if (navigator.share && matchMedia('(pointer: coarse)').matches) {  // phones: the native share sheet
+  if (shareKind !== 'copy') {  // phones: the native share sheet
     try { await navigator.share({ title: i.title, url: i.url }); } catch {}  // dismissed
     return;
   }

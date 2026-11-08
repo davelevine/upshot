@@ -84,7 +84,7 @@ Each build extracts new stories with Mozilla's [Readability](https://github.com/
 | <kbd>j</kbd> / <kbd>→</kbd> | Next article (switches articles inside the reader too) |
 | <kbd>k</kbd> / <kbd>←</kbd> | Previous article |
 | <kbd>Enter</kbd> | Open the focused article |
-| <kbd>/</kbd> | Jump to the search bar |
+| <kbd>/</kbd> | Search every article, like <kbd>⌘K</kbd> (so does clicking the search bar) |
 | <kbd>Esc</kbd> | Close the palette, the reader or the shortcut list |
 | <kbd>?</kbd> | Show these shortcuts |
 

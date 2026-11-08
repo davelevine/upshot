@@ -223,13 +223,6 @@ def test_end_of_feed_message(browser):
         pg.mouse.wheel(0, 3000)
         pg.wait_for_timeout(100)
     assert pg.inner_text("#end-msg") == f"That\u2019s all {re.search(r'\d+', security).group()} Security stories."
-    pg.click("#filters .filter-btn[data-f='all']")
-    pg.fill("#search", "zzzz-no-such-story")
-    pg.wait_for_selector(".empty")
-    assert end.is_hidden()  # the empty state already says so
-    pg.fill("#search", "openai")
-    pg.wait_for_function("() => document.getElementById('end-msg').textContent.includes('matching')")
-    assert re.fullmatch(r"That\u2019s (all \d+ stories|the only story) matching \u201copenai\u201d\.", pg.inner_text("#end-msg"))
     assert pg.problems == []
 
 
@@ -622,6 +615,43 @@ def test_reader_and_frame_relay_run_under_csp(browser):
     pg.keyboard.press("Escape")
     wait_until_closed(pg)
     assert pg.problems == []
+
+
+def test_the_search_bar_and_slash_open_the_palette(browser):
+    for opener in ("click", "slash"):
+        pg = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
+        pg.goto(URL)
+        pg.wait_for_selector("a.card")
+        pg.click("#search") if opener == "click" else pg.keyboard.press("/")
+        pg.locator("#palette").wait_for()
+        assert pg.evaluate("document.activeElement.id") == "palette-q"
+        pg.keyboard.type("openai")
+        assert pg.locator("#palette-list li[data-n]").count() > 0
+        pg.keyboard.press("Escape")
+        pg.locator("#palette").wait_for(state="hidden")
+        pg.wait_for_timeout(200)
+        assert pg.locator("#palette").is_hidden()  # closing doesn't bounce focus back into the bar and reopen it
+    ph = browser.new_context(viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True).new_page()
+    ph.goto(URL)
+    ph.wait_for_selector("a.card")
+    ph.tap("#search")
+    ph.locator("#palette").wait_for()
+
+
+def test_share_icon_matches_the_device(browser):
+    desktop = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
+    desktop.goto(URL)
+    desktop.wait_for_selector("a.card")
+    assert desktop.locator("#reader-share").get_attribute("data-kind") == "copy"
+    assert desktop.locator("#reader-share").get_attribute("aria-label") == "Copy link"
+    for ua, kind in (("Mozilla/5.0 (Linux; Android 16; Pixel 9 Pro) AppleWebKit/537.36 Chrome/131 Mobile Safari/537.36", "android"),
+                     ("Mozilla/5.0 (iPhone; CPU iPhone OS 19_0 like Mac OS X) AppleWebKit/605.1.15 Version/19.0 Mobile/15E148 Safari/604.1", "apple")):
+        ctx = browser.new_context(viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True, user_agent=ua)
+        ctx.add_init_script("navigator.share = () => Promise.resolve();")
+        pg = ctx.new_page()
+        pg.goto(URL)
+        pg.wait_for_selector("a.card")
+        assert pg.locator("#reader-share").get_attribute("data-kind") == kind, ua
 
 
 def test_search_palette(browser):
