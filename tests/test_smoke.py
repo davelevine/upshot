@@ -601,6 +601,7 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     assert box.locator(".do b").inner_text().upper() == "WHAT TO DO"  # the hand-picked note, last
     assert frame.locator(".todo").count() == 1  # one box, not two
     pg.keyboard.press("Escape")
+    wait_until_closed(pg)  # Esc closes through history.back(), which lands a moment later: click before it and the tile is still inert
     second = pg.locator(".weekly-card:not(.skeleton)").nth(1)
     title = second.locator(".weekly-card-title").inner_text()
     second.click()  # an essential without one: the old callout
