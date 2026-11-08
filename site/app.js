@@ -8,14 +8,22 @@ const PAGE = 40;
 const STALE_MINUTES = 12 * 60;  // three missed builds
 const KEEP_DAYS = 90;  // build.py prunes older stories
 const io = new IntersectionObserver(([e]) => { if (e.isIntersecting && limit < shown.length) { limit += PAGE; renderPage(); } }, { rootMargin: '800px' });
-let icons = new Set(), items = [], filter = 'all', shown = [], limit = PAGE, generatedAt = null;
+let tz, icons = new Set(), items = [], filter = 'all', shown = [], limit = PAGE, generatedAt = null;
 
+// Today in the site's time zone (data.json's tz), not the device's: some browsers report UTC for privacy, which
+// turned the evening's stories into "Yesterday".
+function todayIso() {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' })
+    .formatToParts(new Date()).map(x => [x.type, x.value]));
+  return `${p.year}-${p.month}-${p.day}`;
+}
+const dayNumber = iso => Date.UTC(...iso.split('-').map((n, k) => +n - (k === 1))) / 864e5;
 function dayLabel(iso) {
-  const days = Math.round((new Date().setHours(0, 0, 0, 0) - new Date(iso + 'T00:00:00')) / 864e5);
+  const days = dayNumber(todayIso()) - dayNumber(iso);
   if (days <= 0) return 'Today';
   if (days === 1) return 'Yesterday';
-  const d = new Date(iso + 'T12:00:00');
-  return days < 7 ? d.toLocaleDateString('en-US', { weekday: 'long' }) : d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  const d = new Date(iso + 'T12:00:00Z');
+  return d.toLocaleDateString('en-US', days < 7 ? { weekday: 'long', timeZone: 'UTC' } : { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 }
 
 function highlight(text, q) {
@@ -194,6 +202,7 @@ function load() {
     generatedAt = data.generated_at;
     showUpdated();
     items = data.items || [];
+    try { tz = data.tz && new Intl.DateTimeFormat('en-US', { timeZone: data.tz }) && data.tz; } catch { tz = undefined; }  // unknown zone: the device's
     indexSlugs();
     weekly = data.weekly;
     icons = new Set(data.icons || []);
