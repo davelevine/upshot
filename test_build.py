@@ -138,43 +138,26 @@ def test_cap_per_day_keeps_most_relevant():
     assert out[-1]["url"] == "old"                                                          # newest day first
 
 
+def test_cap_per_day_keeps_everything_that_cleared_the_bar():
+    day = lambda cat, rel, url: {"date": "2026-11-06", "category": cat, "relevance": rel, "publisher": "P", "url": url}
+    big = [day("security", 8, f"s{n}") for n in range(6)] + [day("architecture", 6, "a1"), day("architecture", 6, "a2")]
+    assert len(build.cap_per_day(big)) == 8  # no per-category quota: a big security day shows as one
+
+
 def test_cap_per_day_never_drops_a_published_story():
-    day = lambda cat, rel, pub, url: {"date": "2026-11-08", "category": cat, "relevance": rel, "publisher": pub, "url": url}
-    infoq = day("architecture", 6, "InfoQ", "infoq")   # on the site since this morning
-    cncf = day("architecture", 6, "CNCF", "cncf")       # arrives later and only ties: the slot stays InfoQ's
-    out = build.cap_per_day([infoq, cncf], published={id(infoq)})
-    assert [i["url"] for i in out] == ["infoq"]
-    many = [day("other", 5, "P", f"p{n}") for n in range(build.DAILY_MAX)]
-    out = build.cap_per_day(many + [day("other", 9, "P", "late")], published={id(i) for i in many})
-    assert "late" not in [i["url"] for i in out] and len(out) == build.DAILY_MAX  # the daily safety cap still holds
-    out = build.cap_per_day([cncf, day("architecture", 9, "Figma", "figma")])  # nothing published yet: the usual ranking
-    assert [i["url"] for i in out] == ["figma"]
+    day = lambda rel, url: {"date": "2026-11-08", "category": "other", "relevance": rel, "publisher": "P", "url": url}
+    published = [day(5, f"p{n}") for n in range(build.DAILY_MAX)]
+    out = [i["url"] for i in build.cap_per_day(published + [day(9, "late")], published={id(i) for i in published})]
+    assert "late" not in out and len(out) == build.DAILY_MAX  # the daily max only ever trims new stories
+    some = published[:3]
+    out = [i["url"] for i in build.cap_per_day(some + [day(9, "late")], published={id(i) for i in some})]
+    assert out[0] == "late" and len(out) == 4  # room left: it's added, and ranked first
 
 
-def test_a_strong_late_story_goes_over_the_cap_without_removing_anything():
-    day = lambda cat, rel, url: {"date": "2026-11-05", "category": cat, "relevance": rel, "publisher": "P", "url": url}
-    ai = [day("ai", 6, "a1"), day("ai", 7, "a2")]
-    sec = [day("security", 8, "s1"), day("security", 9, "s2")]
-    late = [day("ai", 7, "better"), day("ai", 6, "tie-low"), day("security", 8, "tie-8"), day("security", 7, "worse")]
-    out = [i["url"] for i in build.cap_per_day(ai + sec + late, published={id(i) for i in ai + sec})]
-    assert {"a1", "a2", "s1", "s2"} <= set(out)        # nothing published is removed
-    assert "better" in out                              # beats the day's weakest AI story (6)
-    assert "tie-8" in out                               # ties the weakest security story at 8
-    assert "tie-low" not in out and "worse" not in out  # a tie below 8, or a weaker story, stays out
-
-
-def test_cap_per_day_balances_categories_and_prefers_original_sources():
-    day = lambda cat, rel, pub, url: {"date": "2026-01-02", "category": cat, "relevance": rel, "publisher": pub, "url": url}
-    out = build.cap_per_day([
-        day("security", 8, "The Hacker News", "news"), day("security", 8, "Rapid7", "orig-1"),
-        day("security", 8, "Wiz", "orig-2"), day("security", 9, "BleepingComputer", "top"),
-        day("architecture", 6, "Figma", "a1"), day("architecture", 6, "Cloudflare Blog", "a2"),
-        day("regulation", 8, "The Record", "r1"),
-    ])
-    urls = [i["url"] for i in out]
-    assert {"top", "orig-1"} <= set(urls) and "news" not in urls and "orig-2" not in urls  # score, then original source
-    assert "a1" in urls and "a2" not in urls  # max 1, first one kept
-    assert "r1" in urls                       # no limit set for this category
+def test_cap_per_day_ranks_by_score_then_original_source():
+    day = lambda rel, pub, url: {"date": "2026-01-02", "category": "security", "relevance": rel, "publisher": pub, "url": url}
+    out = build.cap_per_day([day(8, "The Hacker News", "news"), day(8, "Rapid7", "orig"), day(9, "BleepingComputer", "top")])
+    assert [i["url"] for i in out] == ["top", "orig", "news"]
 
 
 def test_upgrade_source_swaps_news_for_the_original():
@@ -296,6 +279,9 @@ def test_run_summary_counts_and_near_misses():
     assert "**Kept:** 1" in out and "[T0](https://x.test/0)" in out
     near = out.split("One point under the bar")[1]
     assert "T1" in near and "T2" not in near
+    assert "Over the daily max" not in out
+    over = build.run_summary(45, 1, new, scores, [], [], [], [(new[0], scores[new[0]["url"]])]).split("Over the daily max")[1]
+    assert "[T0](https://x.test/0)" in over
 
 
 def test_llm_reads_the_cli_and_refuses_another_model(monkeypatch):
