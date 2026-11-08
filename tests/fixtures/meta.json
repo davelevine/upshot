@@ -104,6 +104,13 @@
   "contentType": "text/html; charset=utf-8",
   "mitigated": null
  },
+ "Epoch AI": {
+  "file": "epoch-ai.html",
+  "url": "https://epoch.ai/publications/huawei-horinger-china-compute-gap",
+  "status": 200,
+  "contentType": "text/html",
+  "mitigated": null
+ },
  "Figma": {
   "file": "figma.html",
   "url": "https://www.figma.com/blog/how-figma-manages-sandboxes-at-scale/",
@@ -212,6 +219,13 @@
  "Kubernetes": {
   "file": "kubernetes.html",
   "url": "https://kubernetes.io/blog/2026/10/27/announcing-workload-conformance-wg/",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "METR": {
+  "file": "metr.html",
+  "url": "https://metr.org/blog/2026-11-05-rd-section-anthropic-risk-report-august-2026-review/",
   "status": 200,
   "contentType": "text/html; charset=UTF-8",
   "mitigated": null
@@ -328,6 +342,13 @@
   "contentType": "text/html; charset=UTF-8",
   "mitigated": null
  },
+ "Shopify Engineering": {
+  "file": "shopify-engineering.html",
+  "url": "https://shopify.engineering/reflex",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
  "Simon Willison": {
   "file": "simon-willison.html",
   "url": "https://simonwillison.net/2026/Oct/31/how-we-took-over-chatgpt-accounts/",
@@ -410,6 +431,20 @@
   "url": "https://www.wordfence.com/blog/2026/10/wordpress-7-1-4-security-release-rce/",
   "status": 202,
   "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
+ "noyb": {
+  "file": "noyb.html",
+  "url": "https://noyb.eu/en/noyb-win-french-electronics-retailer-fnac-darty-fined-eu7-million",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "watchTowr Labs": {
+  "file": "watchtowr-labs.html",
+  "url": "https://labs.watchtowr.com/barracuda-networks-is-your-new-best-friend-barracuda-email-security-gateway-pre-auth-remote-root-rce-cve-2026-116606-cve-2026-111560/",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
   "mitigated": null
  }
 }
