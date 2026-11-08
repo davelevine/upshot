@@ -259,7 +259,8 @@
   body.dragging .reader, body.dragging .reader-backdrop, body.dragging .feed { transition: none !important; }
   /* Phones: the feed slides aside under the reader and follows a swipe back, like a native back gesture. */
   @media (max-width: 640px) {
-    .reader-bar .close-x { display: none; } .reader-bar .close-back { display: block; }  /* full-screen here, swiped back like a page: a back chevron */
+    .reader-bar .close-x { display: none; } .reader-bar .close-back { display: block; }
+    .reader-icon { margin-left: -6px; }  /* sits close to the chevron, as Feedbin's does */  /* full-screen here, swiped back like a page: a back chevron */
     .reader .reader-nav { display: flex; }
     .reader-nav .icon-btn, .reader-bar .icon-btn { width: 44px; height: 44px; }
     .feed { transition: transform .22s cubic-bezier(.2, 0, 0, 1); }
@@ -278,7 +279,7 @@
   .size-pop button:hover { background: var(--bg-card-hover); color: var(--text); }
   .size-pop button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
   .size-pop [data-size="0"] { font-size: 13px; } .size-pop [data-size="1"] { font-size: 16px; } .size-pop [data-size="2"] { font-size: 20px; } .size-pop [data-size="3"] { font-size: 24px; }
-  .reader-icon { flex: none; width: 28px; height: 28px; padding: 2px; border-radius: 7px; background: #fff; }  /* white tile: most favicons are drawn for light tabs */
+  .reader-icon { flex: none; width: 22px; height: 22px; padding: 2px; border-radius: 6px; background: #fff; }  /* white tile: most favicons are drawn for light tabs */
   #reader:focus { outline: none; }  /* focused on a tap open, so no ring appears on the close button */
   .close-back, .reader-nav { display: none; }
   .reader-nav { flex: 0 0 auto; justify-content: center; gap: 48px; height: 52px; border-top: 1px solid var(--border); }
@@ -355,7 +356,7 @@
 <div class="reader" id="reader" tabindex="-1" role="dialog" aria-modal="true" aria-label="Reader" aria-hidden="true">
   <div class="reader-bar">
     <button class="icon-btn" id="reader-close" type="button" aria-label="Close reader"><svg class="close-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg><svg class="close-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
-    <img class="reader-icon" id="reader-icon" alt="" width="28" height="28" hidden>
+    <img class="reader-icon" id="reader-icon" alt="" width="22" height="22" hidden>
     <span class="reader-spacer"></span>
     <span class="share-done" id="share-done" hidden>Copied</span>
     <span class="size-wrap">
