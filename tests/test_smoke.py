@@ -476,7 +476,12 @@ def test_reader_bar_after_feedbin(browser):
     pg.wait_for_function("() => document.getElementById('reader-prev').disabled")
     assert pg.problems == []
     # On a desktop: an X, no bottom bar, and the keyboard still lands on the close button.
-    dk = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
+    dc = browser.new_context(viewport={"width": 1300, "height": 900})
+    def no_icons(route):  # a publisher with no icon listed
+        res = route.fetch()
+        route.fulfill(response=res, json={**res.json(), "icons": []})
+    dc.route("**/data.json", no_icons)
+    dk = dc.new_page()
     dk.goto(URL)
     dk.wait_for_selector("a.card")
     dk.locator("a.card").first.focus()

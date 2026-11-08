@@ -20,26 +20,31 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#e8ebf0" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#18191d" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#e3e6ec" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17191d" media="(prefers-color-scheme: dark)">
 <script>document.documentElement.dataset.theme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');</script>
 <style>
   /* Inter 4.1, Latin subset, so every visitor gets the same metrics and line clamps. Licence: /fonts/LICENSE-Inter.txt */
   @font-face { font-family: Inter; src: url("/fonts/InterVariable.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
   :root, [data-theme="light"] {
     color-scheme: light;
-    --bg: #e8ebf0; --bg-card: #f3f5f8; --bg-card-hover: #eceff3; --border: #d3d8e0; --border-strong: #b6bdc9;
+    --bg: #e3e6ec; --bg-card: #ffffff; --bg-card-hover: #eceff3; --border: #dde1e8; --border-strong: #b6bdc9;
     --text: #1c1f27; --urgent: #d9485a; --text-muted: #586172; --accent: #0d6b66; --accent-soft: #d7e7e5; --accent-contrast: #fff;
-    --header-bg: rgba(232, 235, 240, .88); --tag-text: #0a5652;
-    --cat-security: #9b4251; --cat-ai: #7a4d94; --cat-architecture: #026a9d; --cat-sdlc: #5d57a4; --cat-regulation: #8e5300; --cat-other: #5d646f;
+    --header-bg: rgba(227, 230, 236, .88); --tag-text: #0a5652;
+    /* Category dots: one lightness and chroma per theme, hues spread to stay apart with red-green colour blindness. Dots need 3:1, not text contrast. */
+    --cat-security: #ce5978; --cat-ai: #ad65be; --cat-architecture: #168dd9; --cat-sdlc: #409d48; --cat-regulation: #c9690c; --cat-other: #5d646f;
+    /* Cards are lifted by shadow, not colour; essentials one step more than the feed. */
+    --lift: 0 1px 3px rgba(23, 26, 36, .08); --lift-more: 0 2px 6px rgba(23, 26, 36, .10); --lift-hover: 0 6px 16px rgba(23, 26, 36, .12); --ess-bg: #ffffff;
     --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --read: 860px;
   }
   [data-theme="dark"] {
     color-scheme: dark;
-    --bg: #18191d; --bg-card: #212227; --bg-card-hover: #292a31; --border: #2f3037; --border-strong: #42444e;
+    --bg: #17191d; --bg-card: #202227; --bg-card-hover: #272b31; --border: #2d3137; --border-strong: #40454e;  /* one grey hue, as the text */
     --text: #eceff4; --urgent: #d9485a; --text-muted: #a3abbb; --accent: #73dbcc; --accent-soft: #1d3b3e; --accent-contrast: #18191d;
-    --header-bg: rgba(24, 25, 29, .88); --tag-text: #9ae6da;
-    --cat-security: #f7a3ad; --cat-ai: #d3abed; --cat-architecture: #80c7f8; --cat-sdlc: #b7b5fc; --cat-regulation: #ebb077; --cat-other: #b6becb;
+    --header-bg: rgba(23, 25, 29, .88); --tag-text: #9ae6da;
+    --cat-security: #f57595; --cat-ai: #d080e2; --cat-architecture: #19affe; --cat-sdlc: #69bc57; --cat-regulation: #e98a13; --cat-other: #afb6c1;
+    --lift: 0 1px 2px rgba(0, 0, 0, .25), inset 0 1px 0 rgba(255, 255, 255, .04); --lift-more: 0 2px 6px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .05);
+    --lift-hover: 0 8px 20px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .05); --ess-bg: #262830;
   }
   * { box-sizing: border-box; margin: 0; }
   [hidden] { display: none !important; }
@@ -117,7 +122,7 @@
   .filter-toggle { display: none; }
   .filter-btn { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 5px 14px; border: 1px solid var(--border); border-radius: var(--radius-lg);
     background: var(--bg-card); color: var(--text-muted); font-size: .875rem; font-weight: 500; cursor: pointer; }
-  .filter-btn.active { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
+  .filter-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }  /* a tint: a solid block outweighed the headlines */
   .dot { flex: 0 0 auto; width: 7px; height: 7px; border-radius: 999px; background: var(--c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 14%, transparent); }
 
   .weekly { max-width: var(--read); margin: 0 auto; padding: 18px 24px 0; }
@@ -139,7 +144,7 @@
   .rail { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 1px; scroll-behavior: smooth; padding: 1px 1px 4px; scrollbar-width: none; }
   .rail::-webkit-scrollbar, .filters::-webkit-scrollbar { display: none; }
   .weekly-card { flex: 0 0 calc((100% - 20px) / 3); min-width: 220px; min-height: 14rem;  /* fits the longest title and note, so loading never shifts the page */ scroll-snap-align: start; display: flex; flex-direction: column; gap: 7px; padding: 12px;
-    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); }
+    background: var(--ess-bg); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--lift-more); transition: box-shadow .15s ease, transform .15s ease; }
   .weekly-top { display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--text-muted); font-size: .8125rem; }
   .rank { flex: 0 0 auto; font-weight: 600; }  /* the least useful fact here; the category dot is the only color */
   .weekly-cat { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
@@ -154,7 +159,7 @@
     color: var(--text-muted); font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
   .day-meta { color: var(--text-muted); font-weight: 500; text-transform: none; letter-spacing: 0; font-size: .8125rem; }
   .card { content-visibility: auto; contain-intrinsic-block-size: auto 5rem; display: flex; align-items: flex-start; gap: 12px; padding: 13px 16px;
-    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); }
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--lift); transition: box-shadow .15s ease, transform .15s ease; }
   .card .dot { width: 9px; height: 9px; margin-top: 6px; }
   .card-body { flex: 1; min-width: 0; }
   .card-title { margin-bottom: 4px; font-size: 1rem; font-weight: 600; line-height: 1.4; }
@@ -207,7 +212,7 @@
     .icon-btn:hover { border-color: var(--border); background: var(--bg-card-hover); color: var(--accent); }
     .nav-btn:not(:disabled):hover { border-color: var(--border-strong); background: var(--bg-card-hover); }
     .filter-btn:not(.active):hover { border-color: var(--border-strong); color: var(--text); }
-    .card:hover, .weekly-card:hover { background: var(--bg-card-hover); border-color: var(--border-strong); }
+    .card:hover, .weekly-card:hover { box-shadow: var(--lift-hover); transform: translateY(-1px); }  /* lifts, rather than brightening flat */
   }
   @media (max-width: 640px) {
     header { padding: 0 14px; }
