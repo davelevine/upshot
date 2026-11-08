@@ -88,7 +88,7 @@ Each build extracts new stories with Mozilla's [Readability](https://github.com/
 | <kbd>Esc</kbd> | Close the palette, the reader or the shortcut list |
 | <kbd>?</kbd> | Show these shortcuts |
 
-The reader's bar shows the publisher's icon (fetched once by the build and served from the site), with buttons to open the original, share and switch theme. On a phone, arrows at the bottom move to the previous or next story, and you can swipe right to close the reader; the feed slides back in underneath. Click an article's headline in the reader to open the original.
+The reader's bar shows the publisher's icon (fetched once by the build and served from the site), with buttons for text size (remembered on your device), share and theme; the headline opens the original. On a phone, arrows at the bottom move to the previous or next story, and you can swipe right to close the reader; the feed slides back in underneath. Click an article's headline in the reader to open the original.
 
 ## Quick Start
 

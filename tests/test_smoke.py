@@ -425,7 +425,7 @@ def test_reader_links_are_short_and_survive_a_reload(browser):
     assert pg.evaluate("location.pathname").startswith("/read/")
     pg.goto(URL.rstrip("/") + path)  # a shared link opens that story
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
-    assert pg.locator("#reader-original").get_attribute("href") == url
+    assert pg.frame_locator("#reader-body iframe:not(.loading)").locator("h1 a").get_attribute("href") == url
     pg.keyboard.press("Escape")
     pg.wait_for_function("!document.body.classList.contains('reading')")
     assert pg.evaluate("location.pathname") == "/"
@@ -464,15 +464,16 @@ def test_reader_bar_after_feedbin(browser):
     # A tap leaves no focus ring on the close button, which shows a back chevron on a phone.
     assert pg.evaluate("document.activeElement.id") == "reader"
     assert pg.locator(".close-back").is_visible() and not pg.locator(".close-x").is_visible()
-    assert pg.locator("#reader-original").get_attribute("href") == url
+    assert pg.locator("#reader-original").count() == 0  # the title already links to the article
     assert pg.locator("#reader-icon").is_visible()
     # Previous is off at the first story; next moves on, and back again.
     assert pg.locator("#reader-prev").is_disabled()
+    before = pg.evaluate("location.pathname")
     pg.locator("#reader-next").tap()
-    pg.wait_for_function(f"document.getElementById('reader-original').href !== {url!r}")
+    pg.wait_for_function(f"() => location.pathname !== {before!r}")
     assert not pg.locator("#reader-prev").is_disabled()
     pg.locator("#reader-prev").tap()
-    pg.wait_for_function(f"document.getElementById('reader-original').href === {url!r}")
+    pg.wait_for_function("() => document.getElementById('reader-prev').disabled")
     assert pg.problems == []
     # On a desktop: an X, no bottom bar, and the keyboard still lands on the close button.
     dk = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
@@ -484,6 +485,25 @@ def test_reader_bar_after_feedbin(browser):
     assert dk.evaluate("document.activeElement.id") == "reader-close"
     assert dk.locator(".close-x").is_visible() and not dk.locator(".reader-nav").is_visible()
     assert not dk.locator("#reader-icon").is_visible()  # no icon listed for it: hidden, never a 404
+
+
+def test_text_size_steps_and_is_remembered(browser):
+    ctx = browser.new_context(viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True)
+    pg = ctx.new_page()
+    pg.goto(URL)
+    pg.wait_for_selector("a.card")
+    pg.locator("a.card").first.tap()
+    frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+    frame.locator("h1").wait_for()
+    size = lambda: frame.locator("body").evaluate("e => parseFloat(getComputedStyle(e).fontSize)")
+    start = size()
+    pg.locator("#reader-size").tap()
+    pg.wait_for_function("() => document.getElementById('reader-size').getAttribute('aria-label') === 'Text size: large'")
+    frame.locator("html[data-size='2']").wait_for(state="attached")
+    assert size() > start
+    pg.reload()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    assert pg.frame_locator("#reader-body iframe:not(.loading)").locator("html").get_attribute("data-size") == "2"
 
 
 def test_unknown_paths_are_real_404s(browser):

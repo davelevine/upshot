@@ -267,6 +267,7 @@
   }
   .reader-bar { display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 12px; border-bottom: 1px solid var(--border); flex: 0 0 auto; }
   .reader-spacer { flex: 1; }
+  .text-size { font: 600 .9375rem/1 Inter, system-ui, sans-serif; letter-spacing: -.01em; }
   .reader-icon { flex: none; width: 28px; height: 28px; padding: 2px; border-radius: 7px; background: #fff; }  /* white tile: most favicons are drawn for light tabs */
   #reader:focus { outline: none; }  /* focused on a tap open, so no ring appears on the close button */
   .close-back, .reader-nav { display: none; }
@@ -347,7 +348,7 @@
     <img class="reader-icon" id="reader-icon" alt="" width="28" height="28" hidden>
     <span class="reader-spacer"></span>
     <span class="share-done" id="share-done" hidden>Copied</span>
-    <a class="icon-btn" id="reader-original" target="_blank" rel="noopener" title="Open the original" aria-label="Open the original"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>
+    <button class="icon-btn text-size" id="reader-size" type="button" title="Text size" aria-label="Text size: medium">Aa</button>
     <button class="icon-btn" id="reader-share" type="button" title="Share article" aria-label="Share article"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>
     <button class="icon-btn" id="reader-theme" type="button" title="Toggle dark mode" aria-label="Toggle dark mode">
       <svg class="only-light" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>

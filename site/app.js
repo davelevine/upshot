@@ -222,6 +222,7 @@ const end = () => { if (s && s.ax === 'x') send('end'); s = null; };
 addEventListener('touchend', end); addEventListener('touchcancel', end);
 addEventListener('message', e => {  // the page's theme toggle
   if (e.source === parent && e.data && e.data.tw === 'theme') document.documentElement.dataset.theme = e.data.theme;
+  if (e.source === parent && e.data && e.data.tw === 'size') document.documentElement.dataset.size = e.data.size;
 });
 addEventListener('keydown', e => {  // keys pressed while the article has focus never reach the page
   const k = e.key.toLowerCase();
@@ -248,7 +249,7 @@ function storyMeta(i, byline, minutes) {
   return `<div class="meta">${esc(when)}${by ? ` by ${esc(by)}` : ''}<br>${esc(i.publisher)}${minutes ? ` · ${minutes} min read` : ''}</div>`;
 }
 function articleDoc(i, html, nonce, why, minutes, byline) {
-  return `<!doctype html><html data-theme="${document.documentElement.dataset.theme}"><head><meta charset="utf-8">
+  return `<!doctype html><html data-theme="${document.documentElement.dataset.theme}" data-size="${textSize}"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${location.origin}; img-src https: http: data:; media-src https:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'">
 <base target="_blank"><style>
 :root { ${frameVars('light')} } :root[data-theme="dark"] { ${frameVars('dark')} }
@@ -260,6 +261,7 @@ h1 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; 
 h1 a { color: inherit; text-decoration: none; } h1 a:hover { text-decoration: underline; text-decoration-thickness: 2px; }
 @font-face { font-family: Inter; src: url("${location.origin}/fonts/InterVariable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
 h1 { font-family: Inter, system-ui, sans-serif; letter-spacing: -.01em; }
+[data-size="0"] body { font-size: 1rem; } [data-size="2"] body { font-size: 1.1875rem; } [data-size="3"] body { font-size: 1.3125rem; }
 .meta { margin-bottom: 1.8em; color: var(--text-muted); font: .9375rem/1.45 Inter, system-ui, sans-serif; }
 .todo { margin: 0 0 1.8em; padding: 12px 16px; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; background: var(--bg-card); }
 .todo b { display: block; margin-bottom: 2px; color: var(--accent); font: 700 .75rem/1.5 Inter, system-ui, sans-serif; letter-spacing: .07em; text-transform: uppercase; }
@@ -327,7 +329,6 @@ function openReader(i, { fromHash = false } = {}) {
   readerFor = i.url;
   markRead(i.url);
   const why = weekly?.items?.find(p => p.url === i.url)?.why;
-  $('reader-original').href = i.url;
   const icon = iconSlug(i.publisher);
   $('reader-icon').hidden = !icons.has(icon);
   if (icons.has(icon)) $('reader-icon').src = `/icons/${icon}.png`;
@@ -367,6 +368,18 @@ function openReader(i, { fromHash = false } = {}) {
     showInReader(i, storyCard(i, unreadable), why);
   });
 }
+// Article text size, kept on this device: small, medium (the default), large, larger.
+const SIZES = ['small', 'medium', 'large', 'larger'];
+let textSize = Math.min(3, Math.max(0, +(localStorage.getItem('textSize') ?? 1) || 0));
+const labelSize = () => $('reader-size').setAttribute('aria-label', `Text size: ${SIZES[textSize]}`);
+labelSize();
+$('reader-size').onclick = () => {
+  textSize = (textSize + 1) % SIZES.length;
+  localStorage.setItem('textSize', textSize);
+  labelSize();
+  $('status').textContent = `Text size ${SIZES[textSize]}`;
+  $('reader-body').querySelector('iframe[srcdoc]')?.contentWindow.postMessage({ tw: 'size', size: String(textSize) }, '*');
+};
 let lastInput = 'pointer';
 addEventListener('pointerdown', () => { lastInput = 'pointer'; }, true);
 addEventListener('keydown', () => { lastInput = 'key'; }, true);

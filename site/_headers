@@ -2,7 +2,7 @@
 # index.html and the reader frame's swipe/keyboard relay in app.js); tests/csp.test.js keeps the hashes current.
 # img-src and frame-src are open to https because the reader shows article images and framed original pages.
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-KfZ1CieyykWP4IAQQ2/bwrXEuXmtPyFimukmnOsqN0k=' 'sha256-IVrXsUxlAf04V6VNqNo8i8PPmPwfLbk4bJ3Zae53Xns='; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src https:; frame-src https:; connect-src 'self'; font-src 'self'; manifest-src 'self'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-KfZ1CieyykWP4IAQQ2/bwrXEuXmtPyFimukmnOsqN0k=' 'sha256-WNBVoFPmAlEuWdUzEBI8Re3+8YEIa2yiGKb2ayskLns='; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src https:; frame-src https:; connect-src 'self'; font-src 'self'; manifest-src 'self'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
 
 # The reader frame has an opaque origin, so its title font is a cross-origin request.
