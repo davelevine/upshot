@@ -27,10 +27,10 @@ function dayLabel(iso) {
 }
 
 function highlight(text, q) {
-  const s = esc(text);
-  if (!q) return s;
-  const re = new RegExp(esc(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-  return s.replace(re, m => `<mark>${m}</mark>`);
+  if (!q) return esc(text);
+  // Split the raw text, then escape each piece, so a <mark> never lands inside an entity like &#39;.
+  const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  return text.split(re).map((part, n) => n % 2 ? `<mark>${esc(part)}</mark>` : esc(part)).join('');
 }
 
 function renderFilters() {
@@ -326,6 +326,9 @@ function mountFrame(frame) {
     if (!frame.parentNode) return;
     while (frame.previousSibling) frame.previousSibling.remove();
     frame.classList.remove('loading');
+    // Its srcdoc baked in the theme and size from when it was built; either may have changed while it loaded.
+    frame.contentWindow.postMessage({ tw: 'theme', theme: document.documentElement.dataset.theme }, '*');
+    frame.contentWindow.postMessage({ tw: 'size', size: String(textSize) }, '*');
   };
   $('reader-body').append(frame);
 }
@@ -348,7 +351,6 @@ function indexSlugs() {
 }
 const slugFor = url => [...slugs].find(([, u]) => u === url)?.[0];
 const readPath = url => '/read/' + slugFor(url);
-let readerPushed = false;  // false when the reader was opened from a link, so closing mustn't go back off the site
 function openReader(i, { fromHash = false } = {}) {
   const fresh = !document.body.classList.contains('reading');
   readerFor = i.url;
@@ -365,9 +367,10 @@ function openReader(i, { fromHash = false } = {}) {
   document.body.classList.add('reading');
   $('reader').setAttribute('aria-hidden', 'false');
   document.querySelectorAll('.feed, #top').forEach(el => { el.inert = true; });
-  if (fromHash) { history.replaceState({ reader: true }, '', readPath(i.url)); readerPushed = false; }
-  else if (fresh) { history.pushState({ reader: true }, '', readPath(i.url)); readerPushed = true; }
-  else history.replaceState({ reader: true }, '', readPath(i.url));
+  // pushed: this entry sits on top of the feed, so closing goes back. Opened from a link, it doesn't, or it would leave
+  // the site. Kept in the entry, so it survives back and forward.
+  if (fresh && !fromHash) history.pushState({ reader: true, pushed: true }, '', readPath(i.url));
+  else history.replaceState({ ...history.state, reader: true }, '', readPath(i.url));
   if (fresh) (lastInput === 'key' ? $('reader-close') : $('reader')).focus({ preventScroll: true });  // no ring after a tap
   let unreadable = 'The reader view isn\u2019t available right now.';
   fetch('/api/read?url=' + encodeURIComponent(i.url), { cache: 'no-store' }).then(r => r.json()).then(r => {
@@ -436,7 +439,7 @@ function closeReader() {
   setTimeout(() => { if (!readerFor) $('reader-body').replaceChildren(); }, 350);  // after the slide out
 }
 function dismiss() {
-  if (readerPushed && history.state?.reader) return history.back();
+  if (history.state?.pushed) return history.back();
   history.replaceState(null, '', '/' + location.search);
   closeReader();
 }
@@ -486,8 +489,8 @@ $('reader').addEventListener('touchend', () => { if (touch?.ax === 'x') dragEnd(
 $('reader').addEventListener('touchcancel', () => { if (touch?.ax === 'x') dragEnd(); touch = null; });
 // Swipes inside the article frame arrive as messages from the swipe reporter.
 addEventListener('message', e => {
-  const frame = $('reader-body').querySelector('iframe');
-  if (!frame || e.source !== frame.contentWindow || typeof e.data?.tw !== 'string') return;
+  const ours = [...$('reader-body').querySelectorAll('iframe')].some(f => e.source === f.contentWindow);  // the loading one too
+  if (!ours || typeof e.data?.tw !== 'string') return;
   if (e.data.tw === 'start') dragStart(e.data.x);
   else if (e.data.tw === 'move') dragMove(e.data.x);
   else if (e.data.tw === 'end') dragEnd();
@@ -500,7 +503,8 @@ $('reader-backdrop').onclick = dismiss;
 // j/k or →/←: next/previous article (in the reader it switches articles in place); /: search bar; Cmd/Ctrl+K: search palette.
 function step(dir) {
   if (document.body.classList.contains('reading')) {
-    const next = shown[shown.findIndex(i => i.url === readerFor) + dir];
+    const at = shown.findIndex(i => i.url === readerFor);
+    const next = at < 0 ? null : shown[at + dir];  // filtered out: nowhere to step, as the disabled buttons say
     if (!next) return;
     if (shown.indexOf(next) >= limit) { limit += PAGE; renderPage(); }
     return openReader(next);
@@ -514,6 +518,10 @@ function step(dir) {
 function onKey(key, mod, e) {
   const reading = document.body.classList.contains('reading');
   if ($('keys').open) return;  // the dialog handles its own Esc
+  if ($('palette').open) {  // so does this one; j/k and Esc mustn't reach the reader behind it
+    if (key === 'k' && mod) { e?.preventDefault(); openPalette(); }
+    return;
+  }
   if (key === 'escape' && !$('size-pop').hidden) { closeSize(); return $('reader-size').focus(); }
   if (key === 'escape' && !$('send-pop').hidden) { closeShare(); return $('reader-send').focus(); }
   if (key === 'escape' && reading) return dismiss();
