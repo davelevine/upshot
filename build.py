@@ -361,7 +361,7 @@ def fetch_icon(site):
             continue
         if min(img.size) >= 16:
             img = img.resize((64, 64), Image.LANCZOS)
-            if sum(a > 128 for a in img.getchannel("A").getdata()) < 64 * 64 * 0.05:
+            if sum(a > 128 for a in img.getchannel("A").get_flattened_data()) < 64 * 64 * 0.05:
                 continue  # nearly all transparent: draws as nothing
             return img
     return None
@@ -384,7 +384,7 @@ def icon_art(path):
     """"dark" or "light" for single-colour artwork on a transparent background, which would vanish against a background
     of the same tone: the reader inverts it there. Coloured icons, and ones on their own solid tile, get None."""
     img = Image.open(path).convert("RGBA")
-    ink = [(r, g, b) for r, g, b, a in img.getdata() if a > 128]
+    ink = [(r, g, b) for r, g, b, a in img.get_flattened_data() if a > 128]
     if not ink or len(ink) > 64 * 64 * 0.9:
         return None
     if sum(max(p) - min(p) for p in ink) / len(ink) > 40:  # coloured: inverting would wreck it
