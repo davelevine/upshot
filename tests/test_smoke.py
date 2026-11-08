@@ -699,6 +699,7 @@ def test_the_search_bar_and_slash_open_the_palette(browser):
         pg.wait_for_selector("a.card")
         pg.click("#search") if opener == "click" else pg.keyboard.press("/")
         pg.locator("#palette").wait_for()
+        assert pg.evaluate("document.getElementById('palette').matches(':modal')")  # native: Esc and the phone's back button close it
         assert pg.evaluate("document.activeElement.id") == "palette-q"
         pg.keyboard.type("openai")
         assert pg.locator("#palette-list li[data-n]").count() > 0

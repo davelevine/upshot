@@ -589,22 +589,16 @@ if (matchMedia('(pointer: fine)').matches) {
 }
 
 // Cmd/Ctrl+K palette: find any article and open it in the reader. Works over the reader too.
-const pal = { results: [], sel: 0, returnTo: null };
-const LAYERS = '.feed, #top, #reader';
+// A native modal <dialog>: the page behind goes inert, and Esc or the phone's back button close it.
+const pal = { results: [], sel: 0 };
 function openPalette() {
-  if (!$('palette').hidden) return $('palette-q').select();
-  pal.returnTo = document.activeElement;
-  document.querySelectorAll(LAYERS).forEach(el => { el.dataset.wasInert = el.inert ? '1' : ''; el.inert = true; });
-  $('palette').hidden = $('palette-backdrop').hidden = false;
+  if ($('palette').open) return $('palette-q').select();
   $('palette-q').value = '';
   renderPalette();
+  $('palette').showModal();
   $('palette-q').focus();
 }
-function closePalette(restoreFocus = true) {
-  $('palette').hidden = $('palette-backdrop').hidden = true;
-  document.querySelectorAll(LAYERS).forEach(el => { el.inert = el.dataset.wasInert === '1'; });
-  if (restoreFocus) pal.returnTo?.focus?.({ preventScroll: true });
-}
+function closePalette() { $('palette').close(); }
 function renderPalette() {
   const q = $('palette-q').value.trim(), ql = q.toLowerCase();
   // Title matches rank above summary/publisher matches; within a rank, items stay newest first.
@@ -634,7 +628,7 @@ function selectPalette(n, scroll = true) {
 function choosePalette(n = pal.sel) {
   const i = pal.results[n];
   if (!i) return;
-  closePalette(false);
+  closePalette();
   openReader(i);
 }
 $('palette-q').addEventListener('input', renderPalette);
@@ -643,12 +637,11 @@ $('palette-q').addEventListener('keydown', e => {
   if (e.key === 'ArrowDown') { e.preventDefault(); selectPalette(pal.sel + 1); }
   else if (e.key === 'ArrowUp') { e.preventDefault(); selectPalette(pal.sel - 1); }
   else if (e.key === 'Enter') { e.preventDefault(); choosePalette(); }
-  else if (e.key === 'Escape') { e.preventDefault(); closePalette(); }
   else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); $('palette-q').select(); }
 });
 $('palette-list').addEventListener('click', e => { const li = e.target.closest('li[data-n]'); if (li) choosePalette(+li.dataset.n); });
 $('palette-list').addEventListener('mousemove', e => { const li = e.target.closest('li[data-n]'); if (li && +li.dataset.n !== pal.sel) selectPalette(+li.dataset.n, false); });
-$('palette-backdrop').addEventListener('click', () => closePalette());
+$('palette').addEventListener('click', e => { if (e.target === $('palette')) closePalette(); });  // the backdrop
 $('palette-close').addEventListener('click', () => closePalette());
 document.addEventListener('auxclick', e => { const a = e.target.closest('a.card, a.weekly-card'); if (a && e.button === 1) markRead(a.getAttribute('href')); });
 // Plain clicks on an article open the reader; modified and middle clicks still open the site.
