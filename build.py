@@ -244,7 +244,7 @@ def pick_weekly(items, today):
     return {"window_start": start, "window_end": today.isoformat(), "selected_on": today.isoformat(), "items": picks[:5]}
 
 
-OG = {"w": 1200, "h": 630, "pad": 72, "bg": "#18191d", "text": "#eceff4", "muted": "#a3abbb", "accent": "#73dbcc", "dot": "#d9485a",
+OG = {"w": 1200, "h": 630, "pad": 72, "bg": "#15161e", "text": "#eceff4", "muted": "#a3abbb", "accent": "#73dbcc", "dot": "#d9485a",
       "cats": {"security": "#f7a3ad", "ai": "#d3abed", "architecture": "#80c7f8", "sdlc": "#b7b5fc", "regulation": "#ebb077", "other": "#b6becb"}}
 
 
