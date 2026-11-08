@@ -97,13 +97,13 @@ function renderWeekly(weekly) {
   const byUrl = Object.fromEntries(items.map(i => [i.url, i]));
   const picks = (weekly?.items || []).filter(p => byUrl[p.url]);
   if (!picks.length) { $('weekly').hidden = true; return; }  // the placeholder tiles go too
-  $('rail').innerHTML = picks.map((p, n) => { const i = byUrl[p.url]; return `
+  $('rail').innerHTML = picks.map(p => { const i = byUrl[p.url]; return `
     <a class="weekly-card" href="${esc(i.url)}" target="_blank" rel="noopener">
-      <div class="weekly-top"><span class="rank">${n + 1}</span>
-        <span class="weekly-cat"><span class="dot" style="--c:var(--cat-${cat(i.category)})"></span>${CATS[cat(i.category)]}</span></div>
-      <div class="weekly-card-title">${esc(i.title)}</div>
-      <p class="weekly-why">${esc(p.why)}</p>
-      <div class="weekly-meta"><span class="weekly-source">${esc(i.publisher)}</span><span>· ${dayLabel(i.date)}</span></div>
+      <span class="dot" role="img" aria-label="${CATS[cat(i.category)]}" style="--c:var(--cat-${cat(i.category)})"></span>
+      <div class="weekly-body">
+        <div class="weekly-card-title">${esc(i.title)}</div>
+        <div class="weekly-meta"><span class="weekly-source">${esc(i.publisher)}</span><span>· ${dayLabel(i.date)}</span></div>
+      </div>
     </a>`; }).join('');
   $('weekly').hidden = false;
   const rail = $('rail');
