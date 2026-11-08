@@ -179,6 +179,20 @@ test('tidy drops what follows the article, labelled as a heading or not', () => 
   assert.ok(kept.includes('Keep reading the logs'));
 });
 
+test('tidy removes paid placements by their tracking codes, and only them', () => {
+  const prose = 'A real sentence of the article, with enough words to count as prose. '.repeat(6);
+  const ad = 'https://ads.test/lp?utm_source=x&utm_medium=paid_display&utm_campaign=y';
+  const content = `<div><p>${prose}</p>
+    <p><a href="https://ads.test/lp?utm_medium=display"><img src="https://x.test/banner.jpg"></a></p>
+    <p>${prose} See the <a href="https://vendor.test/advisory">advisory</a> and the <a href="${ad}">sponsor</a>.</p>
+    <div><p><a href="${ad}"><img src="https://x.test/ad.jpg"></a></p><div><h2><a href="${ad}">Uncover threats.</a></h2>
+      <p>Their agents analyse email intent and context.</p><p><a href="${ad}">Start your free scan.</a></p></div></div>
+    <p>Read the <a href="https://x.test/news?utm_medium=email">newsletter version</a> of this story.</p></div>`;
+  const { content: out } = tidy({ content, title: 'T' }, 'https://x.test/a');
+  for (const gone of ['banner.jpg', 'ad.jpg', 'Uncover threats', 'analyse email intent', 'free scan']) assert.ok(!out.includes(gone), gone);
+  for (const kept of ['advisory', 'See the', 'newsletter version']) assert.ok(out.includes(kept), kept);  // article text, and a non-ad utm link
+});
+
 test('tidy keeps prose and real sections that only look like chrome', () => {
   const prose = 'A real sentence of the article, with enough words to count as prose. '.repeat(6);
   const content = `<div><p>${prose}</p><p>To try it, <a href="https://x.test/s">sign up for the beta</a> today.</p><h2>Related Published CVEs</h2><p>${prose}</p><p>Share this idea with the wider community of readers who care.</p></div>`;

@@ -18,7 +18,7 @@ const FEED_TIMEOUT = 10000; // one full-article feed is 4MB
 const CONCURRENCY = 6;
 const MAX_WRITES = 100; // per build: free KV allows 1,000 writes a day, and builds run 6+ times; the rest wait for the next build
 const TTL = 100 * 86400; // past the build's KEEP_DAYS (90), so expired articles are already off the site
-const VERSION = 3; // bump when extraction changes, and the next build redoes every stored article
+const VERSION = 4; // bump when extraction changes, and the next build redoes every stored article
 const TRANSIENT = ['timeout', 'error']; // not a verdict on the article: try again next run
 const CHALLENGE = /cf-challenge|_cf_chl_opt|Just a moment|Access Denied|Request unsuccessful|Incapsula/i; // about bot-protection vendors, not publishers
 const DROP = 'script, style, noscript, iframe, object, embed, form, input, button, link, meta, svg';
@@ -136,6 +136,10 @@ const CHROME = [
   /^\d+ min(ute)?s?( read)?$/i, /^(share|tweet|copy link|print)( this( article| post| story)?)?:?$/i, /^(subscribe|sign up|newsletter)\b/i,
   /^(tags?|topics?|filed under|categories):/i, /^(advertisement|sponsored)$/i, /^(read next|you may also like)/i, /^\d+ comments?$/i, /^back to top$/i, /^show more\s*show less$/i, /^posted on .+\d+ comments?$/i,
 ];
+// Paid placements label themselves in their tracking codes (utm_medium=display, paid_display, cpc, ...): a convention
+// across ad networks, not a site's markup.
+const AD_LINK = /[?&]utm_medium=[^&]*\b(display|paid|cpc|ppc|banner|sponsored|native)/i;
+const AD_TEXT_WORDS = 80; // an ad unit's own copy is short; past this, the block is the article's
 const TOC_HEADING = /^((table of )?contents|in this (article|post)|on this page|jump to)$/i;
 const END_HEADING = /^(related( (posts?|articles?|stories|reading|content|links))?|read next|more from .+|you may also like|keep reading|about the authors?|written by|subscribe( to .+)?|sign up for .*newsletters?|get .+ in your inbox)$/i;
 const PROMO_LINE = /^(related:\s|found this article interesting\b)/i; // a line pointing elsewhere, which can run longer than other chrome
@@ -186,6 +190,18 @@ export function tidy(article, url = '') {
   const isAnchor = a => { const h = a.getAttribute('href') || ''; return h.startsWith('#') || (!!page && h.startsWith(`${page}#`)); };
 
   root.querySelectorAll('nav, aside, details').forEach(el => el.remove());
+  // An ad is its link plus whatever surrounds it with no other links and little other text: a banner, or a promo unit.
+  for (const link of [...root.querySelectorAll('a[href]')]) {
+    if (!link.isConnected || !AD_LINK.test(link.getAttribute('href'))) continue;
+    let unit = link;
+    for (let up = unit.parentElement; up && up !== root; up = up.parentElement) {
+      const others = [...up.querySelectorAll('a[href]')].some(a => !AD_LINK.test(a.getAttribute('href')));
+      const ownWords = wordCount([...up.querySelectorAll('a[href]')].reduce((t, a) => t.replace(a.textContent, ' '), up.textContent));
+      if (others || ownWords > AD_TEXT_WORDS) break;
+      unit = up;
+    }
+    unit.remove();
+  }
   root.querySelectorAll('p a h1, p a h2, p a h3, p a h4, p a h5, p a h6, p a p').forEach(el => el.remove());  // link preview cards, inside a sentence
   // Blocks that are nearly all same-page links are tables of contents, which go nowhere in the sandbox.
   for (const el of [...root.querySelectorAll('ul, ol, div')]) {
