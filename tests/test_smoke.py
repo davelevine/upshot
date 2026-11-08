@@ -286,7 +286,7 @@ def test_reader_shows_the_story_before_the_fetch_finishes(browser):
     pg, held, title, frame = held_reader(browser, viewport={"width": 1300, "height": 900})
     frame.locator("h1").wait_for()
     assert frame.locator("h1").inner_text() == title
-    assert frame.locator(".todo b").inner_text().lower() == "what to do"
+    assert frame.locator(".todo b").last.inner_text().lower() == "what to do"  # last, after any upshot label
     assert frame.locator(".status").inner_text() == "Loading the full article\u2026"
     assert frame.locator("main p").first.inner_text() != ""  # the summary
     # Its body holds back past the panel's slide, so a fast article replaces the card before it's ever seen.
@@ -590,11 +590,11 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     pg = ctx.new_page()
     pg.goto(URL)
     pg.wait_for_selector(".weekly-card:not(.skeleton)")
-    pg.locator(".weekly-card:not(.skeleton)").first.click()  # an essential with a TL;DR
+    pg.locator(".weekly-card:not(.skeleton)").first.click()  # an essential with an upshot
     frame = pg.frame_locator("#reader-body iframe:not(.loading)")
     box = frame.locator(".tldr")
     box.wait_for()
-    assert box.locator("> b").inner_text().upper() == "TL;DR"
+    assert box.locator("> b").inner_text().upper() == "THE UPSHOT"
     assert box.locator("li").all_inner_texts() == ["First fact & <detail>.", "Second fact.", "Third fact."]  # escaped, as text
     assert box.locator(".do b").inner_text().upper() == "WHAT TO DO"  # the hand-picked note, last
     assert frame.locator(".todo").count() == 1  # one box, not two
