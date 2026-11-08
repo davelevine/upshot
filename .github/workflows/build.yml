@@ -73,15 +73,18 @@ jobs:
           git pull -q --rebase origin main  # a PR merged mid-run would otherwise reject the push
           git push
 
-      - name: Report dead feeds
+      - name: Report feed health
         if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          [ -s dead-feeds.txt ] || exit 0
-          body=$(printf 'These feeds have failed every fetch for 14+ days. Fix or remove them from `feeds.opml`:\n\n'; sed 's/^/- /' dead-feeds.txt)
-          issue=$(gh issue list --state open --search 'in:title "Dead feeds"' --json number --jq '.[0].number')
-          if [ -n "$issue" ]; then gh issue edit "$issue" --body "$body"; else gh issue create --title "Dead feeds" --body "$body"; fi
+          [ -f feed-health.md ] || exit 0  # the build stopped before checking
+          issue=$(gh issue list --state open --search 'in:title "Feed health"' --json number --jq '.[0].number')
+          if [ -s feed-health.md ]; then
+            if [ -n "$issue" ]; then gh issue edit "$issue" --body-file feed-health.md; else gh issue create --title "Feed health" --body-file feed-health.md; fi
+          elif [ -n "$issue" ]; then
+            gh issue close "$issue" --comment "Every feed is healthy again."
+          fi
 
   # Pull requests only: load the site in a real browser under its real CSP and exercise the feed, reader,
   # search palette and swipe-back. /api/read is stubbed (see tests/test_smoke.py).
