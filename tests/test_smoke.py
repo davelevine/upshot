@@ -606,7 +606,13 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     title = second.locator(".weekly-card-title").inner_text()
     second.click()  # an essential without one: the old callout
     frame = pg.frame_locator("#reader-body iframe:not(.loading)")
-    frame.locator("h1", has_text=title[:30]).wait_for()  # this article's frame, not the last one's
+    try:
+        frame.locator("h1", has_text=title[:30]).wait_for(timeout=15000)  # this article's frame, not the last one's
+    except Exception:  # intermittent on CI runners only: say what the page was doing
+        state = pg.evaluate("""() => ({ path: location.pathname, reading: document.body.classList.contains('reading'), readerFor,
+            active: document.activeElement?.className, frames: [...document.querySelectorAll('#reader-body iframe')].map(f => f.className) })""")
+        state["h1s"] = [f.locator("h1").first.text_content(timeout=1000) for f in pg.frames if f != pg.main_frame]  # sandboxed: only Playwright can look in
+        raise AssertionError(f"{title[:30]!r} never opened: {json.dumps(state)}")
     assert frame.locator(".tldr").count() == 0 and "what to do" in frame.locator(".todo").inner_text().lower()
 
 
