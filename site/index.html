@@ -259,12 +259,30 @@
   body.dragging .reader, body.dragging .reader-backdrop, body.dragging .feed { transition: none !important; }
   /* Phones: the feed slides aside under the reader and follows a swipe back, like a native back gesture. */
   @media (max-width: 640px) {
+    .reader-bar .close-x { display: none; } .reader-bar .close-back { display: block; }  /* full-screen here, swiped back like a page: a back chevron */
+    .reader .reader-nav { display: flex; }
+    .reader-nav .icon-btn, .reader-bar .icon-btn { width: 44px; height: 44px; }
     .feed { transition: transform .22s cubic-bezier(.2, 0, 0, 1); }
     body.reading .feed { transform: translateX(calc(-25% * (1 - var(--drag, 0)))); }
   }
   .reader-bar { display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 12px; border-bottom: 1px solid var(--border); flex: 0 0 auto; }
-  .reader-source:hover { color: var(--accent); }
-  .reader-source { flex: 1; min-width: 0; line-height: 44px; color: var(--text-muted); font-size: .8125rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .reader-spacer { flex: 1; }
+  .text-size { font: 600 .9375rem/1 Inter, system-ui, sans-serif; letter-spacing: -.01em; }
+  .text-size[aria-expanded="true"] { background: var(--bg-card-hover); color: var(--text); }
+  /* Text size: four A's in growing sizes, the current one marked. */
+  .size-wrap { position: relative; }
+  .size-pop { left: auto; right: 0; width: auto; display: flex; gap: 4px; padding: 6px; }
+  .size-pop[hidden] { display: none; }
+  .size-pop button { display: grid; place-items: end center; width: 44px; height: 44px; padding-bottom: 11px; border: 1px solid transparent; border-radius: var(--radius-sm);
+    background: none; color: var(--text-muted); font-family: Inter, system-ui, sans-serif; font-weight: 600; line-height: 1; cursor: pointer; }
+  .size-pop button:hover { background: var(--bg-card-hover); color: var(--text); }
+  .size-pop button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+  .size-pop [data-size="0"] { font-size: 13px; } .size-pop [data-size="1"] { font-size: 16px; } .size-pop [data-size="2"] { font-size: 20px; } .size-pop [data-size="3"] { font-size: 24px; }
+  .reader-icon { flex: none; width: 28px; height: 28px; padding: 2px; border-radius: 7px; background: #fff; }  /* white tile: most favicons are drawn for light tabs */
+  #reader:focus { outline: none; }  /* focused on a tap open, so no ring appears on the close button */
+  .close-back, .reader-nav { display: none; }
+  .reader-nav { flex: 0 0 auto; justify-content: center; gap: 48px; height: 52px; border-top: 1px solid var(--border); }
+  .reader-nav .icon-btn:disabled { opacity: .35; cursor: default; }
   .reader-body { position: relative; flex: 1; min-height: 0; }
   .reader-body iframe { position: absolute; inset: 0; display: block; width: 100%; height: 100%; border: 0; background: var(--bg); }
   .reader-body iframe.loading { visibility: hidden; }
@@ -334,11 +352,18 @@
   <a class="icon-btn" href="https://github.com/davelevine/upshot" target="_blank" rel="noopener" title="Source on GitHub" aria-label="Source on GitHub"><svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.75c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></a>
 </footer>
 <div class="reader-backdrop" id="reader-backdrop"></div>
-<div class="reader" id="reader" role="dialog" aria-modal="true" aria-label="Reader" aria-hidden="true">
+<div class="reader" id="reader" tabindex="-1" role="dialog" aria-modal="true" aria-label="Reader" aria-hidden="true">
   <div class="reader-bar">
-    <button class="icon-btn" id="reader-close" type="button" aria-label="Close reader"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-    <a class="reader-source" id="reader-source" target="_blank" rel="noopener" title="Open the original"></a>
+    <button class="icon-btn" id="reader-close" type="button" aria-label="Close reader"><svg class="close-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg><svg class="close-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
+    <img class="reader-icon" id="reader-icon" alt="" width="28" height="28" hidden>
+    <span class="reader-spacer"></span>
     <span class="share-done" id="share-done" hidden>Copied</span>
+    <span class="size-wrap">
+      <button class="icon-btn text-size" id="reader-size" type="button" title="Text size" aria-label="Text size" aria-expanded="false" aria-controls="size-pop">Aa</button>
+      <span class="popover size-pop" id="size-pop" role="group" aria-label="Text size" hidden>
+        <button type="button" data-size="0" aria-label="Small" title="Small">A</button><button type="button" data-size="1" aria-label="Medium" title="Medium">A</button><button type="button" data-size="2" aria-label="Large" title="Large">A</button><button type="button" data-size="3" aria-label="Larger" title="Larger">A</button>
+      </span>
+    </span>
     <button class="icon-btn" id="reader-share" type="button" title="Share article" aria-label="Share article"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>
     <button class="icon-btn" id="reader-theme" type="button" title="Toggle dark mode" aria-label="Toggle dark mode">
       <svg class="only-light" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -346,6 +371,10 @@
     </button>
   </div>
   <div class="reader-body" id="reader-body" aria-live="polite"></div>
+  <div class="reader-nav">
+    <button class="icon-btn" id="reader-prev" type="button" aria-label="Previous article" title="Previous article"><svg viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></svg></button>
+    <button class="icon-btn" id="reader-next" type="button" aria-label="Next article" title="Next article"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+  </div>
 </div>
 <div class="palette-backdrop" id="palette-backdrop" hidden></div>
 <div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Search articles" hidden>

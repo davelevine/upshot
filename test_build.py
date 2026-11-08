@@ -59,6 +59,21 @@ def test_og_image_is_a_preview_card_with_or_without_picks():
     assert a == b  # the same inputs draw the same card, so an unchanged day commits nothing
 
 
+def test_icon_candidates_prefer_big_touch_icons_and_skip_svg():
+    page = """<link rel="icon" href="/favicon-16.png" sizes="16x16"><link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="mask-icon" href="/mask.png"><link rel="apple-touch-icon" href="/touch.png"><link rel="icon" href="/big.png" sizes="96x96">"""
+    got = build.icon_candidates(page, "https://x.test/blog/")
+    assert got == ["https://x.test/touch.png", "https://x.test/big.png", "https://x.test/favicon-16.png",
+                   "https://x.test/apple-touch-icon.png", "https://x.test/favicon.ico"]
+    assert build.icon_candidates("", "https://x.test/") == ["https://x.test/apple-touch-icon.png", "https://x.test/favicon.ico"]
+
+
+def test_icon_slugs_match_the_test_fixtures_rule():
+    assert build.slug("Hacker News 300+") == "hacker-news-300"
+    assert build.slug("OWASP Gen AI Security Project") == "owasp-gen-ai-security-project"
+    assert build.slug("Anthropic (community feed)") == "anthropic-community-feed"
+
+
 def test_rss_is_well_formed():
     xml = build.rss([{"date": "2026-11-05", "title": "A & B <c>", "url": "https://x.test/?a=1&b=2",
                       "category": "ai", "summary": "s"}])

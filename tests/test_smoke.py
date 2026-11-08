@@ -10,6 +10,7 @@ from datetime import date, datetime, timedelta, timezone
 import pytest
 
 URL = os.environ.get("SMOKE_URL")
+PNG = bytes.fromhex("89504e470d0a1a0a0000000d4948445200000001000000010806000000" "1f15c4890000000d49444154789c6360000002000154a24f5d0000000049454e44ae426082")
 pytestmark = pytest.mark.skipif(not URL, reason="set SMOKE_URL to a running `wrangler pages dev site`")
 
 PIXEL = "data:image/gif;base64,R0lGODlhAQABAAAAACw="
@@ -287,9 +288,12 @@ def test_reader_shows_the_story_before_the_fetch_finishes(browser):
         pg.wait_for_timeout(20)
     assert len(held) == 1  # still in flight: nothing above waited for it
     url = urllib.parse.parse_qs(urllib.parse.urlsplit(held[0].request.url).query)["url"][0]
-    held[0].fulfill(content_type="application/json", body=json.dumps({"url": url, "frameable": False, "content": f"<p>{'word ' * 700}</p>"}))
-    pg.wait_for_function("() => document.getElementById('reader-source').textContent.includes('3 min read')")
+    held[0].fulfill(content_type="application/json", body=json.dumps({"url": url, "frameable": False, "byline": "By Ada Lovelace", "content": f"<p>{'word ' * 700}</p>"}))
+    frame.locator(".meta", has_text="3 min read").wait_for()
     frame.locator(".status").wait_for(state="detached")
+    meta = frame.locator(".meta").inner_text()
+    assert "by Ada Lovelace" in meta and "By By" not in meta  # Feedbin-style: date by author, then publisher and minutes
+    assert frame.locator("h1").evaluate("e => getComputedStyle(e).fontFamily").startswith("Inter")
     assert frame.locator("h1").inner_text() == title and frame.locator(".todo").count() == 1
 
 
@@ -421,7 +425,7 @@ def test_reader_links_are_short_and_survive_a_reload(browser):
     assert pg.evaluate("location.pathname").startswith("/read/")
     pg.goto(URL.rstrip("/") + path)  # a shared link opens that story
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
-    assert pg.locator("#reader-source").get_attribute("href") == url
+    assert pg.frame_locator("#reader-body iframe:not(.loading)").locator("h1 a").get_attribute("href") == url
     pg.keyboard.press("Escape")
     pg.wait_for_function("!document.body.classList.contains('reading')")
     assert pg.evaluate("location.pathname") == "/"
@@ -434,6 +438,82 @@ def test_reader_links_are_short_and_survive_a_reload(browser):
     pg.wait_for_selector("a.card")
     assert pg.evaluate("location.pathname") == "/" and not pg.evaluate("document.body.classList.contains('reading')")
     assert title
+
+
+def test_reader_bar_after_feedbin(browser):
+    ctx = browser.new_context(viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True)
+    def with_icons(route):  # data.json only lists icons after a build, so give the first story's publisher one
+        res = route.fetch()
+        data = res.json()
+        slug = "".join(c if c.isalnum() else "-" for c in data["items"][0]["publisher"].lower()).strip("-")
+        while "--" in slug:
+            slug = slug.replace("--", "-")
+        data["icons"] = [slug]
+        route.fulfill(response=res, json=data)
+    ctx.route("**/data.json", with_icons)
+    ctx.route("**/icons/*.png", lambda r: r.fulfill(content_type="image/png", body=PNG))
+    pg = ctx.new_page()
+    pg.problems = []
+    pg.on("console", lambda m: pg.problems.append(m.text) if m.type == "error" else None)
+    pg.goto(URL)
+    pg.wait_for_selector("a.card")
+    first = pg.locator("a.card").first
+    url = first.get_attribute("href")
+    first.tap()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    # A tap leaves no focus ring on the close button, which shows a back chevron on a phone.
+    assert pg.evaluate("document.activeElement.id") == "reader"
+    assert pg.locator(".close-back").is_visible() and not pg.locator(".close-x").is_visible()
+    assert pg.locator("#reader-original").count() == 0  # the title already links to the article
+    assert pg.locator("#reader-icon").is_visible()
+    # Previous is off at the first story; next moves on, and back again.
+    assert pg.locator("#reader-prev").is_disabled()
+    before = pg.evaluate("location.pathname")
+    pg.locator("#reader-next").tap()
+    pg.wait_for_function(f"() => location.pathname !== {before!r}")
+    assert not pg.locator("#reader-prev").is_disabled()
+    pg.locator("#reader-prev").tap()
+    pg.wait_for_function("() => document.getElementById('reader-prev').disabled")
+    assert pg.problems == []
+    # On a desktop: an X, no bottom bar, and the keyboard still lands on the close button.
+    dk = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
+    dk.goto(URL)
+    dk.wait_for_selector("a.card")
+    dk.locator("a.card").first.focus()
+    dk.keyboard.press("Enter")
+    dk.wait_for_selector("#reader-body iframe:not(.loading)")
+    assert dk.evaluate("document.activeElement.id") == "reader-close"
+    assert dk.locator(".close-x").is_visible() and not dk.locator(".reader-nav").is_visible()
+    assert not dk.locator("#reader-icon").is_visible()  # no icon listed for it: hidden, never a 404
+
+
+def test_text_size_steps_and_is_remembered(browser):
+    ctx = browser.new_context(viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True)
+    pg = ctx.new_page()
+    pg.goto(URL)
+    pg.wait_for_selector("a.card")
+    pg.locator("a.card").first.tap()
+    frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+    frame.locator("h1").wait_for()
+    size = lambda: frame.locator("body").evaluate("e => parseFloat(getComputedStyle(e).fontSize)")
+    start = size()
+    pg.locator("#reader-size").tap()
+    sizes = pg.locator("#size-pop button")
+    assert sizes.count() == 4 and pg.locator("#size-pop [aria-pressed='true']").get_attribute("data-size") == "1"
+    sizes.nth(3).tap()  # straight to the largest, no cycling through the others
+    frame.locator("html[data-size='3']").wait_for(state="attached")
+    assert size() > start
+    assert pg.locator("#size-pop [aria-pressed='true']").get_attribute("data-size") == "3"
+    sizes.nth(2).tap()
+    frame.locator("html[data-size='2']").wait_for(state="attached")
+    pg.keyboard.press("Escape")  # closes the panel, not the reader
+    assert not pg.locator("#size-pop").is_visible() and pg.evaluate("document.body.classList.contains('reading')")
+    pg.reload()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    assert pg.frame_locator("#reader-body iframe:not(.loading)").locator("html").get_attribute("data-size") == "2"
+    pg.locator("#reader-size").tap()
+    pg.mouse.click(200, 600)  # a tap on the article closes the panel
+    pg.wait_for_function("() => document.getElementById('size-pop').hidden")
 
 
 def test_unknown_paths_are_real_404s(browser):
