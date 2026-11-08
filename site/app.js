@@ -267,10 +267,10 @@ function storyMeta(i, byline, minutes) {
   const by = (byline || '').replace(/^by\s+/i, '').trim();
   return `<div class="meta">${esc(when)}${by ? ` by ${esc(by)}` : ''}<br>${esc(i.publisher)}${minutes ? ` · ${minutes} min read` : ''}</div>`;
 }
-// The TL;DR (written and checked by the build) with, for weekly essentials, the hand-picked "What to do" as its last line.
+// The upshot (written and checked by the build) with, for weekly essentials, the hand-picked "What to do" as its last line.
 function summaryBox(tldr, why) {
   if (!tldr?.length) return why ? `<div class="todo"><b>What to do</b>${esc(why)}</div>` : '';
-  return `<div class="todo tldr"><b>TL;DR</b><ul>${tldr.map(t => `<li>${esc(t)}</li>`).join('')}</ul>${why ? `<p class="do"><b>What to do</b>${esc(why)}</p>` : ''}</div>`;
+  return `<div class="todo tldr"><b>The upshot</b><ul>${tldr.map(t => `<li>${esc(t)}</li>`).join('')}</ul>${why ? `<p class="do"><b>What to do</b>${esc(why)}</p>` : ''}</div>`;
 }
 function articleDoc(i, html, nonce, why, minutes, byline) {
   return `<!doctype html><html data-theme="${document.documentElement.dataset.theme}" data-size="${textSize}"><head><meta charset="utf-8">
@@ -287,9 +287,9 @@ h1 { font-family: Inter, system-ui, sans-serif; letter-spacing: -.01em; }
 [data-size="0"] body { font-size: 1rem; } [data-size="2"] body { font-size: 1.1875rem; } [data-size="3"] body { font-size: 1.3125rem; }
 .meta { margin-bottom: 1.8em; color: var(--text-muted); font: .9375rem/1.45 Inter, system-ui, sans-serif; }
 .todo { margin: 0 0 1.8em; padding: 12px 16px; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; background: var(--bg-card); }
-.tldr ul { margin: .35em 0 0; padding-left: 1.15em; font: .9375rem/1.5 Inter, system-ui, sans-serif; } .tldr li + li { margin-top: .45em; }  /* sans: scanned, not read */
-.tldr .do { margin: .8em 0 0; padding-top: .7em; border-top: 1px solid var(--border); font: 500 .9375rem/1.5 Inter, system-ui, sans-serif; }
-.todo b { display: block; margin-bottom: 2px; color: var(--accent); font: 700 .75rem/1.5 Inter, system-ui, sans-serif; letter-spacing: .07em; text-transform: uppercase; }
+.tldr ul { margin: .35em 0 0; padding-left: 1.15em; font: 1rem/1.5 Inter, system-ui, sans-serif; } .tldr li + li { margin-top: .45em; }  /* sans: scanned, not read */
+.tldr .do { margin: .8em 0 0; padding-top: .7em; border-top: 1px solid var(--border); font: 500 1rem/1.5 Inter, system-ui, sans-serif; }
+.todo b { display: block; margin-bottom: 2px; color: var(--accent); font: 700 .875rem/1.5 Inter, system-ui, sans-serif; letter-spacing: .07em; text-transform: uppercase; }
 h2, h3, h4 { margin: 1.8em 0 .5em; font-weight: 700; line-height: 1.3; }
 h2 { font-size: 1.375rem; } h3 { font-size: 1.125rem; } h4 { font-size: 1rem; }
 ul, ol { padding-left: 1.4em; } li + li { margin-top: .35em; }
