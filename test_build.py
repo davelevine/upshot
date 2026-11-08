@@ -1,4 +1,5 @@
 import json
+import time
 import xml.etree.ElementTree as ET
 from datetime import date, datetime, timedelta, timezone
 
@@ -313,3 +314,71 @@ def test_llm_reads_the_cli_and_refuses_another_model(monkeypatch):
     replies.append(types.SimpleNamespace(stdout="", stderr="Invalid API key", returncode=1))
     with pytest.raises(RuntimeError, match="Invalid API key"):
         build.llm("system", "user", {})
+
+
+def test_entry_time_reads_dates_feedparser_cant():
+    when = build.entry_time({"published": "Nov 05, 2026 00:00:00-0600"})
+    assert when == datetime(2026, 11, 5, 6, 0, tzinfo=timezone.utc)
+    assert build.entry_time({"published": "Nov 05, 2026"}) == datetime(2026, 11, 5, tzinfo=timezone.utc)
+    assert build.entry_time({"published": "sometime soon"}) is None
+
+
+def test_silent_feeds_flags_empty_undated_and_quiet_feeds():
+    today = date(2026, 11, 20)
+    t = lambda d: time.strptime(d, "%Y-%m-%d")
+    fetched = {
+        "https://ok": ("OK", [{"published_parsed": t("2026-11-01")}]),
+        "https://quiet": ("Quiet", [{"published_parsed": t("2026-09-01")}, {"published_parsed": t("2026-08-01")}]),
+        "https://undated": ("Undated", [{"title": "x"}]),
+        "https://empty": ("Empty", []),
+        "https://down": None,  # failing feeds are reported separately
+    }
+    silent = build.silent_feeds(fetched, today)
+    assert set(silent) == {"https://quiet", "https://undated", "https://empty"}
+    assert silent["https://quiet"] == "last post 2026-09-01"
+
+
+def test_feed_links_finds_advertised_feeds():
+    page = '''<link rel="alternate" type="application/rss+xml" href="/feed.xml">
+              <link type="application/atom+xml" rel="alternate" href="https://x.test/atom?a=1&amp;b=2">
+              <link rel="stylesheet" href="/s.css"><link rel="alternate" hreflang="de" href="/de/">'''
+    assert build.feed_links(page, "https://x.test/blog/") == ["https://x.test/feed.xml", "https://x.test/atom?a=1&b=2"]
+
+
+def test_feed_health_report_is_empty_when_all_is_well():
+    assert build.feed_health_report({}, [], {}, {}, {}) == ""
+    md = build.feed_health_report({"https://a": "A", "https://b": "B"}, ["https://a"], {"https://b": "last post 2026-09-01"},
+                                  {"https://a": "https://a2"}, {"https://a": ["https://a/new.xml"]})
+    assert "**A** `https://a`: every fetch errors\n  - maybe `https://a/new.xml`" in md
+    assert "**B** `https://b`: last post 2026-09-01" in md and "`https://a` → `https://a2`" in md
+
+
+def test_fetch_reports_only_permanent_redirects():
+    import http.server, threading
+    feed = b'<rss version="2.0"><channel><title>T</title><item><title>a</title><link>https://x.test/a</link></item></channel></rss>'
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            hops = {"/old": (301, "/new"), "/temp": (302, "/new"), "/chain": (301, "/temp")}
+            if self.path in hops:
+                self.send_response(hops[self.path][0])
+                self.send_header("Location", hops[self.path][1])
+                self.end_headers()
+            else:
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(feed)
+
+        def log_message(self, *a):
+            pass
+
+    server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{server.server_port}"
+    build.MOVED.clear()
+    try:
+        for path in ("/old", "/temp", "/chain", "/new"):
+            assert len(build.fetch(("T", base + path))[1]) == 1
+    finally:
+        server.shutdown()
+    assert build.MOVED == {base + "/old": base + "/new"}  # a 302 anywhere in the chain isn't a move
