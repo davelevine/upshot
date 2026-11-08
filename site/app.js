@@ -102,7 +102,6 @@ function renderWeekly(weekly) {
       <div class="weekly-top"><span class="rank">${n + 1}</span>
         <span class="weekly-cat"><span class="dot" style="--c:var(--cat-${cat(i.category)})"></span>${CATS[cat(i.category)]}</span></div>
       <div class="weekly-card-title">${esc(i.title)}</div>
-      <p class="weekly-why">${esc(p.why)}</p>
       <div class="weekly-meta"><span class="weekly-source">${esc(i.publisher)}</span><span>· ${dayLabel(i.date)}</span></div>
     </a>`; }).join('');
   $('weekly').hidden = false;

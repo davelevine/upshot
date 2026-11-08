@@ -79,7 +79,8 @@ def test_feed_renders(browser):
     assert pg.locator("#end").is_hidden()  # not until the list runs out
     assert re.fullmatch(r"· \d+ stor(y|ies)( · \d+\+? min)?", pg.locator(".day-meta").first.inner_text())
     assert pg.locator(".card-arrow").count() == 0 and pg.locator(".card-time").count() == 0
-    assert pg.locator(".weekly-why").first.inner_text() != ""
+    # Tiles hold the placeholders' height (a 4-line title fits), so loading never shifts the page.
+    assert {round(c.bounding_box()["height"]) for c in pg.locator(".weekly-card").all()} == {168}
     assert pg.problems == []
 
 
