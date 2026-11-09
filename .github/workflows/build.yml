@@ -44,7 +44,7 @@ jobs:
         with:
           node-version: 26
           cache: npm
-      - run: npm ci
+      - run: npm ci --omit=dev  # extract.mjs's packages; wrangler is only for the smoke job
       - if: github.event_name == 'pull_request'
         run: node --test 'tests/*.test.js'
       - if: github.event_name != 'pull_request'
@@ -108,7 +108,7 @@ jobs:
       - run: pip install pytest playwright==1.64.1 axe-playwright-python==0.1.8  # no browser download: the tests use the runner's Chrome
       - name: Start the site
         run: |
-          npx --yes wrangler@4.158.0 pages dev site --port 8788 --ip 127.0.0.1 > wrangler.log 2>&1 &
+          npx wrangler dev --port 8788 --ip 127.0.0.1 > wrangler.log 2>&1 &  # wrangler.jsonc: the Worker and site/, as deployed
           for i in $(seq 1 60); do curl -sf -o /dev/null http://127.0.0.1:8788/ && exit 0; sleep 2; done
           cat wrangler.log; exit 1
       - run: pytest -q tests/test_smoke.py

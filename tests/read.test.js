@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { classify, clean, extract, feedArticle, feedReader, frameable, kvClient, linkShare, readArticle, run, tidy } from '../extract.mjs';
 import { keyFor, onRequestGet } from '../functions/api/read.js';
+import worker from '../worker.js';
 
 test('frameable honours X-Frame-Options and frame-ancestors', () => {
   const h = o => new Headers(o);
@@ -329,4 +330,9 @@ test('tidy keeps a lead picture wrapped in a paragraph or a link, but not the by
   }
   const avatar = '<p><a href="/ada"><img src="https://x.test/ada.png" width="32" height="32" alt="Ada"></a></p>';
   assert.doesNotMatch(tidy({ content: `<div>${avatar}<p>${prose}</p><p>${prose}</p></div>`, title: 'T' }, 'https://x.test/a').content, /ada\.png/);
+});
+
+test('the Worker hands every request it gets to the reader', async () => {
+  const res = await worker.fetch(new Request('https://site.test/api/read?url=https%3A%2F%2Fx.test%2Fa'), {});
+  assert.deepEqual(await res.json(), { url: 'https://x.test/a', frameable: false, reason: 'pending' });
 });

@@ -1,5 +1,5 @@
 """Browser smoke test: the feed, reader, palette and swipe work under the real CSP, with no CSP violations,
-console errors or page errors. Runs against `wrangler pages dev site` (CI starts one); skipped without SMOKE_URL.
+console errors or page errors. Runs against `npx wrangler dev` (CI starts one); skipped without SMOKE_URL.
 /api/read is stubbed because it needs the articles the build stores; tests/read.test.js covers the function."""
 import json
 import os
@@ -11,7 +11,7 @@ import pytest
 
 URL = os.environ.get("SMOKE_URL")
 PNG = bytes.fromhex("89504e470d0a1a0a0000000d4948445200000001000000010806000000" "1f15c4890000000d49444154789c6360000002000154a24f5d0000000049454e44ae426082")
-pytestmark = pytest.mark.skipif(not URL, reason="set SMOKE_URL to a running `wrangler pages dev site`")
+pytestmark = pytest.mark.skipif(not URL, reason="set SMOKE_URL to a running `npx wrangler dev`")
 
 PIXEL = "data:image/gif;base64,R0lGODlhAQABAAAAACw="
 BODY = "".join(f"<p>Paragraph {n} of the stub article, long enough to read like the real thing.</p>" for n in range(30))
@@ -627,6 +627,13 @@ def test_unknown_paths_are_real_404s(browser):
         assert pg.locator("h1").inner_text() == "Page not found"
     assert pg.goto(URL).status == 200
     assert pg.locator("a.card").first.is_visible() or pg.wait_for_selector("a.card")
+
+
+def test_the_reader_endpoint_reaches_the_worker(browser):
+    # The browser tests stub /api/read; this asks the real route, which is the only path that runs code.
+    res = browser.new_context().request.get(URL.rstrip("/") + "/api/read?url=" + urllib.parse.quote("https://x.test/not-stored", safe=""))
+    assert res.status == 200 and res.headers["content-type"].startswith("application/json")
+    assert res.json() == {"url": "https://x.test/not-stored", "frameable": False, "reason": "pending"}
 
 
 def test_wide_screens_keep_the_filter_row(browser):
