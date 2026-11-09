@@ -143,7 +143,7 @@ def test_cap_per_day_keeps_most_relevant():
 
 def test_cap_per_day_keeps_everything_that_cleared_the_bar():
     day = lambda cat, rel, url: {"date": "2026-11-06", "category": cat, "relevance": rel, "publisher": "P", "url": url}
-    big = [day("security", 8, f"s{n}") for n in range(6)] + [day("architecture", 6, "a1"), day("architecture", 6, "a2")]
+    big = [day("security", 8, f"s{n}") for n in range(6)] + [day("infrastructure", 6, "a1"), day("infrastructure", 6, "a2")]
     assert len(build.cap_per_day(big)) == 8  # no per-category quota: a big security day shows as one
 
 
@@ -374,3 +374,10 @@ def test_fetch_reports_only_permanent_redirects():
     finally:
         server.shutdown()
     assert build.MOVED == {base + "/old": base + "/new"}  # a 302 anywhere in the chain isn't a move
+
+
+def test_old_architecture_stories_become_infrastructure():
+    items = [{"category": "architecture"}, {"category": "ai"}, {"title": "no category"}]
+    build.rename_categories(items)
+    assert [i.get("category") for i in items] == ["infrastructure", "ai", None]
+    assert "architecture" not in build.CLASSIFY_PROMPT and "infrastructure:" in build.CLASSIFY_PROMPT
