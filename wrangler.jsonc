@@ -15,6 +15,10 @@
   // The reader's stored articles. The Worker only reads them, so Previews safely share the namespace.
   "kv_namespaces": [{ "binding": "ARTICLES", "id": "1bba8ed2e55040b1b00a7f32be0ea5d3" }],
   "routes": [{ "pattern": "upshot.levine.io", "custom_domain": true }],
+  // Explicit, because with routes set both default to off: the site lives only on its domain, while PR branch builds
+  // still get a preview URL on workers.dev.
+  "workers_dev": false,
+  "preview_urls": true,
   "previews": {
     "kv_namespaces": [{ "binding": "ARTICLES", "id": "1bba8ed2e55040b1b00a7f32be0ea5d3" }]
   }
