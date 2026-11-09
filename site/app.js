@@ -1,8 +1,8 @@
-const CATS = { security: 'Security', ai: 'AI', architecture: 'Architecture', sdlc: 'SDLC', regulation: 'Regulation', other: 'Other' };
-const ORDER = ['ai', 'architecture', 'sdlc', 'security', 'regulation', 'other'];
+const CATS = { security: 'Security', ai: 'AI', infrastructure: 'Infrastructure', sdlc: 'SDLC', regulation: 'Regulation', other: 'Other' };
+const ORDER = ['ai', 'infrastructure', 'sdlc', 'security', 'regulation', 'other'];
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const cat = c => (c in CATS ? c : 'other');
+const cat = c => (c === 'architecture' ? 'infrastructure' : c in CATS ? c : 'other');  // the old name, until the next build migrates data.json
 const domain = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
 const PAGE = 40;
 const STALE_MINUTES = 12 * 60;  // three missed builds
