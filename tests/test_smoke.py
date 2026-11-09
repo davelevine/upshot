@@ -606,6 +606,15 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     # Still sliding out over this tile for a moment: a click meant for the tile must not land in the old article.
     assert pg.evaluate("getComputedStyle(document.getElementById('reader')).pointerEvents") == "none"
     title = second.locator(".weekly-card-title").inner_text()
+    # Still flaky on CI runners: log what the click does, so a failure says which of "never arrived", "landed elsewhere"
+    # and "opened then closed" it was.
+    popups = []
+    pg.context.on("page", lambda p: popups.append(p.url))
+    pg.evaluate("""() => { const t = () => Math.round(performance.now()), log = window.__log = [];
+        addEventListener('click', e => log.push([t(), 'click', e.target.closest('a')?.getAttribute('href')?.slice(-40) || e.target.tagName,
+          e.defaultPrevented ? 'handled' : 'unhandled']));  // window, bubbling: runs after the app's own listener
+        addEventListener('popstate', () => log.push([t(), 'popstate', location.pathname]));
+        new MutationObserver(() => log.push([t(), 'reading', document.body.classList.contains('reading')])).observe(document.body, { attributeFilter: ['class'] }); }""")
     second.click()  # an essential without one: the old callout
     frame = pg.frame_locator("#reader-body iframe:not(.loading)")
     try:
@@ -614,6 +623,7 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
         state = pg.evaluate("""() => ({ path: location.pathname, reading: document.body.classList.contains('reading'), readerFor,
             active: document.activeElement?.className, frames: [...document.querySelectorAll('#reader-body iframe')].map(f => f.className) })""")
         state["h1s"] = [f.locator("h1").first.text_content(timeout=1000) for f in pg.frames if f != pg.main_frame]  # sandboxed: only Playwright can look in
+        state["log"], state["popups"] = pg.evaluate("window.__log"), popups
         raise AssertionError(f"{title[:30]!r} never opened: {json.dumps(state)}")
     assert frame.locator(".tldr").count() == 0 and "what to do" in frame.locator(".todo").inner_text().lower()
 
