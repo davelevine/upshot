@@ -1,0 +1,17 @@
+// Cloudflare Workers with static assets. Workers Builds deploys main and builds every other branch as a Preview.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "upshot",
+  "main": "worker.js",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "site",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/read"]  // only the reader runs code; every other request is a free static asset
+  },
+  // The reader's stored articles. The Worker only reads them, so Previews safely share the namespace.
+  "kv_namespaces": [{ "binding": "ARTICLES", "id": "1bba8ed2e55040b1b00a7f32be0ea5d3" }],
+  "previews": {
+    "kv_namespaces": [{ "binding": "ARTICLES", "id": "1bba8ed2e55040b1b00a7f32be0ea5d3" }]
+  }
+}

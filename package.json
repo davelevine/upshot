@@ -5,5 +5,8 @@
   "dependencies": {
     "@mozilla/readability": "0.6.0",
     "linkedom": "0.18.15"
+  },
+  "devDependencies": {
+    "wrangler": "4.158.0"
   }
 }
