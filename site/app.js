@@ -285,11 +285,11 @@ h1 a { color: inherit; text-decoration: none; } h1 a:hover { text-decoration: un
 @font-face { font-family: Inter; src: url("${location.origin}/fonts/InterVariable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
 h1 { font-family: Inter, system-ui, sans-serif; letter-spacing: -.01em; }
 [data-size="0"] body { font-size: 1rem; } [data-size="2"] body { font-size: 1.1875rem; } [data-size="3"] body { font-size: 1.3125rem; }
-.meta { margin-bottom: 1.8em; color: var(--text-muted); font: .9375rem/1.45 Inter, system-ui, sans-serif; }
+.meta { margin-bottom: 1.8em; color: var(--text-muted); font: .88em/1.45 Inter, system-ui, sans-serif; }  /* em: follows the text size */
 .todo { margin: 0 0 1.8em; padding: 12px 16px; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; background: var(--bg-card); }
-.tldr ul { margin: .35em 0 0; padding-left: 1.15em; font: 1rem/1.5 Inter, system-ui, sans-serif; } .tldr li + li { margin-top: .45em; }  /* sans: scanned, not read */
-.tldr .do { margin: .8em 0 0; padding-top: .7em; border-top: 1px solid var(--border); font: 500 1rem/1.5 Inter, system-ui, sans-serif; }
-.todo b { display: block; margin-bottom: 2px; color: var(--accent); font: 700 .875rem/1.5 Inter, system-ui, sans-serif; letter-spacing: .07em; text-transform: uppercase; }
+.tldr ul { margin: .35em 0 0; padding-left: 1.15em; font: .94em/1.5 Inter, system-ui, sans-serif; } .tldr li + li { margin-top: .45em; }  /* sans: scanned, not read */
+.tldr .do { margin: .8em 0 0; padding-top: .7em; border-top: 1px solid var(--border); font: 500 .94em/1.5 Inter, system-ui, sans-serif; } .tldr .do b { font-size: .875em; }
+.todo b { display: block; margin-bottom: 2px; color: var(--accent); font: 700 .82em/1.5 Inter, system-ui, sans-serif; letter-spacing: .07em; text-transform: uppercase; }  /* the box's sizes are em too */
 h2, h3, h4 { margin: 1.8em 0 .5em; font-weight: 700; line-height: 1.3; }
 h2 { font-size: 1.375rem; } h3 { font-size: 1.125rem; } h4 { font-size: 1rem; }
 ul, ol { padding-left: 1.4em; } li + li { margin-top: .35em; }
