@@ -1,11 +1,11 @@
 // Pulls each story's article during the build and stores it in Cloudflare KV, where /api/read serves it from.
-// Parsing happens here because it costs far more CPU than a Pages Function is allowed per request.
+// Parsing happens here because it costs far more CPU than the Worker is allowed per request.
 // stdin: {items: [{url, publisher, title, minutes}], feeds: {publisher: url}}. stdout: {words: {url: n}, error}.
 import { appendFileSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { Readability } from '@mozilla/readability';
 import { parseHTML } from 'linkedom';
-import { keyFor } from './functions/api/read.js';
+import { keyFor } from './worker.js';
 
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36';
 const MAX_HTML = 3_000_000;

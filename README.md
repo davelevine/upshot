@@ -21,7 +21,7 @@ The week's tech news, minus the noise.
 
 | Pipeline | Site | AI | Automation |
 |---|---|---|---|
-| [![Python](https://img.shields.io/badge/Python-%232c3e50?logo=python&logoColor=FFD43B&labelColor=2c3e50)](https://www.python.org/) [![feedparser](https://img.shields.io/badge/feedparser-%232c3e50?logo=rss&logoColor=F99B34&labelColor=2c3e50)](https://github.com/kurtmckee/feedparser) | [![Cloudflare Pages](https://img.shields.io/badge/Cloudflare%20Pages-%232c3e50?logo=cloudflarepages&logoColor=F38020&labelColor=2c3e50)](https://pages.cloudflare.com/) [![JavaScript](https://img.shields.io/badge/Vanilla%20JS-%232c3e50?logo=javascript&logoColor=F7DF1E&labelColor=2c3e50)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) [![Readability](https://img.shields.io/badge/Readability-%232c3e50?logo=firefoxbrowser&logoColor=FF7139&labelColor=2c3e50)](https://github.com/mozilla/readability) | [![Claude](https://img.shields.io/badge/Claude%20Haiku-%232c3e50?logo=claude&logoColor=D97757&labelColor=2c3e50)](https://www.anthropic.com/claude) | [![GitHub Actions](https://img.shields.io/badge/Actions-%232c3e50?logo=githubactions&logoColor=2088FF&labelColor=2c3e50)](https://github.com/features/actions) |
+| [![Python](https://img.shields.io/badge/Python-%232c3e50?logo=python&logoColor=FFD43B&labelColor=2c3e50)](https://www.python.org/) [![feedparser](https://img.shields.io/badge/feedparser-%232c3e50?logo=rss&logoColor=F99B34&labelColor=2c3e50)](https://github.com/kurtmckee/feedparser) | [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare%20Workers-%232c3e50?logo=cloudflareworkers&logoColor=F38020&labelColor=2c3e50)](https://workers.cloudflare.com/) [![JavaScript](https://img.shields.io/badge/Vanilla%20JS-%232c3e50?logo=javascript&logoColor=F7DF1E&labelColor=2c3e50)](https://developer.mozilla.org/en-US/docs/Web/JavaScript) [![Readability](https://img.shields.io/badge/Readability-%232c3e50?logo=firefoxbrowser&logoColor=FF7139&labelColor=2c3e50)](https://github.com/mozilla/readability) | [![Claude](https://img.shields.io/badge/Claude%20Haiku-%232c3e50?logo=claude&logoColor=D97757&labelColor=2c3e50)](https://www.anthropic.com/claude) | [![GitHub Actions](https://img.shields.io/badge/Actions-%232c3e50?logo=githubactions&logoColor=2088FF&labelColor=2c3e50)](https://github.com/features/actions) |
 
 </div>
 
@@ -34,7 +34,7 @@ There's no server and no database to look after. A scheduled GitHub Actions job 
 - [`build.py`](build.py) fetches the feeds in [`feeds.opml`](feeds.opml), scores and summarizes new items with Claude Haiku, removes duplicate coverage, and writes [`site/data.json`](site/data.json) and [`site/rss.xml`](site/rss.xml).
 - [`site/index.html`](site/index.html) and [`site/app.js`](site/app.js) are the whole front end: no framework, no build step. [`site/_headers`](site/_headers) sets the Content-Security-Policy.
 - [`extract.mjs`](extract.mjs) runs during the build, pulling each new story's text into Cloudflare KV for the reader.
-- [`functions/api/read.js`](functions/api/read.js) hands that text to the reader when you open an article.
+- [`worker.js`](worker.js) hands that text to the reader when you open an article. [`wrangler.jsonc`](wrangler.jsonc) configures the Cloudflare Worker that serves the site.
 
 ### What you get
 
@@ -56,14 +56,14 @@ Every four hours the Build workflow runs `build.py`:
 4. **Keep the notable ones:** a story is published if it clears its category's bar (8 for Security, 7 for AI, 6 for Architecture and SDLC) and isn't a repeat. There are no per-category quotas, so a big security day shows as one and a slow day stays short. Nothing published is ever taken down, and a 20-story daily cap is there only to catch a malfunction, like a broken feed.
 5. **Drop repeats:** the model flags a story that's already on the site from the past week (the same launch from another outlet, say). The code checks that claim, so one copy always survives.
 6. **Pick the essentials:** once a day, the model chooses the week's five.
-7. **Publish:** writes the data and RSS, remembers seen URLs in `state.json`, commits, and Cloudflare Pages deploys on the push.
+7. **Publish:** writes the data and RSS, remembers seen URLs in `state.json`, commits, and Cloudflare deploys the Worker on the push.
 
 Everything older than 90 days is pruned, so the data stays small. It also looks after itself: a feed that has failed for two weeks, gone quiet or moved lands in a single "Feed health" issue that closes itself once it's fixed, and a run where every LLM call fails exits with an error so GitHub emails you.
 
 <details>
   <summary><strong>The reader, and what it does with your data</strong></summary>
 
-Each build extracts new stories with Mozilla's [Readability](https://github.com/mozilla/readability), the same approach as Firefox's reader view, and stores the result in Cloudflare KV. Opening an article calls `/api/read`, a Cloudflare Pages Function that returns what's stored. Parsing happens in the build because it costs far more CPU than a function on the free plan is allowed per request.
+Each build extracts new stories with Mozilla's [Readability](https://github.com/mozilla/readability), the same approach as Firefox's reader view, and stores the result in Cloudflare KV. Opening an article calls `/api/read`, the only route that runs code in the Cloudflare Worker, which returns what's stored. Parsing happens in the build because it costs far more CPU than a function on the free plan is allowed per request.
 
 - **Each article opens with the upshot.** Two to four bullets, written once by the build from the article itself, saying what happened, who's affected and what to do. Every figure in a bullet (CVE IDs, versions, dates, counts) must appear word for word in the article, or that bullet is dropped. The weekly essentials add their hand-picked "What to do" as the last line.
 - **Page furniture is removed by what it is, never by who published it.** Bylines, dates, tables of contents, same-page links and "N min read" lines come out before the article is stored. If that would remove more than 35% of the text, the article is kept whole instead, because a stray byline beats a lost paragraph.
@@ -101,18 +101,18 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt pytest
 CLAUDE_CODE_OAUTH_TOKEN=... .venv/bin/python build.py   # needs the Claude Code CLI (npm i -g @anthropic-ai/claude-code)
 ```
 
-Then serve the site. The reader needs the Pages runtime, so use Wrangler rather than a plain static server:
+Then serve the site. The reader needs the Workers runtime, so use Wrangler rather than a plain static server:
 
 ```bash
 npm ci
 node --test 'tests/*.test.js'
-npx wrangler pages dev site
+npx wrangler dev --port 8788
 ```
 
 <details>
   <summary><strong>Running the browser smoke test</strong></summary>
 
-With `npx wrangler pages dev site` running (it serves on port 8788 by default):
+With `npx wrangler dev --port 8788` running:
 
 ```bash
 .venv/bin/pip install playwright && .venv/bin/python -m playwright install chromium
@@ -139,7 +139,7 @@ Run the Build workflow by hand with `backfill_days` set (say, 30). It looks back
 
 ## Run your own copy
 
-Everything runs on GitHub Actions and Cloudflare Pages' free tiers. The only paid piece is a Claude subscription (Pro or Max), which the build uses through the Claude Code CLI, so there's no API key and no per-token bill. Setup takes about fifteen minutes.
+Everything runs on the free tiers of GitHub Actions and Cloudflare Workers. The only paid piece is a Claude subscription (Pro or Max), which the build uses through the Claude Code CLI, so there's no API key and no per-token bill. Setup takes about fifteen minutes.
 
 1. **Fork the repository.** GitHub turns workflows off in new forks, so open the fork's **Actions** tab and enable them.
 2. **Create the Claude token.** On a machine where you're signed in to Claude Code with your subscription, run:
@@ -149,11 +149,11 @@ Everything runs on GitHub Actions and Cloudflare Pages' free tiers. The only pai
    ```
 
    It prints a long-lived OAuth token (it lasts about a year). In the fork, go to **Settings → Secrets and variables → Actions → New repository secret**, name it `CLAUDE_CODE_OAUTH_TOKEN`, and paste the token. When it expires, builds start failing with "every scoring call failed"; run `claude setup-token` again and replace the secret.
-3. **Connect Cloudflare Pages.** Create a Pages project from your fork with production branch `main`, build command `npm ci`, and output directory `site`. Add a custom domain if you want one; the `*.pages.dev` address works as is.
+3. **Connect Cloudflare Workers.** In [`wrangler.jsonc`](wrangler.jsonc), change `routes` to your own domain, or delete it to use the `workers.dev` address. Then in Cloudflare, go to **Workers & Pages → Create → Import a repository**, pick your fork, and name the Worker `upshot` (it must match `name` in `wrangler.jsonc`). Leave the build command empty and the deploy and preview commands at their defaults.
 4. **Tell the build where the site lives.** Under **Settings → Secrets and variables → Actions → Variables**, add `SITE_URL` with your site's address (for example `https://news.example.com`). The build uses it for the RSS feed's links and to look up reading times through the site's reader.
 5. **Make it yours.** Point the GitHub links and the stale-build link in `site/index.html` at your fork, change the README badges, edit [`feeds.opml`](feeds.opml) (see [adding a feed](#adding-a-feed)), and adjust the bars in [`build.py`](build.py) if you want more or fewer stories (see [Configuration](#configuration)).
-6. **Give the reader somewhere to keep articles.** In Cloudflare, create a Workers KV namespace and bind it to the Pages project as `ARTICLES`, for both Production and Preview. Create an API token with only the **Workers KV Storage: Edit** permission, then add `CF_API_TOKEN`, `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID` as repository secrets. Without them the digest still works, but the reader only shows each story's summary.
-7. **Run the first build.** Under **Actions → Build → Run workflow**, start it on `main`. Set `backfill_days` to `30` to fill in the last month (only as far back as each feed still lists). Pages deploys the result a minute after the build commits.
+6. **Give the reader somewhere to keep articles.** In Cloudflare, create a Workers KV namespace and put its ID in both `kv_namespaces` entries in [`wrangler.jsonc`](wrangler.jsonc) (the namespace ID isn't a secret). Create an API token with only the **Workers KV Storage: Edit** permission, then add `CF_API_TOKEN`, `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID` as repository secrets. Without them the digest still works, but the reader only shows each story's summary.
+7. **Run the first build.** Under **Actions → Build → Run workflow**, start it on `main`. Set `backfill_days` to `30` to fill in the last month (only as far back as each feed still lists). Cloudflare deploys the result a minute after the build commits.
 
 ### Adding a feed
 
@@ -198,9 +198,9 @@ Leave the built-in schedule in place as a fallback; a duplicate run finds nothin
 | [Build](./.github/workflows/build.yml) | Fetch, score, publish | ✓ | ✓ | ✓ | Every 4 hours at :17 UTC. On PRs it runs the Python and JavaScript tests only. Manual runs take an optional `backfill_days`. |
 | [Build › smoke](./.github/workflows/build.yml) | Browser smoke test | ✓ | | | Loads the site in Chromium under its real CSP and checks the feed, reader, search palette and swipe-back. Fails on any CSP violation, console error or page error. |
 
-[Renovate](https://docs.renovatebot.com/) ([`renovate.json`](renovate.json)) keeps every pin current: the GitHub Actions (pinned to commit digests), `feedparser`, Readability and linkedom, and the Playwright and Wrangler versions in the smoke job. New releases wait three days before an update is proposed. Patch, digest and minor updates merge themselves once CI passes, including the browser smoke test. Major versions and the Claude Code CLI (which PR checks can't fully test, since they don't run the real build) wait for review, arriving together on the 1st of each month.
+[Renovate](https://docs.renovatebot.com/) ([`renovate.json`](renovate.json)) keeps every pin current: the GitHub Actions (pinned to commit digests), `feedparser`, Readability and linkedom, Wrangler, and the Playwright version in the smoke job. New releases wait three days before an update is proposed. Patch, digest and minor updates merge themselves once CI passes, including the browser smoke test. Major versions and the Claude Code CLI (which PR checks can't fully test, since they don't run the real build) wait for review, arriving together on the 1st of each month.
 
-Cloudflare Pages deploys every push to `main`, including the bot's data commits, and builds a preview for every PR. Its build command is `npm ci` with `site` as the output directory. The only secret is `CLAUDE_CODE_OAUTH_TOKEN`, a subscription token from `claude setup-token` (it lasts about a year), in the repo's Actions secrets. Scheduled and manual builds install the pinned Claude Code CLI to use it.
+Cloudflare Workers Builds deploys every push to `main` with `npx wrangler deploy`, including the bot's data commits, and builds a Preview for every other branch with its URL posted on the PR. [`wrangler.jsonc`](wrangler.jsonc) holds the Worker's config: static assets from `site/` with `404.html` for unknown paths, only `/api/read` running code, the `ARTICLES` KV binding and the custom domain. The only secret is `CLAUDE_CODE_OAUTH_TOKEN`, a subscription token from `claude setup-token` (it lasts about a year), in the repo's Actions secrets. Scheduled and manual builds install the pinned Claude Code CLI to use it.
 
 ## Configuration
 

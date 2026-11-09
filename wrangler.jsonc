@@ -11,6 +11,7 @@
   },
   // The reader's stored articles. The Worker only reads them, so Previews safely share the namespace.
   "kv_namespaces": [{ "binding": "ARTICLES", "id": "1bba8ed2e55040b1b00a7f32be0ea5d3" }],
+  "routes": [{ "pattern": "upshot.levine.io", "custom_domain": true }],
   "previews": {
     "kv_namespaces": [{ "binding": "ARTICLES", "id": "1bba8ed2e55040b1b00a7f32be0ea5d3" }]
   }

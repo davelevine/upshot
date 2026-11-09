@@ -1,8 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { classify, clean, extract, feedArticle, feedReader, frameable, kvClient, linkShare, readArticle, run, tidy } from '../extract.mjs';
-import { keyFor, onRequestGet } from '../functions/api/read.js';
-import worker from '../worker.js';
+import worker, { keyFor } from '../worker.js';
 
 test('frameable honours X-Frame-Options and frame-ancestors', () => {
   const h = o => new Headers(o);
@@ -269,8 +268,8 @@ test('run writes at most MAX_WRITES articles a build, newest first', async () =>
 
 test('the reader function stays a lookup: no libraries, so no parsing against the CPU limit', async () => {
   const { readFileSync } = await import('node:fs');
-  const code = readFileSync(new URL('../functions/api/read.js', import.meta.url), 'utf8');
-  assert.doesNotMatch(code, /^\s*import\s/m, 'functions/api/read.js imports a library; parse in extract.mjs instead');
+  const code = readFileSync(new URL('../worker.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(code, /^\s*import\s/m, 'worker.js imports a library; parse in extract.mjs instead');
 });
 
 test('run hands back article text for TL;DRs: fresh, from the store, and none when blocked', async () => {
@@ -288,7 +287,7 @@ test('run hands back article text for TL;DRs: fresh, from the store, and none wh
 test('/api/read returns what the build stored, and pending otherwise', async () => {
   const url = 'https://x.test/a';
   const ask = async (env, u = url) => {
-    const res = await onRequestGet({ request: new Request('https://site.test/api/read?url=' + encodeURIComponent(u)), env });
+    const res = await worker.fetch(new Request('https://site.test/api/read?url=' + encodeURIComponent(u)), env);
     return [res.status, await res.json(), res.headers.get('cache-control')];
   };
   const k = await keyFor(url);
@@ -332,7 +331,3 @@ test('tidy keeps a lead picture wrapped in a paragraph or a link, but not the by
   assert.doesNotMatch(tidy({ content: `<div>${avatar}<p>${prose}</p><p>${prose}</p></div>`, title: 'T' }, 'https://x.test/a').content, /ada\.png/);
 });
 
-test('the Worker hands every request it gets to the reader', async () => {
-  const res = await worker.fetch(new Request('https://site.test/api/read?url=https%3A%2F%2Fx.test%2Fa'), {});
-  assert.deepEqual(await res.json(), { url: 'https://x.test/a', frameable: false, reason: 'pending' });
-});

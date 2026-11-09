@@ -1,5 +1,5 @@
 # Fetches feeds, scores and summarizes new items with Claude (Haiku, through the Claude Code CLI on the
-# subscription), and commits site/data.json. Cloudflare Pages deploys site/ on every push to main.
+# subscription), and commits site/data.json. Cloudflare Workers Builds deploys the site on every push to main.
 # Secrets: CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`; about a year's life), and CF_API_TOKEN, CF_ACCOUNT_ID and
 # CF_KV_NAMESPACE_ID for the reader's articles.
 name: Build
