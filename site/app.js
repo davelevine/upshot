@@ -69,8 +69,8 @@ function renderPage() {
   }
   const dayMeta = d => `· ${counts[d]} ${counts[d] === 1 ? 'story' : 'stories'}${unknown[d] ? '' : ` · ${minutes[d]} min`}`;  // only a full count: a floor would teach people to ignore it
   for (const i of shown.slice(0, limit)) (groups[dayLabel(i.date)] ||= []).push(i);
-  $('items').innerHTML = shown.length ? Object.entries(groups).map(([d, list]) => `
-    <div class="date-label"><span>${d}</span><span class="day-meta">${dayMeta(d)}</span></div>
+  $('items').innerHTML = shown.length ? Object.entries(groups).map(([d, list], n) => `
+    <div class="date-label"><span>${d}</span><span class="day-meta">${dayMeta(d)}</span>${n ? '' : '<time id="updated"></time>'}</div>
     ${list.map(i => { const c = cat(i.category); return `
     <a class="card${readSet.has(i.url) ? ' read' : ''}" href="${esc(i.url)}" target="_blank" rel="noopener">
       <span class="dot" style="--c:var(--cat-${c})"></span>
@@ -82,6 +82,7 @@ function renderPage() {
     </a>`; }).join('')}`).join('')
     : '<p class="empty">No articles match your search.</p>';
   $('items').removeAttribute('aria-busy');
+  if (generatedAt) showUpdated();  // the feed was just redrawn, and its "Updated" with it
   io.unobserve($('sentinel'));
   io.observe($('sentinel'));
   const ended = shown.length && limit >= shown.length;
@@ -94,10 +95,17 @@ function renderPage() {
   }
 }
 
+// "Nov 3–9", or "Oct 29 – Nov 4": the picks come from a rolling seven days, not a calendar week.
+function weekRange(w) {
+  const md = iso => new Date(iso + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  const [a, b] = [md(w.window_start), md(w.window_end)];
+  return a.split(' ')[0] === b.split(' ')[0] ? `${a}–${b.split(' ')[1]}` : `${a} – ${b}`;
+}
 function renderWeekly(weekly) {
   const byUrl = Object.fromEntries(items.map(i => [i.url, i]));
   const picks = (weekly?.items || []).filter(p => byUrl[p.url]);
   if (!picks.length) { $('weekly').hidden = true; return; }  // the placeholder tiles go too
+  $('weekly-range').textContent = weekly.window_start ? weekRange(weekly) : '';
   $('rail').innerHTML = picks.map(p => { const i = byUrl[p.url]; return `
     <a class="weekly-card" href="${esc(i.url)}" target="_blank" rel="noopener">
       <span class="dot" role="img" aria-label="${CATS[cat(i.category)]}" style="--c:var(--cat-${cat(i.category)})"></span>
@@ -187,9 +195,9 @@ const rememberSeen = () => { if (generatedAt) localStorage.setItem('seenUntil', 
 addEventListener('pagehide', rememberSeen);
 document.addEventListener('visibilitychange', () => { if (document.hidden) rememberSeen(); });
 
-// "Updated 2h ago" in the header; a number that keeps growing means builds have stopped.
+// "Updated 2h ago" at the top of the feed; a number that keeps growing means builds have stopped.
 function showUpdated() {
-  const el = $('updated'), mins = Math.max(0, (Date.now() - Date.parse(generatedAt)) / 60e3);
+  const el = $('updated') || document.createElement('time'), mins = Math.max(0, (Date.now() - Date.parse(generatedAt)) / 60e3);  // none on an empty feed
   el.dateTime = generatedAt;
   el.title = new Date(generatedAt).toLocaleString();
   const ago = mins < 1 ? 'just now' : mins < 60 ? `${Math.floor(mins)}m ago`

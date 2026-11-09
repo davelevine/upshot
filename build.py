@@ -309,7 +309,7 @@ def wrap(text, font, width, max_lines):
 
 
 def og_image(data, today):
-    """The link-preview card: this week's #1 essential with what to do, or the site's tagline before there is one."""
+    """The link-preview card: the week's #1 essential with what to do, or the site's tagline before there is one."""
     c, img = OG, Image.new("RGB", (OG["w"], OG["h"]), OG["bg"])
     d, x, right = ImageDraw.Draw(img), OG["pad"], OG["w"] - OG["pad"]
     logo = og_font(46, 760, 32)
@@ -332,8 +332,8 @@ def og_image(data, today):
         return img
 
     y = 184
-    d.text((x, y), "THIS WEEK'S #1", font=small_bold, fill=c["muted"])
-    cx = x + small_bold.getlength("THIS WEEK'S #1") + 26
+    d.text((x, y), "THE WEEK'S #1", font=small_bold, fill=c["muted"])
+    cx = x + small_bold.getlength("THE WEEK'S #1") + 26
     d.ellipse((cx, y + 7, cx + 12, y + 19), fill=c["cats"].get(top["category"], c["cats"]["other"]))
     d.text((cx + 22, y), top["category"].upper() if top["category"] != "ai" else "AI", font=small_bold, fill=c["muted"])
     y += 52
@@ -351,7 +351,7 @@ def og_image(data, today):
             d.text((x + 28, top_y + n * 42), line, font=note, fill=c["muted"])
         d.rectangle((x, top_y + 2, x + 3, top_y + 42 * len(note_lines) - 4), fill=c["accent"])
     d.text((x, 550), SITE_URL.split("//")[-1], font=small, fill=c["muted"])
-    d.text((right, 550), f"{top['publisher']}  ·  {len(picks)} essential{'s' if len(picks) != 1 else ''} this week", font=small, fill=c["muted"], anchor="ra")
+    d.text((right, 550), f"{top['publisher']}  ·  {len(picks)} essential{'s' if len(picks) != 1 else ''}, last 7 days", font=small, fill=c["muted"], anchor="ra")
     return img
 
 
