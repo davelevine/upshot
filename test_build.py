@@ -279,9 +279,6 @@ def test_run_summary_counts_and_near_misses():
     assert "**Kept:** 1" in out and "[T0](https://x.test/0)" in out
     near = out.split("One point under the bar")[1]
     assert "T1" in near and "T2" not in near
-    assert "Over the daily max" not in out
-    over = build.run_summary(45, 1, new, scores, [], [], [], [(new[0], scores[new[0]["url"]])]).split("Over the daily max")[1]
-    assert "[T0](https://x.test/0)" in over
 
 
 def test_llm_reads_the_cli_and_refuses_another_model(monkeypatch):

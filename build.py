@@ -39,7 +39,7 @@ MIN_RELEVANCE = {"ai": 7, "security": 8, "architecture": 6, "sdlc": 6, "regulati
 # Report on stories first published elsewhere: the original source wins ties and replaces their copy of a repeat.
 NEWS_SOURCES = {"Ars Technica", "BleepingComputer", "InfoQ", "SecurityWeek", "The Hacker News", "The Record"}
 DEDUPE_DAYS = 7       # new items are checked for repeats of the last N days' headlines
-DAILY_MAX = 10        # safety valve for an exceptional day; the bars do the real filtering
+DAILY_MAX = 20        # anomaly guard (a broken feed, a scoring bug), set above the busiest real day
 DEAD_AFTER_DAYS = 14  # a feed failing this long gets reported
 SILENT_AFTER_DAYS = 45  # a feed that loads but hasn't posted in this long gets reported
 BATCH = 20            # stories per repeat check
@@ -590,7 +590,7 @@ def add_tldrs(items, texts, limit=TLDR_LIMIT):
     return len(todo)
 
 
-def run_summary(feeds, feeds_failed, new, scores, kept, repeated, health, over_max=()):
+def run_summary(feeds, feeds_failed, new, scores, kept, repeated, health):
     """Markdown for the Actions run page: what this build saw, kept and nearly kept."""
     title = {i["url"]: i for i in new}
     scored = {u: r for u, r in scores.items() if r}
@@ -604,8 +604,6 @@ def run_summary(feeds, feeds_failed, new, scores, kept, repeated, health, over_m
     ]
     if kept:
         lines += ["### Kept", "", "| Category | Score | Source | Story |", "|---|---|---|---|", *(row(r, i) for i, r in kept), ""]
-    if over_max:
-        lines += [f"### Over the daily max ({DAILY_MAX})", "", "| Category | Score | Source | Story |", "|---|---|---|---|", *(row(r, i) for i, r in over_max), ""]
     if repeated:
         lines += ["### Dropped as repeats", "", *(f"- {i['publisher']}: {i['title']}" for i in repeated), ""]
     if near:
@@ -761,7 +759,6 @@ def main():
     keep = (today - timedelta(days=KEEP_DAYS)).isoformat()
     data["items"] = cap_per_day([i for i in data["items"] if i["date"] >= keep], published)
     on_site = {i["url"] for i in data["items"]}
-    over_max = [(i, r) for i, r in kept if i["url"] not in on_site]  # cleared the bar on an exceptional day
     kept = [(i, r) for i, r in kept if i["url"] in on_site]
     state["seen"] = {u: d for u, d in seen.items() if d >= keep}
 
@@ -792,7 +789,7 @@ def main():
     health = feed_health_report(names, dead, silent, {u: m for u, m in MOVED.items() if u in names}, suggestions)
     (ROOT / "feed-health.md").write_text(health)
 
-    write_summary(len(feeds), sum(r is None for r in fetched.values()), new, scores, kept, repeated, health, over_max)
+    write_summary(len(feeds), sum(r is None for r in fetched.values()), new, scores, kept, repeated, health)
 
     if new and failed == len(new):
         sys.exit("every scoring call failed; check CLAUDE_CODE_OAUTH_TOKEN and the Claude Code CLI")
