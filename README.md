@@ -58,7 +58,7 @@ Every four hours the Build workflow runs `build.py`:
 6. **Pick the essentials:** once a day, the model chooses the week's five.
 7. **Publish:** writes the data and RSS, remembers seen URLs in `state.json`, commits, and Cloudflare deploys the Worker on the push.
 
-Everything older than 90 days is pruned, so the data stays small. It also looks after itself: a feed that has failed for two weeks, gone quiet or moved lands in a single "Feed health" issue that closes itself once it's fixed, and a run where every LLM call fails exits with an error so GitHub emails you.
+Everything older than 90 days is pruned, so the data stays small. It also looks after itself: a feed that has failed for two weeks, gone quiet or moved lands in a single "Feed health" issue that closes itself once it's fixed, and a run where every LLM call fails exits with an error so GitHub emails you. If Cloudflare KV is down, the stories are still published (the reader shows a fallback until a later build stores their text) and the run is marked failed after committing, so you hear about it without losing the build.
 
 <details>
   <summary><strong>The reader, and what it does with your data</strong></summary>

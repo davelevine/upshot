@@ -4,3 +4,4 @@ __pycache__/
 feed-health.md
 node_modules/
 .wrangler/
+reader-error.txt

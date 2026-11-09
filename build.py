@@ -484,14 +484,18 @@ def cap_per_day(items, published=()):
     return out
 
 
-def upgrade_source(items, title, item, result):
+def upgrade_source(items, title, item, result, weekly=None):
     """If the story headlined `title` came from a news outlet and `item` is the original source, swap it in, keeping
-    the story's place in the feed. Returns whether it did."""
+    the story's place in the feed, and in the week's picks if it's one. Returns whether it did."""
     if item["publisher"] in NEWS_SOURCES:
         return False
     for old in items:
         if norm(old["title"]) == norm(title) and old.get("publisher") in NEWS_SOURCES:
+            for pick in (weekly or {}).get("items", []):
+                if pick["url"] == old["url"]:
+                    pick["url"] = item["url"]
             old.pop("minutes", None)
+            old.pop("tldr", None)  # checked against the outlet's article: rewritten from the original's
             old.update({k: item[k] for k in ("title", "url", "publisher")},
                        category=result["category"], summary=result["summary"], relevance=max(old.get("relevance", 0), result["relevance"]))
             return True
@@ -546,7 +550,7 @@ def add_reading_times(items, known=None, feeds=None, texts=None):
     return out.get("error")
 
 
-TLDR_LIMIT = 60  # summaries written per build; the first rollout spreads over two
+TLDR_LIMIT = 60  # summaries written per build; a backlog (a backfill, a redo) spreads over later builds
 TLDR_PROMPT = """You write the TL;DR at the top of a tech news article, for a senior engineer who wants to act on it
 straight away. Return 2 to 4 bullets, each under 25 words. Lead with what happened, then who or what is affected,
 then the fix or action if the article gives one (if it gives none, leave action out rather than saying so). Use only facts stated in the article: never add a version, CVE,
@@ -621,7 +625,10 @@ def write_summary(*args):
 
 
 def update_feed_health(health, results, today):
-    """health: {feed_url: first_failure_date}. Returns feeds dead for DEAD_AFTER_DAYS+."""
+    """health: {feed_url: first_failure_date}; results: {feed_url: fetched ok} for every feed in the OPML.
+    Returns feeds dead for DEAD_AFTER_DAYS+. Feeds no longer in the OPML stop being tracked."""
+    for url in [u for u in health if u not in results]:
+        del health[url]
     for url, ok in results.items():
         if ok:
             health.pop(url, None)
@@ -701,8 +708,6 @@ def main():
     with ThreadPoolExecutor(12) as ex:
         fetched = dict(ex.map(safe_fetch, feeds))
     dead = update_feed_health(state["failing_since"], {u: r is not None for u, r in fetched.items()}, today)
-    # Feeds removed from the OPML stop being tracked.
-    state["failing_since"] = {u: d for u, d in state["failing_since"].items() if u in fetched}
 
     cutoff = now() - timedelta(days=FRESH_DAYS)
     new, urls = [], set()
@@ -744,7 +749,7 @@ def main():
             covered.add(n)
             if repeat:
                 target = chunk[int(dup_of)][0]["title"] if str(dup_of).strip().isdigit() else dup_of
-                if upgrade_source(data["items"], target, item, r):
+                if upgrade_source(data["items"], target, item, r, data.get("weekly")):
                     kept.append((item, r))
                     recent.append(item["title"])
                 else:
@@ -793,8 +798,11 @@ def main():
 
     if new and failed == len(new):
         sys.exit("every scoring call failed; check CLAUDE_CODE_OAUTH_TOKEN and the Claude Code CLI")
+    # Published anyway: the stories show the reader's fallback until a later build stores their text. The workflow
+    # fails the run after committing, so the outage still gets noticed.
+    (ROOT / "reader-error.txt").write_text(f"couldn't update the reader's articles: {reader_error}\n" if reader_error else "")
     if reader_error:
-        sys.exit(f"couldn't update the reader's articles: {reader_error}")
+        print(f"::error::couldn't update the reader's articles: {reader_error}")
 
 
 if __name__ == "__main__":

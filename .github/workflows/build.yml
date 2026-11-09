@@ -86,6 +86,13 @@ jobs:
             gh issue close "$issue" --comment "Every feed is healthy again."
           fi
 
+      - name: Fail if the reader's articles couldn't be stored
+        if: github.event_name != 'pull_request'
+        run: |
+          # build.py publishes anyway, so a KV outage doesn't throw the build away; this still turns the run red.
+          [ -s reader-error.txt ] || exit 0
+          cat reader-error.txt; exit 1
+
   # Pull requests only: load the site in a real browser under its real CSP and exercise the feed, reader,
   # search palette and swipe-back. /api/read is stubbed (see tests/test_smoke.py).
   smoke:
