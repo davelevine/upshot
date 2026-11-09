@@ -1,6 +1,158 @@
 {
  "items": [
   {
+   "date": "2026-11-09",
+   "title": "Malicious bee-js npm Release and Swarm Desktop Releases Deliver SleepyDuck Ethereum C2 Backdoor",
+   "url": "https://socket.dev/blog/bee-js-compromise",
+   "publisher": "Socket",
+   "category": "security",
+   "summary": "Compromised maintainer accounts published malicious @ethersphere/bee-js 13.3.0 and Swarm Desktop 0.56.2, reusing SleepyDuck's Ethereum-addressed C2 infrastructure.",
+   "relevance": 8,
+   "added": "2026-11-09T16:19:01+00:00",
+   "minutes": 22,
+   "tldr": [
+    "Malicious @ethersphere/bee-js 13.3.0 on npm and Swarm Desktop 0.56.2 on GitHub carry a loader that executes remote JavaScript with full Node.js privileges.",
+    "Affected: anyone who installed bee-js 13.3.0 with install scripts enabled, or ran Swarm Desktop 0.56.2, exposing the node password and wallet key.",
+    "Pin bee-js to 13.2.0, purge cached 13.3.0 copies, and treat scripted installs from 00:09:50 to 01:24:58 UTC on November 9 as compromised.",
+    "Uninstall Swarm Desktop 0.56.2 and install 0.56.3, which was not yet published as of 10:30 UTC; assume the node password and key were stolen."
+   ]
+  },
+  {
+   "date": "2026-11-09",
+   "title": "Trusted by Default: Qubole Cross-Account Access Abused in the Wild",
+   "url": "https://www.wiz.io/blog/qubole-cross-account-access-abused-in-the-wild",
+   "publisher": "Wiz",
+   "category": "security",
+   "summary": "Wiz reports a threat actor used IAM credentials from Qubole's AWS account to assume integration roles in customer AWS environments, and publishes hunting guidance.",
+   "relevance": 8,
+   "added": "2026-11-09T16:19:01+00:00",
+   "minutes": 9,
+   "tldr": [
+    "Threat actor abused IAM credentials from a Qubole-associated AWS account to assume customer integration roles from October 14 to October 26, 2026.",
+    "Customers whose roles trust Qubole's account were compromised; the actor harvested secrets, Lambda environment variables, and S3 data.",
+    "Hunt CloudTrail from October 1, 2026 for AssumeRole events from account 805246085872 with non-AWS source IPs.",
+    "Remove trust for unused integrations, narrow trusted principals, add aws:SourceIp conditions, and rotate secrets the roles could read."
+   ]
+  },
+  {
+   "date": "2026-11-09",
+   "title": "Hackers exploit SSHole OpenSSH flaw to breach Linux systems",
+   "url": "https://www.bleepingcomputer.com/news/security/hackers-exploit-sshole-openssh-flaw-to-breach-linux-systems/",
+   "publisher": "BleepingComputer",
+   "category": "security",
+   "summary": "Per BleepingComputer, attackers are actively exploiting the \"SSHole\" OpenSSH flaw (CVE-2026-123158) to run commands, steal credentials, and maintain persistent access on Linux systems.",
+   "relevance": 8,
+   "added": "2026-11-09T16:19:01+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Hackers are actively exploiting the \"SSHole\" OpenSSH flaw (CVE-2026-123158) to execute commands, steal credentials and gain persistent access.",
+    "The flaw bypasses authentication on certain musl-based Linux systems, including Alpine, for accounts whose password hash is *.",
+    "Update OpenSSH to version 10.6p2 as soon as possible, or disable SSH password authentication on affected systems.",
+    "Check for unexpected successful password logins to accounts with * in /etc/shadow, unauthorized SSH keys, and TAC Agent files."
+   ]
+  },
+  {
+   "date": "2026-11-09",
+   "title": "Our newest TPUs: 8tx and 8i Max, built for the agentic era",
+   "url": "https://blog.google/innovation-and-ai/infrastructure-and-cloud/global-network/tpu-8i-max-and-8tx/",
+   "publisher": "Google Blog",
+   "category": "infrastructure",
+   "summary": "Google announced two new TPU accelerators, TPU 8tx and TPU 8i Max, positioned for agentic AI workloads.",
+   "relevance": 7,
+   "added": "2026-11-09T16:19:01+00:00",
+   "minutes": 8,
+   "tldr": [
+    "Google announced two new eighth-generation TPU systems, TPU 8tx and TPU 8i Max, joining TPU 8t and TPU 8i.",
+    "TPU 8tx targets regulated enterprises and governments needing secure, confidential inference, with hardware-level protection for sensitive data and model weights.",
+    "TPU 8i Max targets massive context windows and the highest compute density per rack, with double the compute, SRAM and HBM bandwidth of TPU 8i.",
+    "Cloud Pathways and GKE dynamic slicing are now generally available for orchestrating and reconfiguring TPU workloads on Google Cloud."
+   ]
+  },
+  {
+   "date": "2026-11-09",
+   "title": "Google Releases Gemini 4 Argon for Robotics Control, Simulation, and Policy Improvement",
+   "url": "https://www.infoq.com/news/2026/11/google-gemini-argon/",
+   "publisher": "InfoQ",
+   "category": "ai",
+   "summary": "Google released Gemini 4 Argon, positioned as a general-purpose physical-reasoning model for robot control, simulation scene construction, video labeling, and policy improvement.",
+   "relevance": 7,
+   "added": "2026-11-09T16:19:01+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Google released Gemini 4 Argon, a general-purpose physical-reasoning model for robot control, Real2Sim scene construction, and policy improvement.",
+    "Google reports 87% on ERQA using pure reasoning, and Argon is available to AI Ultra subscribers and the paid Gemini API.",
+    "Developers can find it as model id gemini-4-argon in the Gemini API models docs.",
+    "Robotics results rely on long, task-specific prompts and harnesses; Google publishes no per-demo failure rates beyond one VLA case."
+   ]
+  },
+  {
+   "date": "2026-11-09",
+   "title": "Simplify cross-partition access with AWS IAM outbound identity federation",
+   "url": "https://aws.amazon.com/blogs/security/simplify-cross-partition-access-with-aws-iam-outbound-identity-federation/",
+   "publisher": "AWS Security Blog",
+   "category": "infrastructure",
+   "summary": "AWS announced that IAM outbound identity federation tokens can now be used to assume roles across AWS partitions such as Commercial, China, GovCloud and European Sovereign Cloud.",
+   "relevance": 6,
+   "added": "2026-11-09T16:19:01+00:00",
+   "minutes": 15,
+   "tldr": [
+    "AWS IAM outbound identity federation now supports cross-partition access, letting workloads assume roles in other AWS partitions without long-term credentials.",
+    "Affects workloads spanning Commercial, China, GovCloud (US), and European Sovereign Cloud partitions. Workloads exchange a short-lived JWT from sts:GetWebIdentityToken for temporary credentials via sts:AssumeRoleWithWebIdentity.",
+    "Enable outbound federation in the source account, register its issuer as an OIDC provider in the destination, and condition trust on aud and sub.",
+    "Consult your compliance team first, since cross-partition access should align with obligations such as FedRAMP, ITAR, and GDPR."
+   ]
+  },
+  {
+   "date": "2026-11-09",
+   "title": "Introducing TPU Sync: Fast KV cache and weight transfer for inference and RL on TPU",
+   "url": "https://cloud.google.com/blog/topics/ai-infrastructure/introducing-tpu-sync-fast-kv-cache-and-weight-transfer-on-tpu/",
+   "publisher": "Google Cloud Blog",
+   "category": "infrastructure",
+   "summary": "Google Cloud announced TPU Sync, a system for fast KV cache and model weight transfer across TPUs to support disaggregated inference and RL workloads.",
+   "relevance": 6,
+   "added": "2026-11-09T16:19:01+00:00",
+   "minutes": 9,
+   "tldr": [
+    "Google released TPU Sync, an open-source C++ library that moves KV cache and model weights across TPU HBM, host RAM, storage, and DCN.",
+    "In internal testing, it cut KV transfer latency by over 90% and reduced TTFT by an average of 90% for 235B to 480B MoE models versus running without it.",
+    "Available now as open source: install the tpu-sync-torch or tpu-sync-jax wheels; it integrates with vLLM-TorchTPU, SGLang-TorchTPU, and llm-d."
+   ]
+  },
+  {
+   "date": "2026-11-09",
+   "title": "Now generally available: GKE dynamic slicing for higher resilience, and efficiency for TPUs",
+   "url": "https://cloud.google.com/blog/products/containers-kubernetes/gke-dynamic-slicing-on-tpus/",
+   "publisher": "Google Cloud Blog",
+   "category": "infrastructure",
+   "summary": "Google Cloud made GKE Dynamic Slicing generally available, decoupling TPU slice formation from nodepool provisioning, citing up to 5x faster startup and 4.5x faster recovery.",
+   "relevance": 6,
+   "added": "2026-11-09T16:19:01+00:00",
+   "minutes": 6,
+   "tldr": [
+    "Dynamic Slicing is now generally available on GKE, reducing AI workload startup up to 5x and recovery up to 4.5x versus static nodepools.",
+    "Platform teams running large-scale AI workloads on TPUs in GKE can now assemble slices on demand instead of deleting and recreating nodepools.",
+    "Action: pre-provision TPU capacity into 16-VM incremental provisioning nodepools, then enable the slice controller and configure the GKE scheduler.",
+    "Available in all regions where TPUs are available, exclusively under TPU All Capacity under reservation mode."
+   ]
+  },
+  {
+   "date": "2026-11-09",
+   "title": "Cloud Pathways, a distributed ML runtime for massive accelerator fleets, now GA",
+   "url": "https://cloud.google.com/blog/topics/ai-infrastructure/cloud-pathways-a-distributed-ml-runtime-is-ga/",
+   "publisher": "Google Cloud Blog",
+   "category": "infrastructure",
+   "summary": "Google Cloud made Pathways on GKE, its distributed ML runtime for large accelerator fleets, generally available, citing over 130 million TPU chip-hours in 90 days.",
+   "relevance": 6,
+   "added": "2026-11-09T16:19:01+00:00",
+   "minutes": 4,
+   "tldr": [
+    "Cloud Pathways, a distributed ML runtime for TPU accelerator fleets, is now generally available on Google Kubernetes Engine (GKE).",
+    "Cloud Pathways is generally available in all Google Cloud regions supporting TPU v5e, TPU v5p, Trillium (TPU v6e) and Ironwood (TPU 7x) on GKE.",
+    "Versioned container images support JAX 0.10.1+, and a Preview covers Slurm TPU clusters in Cluster Director.",
+    "Deploy a GKE cluster with Pathways using Cluster Toolkit (gcluster) or the gcloud CLI, or via Cluster Director for Slurm."
+   ]
+  },
+  {
    "date": "2026-11-08",
    "title": "Nvidia Board of Directors Is Investigating Jensen Huang",
    "url": "https://nvidianews.nvidia.com/news/statement-from-nvidia-board-of-directors",
@@ -1813,7 +1965,7 @@
    }
   ]
  },
- "generated_at": "2026-11-09T12:18:16+00:00",
+ "generated_at": "2026-11-09T16:19:21+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
