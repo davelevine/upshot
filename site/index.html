@@ -305,7 +305,6 @@
   }
   .reader-bar { display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 12px; border-bottom: 1px solid var(--border); flex: 0 0 auto; }
   .reader-spacer { flex: 1; }
-  .text-size { font: 600 .9375rem/1 Inter, system-ui, sans-serif; letter-spacing: -.01em; }
   .text-size[aria-expanded="true"] { background: var(--bg-card-hover); color: var(--text); }
   /* Text size: four A's in growing sizes, the current one marked. */
   .size-wrap { position: relative; }
@@ -399,7 +398,7 @@
     <span class="reader-spacer"></span>
     <span class="send-done" id="send-done" hidden>Copied</span>
     <span class="size-wrap">
-      <button class="icon-btn text-size" id="reader-size" type="button" title="Text size" aria-label="Text size" aria-expanded="false" aria-controls="size-pop">Aa</button>
+      <button class="icon-btn text-size" id="reader-size" type="button" title="Text size" aria-label="Text size" aria-expanded="false" aria-controls="size-pop"><svg viewBox="0 0 24 24"><path d="M2 19 8 5l6 14M4.4 14h7.2M14.5 19l4-9.5 4 9.5M15.8 16h5.4"/></svg></button>
       <span class="popover size-pop" id="size-pop" role="group" aria-label="Text size" hidden>
         <button type="button" data-size="0" aria-label="Small" title="Small">A</button><button type="button" data-size="1" aria-label="Medium" title="Medium">A</button><button type="button" data-size="2" aria-label="Large" title="Large">A</button><button type="button" data-size="3" aria-label="Larger" title="Larger">A</button>
       </span>
