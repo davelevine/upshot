@@ -66,7 +66,7 @@ def wait_until_closed(pg, timeout=5000):
 def test_csp_header_is_served(browser):
     pg = open_site(browser)
     csp = pg.request.get(URL).headers.get("content-security-policy", "")
-    assert "script-src 'self' 'sha256-" in csp and "object-src 'none'" in csp
+    assert re.search(r"script-src ('nonce-[^']+' )?'self' 'sha256-", csp) and "object-src 'none'" in csp  # pages carry a nonce from the Worker
     assert pg.problems == []
 
 
@@ -627,6 +627,15 @@ def test_unknown_paths_are_real_404s(browser):
         assert pg.locator("h1").inner_text() == "Page not found"
     assert pg.goto(URL).status == 200
     assert pg.locator("a.card").first.is_visible() or pg.wait_for_selector("a.card")
+
+
+def test_pages_get_a_fresh_csp_nonce(browser):
+    # For the inline script Cloudflare's Bot Fight Mode injects on the live domain (not under wrangler dev).
+    req = browser.new_context().request
+    nonce = lambda path: re.search(r"script-src 'nonce-([^']+)'", req.get(URL.rstrip("/") + path).headers["content-security-policy"] or "")
+    first, second, deep = nonce("/"), nonce("/"), nonce("/read/anything")
+    assert first and second and deep and first[1] != second[1]
+    assert "nonce-" not in (req.get(URL.rstrip("/") + "/data.json").headers.get("content-security-policy") or "")  # files stay static
 
 
 def test_the_reader_endpoint_reaches_the_worker(browser):

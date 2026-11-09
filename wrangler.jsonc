@@ -6,8 +6,11 @@
   "compatibility_date": "2026-11-01",
   "assets": {
     "directory": "site",
+    "binding": "ASSETS",
     "not_found_handling": "404-page",
-    "run_worker_first": ["/api/read"]  // only the reader runs code; every other request is a free static asset
+    // Code runs for the reader and for pages (paths without a dot), which get a per-request CSP nonce. Files
+    // (data.json, app.js, icons, fonts) are free static assets.
+    "run_worker_first": ["/*", "!/*.*"]
   },
   // The reader's stored articles. The Worker only reads them, so Previews safely share the namespace.
   "kv_namespaces": [{ "binding": "ARTICLES", "id": "1bba8ed2e55040b1b00a7f32be0ea5d3" }],
