@@ -1622,6 +1622,23 @@
   },
   {
    "date": "2026-10-13",
+   "title": "A Series of Unauthenticated Events: Chained Exploitation of Ivanti Connect Secure Zero-Days",
+   "url": "https://www.volexity.com/blog/2026/10/13/a-series-of-unauthenticated-events-chained-exploitation-of-ivanti-connect-secure-zero-days/",
+   "publisher": "Volexity",
+   "category": "security",
+   "summary": "Volexity details attackers chaining unauthenticated Ivanti Connect Secure zero-days, with a privilege escalation flaw still unpatched at publication.",
+   "relevance": 8,
+   "added": "2026-11-09T03:12:05+00:00",
+   "minutes": 15,
+   "tldr": [
+    "Volexity identified active in-the-wild exploitation of a zero-day chain giving unauthenticated root-level code execution on Ivanti Connect Secure VPN appliances.",
+    "Versions up to 22.8R2.4, Build 19097 are affected, and attacker UTA0576 used the chain to steal credentials and exfiltrate Active Directory data.",
+    "Upgrade to the newest version. Patches cover CVE-2026-104935, released October 13, 2026, and CVE-2026-111357.",
+    "Forensically investigate devices showing compromise signs, such as lateral movement from the VPN; Ivanti's Integrity Checker may miss it."
+   ]
+  },
+  {
+   "date": "2026-10-13",
    "title": "Developing Gemini 4 Argon responsibly and safely",
    "url": "https://deepmind.google/blog/developing-gemini-4-argon-responsibly-and-safely/",
    "publisher": "Google DeepMind",
@@ -1796,7 +1813,7 @@
    }
   ]
  },
- "generated_at": "2026-11-09T01:19:56+00:00",
+ "generated_at": "2026-11-09T03:12:17+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
