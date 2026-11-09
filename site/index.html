@@ -161,7 +161,7 @@
   .rail { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 1px; scroll-behavior: smooth; padding: 1px 1px 4px; scrollbar-width: none; }
   .rail::-webkit-scrollbar, .filters::-webkit-scrollbar { display: none; }
   .weekly-card { flex: 0 0 calc((100% - 20px) / 3); min-width: 220px; min-height: 8.3125rem;  /* fits a 4-line title, so loading never shifts the page */ scroll-snap-align: start; display: flex; align-items: flex-start; gap: 10px; padding: 12px;
-    background: var(--ess-bg); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--lift-more); transition: border-color .15s ease; }
+    background: var(--ess-bg); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: inset 3px 0 0 var(--accent), var(--lift-more); transition: border-color .15s ease; }  /* the upshot box's teal rule: Upshot's picks */
   .weekly-card .dot { width: 9px; height: 9px; margin-top: 6px; }  /* as on the feed cards */
   .weekly-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
   .weekly-meta { display: flex; gap: 4px; min-width: 0; color: var(--text-muted); font-size: .8125rem; white-space: nowrap; }
