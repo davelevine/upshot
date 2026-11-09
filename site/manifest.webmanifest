@@ -1,7 +1,7 @@
 {
   "name": "Upshot",
   "short_name": "Upshot",
-  "description": "AI, security and infrastructure news, summarized.",
+  "description": "The week’s tech news, minus the noise.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

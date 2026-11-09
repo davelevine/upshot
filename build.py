@@ -29,13 +29,13 @@ SITE_TZ = ZoneInfo(os.environ.get("SITE_TZ") or "America/New_York")
 SITE_URL = (os.environ.get("SITE_URL") or "https://upshot.levine.io").rstrip("/")  # forks set the SITE_URL repo variable
 MODEL = os.environ.get("UPSHOT_MODEL", "claude-haiku-5-5")
 CLAUDE = os.environ.get("CLAUDE_BIN", "claude")  # Claude Code CLI
-CATEGORIES = ["ai", "security", "infrastructure", "sdlc", "regulation", "other"]
+CATEGORIES = ["ai", "security", "infrastructure", "engineering", "regulation", "other"]
 KEEP_DAYS = 90        # items and seen-URLs older than this are pruned
 FRESH_DAYS = int(os.environ.get("FRESH_DAYS", 3))  # ignore feed entries published longer ago than this
 PER_FEED = int(os.environ.get("PER_FEED", 10))     # newest N entries per feed per run (caps huge feeds)
 # The one rule: a story is published if it clears its category's bar and isn't a repeat. The bars differ only to
-# calibrate for how Haiku scores: plenty of security stories get an 8, a strong infrastructure or SDLC piece a 6.
-MIN_RELEVANCE = {"ai": 7, "security": 8, "infrastructure": 6, "sdlc": 6, "regulation": 8, "other": 7}
+# calibrate for how Haiku scores: plenty of security stories get an 8, a strong infrastructure or engineering piece a 6.
+MIN_RELEVANCE = {"ai": 7, "security": 8, "infrastructure": 6, "engineering": 6, "regulation": 8, "other": 7}
 # Report on stories first published elsewhere: the original source wins ties and replaces their copy of a repeat.
 NEWS_SOURCES = {"Ars Technica", "BleepingComputer", "InfoQ", "SecurityWeek", "The Hacker News", "The Record"}
 DEDUPE_DAYS = 7       # new items are checked for repeats of the last N days' headlines
@@ -159,11 +159,16 @@ def llm(system, user, schema):
 
 
 CLASSIFY_PROMPT = f"""You curate a tech news digest for a senior infrastructure/platform engineer
-interested in AI, security, infrastructure, software delivery (sdlc) and tech regulation.
+interested in AI, security, infrastructure, software engineering and tech regulation.
 For each item return:
-- category: one of {", ".join(CATEGORIES)}. infrastructure: platforms, cloud,
-  networking, storage, databases, distributed systems and the design of systems at scale; sdlc: how software
-  is built, tested and shipped (languages, frameworks, developer tools, CI/CD, code review).
+- category: one of {", ".join(CATEGORIES)}.
+  infrastructure: the systems software runs on. Cloud, networking, data centres, distributed systems, storage,
+  databases, reliability at scale, and architecture decisions about those systems.
+  engineering: how software gets built and shipped. Languages, tooling, CI/CD, testing, code review, release
+  practice, developer platforms, team process.
+  Between the two: mainly about operating a system is infrastructure; mainly about producing software is
+  engineering. A company's new deployment pipeline is engineering; how that pipeline survives a region failure
+  is infrastructure.
 - relevance: 1-10, judged within the item's category, for a reader who follows that category closely
   (an infrastructure piece is compared with other infrastructure news, not with security incidents):
   10 = a once-a-month event the whole field will discuss: a frontier model launch, a mass-exploited
@@ -275,7 +280,7 @@ def pick_weekly(items, today):
 
 
 OG = {"w": 1200, "h": 630, "pad": 72, "bg": "#15161e", "text": "#eceff4", "muted": "#a3abbb", "accent": "#73dbcc", "dot": "#d9485a",
-      "cats": {"security": "#f7a3ad", "ai": "#d3abed", "infrastructure": "#80c7f8", "sdlc": "#b7b5fc", "regulation": "#ebb077", "other": "#b6becb"}}
+      "cats": {"security": "#f7a3ad", "ai": "#d3abed", "infrastructure": "#80c7f8", "engineering": "#b7b5fc", "regulation": "#ebb077", "other": "#b6becb"}}
 
 
 def og_font(size, weight, opsz=14):
@@ -319,7 +324,7 @@ def og_image(data, today):
     top = by_url.get(picks[0]["url"]) if picks else None
     if not top:
         y = 230
-        for line in wrap("AI, security and infrastructure news, summarized.", og_font(56, 700, 32), right - x, 3):
+        for line in wrap("The week’s tech news, minus the noise.", og_font(56, 700, 32), right - x, 3):
             d.text((x, y), line, font=og_font(56, 700, 32), fill=c["text"])
             y += 70
         d.text((x, y + 20), "Five weekly essentials, each with what to do.", font=og_font(30, 400), fill=c["muted"])
@@ -453,7 +458,7 @@ def rss(items):
         for i in items[:50]
     )
     return ('<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Upshot</title>'
-            f"<link>{SITE_URL}/</link><description>AI, security and infrastructure news, summarized.</description>"
+            f"<link>{SITE_URL}/</link><description>The week’s tech news, minus the noise.</description>"
             f"{entries}</channel></rss>\n")
 
 
@@ -691,11 +696,14 @@ def feed_health_report(names, dead, silent, moved, suggestions):
     return "Fix these in `feeds.opml`. This issue updates every build and closes itself once all feeds are healthy.\n\n" + "\n".join(out)
 
 
+RENAMED = {"architecture": "infrastructure", "sdlc": "engineering"}  # the old category ids, until 2026-11
+
+
 def rename_categories(items):
-    """Infrastructure was called architecture until 2026-11; stories already on the site keep their place."""
+    """Stories already on the site keep their place when a category is renamed."""
     for i in items:
-        if i.get("category") == "architecture":
-            i["category"] = "infrastructure"
+        if i.get("category") in RENAMED:
+            i["category"] = RENAMED[i["category"]]
 
 
 def main():
