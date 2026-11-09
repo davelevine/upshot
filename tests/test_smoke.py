@@ -77,7 +77,7 @@ def test_feed_renders(browser):
     assert pg.locator("a.card").count() > 0
     assert pg.locator(".filter-btn").count() >= 2  # All + each category with stories
     assert pg.locator(".filter-btn", has_text="(0)").count() == 0
-    assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".weekly-header #updated"))
+    assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".date-label #updated"))
     assert pg.locator("#end").is_hidden()  # not until the list runs out
     assert re.fullmatch(r"· \d+ stor(y|ies)( · \d+\+? min)?", pg.locator(".day-meta").first.inner_text())
     assert pg.locator(".card-arrow").count() == 0 and pg.locator(".card-time").count() == 0
@@ -257,19 +257,19 @@ def test_back_to_top_reacts_to_hover(browser):
     assert top.evaluate(look) != before and top.evaluate("e => getComputedStyle(e).transform") == "none"
 
 
-def test_timestamp_shares_the_headings_baseline(browser):
+def test_week_range_shares_the_headings_baseline(browser):
     baseline = """() => { const box = s => { const r = document.createRange(); r.selectNodeContents(document.querySelector(s));
             return r.getBoundingClientRect(); }, base = s => { const e = document.querySelector(s), m = document.createElement('span');
             m.style.cssText = 'display:inline-block;width:0;height:0'; e.append(m); const y = m.getBoundingClientRect().bottom; m.remove(); return y; };
-        return [Math.abs(base('.weekly-title') - base('#updated')), document.documentElement.scrollWidth <= innerWidth,
-                box('.weekly-title').right <= box('#updated').left]; }"""
+        return [Math.abs(base('.weekly-title') - base('#weekly-range')), document.documentElement.scrollWidth <= innerWidth,
+                box('.weekly-title').right <= box('#weekly-range').left]; }"""
     for width in (1300, 412, 411, 410, 375, 360, 340):
         extra = {} if width > 640 else {"has_touch": True, "is_mobile": True}
         pg = open_site(browser, viewport={"width": width, "height": 700}, **extra)
         gap, fits, apart = pg.evaluate(baseline)
         assert gap < 1 and fits and apart, width
     pg = open_site(browser, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)  # too narrow for it
-    assert pg.locator("#updated").is_hidden() and pg.evaluate("document.querySelector('.weekly-title').getBoundingClientRect().height < 30")
+    assert pg.locator("#weekly-range").is_hidden() and pg.evaluate("document.querySelector('.weekly-title').getBoundingClientRect().height < 30")
 
 
 def held_reader(browser, **context):
@@ -919,7 +919,7 @@ def test_stale_band_leaves_the_essentials_arrows_on_the_right(browser):
     pg = stale_site(browser, 14, viewport={"width": 1300, "height": 900})
     pg.locator("#stale").wait_for()
     header, nav = pg.locator(".weekly-header").bounding_box(), pg.locator("#next").bounding_box()
-    assert header["x"] + header["width"] - (nav["x"] + nav["width"]) < 2  # #updated hides, the arrows don't move
+    assert header["x"] + header["width"] - (nav["x"] + nav["width"]) < 2  # the stale band shows, the arrows don't move
 
 
 def test_reader_header_tidies_bylines_and_never_starts_blank(browser):
@@ -945,3 +945,14 @@ def test_reader_header_tidies_bylines_and_never_starts_blank(browser):
         assert pg.locator("#reader-mono").is_visible() == mono and pg.locator("#reader-icon").is_visible() != mono
         if mono:
             assert len(pg.locator("#reader-mono").inner_text()) == 1
+
+
+def test_essentials_say_which_days_and_updated_sits_on_the_feed(browser):
+    pg = open_site(browser, viewport={"width": 1300, "height": 900})
+    w = pg.evaluate("weekly")
+    assert pg.inner_text("#weekly-range") == pg.evaluate("w => weekRange(w)", w) and re.fullmatch(r"[A-Z][a-z]{2} \d{1,2}(–\d{1,2}| – [A-Z][a-z]{2} \d{1,2})", pg.inner_text("#weekly-range"))
+    assert pg.evaluate("weekRange({window_start: '2026-10-29', window_end: '2026-11-04'})") == "Oct 29 – Nov 4"
+    assert pg.locator(".weekly-header #updated").count() == 0 and pg.locator(".date-label").first.locator("#updated").count() == 1
+    pg.locator(".filter-btn", has_text="Security").click()  # a redraw keeps it filled in
+    assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".date-label #updated"))
+    assert pg.problems == []
