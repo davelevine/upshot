@@ -331,3 +331,17 @@ test('tidy keeps a lead picture wrapped in a paragraph or a link, but not the by
   assert.doesNotMatch(tidy({ content: `<div>${avatar}<p>${prose}</p><p>${prose}</p></div>`, title: 'T' }, 'https://x.test/a').content, /ada\.png/);
 });
 
+
+test('pages get a fresh CSP nonce for Cloudflare\'s injected script; files and the reader are untouched', async () => {
+  const CSP = "default-src 'self'; script-src 'self' 'sha256-abc='; object-src 'none'";
+  const ASSETS = { fetch: async req => new URL(req.url).pathname.endsWith('.json')
+    ? new Response('{}', { headers: { 'Content-Type': 'application/json', 'Content-Security-Policy': CSP } })
+    : new Response('<p>page</p>', { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': CSP } }) };
+  const get = path => worker.fetch(new Request('https://site.test' + path), { ASSETS });
+  const [a, b] = [await get('/'), await get('/')];
+  const nonceOf = res => res.headers.get('Content-Security-Policy').match(/script-src 'nonce-([^']+)' 'self' 'sha256-abc='/)?.[1];
+  assert.ok(nonceOf(a) && nonceOf(b) && nonceOf(a) !== nonceOf(b));  // the hashes stay, and each response gets its own
+  assert.equal(await a.text(), '<p>page</p>');
+  assert.equal((await get('/data.json')).headers.get('Content-Security-Policy'), CSP);
+  assert.equal((await (await get('/api/read?url=x')).json()).reason, 'pending');
+});
