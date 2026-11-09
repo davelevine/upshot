@@ -21,7 +21,7 @@
    "title": "Lima v2.3: Native on Windows, VMnet on Linux, and menu TUI",
    "url": "https://www.cncf.io/blog/2026/11/08/lima-v2-3-native-on-windows-vmnet-on-linux-and-menu-tui/",
    "publisher": "CNCF",
-   "category": "architecture",
+   "category": "infrastructure",
    "summary": "Lima v2.3 adds native Windows guest support without extra dependencies, VMnet networking on Linux, and a menu-based TUI.",
    "relevance": 6,
    "added": "2026-11-08T15:21:33+00:00",
@@ -183,7 +183,7 @@
    "title": "Docker Sandboxes vs. Containers: Choosing the Right Isolation for AI Agents",
    "url": "https://www.docker.com/blog/docker-sandboxes-vs-containers/",
    "publisher": "Docker",
-   "category": "architecture",
+   "category": "infrastructure",
    "summary": "Docker explains the difference between standard containers sharing the host kernel and Docker Sandboxes, which are microVMs with their own kernel and private Docker Engine, for AI agent isolation.",
    "relevance": 6,
    "minutes": 14,
@@ -262,7 +262,7 @@
    "title": "Inside GitHub’s new Git storage architecture",
    "url": "https://github.blog/engineering/architecture-optimization/inside-githubs-new-git-storage-architecture/",
    "publisher": "The GitHub Blog",
-   "category": "architecture",
+   "category": "infrastructure",
    "summary": "GitHub published details of its new Git storage architecture designed to let thousands of agents push to a single repository concurrently.",
    "relevance": 7,
    "minutes": 15,
@@ -332,7 +332,7 @@
    "title": "How Figma manages sandboxes at scale",
    "url": "https://www.figma.com/blog/how-figma-manages-sandboxes-at-scale/",
    "publisher": "Figma",
-   "category": "architecture",
+   "category": "infrastructure",
    "summary": "Figma describes Nimbus, its platform for running tens of thousands of sandboxes to execute untrusted AI-generated code safely.",
    "relevance": 7,
    "added": "2026-11-06T06:58:04+00:00",
@@ -503,7 +503,7 @@
    "title": "How we halved DNS build delay and cut memory use by 85%",
    "url": "https://blog.cloudflare.com/dns-targeted-zone-builds/",
    "publisher": "Cloudflare Blog",
-   "category": "architecture",
+   "category": "infrastructure",
    "summary": "Cloudflare built a planner that picks the smallest safe DNS zone build, cutting full builds 40%, peak memory 85%, and halving build delay.",
    "relevance": 7,
    "minutes": 17,
@@ -609,7 +609,7 @@
    "title": "Cloudflare services for private origins is now generally available",
    "url": "https://blog.cloudflare.com/private-origins-public-to-private/",
    "publisher": "Cloudflare Blog",
-   "category": "architecture",
+   "category": "infrastructure",
    "summary": "Cloudflare made public-traffic-to-private-origins services, including WAF, bot management, caching, and Workers, generally available to all Cloudflare One connectivity customers.",
    "relevance": 6,
    "minutes": 4,
@@ -734,7 +734,7 @@
    "title": "Meta Andromeda: Powering the Next Generation of Ads Retrieval Through Model-System Co-Design",
    "url": "https://engineering.fb.com/2026/10/28/ml-applications/meta-andromeda-next-gen-ads-retrieval-gpu-co-design/",
    "publisher": "Meta Engineering",
-   "category": "architecture",
+   "category": "infrastructure",
    "summary": "Meta Engineering describes Andromeda, its next-generation ads retrieval engine, co-designing model, system, and GPU hardware to score all eligible ads at retrieval scale.",
    "relevance": 6,
    "minutes": 11,
@@ -843,7 +843,7 @@
    "title": "PrivacyLib: Privacy Controls at the Data Access Boundary",
    "url": "https://engineering.fb.com/2026/10/27/security/privacylib/",
    "publisher": "Meta Engineering",
-   "category": "architecture",
+   "category": "infrastructure",
    "summary": "Meta Engineering describes PrivacyLib, a common library replacing per-system privacy enforcement logic across its data and processing infrastructure.",
    "relevance": 6,
    "minutes": 17,
@@ -932,7 +932,7 @@
    "title": "Meta Networking at the 2026 OCP Global Summit: Open Innovation for Scale-Up, Scale-Out, and Scale-Across AI Networks",
    "url": "https://engineering.fb.com/2026/10/26/open-source/ocp-summit-2026-meta-networking-talks/",
    "publisher": "Meta Engineering",
-   "category": "architecture",
+   "category": "infrastructure",
    "summary": "Meta detailed its networking innovations at the 2026 OCP Global Summit, including the liquid-cooled IcePack and IceCube network rack with 102.4T switch blades supporting its AI clusters.",
    "relevance": 6,
    "minutes": 7,
@@ -995,7 +995,7 @@
    "title": "Rapidly scaling online storage to serve over 1 billion ChatGPT users (Part II)",
    "url": "https://openai.com/index/scaling-storage-one-billion-users-part-two",
    "publisher": "OpenAI",
-   "category": "architecture",
+   "category": "infrastructure",
    "summary": "OpenAI describes scaling its Habitat storage layer for over 1 billion ChatGPT users, using multi-tenancy, global caching, and Azure Cosmos DB for 12x faster reads.",
    "relevance": 7,
    "minutes": 0
@@ -1084,7 +1084,7 @@
    "title": "Single-tenant Titus: VM-level isolation on a multi-tenant container platform",
    "url": "https://netflixtechblog.com/single-tenant-titus-vm-level-isolation-on-a-multi-tenant-container-platform-6d8b1909d163",
    "publisher": "Netflix TechBlog",
-   "category": "architecture",
+   "category": "infrastructure",
    "summary": "Netflix describes Single-tenant Titus, giving selected workloads VM-level isolation while still running on its Kubernetes-based multi-tenant container platform.",
    "relevance": 6,
    "minutes": 27,
@@ -1166,7 +1166,7 @@
    "title": "The bridge to agent-scale Git infrastructure",
    "url": "https://github.blog/engineering/architecture-optimization/the-bridge-to-agent-scale-git-infrastructure/",
    "publisher": "The GitHub Blog",
-   "category": "architecture",
+   "category": "infrastructure",
    "summary": "GitHub moved a copy of 99.99999% of its repositories to Azure and describes per-reference quorums and object storage for scaling Git infrastructure.",
    "relevance": 6,
    "minutes": 7,
@@ -1275,7 +1275,7 @@
    "title": "Cross-store product clustering across millions of stores",
    "url": "https://shopify.engineering/catalog-clustering-part-ii",
    "publisher": "Shopify Engineering",
-   "category": "architecture",
+   "category": "infrastructure",
    "summary": "Shopify Engineering describes clustering product listings across millions of stores using tiered matching models, graph partitioning, and learned merge decisions.",
    "relevance": 6,
    "added": "2026-11-08T17:16:03+00:00",
@@ -1307,7 +1307,7 @@
    "title": "Inside Prometheus: Meta’s Journey to a Gigawatt-Scale Supercluster",
    "url": "https://engineering.fb.com/2026/10/19/data-center-engineering/inside-prometheus-meta-gigawatt-scale-supercluster/",
    "publisher": "Meta Engineering",
-   "category": "architecture",
+   "category": "infrastructure",
    "summary": "Meta Engineering describes Prometheus, its gigawatt-scale AI supercluster, with phase one complete and plans to scale toward roughly 1 million GPUs, including closed-loop liquid cooling.",
    "relevance": 7,
    "minutes": 15,
@@ -1410,7 +1410,7 @@
    "title": "Ontology-Driven Observability: Building an End-to-End Knowledge Graph at Netflix Scale",
    "url": "https://netflixtechblog.com/ontology-driven-observability-building-an-end-to-end-knowledge-graph-at-netflix-scale-421392cf5adf",
    "publisher": "Netflix TechBlog",
-   "category": "architecture",
+   "category": "infrastructure",
    "summary": "Netflix describes building an end-to-end ontology-driven knowledge graph to make observability data at its scale easier to understand and act on.",
    "relevance": 6,
    "minutes": 13,
@@ -1500,7 +1500,7 @@
    "title": "When Software Meets Hardware",
    "url": "https://martinfowler.com/articles/software-meets-hardware.html",
    "publisher": "Martin Fowler",
-   "category": "architecture",
+   "category": "infrastructure",
    "summary": "Martin Fowler publishes Kuldeep Singh's account of modernizing an IoT fleet of battery-powered sensors, revisiting familiar engineering principles with different defaults.",
    "relevance": 6,
    "minutes": 12,
@@ -1577,7 +1577,7 @@
    "title": "TimeSeries Tiered Storage Journey: Kafka/Flink Streams to Native Cassandra Cold Reads",
    "url": "https://netflixtechblog.com/timeseries-tiered-storage-journey-kafka-flink-streams-to-native-cassandra-cold-reads-e59d597c9d60",
    "publisher": "Netflix TechBlog",
-   "category": "architecture",
+   "category": "infrastructure",
    "summary": "Netflix describes tiered storage for its TimeSeries platform, moving data from Kafka/Flink streams to native Cassandra cold reads to reduce hot-storage costs.",
    "relevance": 6,
    "minutes": 10,
@@ -1787,33 +1787,33 @@
   }
  ],
  "weekly": {
-  "window_start": "2026-11-02",
-  "window_end": "2026-11-08",
-  "selected_on": "2026-11-08",
+  "window_start": "2026-11-03",
+  "window_end": "2026-11-09",
+  "selected_on": "2026-11-09",
   "items": [
    {
     "url": "https://www.bleepingcomputer.com/news/security/sonicwall-warns-of-new-ssl-vpn-mfa-bypass-flaw-exploited-in-attacks/",
-    "why": "Patch SonicOS now; the SSL-VPN bypass is already being exploited against firewalls."
+    "why": "Patch SonicOS now; the SSL-VPN bypass is already being exploited."
    },
    {
-    "url": "https://thehackernews.com/2026/11/chainalysis-breach-exposes-all-users.html",
-    "why": "If you used Chainalysis services, rotate passwords and tokens now; hashes were exposed."
+    "url": "https://www.aikido.dev/blog/linux-kernel-tcp-rce-vulnerability-cve-2026-98432",
+    "why": "Prioritize kernel patching; CVSS 9.8 flaw enables remote code execution over TCP."
    },
    {
     "url": "https://thehackernews.com/2026/11/cpguard-update-channel-hijacked-to.html",
-    "why": "Hunt for cPGuard backdoors on Linux servers and rotate password hashes."
+    "why": "Check Linux servers running cPGuard for backdoors and rotate exposed password hashes."
    },
    {
-    "url": "https://socket.dev/blog/shai-hulud-descendant-malicious-ruby-gem",
-    "why": "Don't revoke the stolen GitHub token before isolating hosts; revocation can trigger file wiping."
+    "url": "https://thehackernews.com/2026/11/chainalysis-breach-exposes-all-users.html",
+    "why": "If you used Chainalysis, rotate credentials and tokens; assume all accounts are exposed."
    },
    {
     "url": "https://socket.dev/blog/github-to-block-pull-request-target",
-    "why": "Audit pull_request_target workflows before December 2, or they'll be blocked by default."
+    "why": "Audit workflows using pull_request_target before December 2 to avoid breakage."
    }
   ]
  },
- "generated_at": "2026-11-09T04:17:46+00:00",
+ "generated_at": "2026-11-09T05:28:49+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
