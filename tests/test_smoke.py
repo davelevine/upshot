@@ -81,6 +81,9 @@ def test_feed_renders(browser):
     assert pg.locator("#end").is_hidden()  # not until the list runs out
     assert re.fullmatch(r"· \d+ stor(y|ies)( · \d+\+? min)?", pg.locator(".day-meta").first.inner_text())
     assert pg.locator(".card-arrow").count() == 0 and pg.locator(".card-time").count() == 0
+    # Headlines only: the summary is for search and the reader, not the list.
+    assert pg.locator(".card-summary").count() == 0
+    assert pg.evaluate("[...document.querySelector('a.card .card-body').children].map(e => e.className)") == ["card-title", "card-meta"]
     # Tiles hold the placeholders' height (a 4-line title fits), so loading never shifts the page.
     assert {round(c.bounding_box()["height"]) for c in pg.locator(".weekly-card").all()} == {133}
     assert pg.problems == []
