@@ -164,6 +164,8 @@ node tests/fixtures/fetch.mjs "Publisher name"              # the name from feed
 UPDATE_EXPECTED=1 node --test tests/fixtures.test.js        # records what the reader makes of it
 ```
 
+Once it's merged, give the feed's back catalogue a chance: builds only look back three days, so older posts are never considered otherwise. Under **Actions → Build → Run workflow**, set `backfill_days` to `30`. Only stories the build hasn't seen before are scored, so the rest of the site is untouched.
+
 The saved page has its article text scrambled, so no publisher's writing ends up in your repository. Check the diff of `tests/fixtures/expected.json`, then commit both. When a real page breaks the reader, save it the same way and fix the rule in `tidy()` so it keys on what the element is, never on a site's name or class.
 
 <details>
