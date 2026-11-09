@@ -31,10 +31,10 @@ There's no server or database to look after. A scheduled GitHub Actions job comm
 
 ## What you get
 
-- **A calm feed.** A handful of stories on a big day and none on a slow one, grouped by day, with category filters and search.
+- **A calm feed.** A handful of stories on a big day and none on a slow one, grouped by day, with category filters and search. Hide any topic you need a break from, and it stays out of the feed and the essentials until you bring it back.
 - **The week's essentials.** Five picks from the last seven days, each with what to do about it.
 - **A built-in reader.** Articles open in a clean pane that starts with the upshot: a few bullets on what happened, who's affected and what to do.
-- **It remembers where you were.** New stories are marked, read ones are dimmed, and none of that leaves your browser.
+- **It remembers where you were.** New stories are marked, read ones are dimmed, hidden topics stay hidden, and none of that leaves your browser.
 - **Works everywhere.** Swipe and install as an app on a phone; `⌘K` search and `j`/`k` navigation on a desktop (`?` lists the shortcuts). Light and dark themes, and an RSS feed.
 
 ## How it works

@@ -10,6 +10,9 @@ const STALE_MINUTES = 12 * 60;  // three missed builds
 const KEEP_DAYS = 90;  // build.py prunes older stories
 const io = new IntersectionObserver(([e]) => { if (e.isIntersecting && limit < shown.length) { limit += PAGE; renderPage(); } }, { rootMargin: '800px' });
 let tz, iconArt = {}, icons = new Set(), items = [], filter = 'all', shown = [], limit = PAGE, generatedAt = null;
+// Topics left out of "All", on this device only. Their own chip still shows them, and search still finds them.
+const hidden = new Set(JSON.parse(localStorage.getItem('hiddenTopics') || '[]'));
+let editingTopics = false;
 
 // Today in the site's time zone (data.json's tz), not the device's: some browsers report UTC for privacy, which
 // turned the evening's stories into "Yesterday".
@@ -37,10 +40,14 @@ function highlight(text, q) {
 function renderFilters() {
   const counts = {};
   for (const i of items) counts[cat(i.category)] = (counts[cat(i.category)] || 0) + 1;
-  $('filters').innerHTML = [`<button class="filter-btn${filter === 'all' ? ' active' : ''}" data-f="all">All</button>`]
-    .concat(ORDER.filter(c => counts[c] || filter === c).map(c => `<button class="filter-btn${filter === c ? ' active' : ''}" data-f="${c}">` +
-      `<span class="dot" style="--c:var(--cat-${c})"></span>${CATS[c]} (${counts[c] || 0})</button>`)).join('');
-  const name = filter === 'all' ? '' : CATS[filter];
+  const eye = off => `<svg class="eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>${off ? '<path d="m3 3 18 18"/>' : ''}</svg>`;
+  const chip = c => editingTopics
+    ? `<button class="filter-btn${hidden.has(c) ? ' muted' : ''}" data-t="${c}" aria-pressed="${!hidden.has(c)}">${eye(hidden.has(c))}${CATS[c]}</button>`
+    : `<button class="filter-btn${filter === c ? ' active' : ''}${hidden.has(c) ? ' muted' : ''}" data-f="${c}"${hidden.has(c) ? ' title="Hidden from All"' : ''}>${hidden.has(c) ? eye(true) : `<span class="dot" style="--c:var(--cat-${c})"></span>`}${CATS[c]} (${counts[c] || 0})</button>`;
+  $('filters').innerHTML = (editingTopics ? [] : [`<button class="filter-btn${filter === 'all' ? ' active' : ''}" data-f="all">All</button>`])
+    .concat(ORDER.filter(c => counts[c] || filter === c).map(chip))
+    .concat(`<button class="filter-btn topics-btn" data-edit${editingTopics ? '' : ' aria-label="Hide topics" title="Hide topics"'}>${editingTopics ? 'Done' : `${eye(true)}<span>Hide topics</span>`}</button>`).join('');
+  const name = filter === 'all' ? (hidden.size ? `${hidden.size} hidden` : '') : CATS[filter];
   $('filter-label').textContent = name;  // a hidden filter must still show, or stories look missing
   $('filter-toggle').classList.toggle('active', !!name);
   $('filter-toggle').setAttribute('aria-label', name ? `Filters: ${name}` : 'Filters');
@@ -48,7 +55,7 @@ function renderFilters() {
 
 function renderItems(keepLimit) {
   const ql = $('search').value.trim().toLowerCase();
-  shown = items.filter(i => (filter === 'all' || cat(i.category) === filter) &&
+  shown = items.filter(i => (filter === 'all' ? !hidden.has(cat(i.category)) : cat(i.category) === filter) &&
     (!ql || `${i.title} ${i.summary} ${i.publisher} ${domain(i.url)}`.toLowerCase().includes(ql)));
   $('status').textContent = ql ? `${shown.length} articles found` : '';
   if (!keepLimit) limit = PAGE;
@@ -89,7 +96,8 @@ function renderPage() {
   if (ended) {
     const n = shown.length, what = `${filter === 'all' ? '' : `${CATS[filter]} `}stor${n === 1 ? 'y' : 'ies'}`;
     const days = Math.min(KEEP_DAYS, Math.ceil((Date.now() - Date.parse(items.reduce((o, i) => (i.date < o ? i.date : o), items[0].date))) / 864e5));
-    const scope = q ? ` matching \u201c${q}\u201d` : filter === 'all' ? ` from the last ${days} days` : '';  // the real span: a young site hasn't reached KEEP_DAYS
+    const without = hidden.size ? `, without ${[...hidden].map(c => CATS[c]).join(' or ')}` : '';
+    const scope = q ? ` matching \u201c${q}\u201d` : filter === 'all' ? ` from the last ${days} days${without}` : '';  // the real span: a young site hasn't reached KEEP_DAYS
     $('end-msg').textContent = `That\u2019s ${n === 1 ? 'the only' : `all ${n}`} ${what}${scope}.`;
   }
 }
@@ -102,7 +110,7 @@ function weekRange(w) {
 }
 function renderWeekly(weekly) {
   const byUrl = Object.fromEntries(items.map(i => [i.url, i]));
-  const picks = (weekly?.items || []).filter(p => byUrl[p.url]);
+  const picks = (weekly?.items || []).filter(p => byUrl[p.url] && !hidden.has(cat(byUrl[p.url].category)));  // hidden topics stay out here too
   if (!picks.length) { $('weekly').hidden = true; return; }  // the placeholder tiles go too
   $('weekly-range').textContent = weekly.window_start ? weekRange(weekly) : '';
   $('rail').innerHTML = picks.map(p => { const i = byUrl[p.url]; return `
@@ -161,6 +169,14 @@ document.addEventListener('click', () => { $('info-pop').hidden = true; $('info'
 $('filters').onclick = e => {
   const b = e.target.closest('.filter-btn');
   if (!b) return;
+  if ('edit' in b.dataset) { editingTopics = !editingTopics; return renderFilters(); }  // the drawer stays open while editing
+  if (b.dataset.t) {
+    hidden.has(b.dataset.t) ? hidden.delete(b.dataset.t) : hidden.add(b.dataset.t);
+    localStorage.setItem('hiddenTopics', JSON.stringify([...hidden]));
+    renderFilters();
+    renderWeekly(weekly);
+    return renderItems();
+  }
   filter = b.dataset.f;
   renderFilters();
   renderItems();
