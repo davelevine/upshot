@@ -19,6 +19,8 @@
   // still get a preview URL on workers.dev.
   "workers_dev": false,
   "preview_urls": true,
+  // Workers Logs: a few days of the Worker's requests and errors, for debugging after the fact. Free-tier allowance.
+  "observability": { "enabled": true },
   "previews": {
     "kv_namespaces": [{ "binding": "ARTICLES", "id": "1bba8ed2e55040b1b00a7f32be0ea5d3" }]
   }
