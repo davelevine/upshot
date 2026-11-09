@@ -2,6 +2,22 @@
  "items": [
   {
    "date": "2026-11-08",
+   "title": "Nvidia Board of Directors Is Investigating Jensen Huang",
+   "url": "https://nvidianews.nvidia.com/news/statement-from-nvidia-board-of-directors",
+   "publisher": "Hacker News 300+",
+   "category": "other",
+   "summary": "Nvidia's board of directors announced an investigation involving CEO Jensen Huang, according to a company statement posted on its newsroom.",
+   "relevance": 7,
+   "added": "2026-11-09T00:18:17+00:00",
+   "minutes": 1,
+   "tldr": [
+    "NVIDIA's Board is launching an independent investigation after recent reporting that CEO Jensen Huang was targeted by a foreign intelligence effort.",
+    "Independent directors, assisted by outside counsel, will oversee the investigation. The Board has no reason to believe national security or NVIDIA secrets were compromised.",
+    "Jensen Huang has committed to cooperating with the review, and the Board will provide further updates as appropriate."
+   ]
+  },
+  {
+   "date": "2026-11-08",
    "title": "Lima v2.3: Native on Windows, VMnet on Linux, and menu TUI",
    "url": "https://www.cncf.io/blog/2026/11/08/lima-v2-3-native-on-windows-vmnet-on-linux-and-menu-tui/",
    "publisher": "CNCF",
@@ -1780,7 +1796,7 @@
    }
   ]
  },
- "generated_at": "2026-11-08T20:34:28+00:00",
+ "generated_at": "2026-11-09T00:18:29+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
@@ -1796,6 +1812,7 @@
   "crowdstrike",
   "cursor",
   "docker",
+  "doublepulsar",
   "elevenlabs",
   "figma",
   "github-changelog",
@@ -1837,6 +1854,7 @@
   "trail-of-bits",
   "uk-aisi",
   "unit-42",
+  "volexity",
   "warp",
   "watchtowr-labs",
   "wiz"
