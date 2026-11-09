@@ -40,6 +40,9 @@ def test_feed_health_reports_only_long_failures():
     dead = build.update_feed_health(health, {"https://a": False, "https://b": False, "https://c": True, "https://d": False}, today)
     assert dead == ["https://a"]
     assert "https://c" not in health and health["https://d"] == "2026-11-20"
+    # A feed removed from the OPML (as the Feed health issue suggests) is dropped, not reported dead forever.
+    health = {"https://removed": "2026-10-01", "https://kept": "2026-10-01"}
+    assert build.update_feed_health(health, {"https://kept": False}, today) == ["https://kept"] and "https://removed" not in health
 
 
 def test_rss_dates_use_when_the_story_was_added():
@@ -168,6 +171,12 @@ def test_upgrade_source_swaps_news_for_the_original():
     assert old["url"] == "https://vendor.test/a" and old["publisher"] == "Rapid7" and old["summary"] == "new summary"
     assert old["relevance"] == 9 and old["date"] == "2026-01-01" and "minutes" not in old  # keeps its place; time refetched
     assert not build.upgrade_source([old], "our advisory", {**item, "url": "x", "publisher": "Wiz"}, r)  # already original
+    # A weekly pick follows the swap, and the old article's TL;DR goes, to be rewritten from the original.
+    pick = {"title": "Pick", "url": "https://news.test/p", "publisher": "The Hacker News", "relevance": 8, "date": "2026-01-01", "tldr": ["Old fact."]}
+    weekly = {"items": [{"url": "https://news.test/p", "why": "Patch now."}, {"url": "https://else.test/q", "why": "x"}]}
+    assert build.upgrade_source([pick], "pick", {**item, "url": "https://vendor.test/p"}, r, weekly)
+    assert weekly["items"][0]["url"] == "https://vendor.test/p" and weekly["items"][1]["url"] == "https://else.test/q"
+    assert "tldr" not in pick
     other = {"title": "Other", "url": "n", "publisher": "SecurityWeek"}
     assert not build.upgrade_source([other], "Other", {**item, "publisher": "The Record"}, r)            # news for news
     assert other["url"] == "n"
