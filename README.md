@@ -225,6 +225,10 @@ The knobs live at the top of [`build.py`](build.py):
 
 How often it runs is the `cron` line in [`build.yml`](.github/workflows/build.yml).
 
+## Built With Claude
+
+This project was built using AI-assisted development with [Claude](https://claude.ai). I told it what to build and then said "no, not like that" a lot. The AI did a lot of typing. Commits with substantial AI contributions are marked with `Co-authored-by` tags because we're not going to pretend otherwise.
+
 ## Credits
 
 - [watch.edebost.com](https://watch.edebost.com/) — the inspiration, design language and palette
