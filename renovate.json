@@ -21,14 +21,20 @@
   "automergeType": "pr",
   "packageRules": [
     {
-      "description": "Automerge digest and patch updates once CI passes (unit tests plus the browser smoke test)",
-      "matchUpdateTypes": ["digest", "pinDigest", "patch"],
+      "description": "Automerge digest, patch and minor updates once CI passes (unit tests plus the browser smoke test)",
+      "matchUpdateTypes": ["digest", "pinDigest", "patch", "minor"],
       "automerge": true
     },
     {
-      "description": "PR checks don't run the real build, so Claude Code CLI updates wait for review",
+      "description": "Major updates wait for review, arriving together once a month",
+      "matchUpdateTypes": ["major"],
+      "schedule": ["* * 1 * *"]
+    },
+    {
+      "description": "PR checks don't run the real build, so Claude Code CLI updates wait for review, batched monthly",
       "matchDepNames": ["@anthropic-ai/claude-code"],
-      "automerge": false
+      "automerge": false,
+      "schedule": ["* * 1 * *"]
     },
     {
       "description": "The reader's extraction stack moves together",
