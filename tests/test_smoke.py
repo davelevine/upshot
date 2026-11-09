@@ -602,6 +602,16 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     assert box.locator("li").all_inner_texts() == ["First fact & <detail>.", "Second fact.", "Third fact."]  # escaped, as text
     assert box.locator(".do b").inner_text().upper() == "WHAT TO DO"  # the hand-picked note, last
     assert frame.locator(".todo").count() == 1  # one box, not two
+    # The text size control scales the box and the byline with the article, not just the body text.
+    sizes = """() => ['body', '.tldr > b', '.tldr li', '.tldr .do', '.tldr .do b', '.meta'].map(s => parseFloat(getComputedStyle(document.querySelector(s)).fontSize))"""
+    before = frame.locator("body").evaluate(f"({sizes})")
+    assert [round(v) for v in before] == [17, 14, 16, 16, 14, 15]  # the default size: unchanged by this
+    pg.locator("#reader-size").click()
+    pg.locator("#size-pop button[data-size='3']").click()
+    frame.locator("html[data-size='3']").wait_for(state="attached")
+    after = frame.locator("body").evaluate(f"({sizes})")
+    assert all(abs(a / b - after[0] / before[0]) < 0.02 for a, b in zip(after, before))  # all grow by the body's ratio
+    pg.keyboard.press("Escape")  # closes the size menu, leaving the reader open
     pg.keyboard.press("Escape")
     wait_until_closed(pg)  # Esc closes through history.back(), which lands a moment later: click before it and the tile is still inert
     second = pg.locator(".weekly-card:not(.skeleton)").nth(1)
