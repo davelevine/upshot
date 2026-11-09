@@ -913,3 +913,35 @@ def test_closing_after_forward_doesnt_strand_a_history_entry(browser):
     pg.go_back()  # one Back leaves, not a second copy of the feed
     assert pg.url == "about:blank"
     assert pg.problems == []
+
+
+def test_stale_band_leaves_the_essentials_arrows_on_the_right(browser):
+    pg = stale_site(browser, 14, viewport={"width": 1300, "height": 900})
+    pg.locator("#stale").wait_for()
+    header, nav = pg.locator(".weekly-header").bounding_box(), pg.locator("#next").bounding_box()
+    assert header["x"] + header["width"] - (nav["x"] + nav["width"]) < 2  # #updated hides, the arrows don't move
+
+
+def test_reader_header_tidies_bylines_and_never_starts_blank(browser):
+    ctx = browser.new_context(viewport={"width": 1300, "height": 900})
+    def article(route):
+        url = urllib.parse.parse_qs(urllib.parse.urlsplit(route.request.url).query)["url"][0]
+        route.fulfill(content_type="application/json", body=json.dumps(
+            {"url": url, "frameable": False, "byline": "Posted on November 8, 2026\n\t\tby audra", "content": f"<p>{'word ' * 400}</p>"}))
+    ctx.route("**/api/read?*", article)
+    pg = ctx.new_page()
+    pg.goto(URL)
+    pg.wait_for_selector("a.card")
+    icons = pg.evaluate("[...icons]")
+    no_icon = pg.evaluate("p => items.find(i => !p.includes(iconSlug(i.publisher)))?.url", icons)
+    with_icon = pg.evaluate("p => items.find(i => p.includes(iconSlug(i.publisher)))?.url", icons)
+    for url, mono in ((no_icon, True), (with_icon, False)):
+        if not url:
+            continue
+        pg.evaluate("u => openReader(items.find(i => i.url === u))", url)
+        frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+        frame.locator(".meta", has_text="by audra").wait_for()
+        assert "Posted" not in frame.locator(".meta").inner_text()  # the byline's own date is dropped
+        assert pg.locator("#reader-mono").is_visible() == mono and pg.locator("#reader-icon").is_visible() != mono
+        if mono:
+            assert len(pg.locator("#reader-mono").inner_text()) == 1

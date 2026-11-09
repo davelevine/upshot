@@ -58,7 +58,7 @@ function renderItems(keepLimit) {
 function renderPage() {
   const q = $('search').value.trim();
   const counts = {}, groups = {};
-  // By label, not date: dates are UTC, so in the evening west of UTC two of them can both read "Today".
+  // Grouped by the label shown (Today, Yesterday, a weekday or a date).
   const minutes = {}, unknown = {};
   for (const i of shown) {
     const d = dayLabel(i.date);
@@ -222,7 +222,8 @@ function load() {
 let readerFor = null;
 
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-// Inside the article frame, the only script allowed is this one (by nonce): it reports rightward swipes to the
+// Inside the article frame, the only script allowed is this one. It must pass two policies: the frame's own (by nonce)
+// and the page's, which a srcdoc frame inherits (by hash, in site/_headers; tests/csp.test.js keeps it current). It reports rightward swipes to the
 // page so the reader can follow the finger, forwards Escape, j/k, ←/→ and Cmd/Ctrl+K, and takes theme changes. The frame has no same-origin access; it can only postMessage.
 const SWIPE_REPORTER = `let s = null;
 const send = (tw, t) => parent.postMessage({ tw, x: t && t.screenX }, '*');
@@ -264,7 +265,9 @@ const iconSlug = name => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
 function storyMeta(i, byline, minutes) {
   const [y, m, d] = i.date.split('-').map(Number);
   const when = new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  const by = (byline || '').replace(/^by\s+/i, '').trim();
+  // Bylines sometimes carry their own date: "Posted on November 8, 2026 by audra", "By Ada | Tuesday, October 27, 2026".
+  let by = (byline || '').replace(/\s+/g, ' ').replace(/\s*\|.*$/, '').replace(/^(posted|published|updated)\b.*?\bby\s+/i, '').replace(/^by\s+/i, '').trim();
+  if (/\b\d{4}\b/.test(by) && !Number.isNaN(Date.parse(by))) by = '';  // nothing left but a date
   return `<div class="meta">${esc(when)}${by ? ` by ${esc(by)}` : ''}<br>${esc(i.publisher)}${minutes ? ` · ${minutes} min read` : ''}</div>`;
 }
 // The upshot (written and checked by the build) with, for weekly essentials, the hand-picked "What to do" as its last line.
@@ -274,7 +277,7 @@ function summaryBox(tldr, why) {
 }
 function articleDoc(i, html, nonce, why, minutes, byline) {
   return `<!doctype html><html data-theme="${document.documentElement.dataset.theme}" data-size="${textSize}"><head><meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${location.origin}; img-src https: http: data:; media-src https:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${location.origin}; img-src https: data:; media-src https:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'">
 <base target="_blank"><style>
 :root { ${frameVars('light')} } :root[data-theme="dark"] { ${frameVars('dark')} }
 body { margin: 0; background: var(--bg); color: var(--text); font: 1.0625rem/1.65 "Iowan Old Style", Charter, Georgia, serif; overflow-wrap: break-word; }
@@ -360,6 +363,8 @@ function openReader(i, { fromHash = false } = {}) {
   $('reader-icon').hidden = !icons.has(icon);
   if (icons.has(icon)) $('reader-icon').src = `/icons/${icon}.png`;
   $('reader-icon').dataset.art = iconArt[icon] || '';
+  $('reader-mono').hidden = icons.has(icon);  // no icon: the publisher's initial, so the bar never starts blank
+  $('reader-mono').textContent = (i.publisher.match(/[a-z0-9]/i) || ['·'])[0].toUpperCase();
   const at = shown.findIndex(x => x.url === i.url);
   $('reader-prev').disabled = at <= 0;
   $('reader-next').disabled = at < 0 || at >= shown.length - 1;

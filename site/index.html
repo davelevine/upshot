@@ -92,7 +92,7 @@
   .logo .dot { fill: var(--urgent); }
   .controls { display: flex; align-items: center; gap: 6px; }
   .site-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2px 8px; padding: 8px 14px 32px; color: var(--text-muted); font-size: .8125rem; text-align: center; }
-  #updated { margin-left: auto; color: var(--text-muted); font-size: .75rem; white-space: nowrap; }
+  #updated { color: var(--text-muted); font-size: .75rem; white-space: nowrap; }
   .icon-btn { display: inline-grid; place-items: center; width: 36px; height: 36px; border: 1px solid transparent; border-radius: var(--radius-sm); background: none; color: var(--text-muted); cursor: pointer; }
   .icon-btn svg { width: 17px; height: 17px; }
 
@@ -144,7 +144,7 @@
   .weekly { max-width: var(--read); margin: 0 auto; padding: 18px 24px 0; }
   .weekly[hidden] { display: none; }
   .weekly-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
-  .weekly-heading { position: relative; display: flex; align-items: center; gap: 8px; min-height: 32px; }
+  .weekly-heading { position: relative; display: flex; align-items: center; gap: 8px; min-height: 32px; margin-right: auto; }  /* keeps the nav right when #updated hides */
   .weekly-title { font-size: 1.125rem; font-weight: 700; }
   .info-btn { display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid currentColor; border-radius: 999px; background: none; color: var(--text-muted); font-size: .6875rem; font-weight: 700; cursor: pointer; }
   .info-btn { position: relative; }
@@ -318,6 +318,7 @@
   .size-pop [data-size="0"] { font-size: 13px; } .size-pop [data-size="1"] { font-size: 16px; } .size-pop [data-size="2"] { font-size: 20px; } .size-pop [data-size="3"] { font-size: 24px; }
   .reader-icon { flex: none; width: 22px; height: 22px; border-radius: 5px; }
   /* Single-colour artwork on transparency would vanish against a background of its own tone, so it's inverted there. */
+  .reader-mono { display: grid; place-items: center; background: var(--bg-card); box-shadow: inset 0 0 0 1px var(--border-strong); color: var(--text-muted); font: 700 .75rem/1 Inter, system-ui, sans-serif; }
   [data-theme="dark"] .reader-icon[data-art="dark"], [data-theme="light"] .reader-icon[data-art="light"] { filter: invert(1); }
   #reader:focus { outline: none; }  /* focused on a tap open, so no ring appears on the close button */
   .close-back, .reader-nav { display: none; }
@@ -394,7 +395,7 @@
 <div class="reader" id="reader" tabindex="-1" role="dialog" aria-modal="true" aria-label="Reader" aria-hidden="true">
   <div class="reader-bar">
     <button class="icon-btn" id="reader-close" type="button" aria-label="Close reader"><svg class="close-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg><svg class="close-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
-    <img class="reader-icon" id="reader-icon" alt="" width="22" height="22" hidden>
+    <img class="reader-icon" id="reader-icon" alt="" width="22" height="22" hidden><span class="reader-icon reader-mono" id="reader-mono" aria-hidden="true" hidden></span>
     <span class="reader-spacer"></span>
     <span class="send-done" id="send-done" hidden>Copied</span>
     <span class="size-wrap">
