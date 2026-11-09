@@ -170,6 +170,23 @@
   },
   {
    "date": "2026-11-08",
+   "title": "Introducing Claude Fable 5.2 and Claude Mythos 5.2",
+   "url": "https://www.anthropic.com/claude-fable-and-mythos-5-2",
+   "publisher": "Anthropic (community feed)",
+   "category": "ai",
+   "summary": "A community feed attributed to Anthropic reports the launch of Claude Fable 5.2 and Claude Mythos 5.2, described as its most capable models for coding, finance and science.",
+   "relevance": 8,
+   "added": "2026-11-09T20:18:19+00:00",
+   "minutes": 16,
+   "tldr": [
+    "Anthropic released Claude Fable 5.2 and Claude Mythos 5.2, upgrades for coding, reasoning, and vision.",
+    "Fable 5.2 is available to all users on Amazon Web Services, Google Cloud, and Microsoft Azure.",
+    "Mythos 5.2 is available to vetted organizations, who can apply through the Cyber or Life Sciences Verification Program.",
+    "Developers can use claude-fable-5-2 on the Claude Platform, priced at $8 per million input and $40 per million output tokens."
+   ]
+  },
+  {
+   "date": "2026-11-08",
    "title": "Nvidia Board of Directors Is Investigating Jensen Huang",
    "url": "https://nvidianews.nvidia.com/news/statement-from-nvidia-board-of-directors",
    "publisher": "Hacker News 300+",
@@ -1981,7 +1998,7 @@
    }
   ]
  },
- "generated_at": "2026-11-09T18:54:40+00:00",
+ "generated_at": "2026-11-09T20:18:29+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
