@@ -55,7 +55,9 @@ def reading(pg):
 def wait_until_closed(pg, timeout=5000):
     # Not page.wait_for_function: it evaluates a string, which the CSP (rightly) blocks.
     for _ in range(timeout // 100):
-        if not reading(pg):
+        # Closed, and done sliding out. The article frame runs in its own process, which gets clicks by hit-test data
+        # that lags on a slow runner: a click while the panel still moves can go to the old frame, never reaching the page.
+        if not reading(pg) and not pg.evaluate("document.getElementById('reader').getAnimations().length"):
             return
         pg.wait_for_timeout(100)
     state = pg.evaluate("({ messages: window.__tw || null, drag: getComputedStyle(document.documentElement).getPropertyValue('--drag'),"
