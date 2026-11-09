@@ -43,7 +43,7 @@
     },
     {
       "description": "Tools used only by the PR smoke test move together",
-      "matchDepNames": ["playwright", "wrangler"],
+      "matchDepNames": ["playwright", "axe-playwright-python", "wrangler"],
       "groupName": "smoke test tooling"
     }
   ],
@@ -55,6 +55,14 @@
       "matchStrings": ["playwright==(?<currentValue>[0-9][0-9.]*)"],
       "datasourceTemplate": "pypi",
       "depNameTemplate": "playwright"
+    },
+    {
+      "customType": "regex",
+      "description": "axe-playwright-python pinned in the smoke job's pip install (the WCAG check)",
+      "managerFilePatterns": ["/^\\.github/workflows/build\\.yml$/"],
+      "matchStrings": ["axe-playwright-python==(?<currentValue>[0-9][0-9.]*)"],
+      "datasourceTemplate": "pypi",
+      "depNameTemplate": "axe-playwright-python"
     },
     {
       "customType": "regex",

@@ -1,7 +1,7 @@
 {
   "name": "Upshot",
   "short_name": "Upshot",
-  "description": "AI, security and architecture news, summarized daily.",
+  "description": "AI, security and architecture news, summarized.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

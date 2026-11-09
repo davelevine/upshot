@@ -53,7 +53,7 @@ Every four hours the Build workflow runs `build.py`:
 1. **Fetch:** reads every feed. A broken feed is skipped, never fatal.
 2. **Filter:** keeps dated entries from the last few days that haven't been seen before, capped per feed.
 3. **Score:** sends each new story to Claude Haiku (`claude-haiku-5-5`) on its own, through the Claude Code CLI on a Claude subscription, so a story's score never depends on what it was batched with. Each gets a category, a 1-10 relevance score judged within its category, and a one-sentence summary.
-4. **Keep the notable ones:** a story is published if it clears its category's bar (8 for Security, 7 for AI, 6 for Architecture and SDLC) and isn't a repeat. There are no per-category quotas, so a big security day shows as one and a slow day stays short. Nothing published is ever taken down, and a 20-story daily cap is there only to catch a malfunction, like a broken feed.
+4. **Keep the notable ones:** a story is published if it clears its category's bar (8 for Security and Regulation, 7 for AI and Other, 6 for Architecture and SDLC) and isn't a repeat. There are no per-category quotas, so a big security day shows as one and a slow day stays short. Nothing published is ever taken down, and a 20-story daily cap is there only to catch a malfunction, like a broken feed.
 5. **Drop repeats:** the model flags a story that's already on the site from the past week (the same launch from another outlet, say). The code checks that claim, so one copy always survives.
 6. **Pick the essentials:** once a day, the model chooses the week's five.
 7. **Publish:** writes the data and RSS, remembers seen URLs in `state.json`, commits, and Cloudflare deploys the Worker on the push.
@@ -70,7 +70,7 @@ Each build extracts new stories with Mozilla's [Readability](https://github.com/
 - **Article text is stored, but not in this repository.** It sits in a private KV namespace and expires after 100 days, shortly after a story leaves the site. It's a snapshot from when the story was first read, so later corrections by the publisher won't appear.
 - **It says why when it can't.** Every response carries a reason: `ok`, `challenge` (the publisher blocks it), `shell`, `short`, `not_html` or `pending` (no article yet). Your screen already shows the story's summary from `data.json`, so a block never leaves it empty. Blocked stories are tried again on every build.
 - **Some blocked publishers still work.** If a publisher's feed carries whole articles, the build takes the article from the feed instead.
-- **It isn't a proxy.** The function never fetches anything, and only returns articles the build stored.
+- **It isn't a proxy.** The Worker never fetches anything, and only returns articles the build stored.
 - **The page can't run anything from the source site.** Extracted HTML is stripped of scripts, frames, styles and event handlers during the build. It's then rendered in a sandboxed frame with no access to the page; the only script allowed in there is the site's own swipe and keyboard relay, admitted by a per-render nonce.
 - **A strict Content-Security-Policy backs all of this up.** Scripts load only from the site itself, plus two inline scripts allowed by exact hash; no plugins, forms or base-URL changes; network requests go only to the site. A test keeps the hashes in step with the code.
 - **No login, no tracking.** Read and New markers live in your browser's local storage and never leave it.
@@ -115,7 +115,7 @@ npx wrangler dev --port 8788
 With `npx wrangler dev --port 8788` running:
 
 ```bash
-.venv/bin/pip install playwright && .venv/bin/python -m playwright install chromium
+.venv/bin/pip install playwright axe-playwright-python && .venv/bin/python -m playwright install chromium
 SMOKE_URL=http://127.0.0.1:8788 .venv/bin/pytest -q tests/test_smoke.py
 ```
 
@@ -149,10 +149,10 @@ Everything runs on the free tiers of GitHub Actions and Cloudflare Workers. The 
    ```
 
    It prints a long-lived OAuth token (it lasts about a year). In the fork, go to **Settings → Secrets and variables → Actions → New repository secret**, name it `CLAUDE_CODE_OAUTH_TOKEN`, and paste the token. When it expires, builds start failing with "every scoring call failed"; run `claude setup-token` again and replace the secret.
-3. **Connect Cloudflare Workers.** In [`wrangler.jsonc`](wrangler.jsonc), change `routes` to your own domain, or delete it and set `workers_dev` to `true` to use the `workers.dev` address. Then in Cloudflare, go to **Workers & Pages → Create → Import a repository**, pick your fork, and name the Worker `upshot` (it must match `name` in `wrangler.jsonc`). Leave the build command empty and the deploy and preview commands at their defaults.
-4. **Tell the build where the site lives.** Under **Settings → Secrets and variables → Actions → Variables**, add `SITE_URL` with your site's address (for example `https://news.example.com`). The build uses it for the RSS feed's links and to look up reading times through the site's reader.
-5. **Make it yours.** Point the GitHub links and the stale-build link in `site/index.html` at your fork, change the README badges, edit [`feeds.opml`](feeds.opml) (see [adding a feed](#adding-a-feed)), and adjust the bars in [`build.py`](build.py) if you want more or fewer stories (see [Configuration](#configuration)).
-6. **Give the reader somewhere to keep articles.** In Cloudflare, create a Workers KV namespace and put its ID in both `kv_namespaces` entries in [`wrangler.jsonc`](wrangler.jsonc) (the namespace ID isn't a secret). Create an API token with only the **Workers KV Storage: Edit** permission, then add `CF_API_TOKEN`, `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID` as repository secrets. Without them the digest still works, but the reader only shows each story's summary.
+3. **Give the reader somewhere to keep articles.** Do this before connecting Cloudflare, or the first deploy points at someone else's namespace. In Cloudflare, create a Workers KV namespace and put its ID in both `kv_namespaces` entries in [`wrangler.jsonc`](wrangler.jsonc) (the namespace ID isn't a secret). Create an API token with only the **Workers KV Storage: Edit** permission, then add `CF_API_TOKEN`, `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID` as repository secrets. Without them the digest still works, but the reader only shows each story's summary.
+4. **Connect Cloudflare Workers.** In [`wrangler.jsonc`](wrangler.jsonc), change `routes` to your own domain, or delete it and set `workers_dev` to `true` to use the `workers.dev` address. Then in Cloudflare, go to **Workers & Pages → Create → Import a repository**, pick your fork, and name the Worker `upshot` (it must match `name` in `wrangler.jsonc`). Leave the build command empty and the deploy and preview commands at their defaults.
+5. **Tell the build where the site lives.** Under **Settings → Secrets and variables → Actions → Variables**, add `SITE_URL` with your site's address (for example `https://news.example.com`). The build uses it for the RSS feed's links and to look up reading times through the site's reader.
+6. **Make it yours.** Point the GitHub links, the stale-build link and the `og:url` tag in `site/index.html` at your fork and site, change the README badges, edit [`feeds.opml`](feeds.opml) (see [adding a feed](#adding-a-feed)), and adjust the bars in [`build.py`](build.py) if you want more or fewer stories (see [Configuration](#configuration)).
 7. **Run the first build.** Under **Actions → Build → Run workflow**, start it on `main`. Set `backfill_days` to `30` to fill in the last month (only as far back as each feed still lists). Cloudflare deploys the result a minute after the build commits.
 
 ### Adding a feed
@@ -198,11 +198,11 @@ Leave the built-in schedule in place as a fallback; a duplicate run finds nothin
 | Workflow | Function | PR | Manual | Scheduled | Details |
 | -------- | -------- | :-: | :----: | :-------: | ------- |
 | [Build](./.github/workflows/build.yml) | Fetch, score, publish | ✓ | ✓ | ✓ | Every 4 hours at :17 UTC. On PRs it runs the Python and JavaScript tests only. Manual runs take an optional `backfill_days`. |
-| [Build › smoke](./.github/workflows/build.yml) | Browser smoke test | ✓ | | | Loads the site in Chromium under its real CSP and checks the feed, reader, search palette and swipe-back. Fails on any CSP violation, console error or page error. |
+| [Build › smoke](./.github/workflows/build.yml) | Browser smoke test | ✓ | | | Loads the site in Chromium under its real CSP and checks the feed, reader, search palette, swipe-back and WCAG 2.2 AA (axe). Fails on any CSP violation, console error or page error. |
 
 [Renovate](https://docs.renovatebot.com/) ([`renovate.json`](renovate.json)) keeps every pin current: the GitHub Actions (pinned to commit digests), `feedparser`, Readability and linkedom, Wrangler, and the Playwright version in the smoke job. New releases wait three days before an update is proposed. Patch, digest and minor updates merge themselves once CI passes, including the browser smoke test. Major versions and the Claude Code CLI (which PR checks can't fully test, since they don't run the real build) wait for review, arriving together on the 1st of each month.
 
-Cloudflare Workers Builds deploys every push to `main` with `npx wrangler deploy`, including the bot's data commits, and builds a Preview for every other branch with its URL posted on the PR. [`wrangler.jsonc`](wrangler.jsonc) holds the Worker's config: static assets from `site/` with `404.html` for unknown paths; code runs only for `/api/read` and for pages, which get a per-request CSP nonce so Cloudflare's Bot Fight Mode script can run; the `ARTICLES` KV binding; the custom domain; preview URLs for PRs; and Workers Logs, which keep a few days of the Worker's requests and errors. The only secret is `CLAUDE_CODE_OAUTH_TOKEN`, a subscription token from `claude setup-token` (it lasts about a year), in the repo's Actions secrets. Scheduled and manual builds install the pinned Claude Code CLI to use it.
+Cloudflare Workers Builds deploys every push to `main` with `npx wrangler deploy`, including the bot's data commits, and builds a Preview for every other branch with its URL posted on the PR. [`wrangler.jsonc`](wrangler.jsonc) holds the Worker's config: static assets from `site/` with `404.html` for unknown paths; code runs only for `/api/read` and for pages, which get a per-request CSP nonce so Cloudflare's Bot Fight Mode script can run; the `ARTICLES` KV binding; the custom domain; preview URLs for PRs; and Workers Logs, which keep a few days of the Worker's requests and errors. The secrets live in the repo's Actions secrets: `CLAUDE_CODE_OAUTH_TOKEN`, a subscription token from `claude setup-token` (it lasts about a year), and the three `CF_` secrets that let the build store articles in KV. Scheduled and manual builds install the pinned Claude Code CLI to use it.
 
 ## Configuration
 

@@ -1,6 +1,7 @@
 // Pulls each story's article during the build and stores it in Cloudflare KV, where /api/read serves it from.
 // Parsing happens here because it costs far more CPU than the Worker is allowed per request.
-// stdin: {items: [{url, publisher, title, minutes}], feeds: {publisher: url}}. stdout: {words: {url: n}, error}.
+// stdin: {items: [{url, publisher, title, minutes}], feeds: {publisher: url}, textFor: [url]}.
+// stdout: {words: {url: n}, texts: {url: plain text, for the TL;DRs}, error}.
 import { appendFileSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { Readability } from '@mozilla/readability';
@@ -374,12 +375,12 @@ export function kvClient({ CF_API_TOKEN, CF_ACCOUNT_ID, CF_KV_NAMESPACE_ID }) {
   };
 }
 
-// Stores what's new or was blocked last time, and reports every story's word count. 0 means blocked; no entry means try again.
 // An article's text, plain, for the build to summarise.
 export const plainText = html => (parseHTML(`<!doctype html><html><body>${html
   .replace(/<\/(p|div|li|h[1-6]|tr|td|th|pre|blockquote|figcaption|section|ul|ol|dd|dt)>/gi, '$& ').replace(/<br\s*\/?>/gi, ' ')}</body></html>`).document.body.textContent || '')
   .replace(/\s+/g, ' ').trim().slice(0, MAX_TEXT);
 
+// Stores what's new or was blocked last time, and reports every story's word count. 0 means blocked; no entry means try again.
 export async function run({ items, feeds, textFor = [] }, kv) {
   const stored = kv ? await kv.list() : new Map();
   const keys = new Map(await Promise.all(items.map(async i => [i.url, await keyFor(i.url)])));
