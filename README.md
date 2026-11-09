@@ -53,7 +53,7 @@ Every four hours the Build workflow runs `build.py`:
 1. **Fetch:** reads every feed. A broken feed is skipped, never fatal.
 2. **Filter:** keeps dated entries from the last few days that haven't been seen before, capped per feed.
 3. **Score:** sends each new story to Claude Haiku (`claude-haiku-5-5`) on its own, through the Claude Code CLI on a Claude subscription, so a story's score never depends on what it was batched with. Each gets a category, a 1-10 relevance score judged within its category, and a one-sentence summary.
-4. **Keep the notable ones:** a story is published if it clears its category's bar (8 for Security, 7 for AI, 6 for Architecture and SDLC) and isn't a repeat. There are no per-category quotas, so a big security day shows as one and a slow day stays short. Nothing published is ever taken down, and a 10-story daily cap is there only for exceptional days.
+4. **Keep the notable ones:** a story is published if it clears its category's bar (8 for Security, 7 for AI, 6 for Architecture and SDLC) and isn't a repeat. There are no per-category quotas, so a big security day shows as one and a slow day stays short. Nothing published is ever taken down, and a 20-story daily cap is there only to catch a malfunction, like a broken feed.
 5. **Drop repeats:** the model flags a story that's already on the site from the past week (the same launch from another outlet, say). The code checks that claim, so one copy always survives.
 6. **Pick the essentials:** once a day, the model chooses the week's five.
 7. **Publish:** writes the data and RSS, remembers seen URLs in `state.json`, commits, and Cloudflare Pages deploys on the push.
@@ -210,7 +210,7 @@ The knobs live at the top of [`build.py`](build.py):
 | ------- | ------- | ------------ |
 | `MIN_RELEVANCE` | 8 for Security and Regulation, 7 for AI and Other, 6 for Architecture and SDLC | Score a story needs to be published; the bars differ only to match how Haiku scores each category |
 | `NEWS_SOURCES` | Six outlets | Lose ties to, and get replaced by, the original source |
-| `DAILY_MAX` | 10 | Most stories a day can show, for exceptional days; anything turned away is listed in the run summary |
+| `DAILY_MAX` | 20 | Most stories a day can show: above the busiest real day, so it only trips on a malfunction |
 | `DEDUPE_DAYS` | 7 | How far back to look for repeat coverage |
 | `FRESH_DAYS` | 3 | Ignore feed entries older than this (env-overridable) |
 | `PER_FEED` | 10 | Newest entries taken per feed per run (env-overridable) |
