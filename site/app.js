@@ -76,7 +76,6 @@ function renderPage() {
       <span class="dot" style="--c:var(--cat-${c})"></span>
       <div class="card-body">
         <div class="card-title">${highlight(i.title, q)}</div>
-        ${i.summary ? `<p class="card-summary">${highlight(i.summary, q)}</p>` : ''}
         <div class="card-meta">${isNew(i) ? '<span class="new">New</span>' : ''}<span class="card-cat">${CATS[c]}</span><span>·</span><span class="card-url">${esc(domain(i.url))}</span></div>
       </div>
     </a>`; }).join('')}`).join('')
