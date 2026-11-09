@@ -73,7 +73,7 @@ test('the reader pipeline holds on every publisher', async () => {
 test('no publisher is named in the reader code', () => {
   const hosts = new Set(FEEDS.map(([, url]) => new URL(url).hostname.replace(/^www\./, '')));
   for (const meta of Object.values(META)) hosts.add(new URL(meta.url).hostname.replace(/^www\./, ''));
-  for (const file of ['extract.mjs', 'functions/api/read.js', 'site/app.js']) {
+  for (const file of ['extract.mjs', 'worker.js', 'site/app.js']) {
     const code = readFileSync(new URL(`../${file}`, import.meta.url), 'utf8');
     for (const host of hosts) assert.ok(!code.includes(host), `${file} names ${host}`);
   }

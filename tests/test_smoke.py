@@ -619,7 +619,7 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
 
 
 def test_unknown_paths_are_real_404s(browser):
-    # Without a 404 page, Pages serves index.html for everything, which breaks robots.txt and any tool probing for a file.
+    # A real 404 (not_found_handling in wrangler.jsonc), not index.html for everything: that breaks robots.txt and any tool probing for a file.
     pg = browser.new_context().new_page()
     for path in ("/no-such-page", "/llms.txt", "/.well-known/ard.json"):
         res = pg.goto(URL.rstrip("/") + path)
