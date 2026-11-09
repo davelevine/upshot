@@ -376,8 +376,10 @@ def test_fetch_reports_only_permanent_redirects():
     assert build.MOVED == {base + "/old": base + "/new"}  # a 302 anywhere in the chain isn't a move
 
 
-def test_old_architecture_stories_become_infrastructure():
-    items = [{"category": "architecture"}, {"category": "ai"}, {"title": "no category"}]
+def test_renamed_categories_migrate():
+    items = [{"category": "architecture"}, {"category": "sdlc"}, {"category": "ai"}, {"title": "no category"}]
     build.rename_categories(items)
-    assert [i.get("category") for i in items] == ["infrastructure", "ai", None]
-    assert "architecture" not in build.CLASSIFY_PROMPT and "infrastructure:" in build.CLASSIFY_PROMPT
+    assert [i.get("category") for i in items] == ["infrastructure", "engineering", "ai", None]
+    assert "category" not in items[3]
+    assert "architecture" not in build.CATEGORIES and "sdlc" not in build.CATEGORIES and "sdlc" not in build.CLASSIFY_PROMPT
+    assert "infrastructure:" in build.CLASSIFY_PROMPT and "engineering:" in build.CLASSIFY_PROMPT  # each is defined
