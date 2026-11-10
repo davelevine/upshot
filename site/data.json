@@ -1,6 +1,55 @@
 {
  "items": [
   {
+   "date": "2026-11-10",
+   "title": "Chrome Update Patches Exploited XML Zero-Day, Eighth This Year",
+   "url": "https://www.securityweek.com/chrome-update-patches-exploited-xml-zero-day-eighth-this-year/",
+   "publisher": "SecurityWeek",
+   "category": "security",
+   "summary": "Google patched a high-severity use-after-free in Chrome's XML component, already exploited in attacks, the eighth Chrome zero-day fixed this year.",
+   "relevance": 8,
+   "added": "2026-11-10T08:18:23+00:00",
+   "minutes": 1,
+   "tldr": [
+    "Google patched nine Chrome vulnerabilities, including zero-day CVE-2026-125350, a high-severity use-after-free in the XML component, exploited in the wild.",
+    "It is the eighth Chrome zero-day exploited this year, and CISA has yet to add it to its KEV catalog.",
+    "Chrome users are affected; the fix is Chrome 157 versions 157.0.8103.50/.51 for Windows and Mac, and 157.0.8103.50 for Linux."
+   ]
+  },
+  {
+   "date": "2026-11-10",
+   "title": "CISA Warns of Active Exploitation of OpenSSH, GPUStack, FreeSWITCH, and IBM Flaws",
+   "url": "https://thehackernews.com/2026/11/cisa-warns-of-active-exploitation-of.html",
+   "publisher": "The Hacker News",
+   "category": "security",
+   "summary": "CISA added four flaws in GPUStack, FreeSWITCH, OpenSSH, and IBM Aspera Faspex to its KEV catalog, citing evidence of active exploitation.",
+   "relevance": 8,
+   "added": "2026-11-10T08:18:23+00:00",
+   "minutes": 2,
+   "tldr": [
+    "CISA added four flaws in GPUStack, SignalWire FreeSWITCH, OpenBSD OpenSSH, and IBM Aspera Faspex to its KEV catalog, citing active exploitation.",
+    "The OpenSSH flaw CVE-2026-123158 (SSHole) can allow authentication bypass on Linux, and in one case attackers deployed the TAC Agent C2 agent.",
+    "Federal Civilian Executive Branch agencies are recommended to apply the fixes by November 12, 2026."
+   ]
+  },
+  {
+   "date": "2026-11-10",
+   "title": "Effect 4.0 Ships: Dependency-Free Rewrite with 5x Smaller Bundles and Long-Term Support",
+   "url": "https://www.infoq.com/news/2026/11/effect-4-0-release/",
+   "publisher": "InfoQ",
+   "category": "engineering",
+   "summary": "Effect 4.0, a TypeScript framework for typed errors and structured concurrency, shipped a rewritten dependency-free fiber runtime with long-term support through September 2029. Performance claims are unverified.",
+   "relevance": 6,
+   "added": "2026-11-10T08:18:23+00:00",
+   "minutes": 3,
+   "tldr": [
+    "Effect 4.0, a TypeScript framework, shipped as stable on 30 September 2026 with a from-scratch fiber runtime rewrite.",
+    "Team-reported figures show a minimal program at 7.1 kB versus 35.6 kB in 3.x; not independently reproduced.",
+    "Teams on 3.x should start with the v3 to v4 migration guide; the team suggests coding agents can handle most mechanical work.",
+    "Effect 4.x bug fixes run until September 2029 or one year after 5.0, and security fixes until September 2029 or two years after 5.0, whichever is later."
+   ]
+  },
+  {
    "date": "2026-11-09",
    "title": "Malicious bee-js npm Release and Swarm Desktop Releases Deliver SleepyDuck Ethereum C2 Backdoor",
    "url": "https://socket.dev/blog/bee-js-compromise",
@@ -2041,33 +2090,33 @@
   }
  ],
  "weekly": {
-  "window_start": "2026-11-03",
-  "window_end": "2026-11-09",
-  "selected_on": "2026-11-09",
+  "window_start": "2026-11-04",
+  "window_end": "2026-11-10",
+  "selected_on": "2026-11-10",
   "items": [
    {
+    "url": "https://www.securityweek.com/chrome-update-patches-exploited-xml-zero-day-eighth-this-year/",
+    "why": "Update Chrome now; the exploited flaw is already being used in live attacks."
+   },
+   {
+    "url": "https://www.bleepingcomputer.com/news/security/hackers-exploit-sshole-openssh-flaw-to-breach-linux-systems/",
+    "why": "Patch OpenSSH now; the flaw grants commands, credential theft, and persistent Linux access."
+   },
+   {
+    "url": "https://socket.dev/blog/shai-hulud-descendant-malicious-ruby-gem",
+    "why": "Remove the gem, then rotate tokens carefully; revoking first can trigger file wiping."
+   },
+   {
+    "url": "https://www.wiz.io/blog/qubole-cross-account-access-abused-in-the-wild",
+    "why": "Audit IAM roles trusting Qubole's AWS account; restrict external trust and review assume-role logs."
+   },
+   {
     "url": "https://www.bleepingcomputer.com/news/security/sonicwall-warns-of-new-ssl-vpn-mfa-bypass-flaw-exploited-in-attacks/",
-    "why": "Patch SonicOS now; the SSL-VPN bypass is already being exploited."
-   },
-   {
-    "url": "https://www.aikido.dev/blog/linux-kernel-tcp-rce-vulnerability-cve-2026-98432",
-    "why": "Prioritize kernel patching; CVSS 9.8 flaw enables remote code execution over TCP."
-   },
-   {
-    "url": "https://thehackernews.com/2026/11/cpguard-update-channel-hijacked-to.html",
-    "why": "Check Linux servers running cPGuard for backdoors and rotate exposed password hashes."
-   },
-   {
-    "url": "https://thehackernews.com/2026/11/chainalysis-breach-exposes-all-users.html",
-    "why": "If you used Chainalysis, rotate credentials and tokens; assume all accounts are exposed."
-   },
-   {
-    "url": "https://socket.dev/blog/github-to-block-pull-request-target",
-    "why": "Audit workflows using pull_request_target before December 2 to avoid breakage."
+    "why": "Patch SonicOS now; the SSL-VPN MFA bypass is already exploited against unpatched firewalls."
    }
   ]
  },
- "generated_at": "2026-11-10T04:18:33+00:00",
+ "generated_at": "2026-11-10T08:18:43+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
