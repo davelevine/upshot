@@ -294,6 +294,7 @@ function load() {
       syncFromUrl(); syncHome();
       requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('paging')));
       if (document.hidden) tickOnShow = true; else playTicker();  // opened: one pass
+      (window.requestIdleCallback || (f => setTimeout(f, 1000)))(loadFrameFonts);  // ahead of the first article
     }
   });
 }
@@ -337,6 +338,23 @@ addEventListener('keydown', e => {  // keys pressed while the article has focus 
   if (!e.altKey && ['escape', 'j', 'k', 'm', 'arrowleft', 'arrowright'].includes(k)) { e.preventDefault(); parent.postMessage({ tw: 'key', key: k, mod: e.metaKey || e.ctrlKey }, '*'); }
 });`;
 
+// The article frame's fonts: Inter for its headings, Literata for the article. A sandboxed frame has an opaque origin,
+// which the browser caches apart every time, so a font loaded there by URL was downloaded afresh for every frame (two
+// per article) and flashed the fallback meanwhile. The page fetches each once instead, cached as usual, and hands it to
+// every frame inline. Until one arrives, a frame loads it by URL as before.
+const FRAME_FONTS = { inter: '/fonts/InterVariable.woff2', literata: '/fonts/LiterataVariable.woff2', literataItalic: '/fonts/LiterataVariable-Italic.woff2' };
+const frameFonts = {};
+const frameFont = k => frameFonts[k] || location.origin + FRAME_FONTS[k];
+function loadFrameFonts() {
+  for (const [k, url] of Object.entries(FRAME_FONTS)) {
+    // Without credentials, as the page's preload of Inter asks, so the preloaded copy is reused rather than fetched again.
+    fetch(url, { credentials: 'omit' }).then(r => (r.ok ? r.blob() : Promise.reject())).then(b => new Promise(done => {
+      const read = new FileReader();
+      read.onload = () => { frameFonts[k] = read.result; done(); };
+      read.readAsDataURL(b);
+    })).catch(() => {});  // the URL still works
+  }
+}
 // The article frame can't see the page's CSS variables, so it gets both palettes, read from the page's own
 // tokens, and the relay flips data-theme on it when the theme changes.
 function frameVars(theme) {
@@ -373,15 +391,17 @@ function summaryBox(tldr, why) {
 }
 function articleDoc(i, html, nonce, why, minutes, byline) {
   return `<!doctype html><html data-theme="${document.documentElement.dataset.theme}" data-size="${textSize}"><head><meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${location.origin}; img-src https: data:; media-src https:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${location.origin} data:; img-src https: data:; media-src https:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'">
 <base target="_blank"><style>
 :root { ${frameVars('light')} } :root[data-theme="dark"] { ${frameVars('dark')} }
-body { margin: 0; background: var(--bg); color: var(--text); font: 1.0625rem/1.65 "Iowan Old Style", Charter, Georgia, serif; overflow-wrap: break-word; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 1.0625rem/1.65 Literata, "Iowan Old Style", Charter, Georgia, serif; overflow-wrap: break-word; }
 main { max-width: 640px; margin: 0 auto; padding: 32px 24px 96px; }
 a { color: var(--accent); }
 h1 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 0 0 .4em; font-size: clamp(1.4rem, 1rem + 2vw, 1.75rem); font-weight: 700; line-height: 1.2; letter-spacing: -.01em; }
 h1 a { color: inherit; text-decoration: none; } h1 a:hover { text-decoration: underline; text-decoration-thickness: 2px; }
-@font-face { font-family: Inter; src: url("${location.origin}/fonts/InterVariable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: Inter; src: url("${frameFont('inter')}") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: Literata; src: url("${frameFont('literata')}") format("woff2"); font-weight: 400 700; font-style: normal; font-display: swap; }
+@font-face { font-family: Literata; src: url("${frameFont('literataItalic')}") format("woff2"); font-weight: 400 700; font-style: italic; font-display: swap; }
 h1 { font-family: Inter, system-ui, sans-serif; letter-spacing: -.01em; }
 [data-size="0"] body { font-size: 1rem; } [data-size="2"] body { font-size: 1.1875rem; } [data-size="3"] body { font-size: 1.3125rem; }
 .meta { margin-bottom: 1.8em; color: var(--text-muted); font: .88em/1.45 Inter, system-ui, sans-serif; }  /* em: follows the text size */

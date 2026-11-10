@@ -461,6 +461,31 @@ def test_inter_is_served_from_the_site(browser):
     assert pg.evaluate("document.fonts.check('16px Inter')")
 
 
+def test_articles_are_set_in_literata_without_downloading_fonts_each_time(browser):
+    ctx = browser.new_context(viewport={"width": 1440, "height": 900})
+    ctx.route("**/api/read?*", lambda route: route.fulfill(content_type="application/json", body=json.dumps(
+        {"frameable": False, "content": f'{BODY}<p><em>An italic line.</em></p>'})))
+    pg = ctx.new_page()
+    fonts = []
+    pg.on("response", lambda r: fonts.append(r.url.rsplit("/", 1)[-1]) if "/fonts/" in r.url else None)
+    pg.goto(URL)
+    enter_list(pg)
+    pg.wait_for_function("() => Object.keys(frameFonts).length === 3")  # fetched once, in the background, after the list
+    assert {"LiterataVariable.woff2", "LiterataVariable-Italic.woff2"} <= set(fonts)
+    before = len(fonts)
+    for n in (0, 1, 0):  # including one opened again
+        pg.evaluate("n => openReader(items[n])", n)
+        frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+        frame.locator("p").nth(29).wait_for()
+        faces = frame.locator("body").evaluate("() => document.fonts.ready.then(() => [...document.fonts].filter(f => f.status === 'loaded').map(f => f.family))")
+        assert "Literata" in faces and "Inter" in faces  # the article in Literata, its headings in Inter
+        assert frame.locator("em").evaluate("e => document.fonts.check('italic 17px Literata')")  # real italics, not slanted
+        assert frame.locator("main p").nth(3).evaluate("e => getComputedStyle(e).fontFamily").startswith("Literata")
+    # A sandboxed frame caches apart every time, so fonts loaded there by URL came down again for every article.
+    assert fonts[before:] == []
+    assert pg.problems == [] if hasattr(pg, "problems") else True
+
+
 def test_escape_returns_focus_to_the_row_for_the_keyboard(browser):
     pg = open_site(browser, viewport={"width": 1024, "height": 800})
     pg.locator("a.card").nth(1).focus()
