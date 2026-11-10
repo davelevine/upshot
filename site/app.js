@@ -546,7 +546,12 @@ function closeReader() {
   setInert();
   markCurrent(null);
   const card = url && cardFor(url);  // back to where you were, even after j/k through several articles
-  if (card) { card.focus({ preventScroll: true }); card.scrollIntoView({ block: 'nearest' }); }
+  if (card) {
+    // Focus goes back to the row only after a key (no ring after a tap or swipe: one in the article's frame never reaches
+    // this page, so the browser would take it for the keyboard).
+    if (lastInput === 'key') card.focus({ preventScroll: true });
+    card.scrollIntoView({ block: 'nearest' });
+  }
   // Docked, the pane empties at once. Sliding away, the frame stays, hidden, so swiping back into it finds it as it was.
   if (docked.matches) { $('reader-body').replaceChildren(); frameFor = null; }
 }
@@ -614,7 +619,7 @@ addEventListener('message', e => {
   if (e.data.tw === 'start') dragStart(e.data.x);
   else if (e.data.tw === 'move') dragMove(e.data.x);
   else if (e.data.tw === 'end') dragEnd();
-  else if (e.data.tw === 'key') onKey(e.data.key, !!e.data.mod);
+  else if (e.data.tw === 'key') { lastInput = 'key'; onKey(e.data.key, !!e.data.mod); }  // a key in the article: the keyboard's in use
   else if (e.data.tw === 'themed') frameThemed?.();
 });
 

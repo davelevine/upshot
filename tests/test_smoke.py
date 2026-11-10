@@ -446,6 +446,17 @@ def test_inter_is_served_from_the_site(browser):
     assert pg.evaluate("document.fonts.check('16px Inter')")
 
 
+def test_escape_returns_focus_to_the_row_for_the_keyboard(browser):
+    pg = open_site(browser, viewport={"width": 1024, "height": 800})
+    pg.locator("a.card").nth(1).focus()
+    pg.keyboard.press("Enter")
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.keyboard.press("Escape")
+    wait_until_closed(pg)
+    assert pg.evaluate("document.activeElement === document.querySelectorAll('a.card')[1]")  # back where the keyboard was
+    assert pg.problems == []
+
+
 def test_question_mark_lists_the_shortcuts(browser):
     pg = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
     pg.goto(URL)
@@ -915,6 +926,7 @@ def test_swipe_back_on_a_phone(browser):
         pg.wait_for_timeout(16)
     cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
     wait_until_closed(pg)
+    assert pg.evaluate("!document.querySelector('a.card:focus')")  # no focus ring on the row after a swipe
     # A swipe the other way, across the list, brings the story back, as in Feedbin.
     url = card.get_attribute("href")
     pg.wait_for_timeout(400)
