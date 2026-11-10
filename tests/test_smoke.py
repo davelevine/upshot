@@ -991,7 +991,7 @@ def test_wide_screens_dock_the_reader_beside_the_list(browser):
     reader, backdrop = pg.locator("#reader"), pg.locator("#reader-backdrop")
     # Docked before anything opens: an empty pane that says what it's for, no backdrop, a live list.
     assert reader.is_visible() and backdrop.is_hidden()
-    assert pg.evaluate("getComputedStyle(document.getElementById('reader-body'), '::before').content") == '"Pick a story to read it here."'
+    assert pg.evaluate("getComputedStyle(document.getElementById('reader-body'), '::before').maskImage").startswith('url("data:image/svg+xml')  # the site's mark, faint
     side, items, pane = (pg.locator(s).bounding_box() for s in (".side", "#items", "#reader"))
     assert side["x"] + side["width"] <= items["x"] and items["x"] + items["width"] <= pane["x"] + 1 and pane["x"] + pane["width"] <= 1440
     cards = pg.locator("a.card")
@@ -1046,4 +1046,17 @@ def test_the_reader_marks_a_story_unread_and_read_again(browser):
     assert "read" in card.get_attribute("class").split() and pg.evaluate("u => readSet.has(u)", url)
     # Docked under the header, the reader doesn't repeat the header's theme switch.
     assert pg.locator("#reader-theme").is_hidden() and pg.locator("#theme").is_visible()
+    assert pg.problems == []
+
+
+def test_picking_a_topic_closes_the_open_story(browser):
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    for topic in ("all", "security"):  # the current topic too, as in Feedbin
+        pg.locator("a.card").first.click()
+        pg.wait_for_selector("#reader-body iframe:not(.loading)")
+        pg.click(f"#filters .filter-btn[data-f='{topic}']")
+        wait_until_closed(pg)
+        pg.locator("#reader-body iframe").first.wait_for(state="detached")
+        assert pg.evaluate("location.pathname") == "/" and pg.locator("a.card[aria-current]").count() == 0
+        assert pg.locator(f"#filters .filter-btn.active").get_attribute("data-f") == topic
     assert pg.problems == []

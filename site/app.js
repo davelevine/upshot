@@ -144,6 +144,7 @@ $('filters').onclick = e => {
   const b = e.target.closest('.filter-btn');
   if (!b) return;
   filter = b.dataset.f;
+  if (document.body.classList.contains('reading')) dismiss();  // as in Feedbin: picking a topic, even the current one, closes the story
   renderFilters();
   renderItems();
   if ($('filters').matches(':popover-open')) $('filters').hidePopover();

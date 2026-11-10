@@ -296,7 +296,9 @@
     .reader { top: 52px; left: 680px; width: auto; z-index: 98; border-left: 1px solid var(--border); box-shadow: none; transform: none !important; visibility: visible; pointer-events: auto; transition: none; }
     .reader-backdrop { display: none; }
     body.reading { overflow: visible; }
-    .reader-body:empty::before { content: "Pick a story to read it here."; position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-muted); font-size: .9375rem; }
+    /* Nothing open: the site's mark, faint and centred, as Feedbin does with its own. */
+    .reader-body:empty::before { content: ""; position: absolute; inset: 0; margin: auto; width: 96px; height: 96px; background: var(--border-strong);
+      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M16 16v17a10 10 0 0 0 20 0V16M36 16v31' fill='none' stroke='%23000' stroke-width='9'/%3E%3Ccircle cx='49' cy='42' r='5'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M16 16v17a10 10 0 0 0 20 0V16M36 16v31' fill='none' stroke='%23000' stroke-width='9'/%3E%3Ccircle cx='49' cy='42' r='5'/%3E%3C/svg%3E") center / contain no-repeat; }
     body:not(.reading) .reader-bar > :not(.reader-spacer) { visibility: hidden; }  /* nothing open: no controls for it */
     body:not(.reading) .reader-nav { display: none; }
     .back-to-top { right: auto; left: 612px; }  /* inside the list, not over the article */
