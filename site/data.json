@@ -81,6 +81,21 @@
   },
   {
    "date": "2026-11-09",
+   "title": "Claude Fable 5.2 scores 65 on Artificial Analysis, highest so far",
+   "url": "https://artificialanalysis.ai/models/claude-fable-5-2",
+   "publisher": "Hacker News 300+",
+   "category": "ai",
+   "summary": "A Hacker News thread, with 306 points, links to an Artificial Analysis page reporting that Claude Fable 5.2 scores 65, its highest so far.",
+   "relevance": 7,
+   "added": "2026-11-10T04:18:24+00:00",
+   "minutes": 5,
+   "tldr": [
+    "The score comes from the Artificial Analysis Intelligence Index v5.0.1, which includes nine evaluations.",
+    "The evaluations include AA-Briefcase v1.1, AutomationBench-AA, Terminal-Bench 4.0, and HLE-Diamond."
+   ]
+  },
+  {
+   "date": "2026-11-09",
    "title": "Google Releases Gemini 4 Argon for Robotics Control, Simulation, and Policy Improvement",
    "url": "https://www.infoq.com/news/2026/11/google-gemini-argon/",
    "publisher": "InfoQ",
@@ -2052,7 +2067,7 @@
    }
   ]
  },
- "generated_at": "2026-11-10T02:47:19+00:00",
+ "generated_at": "2026-11-10T04:18:33+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
