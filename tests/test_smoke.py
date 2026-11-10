@@ -154,6 +154,8 @@ def test_phones_open_on_the_topics(browser):
     assert pg.evaluate("document.getElementById('list-back').inert")  # faded out, and out of reach
     assert pg.evaluate(shown_, "#search-btn") == 0 and pg.evaluate("document.getElementById('search-btn').inert")  # search is for lists
     assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    foot = pg.locator(".side-foot").bounding_box()
+    assert foot["y"] + foot["height"] == 700  # "Updated" at the screen's foot, not under the last topic
     assert pg.locator(".resizer").evaluate_all("els => els.every(e => getComputedStyle(e).display === 'none')")  # desktop's column edges
     for row in pg.locator("#filters .filter-btn").all():
         box = row.bounding_box()
