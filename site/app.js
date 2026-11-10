@@ -293,7 +293,7 @@ function load() {
       document.body.classList.add('paging');
       syncFromUrl(); syncHome();
       requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('paging')));
-      if (document.hidden) tickOnShow = true; else playTicker();  // opened: one pass
+      if (passDue()) { if (document.hidden) tickOnShow = true; else playTicker(); }  // opened, not just refreshed: one pass
       (window.requestIdleCallback || (f => setTimeout(f, 1000)))(loadFrameFonts);  // ahead of the first article
     }
   });
@@ -909,6 +909,9 @@ addEventListener('resize', () => { for (const k in COLS) if (localStorage.getIte
 const BUILD_EVERY_HOURS = 4, BUILD_AT_MINUTE = 17;  // .github/workflows/build.yml: cron "17 */4 * * *", in UTC
 const HOLD_MS = 1200, TICK_MS = 1500, FADE_MS = 300, REOPEN_MINUTES = 15;  // the wordmark first, long enough to be seen
 let tickTimers = [], tickOnShow = false, tickPending = false, hiddenAt = Date.now();
+// An opening, not a refresh: the pass plays only if the last one seen was a while ago, so reloading (or a new tab,
+// or relaunching the app) moments later shows the wordmark rather than the pass again.
+const passDue = () => Date.now() - (+localStorage.getItem('lastPass') || 0) >= REOPEN_MINUTES * 60e3;
 // Where the wordmark can be seen: on a phone only the topics screen shows it; elsewhere a reader sliding over the page hides it.
 const wordmarkShown = () => {
   const reading = document.body.classList.contains('reading');
@@ -942,7 +945,7 @@ function playTicker() {
   stopTicker();
   if (!wordmarkShown()) { tickPending = true; return; }  // opened on a story, say: it waits for the wordmark, rather than running unseen
   const lines = tickerLines(), at = (ms, f) => tickTimers.push(setTimeout(f, HOLD_MS + ms));
-  at(0, () => document.body.classList.add('ticking'));
+  at(0, () => { document.body.classList.add('ticking'); localStorage.setItem('lastPass', Date.now()); });  // seen: counts from here
   lines.forEach((line, n) => {
     if (n) at(n * TICK_MS, () => $('ticker').classList.remove('on'));
     at(n * TICK_MS + FADE_MS, () => { $('ticker').textContent = line; $('ticker').classList.add('on'); });
@@ -961,7 +964,7 @@ setInterval(check, 15 * 60e3);
 setInterval(() => { if (generatedAt && !document.hidden) { showUpdated(); refreshAges(); } }, 60e3);
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { hiddenAt = Date.now(); return stopTicker(); }
-  const back = tickOnShow || Date.now() - hiddenAt > REOPEN_MINUTES * 60e3;  // a phone reopens from the background, not a fresh load
+  const back = tickOnShow || (Date.now() - hiddenAt > REOPEN_MINUTES * 60e3 && passDue());  // a phone reopens from the background, not a fresh load
   tickOnShow = false;
   check()?.then(() => { if (back) playTicker(); });
 });

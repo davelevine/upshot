@@ -29,7 +29,7 @@ The layout follows desktop feed readers such as Feedbin, in three widths:
 
 The essentials are an entry in the topics, not a separate section, so no story is listed twice.
 
-Each time Upshot opens (or comes back after 15 minutes away), the wordmark shows for a moment, then its spot runs once through the date, when the news last updated and when the next build is due (from the build's schedule, `17 */4 * * *` UTC, and left out when a build is late), then settles back on the wordmark, after Kagi News. The pass takes under five seconds, so it needs no pause control under WCAG 2.2.2, and a tap ends it. [`site/_headers`](../site/_headers) sets the Content-Security-Policy. [`worker.js`](../worker.js) serves the static files and answers `/api/read` for the reader; [`wrangler.jsonc`](../wrangler.jsonc) configures the Worker.
+Each time Upshot opens, or comes back after 15 minutes away (but not on a refresh or a new tab within 15 minutes of the last pass), the wordmark shows for a moment, then its spot runs once through the date, when the news last updated and when the next build is due (from the build's schedule, `17 */4 * * *` UTC, and left out when a build is late), then settles back on the wordmark, after Kagi News. The pass takes under five seconds, so it needs no pause control under WCAG 2.2.2, and a tap ends it. [`site/_headers`](../site/_headers) sets the Content-Security-Policy. [`worker.js`](../worker.js) serves the static files and answers `/api/read` for the reader; [`wrangler.jsonc`](../wrangler.jsonc) configures the Worker.
 
 ## The reader, and what it does with your data
 

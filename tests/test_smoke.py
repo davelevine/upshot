@@ -1414,3 +1414,17 @@ def test_a_pass_waits_for_the_wordmark_to_be_in_view(browser):
     pg.wait_for_function("() => document.body.classList.contains('home')")
     pg.clock.run_for(3000)
     assert not ticking()
+
+
+def test_a_refresh_is_not_an_opening(browser):
+    pg = ticker_site(browser, 1, viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)  # one pass, now
+    ticking = lambda: pg.evaluate("document.body.classList.contains('ticking')")
+    assert ticking()
+    pg.clock.run_for(6000)
+    for wait, plays in ((0, False), (5 * 60_000, False), (16 * 60_000, True)):  # moments, minutes, then a while after
+        pg.clock.run_for(wait)
+        pg.reload()
+        pg.wait_for_selector("#filters .filter-btn")
+        pg.clock.run_for(1300)  # past the wordmark's moment
+        assert ticking() == plays, wait
+        pg.clock.run_for(6000)
