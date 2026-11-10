@@ -328,7 +328,7 @@ function showInReader(i, html, why, minutes, byline) {
   const frame = document.createElement('iframe');
   frame.sandbox = 'allow-scripts allow-popups allow-popups-to-escape-sandbox';
   frame.title = i.title;
-  frame.srcdoc = articleDoc(i, html, crypto.randomUUID(), why, minutes, byline);
+  frame.srcdoc = articleDoc(i, html, btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16)))), why, minutes, byline);  // not randomUUID: that needs HTTPS, which a dev server reached by address isn't
   mountFrame(frame);
 }
 // Loads behind whatever's showing and takes over once drawn, so the pane never blinks empty between frames.

@@ -291,7 +291,8 @@
   /* Wide screens: the reader docked beside the list for good, with no backdrop, and the list stays live while it's open. */
   @media (min-width: 1280px) {
     .shell { grid-template-columns: 240px 440px; }
-    .items { padding: 8px 10px 48px; }
+    .items { padding: 0 10px 48px; }
+    .items > .date-label:first-child { height: 52px; margin-top: 0; padding: 0 0 0; align-items: center; }  /* its rule lines up with the reader bar's */
     .reader { top: 52px; left: 680px; width: auto; z-index: 98; border-left: 1px solid var(--border); box-shadow: none; transform: none !important; visibility: visible; pointer-events: auto; transition: none; }
     .reader-backdrop { display: none; }
     body.reading { overflow: visible; }
