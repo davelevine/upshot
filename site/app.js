@@ -394,7 +394,7 @@ function articleDoc(i, html, nonce, why, minutes, byline) {
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${location.origin} data:; img-src https: data:; media-src https:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'">
 <base target="_blank"><style>
 :root { ${frameVars('light')} } :root[data-theme="dark"] { ${frameVars('dark')} }
-body { margin: 0; background: var(--bg); color: var(--text); font: 1.0625rem/1.65 Literata, "Iowan Old Style", Charter, Georgia, serif; overflow-wrap: break-word; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 1.125rem/1.65 Literata, "Iowan Old Style", Charter, Georgia, serif; overflow-wrap: break-word; }
 main { max-width: 640px; margin: 0 auto; padding: 32px 24px 96px; }
 a { color: var(--accent); }
 h1 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 0 0 .4em; font-size: clamp(1.4rem, 1rem + 2vw, 1.75rem); font-weight: 700; line-height: 1.2; letter-spacing: -.01em; }
@@ -403,7 +403,7 @@ h1 a { color: inherit; text-decoration: none; } h1 a:hover { text-decoration: un
 @font-face { font-family: Literata; src: url("${frameFont('literata')}") format("woff2"); font-weight: 400 700; font-style: normal; font-display: swap; }
 @font-face { font-family: Literata; src: url("${frameFont('literataItalic')}") format("woff2"); font-weight: 400 700; font-style: italic; font-display: swap; }
 h1 { font-family: Inter, system-ui, sans-serif; letter-spacing: -.01em; }
-[data-size="0"] body { font-size: 1rem; } [data-size="2"] body { font-size: 1.1875rem; } [data-size="3"] body { font-size: 1.3125rem; }
+[data-size="0"] body { font-size: 1.0625rem; } [data-size="2"] body { font-size: 1.25rem; } [data-size="3"] body { font-size: 1.375rem; }  /* a step up for Literata's smaller x-height (0.507) */
 .meta { margin-bottom: 1.8em; color: var(--text-muted); font: .88em/1.45 Inter, system-ui, sans-serif; }  /* em: follows the text size */
 .todo { margin: 0 0 1.8em; padding: 12px 16px; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; background: var(--bg-card); }
 .tldr ul { margin: .35em 0 0; padding-left: 1.15em; font: .94em/1.5 Inter, system-ui, sans-serif; } .tldr li + li { margin-top: .45em; }  /* sans: scanned, not read */
