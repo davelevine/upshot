@@ -36,6 +36,17 @@
   },
   {
    "date": "2026-11-09",
+   "title": "N-able Disables Cloud Services Following Disclosure of \"Able2Shell\" Exploit Chains",
+   "url": "https://www.huntress.com/blog/n-able-disables-cloud-services-following-disclosure-of-able2shell-exploit-chains",
+   "publisher": "Huntress",
+   "category": "security",
+   "summary": "N-able took its N-central cloud services offline after 33 critical flaws were disclosed, including exploit chains enabling remote code execution and privilege escalation.",
+   "relevance": 8,
+   "added": "2026-11-10T00:18:16+00:00",
+   "minutes": 0
+  },
+  {
+   "date": "2026-11-09",
    "title": "Hackers exploit SSHole OpenSSH flaw to breach Linux systems",
    "url": "https://www.bleepingcomputer.com/news/security/hackers-exploit-sshole-openssh-flaw-to-breach-linux-systems/",
    "publisher": "BleepingComputer",
@@ -169,6 +180,17 @@
    ]
   },
   {
+   "date": "2026-11-09",
+   "title": "Control Room: A central system to track and stop model workloads across our research infrastructure",
+   "url": "https://openai.com/index/control-room",
+   "publisher": "OpenAI",
+   "category": "infrastructure",
+   "summary": "OpenAI describes Control Room, an internal system that tracks model workloads across its research infrastructure and can rapidly stop them over safety or security concerns.",
+   "relevance": 6,
+   "added": "2026-11-10T00:18:16+00:00",
+   "minutes": 0
+  },
+  {
    "date": "2026-11-08",
    "title": "Introducing Claude Fable 5.2 and Claude Mythos 5.2",
    "url": "https://www.anthropic.com/claude-fable-and-mythos-5-2",
@@ -216,6 +238,22 @@
     "Lima v2.3 adds an experimental hcs driver that runs VMs on Windows without QEMU or a Unix toolchain; only plain mode works.",
     "Add yourself to the Hyper-V Administrators group, then run limactl start --vm-type hcs --plain --dns 8.8.8.8 lima.",
     "On Linux, install Lima as root and dnsmasq, then install the generated sudoers rules to use lima:shared, lima:host or lima:bridged networks."
+   ]
+  },
+  {
+   "date": "2026-11-08",
+   "title": "Announcing Long-Context Training on TPUs with MaxText Context Parallelism",
+   "url": "https://developers.googleblog.com/announcing-long-context-training-on-tpus-with-maxtext-context-parallelism/",
+   "publisher": "Google AI",
+   "category": "engineering",
+   "summary": "Google Cloud's MaxText adds long-context TPU training up to 14M tokens via four context-parallel strategies (All-gather, A2A, P2P, USP) in v0.2.4.",
+   "relevance": 6,
+   "added": "2026-11-10T00:18:16+00:00",
+   "minutes": 9,
+   "tldr": [
+    "Google Cloud announced long-context training support in MaxText, its open-source JAX training framework, on Cloud TPU.",
+    "Llama 3.1 8B reaches 70% MFU on TPU 5p up to 4 million tokens, and context extends to 14 million tokens on TPU 5p and TPU 7.",
+    "Available in MaxText v0.2.4 on PyPI; pick a strategy with context_parallel_strategy (ring, ulysses, or usp) and set the context-parallel size."
    ]
   },
   {
@@ -1998,7 +2036,7 @@
    }
   ]
  },
- "generated_at": "2026-11-09T20:18:29+00:00",
+ "generated_at": "2026-11-10T00:18:25+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
