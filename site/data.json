@@ -148,6 +148,23 @@
   },
   {
    "date": "2026-11-10",
+   "published": "2026-11-10T20:09:44+00:00",
+   "title": "llm-gemini 0.36",
+   "url": "https://simonwillison.net/2026/Nov/10/llm-gemini/",
+   "publisher": "Simon Willison",
+   "category": "ai",
+   "summary": "Simon Willison's llm-gemini 0.36 adds Gemini 4 Carbon, now generally available at $2/$10 per million tokens, rising to $4/$20 on December 1.",
+   "relevance": 7,
+   "added": "2026-11-10T21:09:02+00:00",
+   "minutes": 1,
+   "tldr": [
+    "Google made Gemini 4 Carbon available to everyone, two weeks after announcing it for a subset of cyber defenders.",
+    "Launch pricing is $2/million input and $10/million output, scheduled to double to $4/$20 on December 1st.",
+    "Thinking effort can be set to low, medium or high, with medium as the default."
+   ]
+  },
+  {
+   "date": "2026-11-10",
    "title": "Long-horizon agents and durable execution",
    "url": "https://martinfowler.com/articles/durable-execution-agents.html",
    "publisher": "Martin Fowler",
@@ -2324,7 +2341,7 @@
    }
   ]
  },
- "generated_at": "2026-11-10T20:18:55+00:00",
+ "generated_at": "2026-11-10T21:09:10+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
