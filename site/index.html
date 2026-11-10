@@ -33,8 +33,6 @@
     --header-bg: rgba(227, 230, 236, .88); --tag-text: #0a5652;
     /* Category dots: one lightness and chroma per theme, hues spread to stay apart with red-green colour blindness. Dots need 3:1, not text contrast. */
     --cat-security: #ce5978; --cat-ai: #ad65be; --cat-infrastructure: #168dd9; --cat-engineering: #409d48; --cat-regulation: #c9690c; --cat-other: #5d646f;
-    /* Cards are lifted by shadow, not colour; essentials one step more than the feed. */
-    --lift: 0 1px 3px rgba(23, 26, 36, .08); --lift-more: 0 2px 6px rgba(23, 26, 36, .10); --ess-bg: #ffffff;
     --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --read: 860px;
   }
   [data-theme="dark"] {
@@ -43,7 +41,6 @@
     --text: #eceff4; --urgent: #d9485a; --text-muted: #a3abbb; --accent: #4fcdbb; --accent-soft: #1d3b3e; --accent-contrast: #15161e;
     --header-bg: rgba(21, 22, 30, .88); --tag-text: #9ae6da;
     --cat-security: #f57595; --cat-ai: #d080e2; --cat-infrastructure: #19affe; --cat-engineering: #69bc57; --cat-regulation: #e98a13; --cat-other: #afb6c1;
-    --lift: 0 1px 2px rgba(0, 0, 0, .25), inset 0 1px 0 rgba(255, 255, 255, .04); --lift-more: 0 2px 6px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .05); --ess-bg: var(--bg-card);  /* featured by shadow, not brightness */
   }
   * { box-sizing: border-box; margin: 0; }
   [hidden] { display: none !important; }
@@ -76,7 +73,7 @@
   [data-theme="dark"] .only-light, [data-theme="light"] .only-dark { display: none; }
   .theme-switching *, .theme-switching *::before, .theme-switching *::after { transition: none !important; }
   ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .35s; animation-timing-function: ease; }
-  html { scrollbar-gutter: stable; scroll-padding-top: 170px; }  /* the reader locks scrolling; keep the scrollbar's space so nothing shifts */
+  html { scrollbar-gutter: stable; scroll-padding-top: 64px; }  /* the reader locks scrolling; keep the scrollbar's space so nothing shifts */
   * { -webkit-tap-highlight-color: transparent; }  /* Android paints it above the reader that opens on tap */
   body { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
   a { color: inherit; text-decoration: none; }
@@ -93,19 +90,17 @@
   .controls { display: flex; align-items: center; gap: 6px; }
   .site-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2px 8px; padding: 8px 14px 32px; color: var(--text-muted); font-size: .8125rem; text-align: center; }
   #updated { margin-left: auto; color: var(--text-muted); font-size: .8125rem; font-weight: 500; text-transform: none; letter-spacing: 0; white-space: nowrap; }  /* the site's age, on the feed it describes */
-  .weekly-range { color: var(--text-muted); font-size: .8125rem; font-weight: 500; white-space: nowrap; }  /* which seven days the picks cover */
   .icon-btn { display: inline-grid; place-items: center; width: 36px; height: 36px; border: 1px solid transparent; border-radius: var(--radius-sm); background: none; color: var(--text-muted); cursor: pointer; }
   .icon-btn svg { width: 17px; height: 17px; }
 
-  .subheader { position: sticky; top: 52px; z-index: 99; padding: 10px 20px 12px; border-bottom: 1px solid var(--border);
-    background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(16px) saturate(1.25); -webkit-backdrop-filter: blur(16px) saturate(1.25); }
-  .stale { display: block; height: 28px; margin: -10px -20px 10px; padding: 0 20px; overflow: hidden; border-bottom: 1px solid var(--border); background: var(--bg-card); color: var(--text-muted);
+  /* After Feedbin: the topics in a sidebar, the list beside it, and on wide screens the reader docked beside that. The window scrolls the list. */
+  .shell { display: grid; grid-template-columns: 220px minmax(0, 1fr); }
+  .side { position: sticky; top: 52px; align-self: start; height: calc(100dvh - 52px); overflow-y: auto; padding: 14px 10px 24px; border-right: 1px solid var(--border); scrollbar-width: thin; }
+  .stale { display: block; height: 28px; padding: 0 20px; overflow: hidden; border-bottom: 1px solid var(--border); background: var(--bg-card); color: var(--text-muted);
     font-size: .75rem; line-height: 27px; text-align: center; white-space: nowrap; text-overflow: ellipsis; }
   .stale:hover { color: var(--text); text-decoration: underline; }
   @media (max-width: 359px) { #updated span { display: none; } }  /* "1h ago" on the narrowest phones, where the day row is full */
-  @media (max-width: 339px) { .weekly-range { display: none; } }  /* no room beside the heading */
-  .search-row, .filters { max-width: calc(var(--read) - 48px); margin: 0 auto; }
-  .search-row { display: flex; gap: 8px; }
+  .search-row { display: flex; gap: 8px; margin-bottom: 12px; }
   .search-wrap { position: relative; flex: 1; min-width: 0; }
   .search-wrap > svg { position: absolute; left: 12px; top: 50%; width: 16px; height: 16px; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
   #search { width: 100%; padding: 8px 64px 8px 36px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text); font: inherit; font-size: .875rem; outline: none; }
@@ -136,52 +131,43 @@
   .palette-close { flex: none; padding: 0; border: 0; background: none; color: var(--accent); font: 500 1rem Inter, system-ui, sans-serif; cursor: pointer; }
   .palette-close svg { display: none; }
   /* A row on wide screens; a popover behind the filter button on phones. */
-  .filters { position: static; display: flex; gap: 8px; width: auto; height: auto; padding: 14px 0 0; border: 0; background: none; color: inherit; min-height: 48px;  /* the chips arrive with the data; hold their row */ overflow-x: auto; scrollbar-width: none; }
+  /* A list in the sidebar; the same list in a drawer behind the topic button on phones. */
+  .filters { position: static; display: flex; flex-direction: column; gap: 1px; width: auto; height: auto; margin: 0; padding: 0; overflow: visible; border: 0; background: none; color: inherit; }
   .filter-toggle { display: none; }
-  .filter-btn { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 5px 14px; border: 1px solid var(--border); border-radius: var(--radius-lg);
-    background: var(--bg-card); color: var(--text-muted); font-size: .875rem; font-weight: 500; cursor: pointer; }
-  .filter-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }  /* a tint: a solid block outweighed the headlines */
+  .filter-btn { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 36px; padding: 6px 10px; border: 0; border-radius: var(--radius-sm);
+    background: none; color: var(--text); font-size: .9375rem; font-weight: 500; text-align: left; cursor: pointer; }
+  .f-mark { flex: none; display: grid; place-items: center; width: 16px; height: 16px; color: var(--text-muted); }
+  .f-mark svg { width: 16px; height: 16px; }
+  .f-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .f-count { flex: none; color: var(--text-muted); font-size: .8125rem; font-variant-numeric: tabular-nums; }
+  .filter-btn.active { background: var(--accent-soft); color: var(--tag-text); }  /* a tint: a solid block outweighed the headlines */
+  .filter-btn.active .f-mark, .filter-btn.active .f-count { color: inherit; }
+  .filters .f-head { margin: 18px 10px 6px; color: var(--text-muted); font-size: .8125rem; font-weight: 600; }
   .dot { flex: 0 0 auto; width: 7px; height: 7px; border-radius: 999px; background: var(--c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 14%, transparent); }
 
-  .weekly { max-width: var(--read); margin: 0 auto; padding: 18px 24px 0; }
-  .weekly[hidden] { display: none; }
-  .weekly-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
-  .weekly-heading { position: relative; display: flex; align-items: center; gap: 8px; min-height: 32px; margin-right: auto; }  /* keeps the nav right */
-  .weekly-title { font-size: 1.125rem; font-weight: 700; }
-  .info-btn { display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid currentColor; border-radius: 999px; background: none; color: var(--text-muted); font-size: .6875rem; font-weight: 700; cursor: pointer; }
-  .info-btn { position: relative; }
-  .info-btn::after { content: ""; position: absolute; inset: -11px; }  /* 44px target around the 22px circle */
-  .info-btn[aria-expanded="true"] { color: var(--accent); }
   .popover { position: absolute; top: calc(100% + 6px); left: 0; z-index: 50; width: min(320px, 80vw); padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-md);
     background: var(--bg-card); box-shadow: 0 24px 64px rgba(0, 0, 0, .25); color: var(--text-muted); font-size: .8125rem; line-height: 1.5; }
   .popover[hidden] { display: none; }
-  .nav { display: flex; align-self: center; gap: 8px; }
-  .nav-btn { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 999px; background: var(--bg-card); color: var(--text); cursor: pointer; }
-  .nav-btn:disabled { cursor: default; opacity: .45; }
-  .nav-btn svg { width: 16px; height: 16px; stroke-width: 2.2; }
-  .rail { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 1px; scroll-behavior: smooth; padding: 1px 1px 4px; scrollbar-width: none; }
-  .rail::-webkit-scrollbar, .filters::-webkit-scrollbar { display: none; }
-  .weekly-card { flex: 0 0 calc((100% - 20px) / 3); min-width: 220px; min-height: 8.3125rem;  /* fits a 4-line title, so loading never shifts the page */ scroll-snap-align: start; display: flex; align-items: flex-start; gap: 10px; padding: 12px;
-    background: var(--ess-bg); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: inset 3px 0 0 var(--accent), var(--lift-more); transition: border-color .15s ease; }  /* the upshot box's teal rule: Upshot's picks */
-  .weekly-card .dot { width: 9px; height: 9px; margin-top: 6px; }  /* as on the feed cards */
-  .weekly-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
-  .weekly-meta { display: flex; gap: 4px; min-width: 0; color: var(--text-muted); font-size: .8125rem; white-space: nowrap; }
-  .weekly-meta > :last-child { flex: none; }
-  .weekly-source { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-  .weekly-card-title { font-size: 1rem; line-height: 1.3; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;}
+  .filters::-webkit-scrollbar { display: none; }
 
-  .items { max-width: var(--read); margin: 0 auto; padding: 14px 24px 48px; display: flex; flex-direction: column; gap: 7px; }
-  .date-label { display: flex; align-items: baseline; gap: 6px; margin: 6px 0 1px; padding: 8px 0 6px; border-bottom: 1px solid var(--border);
-    color: var(--text-muted); font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
-  .day-meta { color: var(--text-muted); font-weight: 500; text-transform: none; letter-spacing: 0; font-size: .8125rem; }
-  .card { content-visibility: auto; contain-intrinsic-block-size: auto 4rem; display: flex; align-items: flex-start; gap: 12px; padding: 13px 16px;
-    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--lift); transition: border-color .15s ease; }
-  .card .dot { width: 9px; height: 9px; margin-top: 6px; }
+  /* The feed, after Feedbin: rows with no box around them, the publisher's icon, then title, source and the summary. */
+  .items { max-width: var(--read); margin: 0 auto; padding: 8px 24px 48px; display: flex; flex-direction: column; }
+  .date-label { display: flex; align-items: baseline; gap: 6px; margin: 14px 4px 4px; padding: 0 0 8px; border-bottom: 1px solid var(--border);
+    color: var(--text); font-size: .875rem; font-weight: 600; }
+  .date-label:first-child { margin-top: 8px; }
+  .day-meta { color: var(--text-muted); font-weight: 500; font-size: .8125rem; }
+  .card { content-visibility: auto; contain-intrinsic-block-size: auto 6rem; display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: var(--radius-md); transition: background-color .15s ease; }
+  .card[aria-current="true"] { background: var(--bg-card); }
   .card-body { flex: 1; min-width: 0; }
-  .card-title { margin-bottom: 4px; font-size: 1rem; font-weight: 600; line-height: 1.4; }
-  .card-meta { display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--text-muted); font-size: .8125rem; }
-  .card-cat { flex: 0 0 auto; }
-  .card-url { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-title { font-size: 1rem; font-weight: 600; line-height: 1.35; }
+  .card-meta { display: flex; align-items: center; gap: 6px; min-width: 0; margin-top: 3px; color: var(--text); font-size: .875rem; }
+  .card-src { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-meta > :not(.card-src) { flex: none; color: var(--text-muted); }
+  .card-sum { margin-top: 4px; color: var(--text-muted); font-size: .875rem; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .card-sum b { color: var(--accent); font-weight: 600; }
+  .card-meta .ess { color: var(--accent); font-size: .75rem; font-weight: 600; }  /* the week's picks, marked where they fall in the feed */
+  .src-icon { flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 5px; }
+  .src-mono { display: grid; place-items: center; background: var(--bg-card); box-shadow: inset 0 0 0 1px var(--border-strong); color: var(--text-muted); font: 700 .6875rem/1 Inter, system-ui, sans-serif; }
   mark { background: var(--accent-soft); color: inherit; border-radius: 2px; }
   .back-to-top { position: fixed; right: 24px; bottom: 24px; z-index: 90; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--accent);
     border-radius: 999px; background: var(--bg-card); color: var(--accent); cursor: pointer; box-shadow: 0 8px 24px rgba(0, 0, 0, .2); }
@@ -191,11 +177,13 @@
   .back-to-top:active { background: var(--accent); color: var(--accent-contrast); }
   @media (hover: hover) { .back-to-top:hover { background: var(--accent); color: var(--accent-contrast); } }  /* fills in, rather than moving */
   .card.read .card-title { color: var(--text-muted); font-weight: 500; }
+  .card.read .card-meta { color: var(--text-muted); }
   .new { flex: 0 0 auto; padding: 1px 7px; border-radius: 999px; background: var(--accent); color: var(--accent-contrast); font-size: .6875rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
   .skeleton { pointer-events: none; }
   .skeleton .bone { display: block; height: .8em; border-radius: 6px; background: var(--border); animation: pulse 1.4s ease-in-out infinite; }
+  .skeleton .src-icon.bone { height: 20px; }
   .skeleton .bone.title { height: 1em; margin-bottom: .4em; }
-  .skeleton.card { min-height: 104px; }
+  .skeleton.card { min-height: 96px; }
   @keyframes pulse { 50% { opacity: .45; } }
   .empty { padding: 60px 24px; color: var(--text-muted); text-align: center; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -228,49 +216,46 @@
   }
   @media (hover: hover) {
     .icon-btn:hover { border-color: var(--border); background: var(--bg-card-hover); color: var(--accent); }
-    .nav-btn:not(:disabled):hover { border-color: var(--border-strong); background: var(--bg-card-hover); }
-    .filter-btn:not(.active):hover { border-color: var(--border-strong); color: var(--text); }
-    .card:hover, .weekly-card:hover { border-color: var(--border-strong); }  /* a firmer edge; cards stay put */
+    .filter-btn:not(.active):hover { background: var(--bg-card-hover); }
+    .card:hover { background: var(--bg-card-hover); }
   }
   @media (max-width: 640px) {
     header { padding: 0 14px; }
-    /* Search and filters become header icons beside the menu; only the stale band (rare) stays below. */
+    /* One column. Search and the topic picker move into the header beside the menu; only the stale band (rare) stays below. */
+    .shell { display: block; }
     .subheader { display: contents; }
-    .stale { margin: 0; padding: 0 14px; }
+    .stale { padding: 0 14px; }
     .search-row { position: fixed; top: 0; right: 58px; z-index: 101; height: 52px; align-items: center; gap: 0; max-width: none; margin: 0; }
+    .search-wrap { order: 1; }  /* rightmost, so the palette's close button can sit exactly over it */
     .search-wrap { flex: none; width: 44px; height: 44px; }
     .search-wrap > svg { left: 50%; width: 24px; height: 24px; transform: translate(-50%, -50%); }
     #search, #search:focus { height: 44px; padding: 0; border-color: transparent; background: none; color: transparent; }
     #search::placeholder { color: transparent; }
-    .filter-toggle { display: inline-flex; flex: none; align-items: center; justify-content: center; gap: 6px; min-width: 44px; height: 44px; padding: 0 9px; border: 1px solid transparent; border-radius: var(--radius-sm); background: none; color: var(--text-muted); font: inherit; font-size: .875rem; font-weight: 600; cursor: pointer; }
-    .filter-toggle svg { width: 24px; height: 24px; }
-    #filter-label:empty { display: none; }  /* or its gap widens the icon */
+    /* The topic picker, after Feedbin's "All ⌄": the topic you're on, and a chevron. */
+    .filter-toggle { display: inline-flex; flex: none; align-items: center; justify-content: center; gap: 4px; min-width: 44px; height: 44px; padding: 0 8px 0 10px; border: 1px solid transparent; border-radius: var(--radius-sm); background: none; color: var(--text); font: inherit; font-size: 1rem; font-weight: 600; cursor: pointer; }
+    .filter-toggle svg { width: 18px; height: 18px; color: var(--text-muted); }
     .filter-toggle.active { border-color: var(--accent); background: var(--accent-soft); color: var(--tag-text); }
     .subheader:has(.filters:popover-open) .filter-toggle { border-color: var(--border-strong); background: var(--bg-card-hover); }
     /* Same drawer as the menu, under the header. */
-    .filters { position: fixed; inset: 52px 0 auto; flex-wrap: wrap; width: 100%; max-width: none; min-height: 0; margin: 0; padding: 12px 14px 14px; overflow: visible; border-bottom: 1px solid var(--border-strong);
+    .filters { position: fixed; inset: 52px 0 auto; width: 100%; max-height: calc(100dvh - 52px); margin: 0; padding: 6px 8px 10px; overflow-y: auto; border-bottom: 1px solid var(--border-strong);
       background: var(--bg); box-shadow: 0 12px 24px rgba(0, 0, 0, .25); clip-path: inset(0 0 100% 0);
       transition: clip-path .22s cubic-bezier(.2, 0, 0, 1), display .22s allow-discrete, overlay .22s allow-discrete; }
     .filters::backdrop { top: 52px; background: transparent; transition: background .22s ease, display .22s allow-discrete, overlay .22s allow-discrete; }
     .filters:not(:popover-open) { display: none; }
-    body:has(.filters:popover-open) > :not(header, .subheader) { pointer-events: none; }  /* a tap outside only closes the drawer */
+    body:has(.filters:popover-open) :is(.col, #stale) { pointer-events: none; }  /* a tap outside only closes the drawer */
     .filters:popover-open { clip-path: inset(0 0 -40px 0); }
     .filters:popover-open::backdrop { background: rgba(0, 0, 0, .45); }
     @starting-style {
       .filters:popover-open { clip-path: inset(0 0 100% 0); }
       .filters:popover-open::backdrop { background: transparent; }
     }
-    .filter-btn { min-height: 44px; }
-    .icon-btn, .nav-btn { width: 44px; height: 44px; }
+    .filter-btn { min-height: 44px; font-size: 1rem; }
+    .filters .f-head { margin-top: 12px; }
+    .icon-btn { width: 44px; height: 44px; }
     .icon-btn svg { width: 24px; height: 24px; }
     .palette-list li { min-height: 44px; }
-    .weekly, .items { padding-left: 14px; padding-right: 14px; }
-    .weekly-header { gap: 8px; }
-    .weekly-title { font-size: 1.0625rem; }
-    .nav { display: none; }
-    .rail { margin-right: -14px; padding-right: 14px; }
-    .weekly-card { flex-basis: min(82vw, 300px); }
-    .card { padding: 12px; gap: 10px; }
+    .items { padding-left: 6px; padding-right: 6px; }
+    .card { gap: 10px; }
     .back-to-top { right: 12px; bottom: 12px; }
     .site-foot { padding-bottom: 72px; }  /* clears the back-to-top button */
     /* Under the header, which stays clear; tapping it closes. */
@@ -278,7 +263,7 @@
     .palette::backdrop { background: linear-gradient(transparent 52px, rgba(0, 0, 0, .5) 52px); }
     .palette-foot { display: none; }
     /* No Esc key here: the close button sits over the header's search icon, so it turns into an X. */
-    .palette-close { position: fixed; top: 4px; right: 102px; display: grid; place-items: center; width: 44px; height: 44px; color: var(--text-muted); }
+    .palette-close { position: fixed; top: 4px; right: 58px; display: grid; place-items: center; width: 44px; height: 44px; color: var(--text-muted); }
     .palette-close kbd { display: none; } .palette-close svg { display: block; width: 24px; height: 24px; }
     body:has(#palette[open]) .search-wrap > svg { visibility: hidden; }
   }
@@ -303,6 +288,18 @@
     .feed { transition: transform var(--slide-out) var(--ease-out); }
     body.reading .feed { transform: translateX(calc(-25% * (1 - var(--drag, 0)))); transition: transform var(--slide-in) var(--ease-in); }
   }
+  /* Wide screens: the reader docked beside the list for good, with no backdrop, and the list stays live while it's open. */
+  @media (min-width: 1280px) {
+    .shell { grid-template-columns: 240px 440px; }
+    .items { padding: 8px 10px 48px; }
+    .reader { top: 52px; left: 680px; width: auto; z-index: 98; border-left: 1px solid var(--border); box-shadow: none; transform: none !important; visibility: visible; pointer-events: auto; transition: none; }
+    .reader-backdrop { display: none; }
+    body.reading { overflow: visible; }
+    .reader-body:empty::before { content: "Pick a story to read it here."; position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-muted); font-size: .9375rem; }
+    body:not(.reading) .reader-bar > :not(.reader-spacer) { visibility: hidden; }  /* nothing open: no controls for it */
+    body:not(.reading) .reader-nav { display: none; }
+    .back-to-top { right: auto; left: 612px; }  /* inside the list, not over the article */
+  }
   .reader-bar { display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 12px; border-bottom: 1px solid var(--border); flex: 0 0 auto; }
   .reader-spacer { flex: 1; }
   .text-size[aria-expanded="true"] { background: var(--bg-card-hover); color: var(--text); }
@@ -315,10 +312,9 @@
   .size-pop button:hover { background: var(--bg-card-hover); color: var(--text); }
   .size-pop button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
   .size-pop [data-size="0"] { font-size: 13px; } .size-pop [data-size="1"] { font-size: 16px; } .size-pop [data-size="2"] { font-size: 20px; } .size-pop [data-size="3"] { font-size: 24px; }
-  .reader-icon { flex: none; width: 22px; height: 22px; border-radius: 5px; }
+  .reader-icon { width: 22px; height: 22px; margin-top: 0; }
   /* Single-colour artwork on transparency would vanish against a background of its own tone, so it's inverted there. */
-  .reader-mono { display: grid; place-items: center; background: var(--bg-card); box-shadow: inset 0 0 0 1px var(--border-strong); color: var(--text-muted); font: 700 .75rem/1 Inter, system-ui, sans-serif; }
-  [data-theme="dark"] .reader-icon[data-art="dark"], [data-theme="light"] .reader-icon[data-art="light"] { filter: invert(1); }
+  [data-theme="dark"] .src-icon[data-art="dark"], [data-theme="light"] .src-icon[data-art="light"] { filter: invert(1); }
   #reader:focus { outline: none; }  /* focused on a tap open, so no ring appears on the close button */
   .close-back, .reader-nav { display: none; }
   .reader-nav { flex: 0 0 auto; justify-content: center; gap: 48px; height: 52px; border-top: 1px solid var(--border); }
@@ -353,48 +349,37 @@
     </div>
   </div>
 </header>
-<div class="subheader feed">
-  <a class="stale" id="stale" href="https://github.com/davelevine/upshot/actions/workflows/build.yml" target="_blank" rel="noopener" hidden></a>
+<a class="stale feed" id="stale" href="https://github.com/davelevine/upshot/actions/workflows/build.yml" target="_blank" rel="noopener" hidden></a>
+<div class="shell">
+<aside class="subheader side feed">
   <div class="search-row" role="search">
     <div class="search-wrap" id="search-wrap">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="search" type="search" placeholder="Search..." aria-label="Search articles" aria-haspopup="dialog" autocomplete="off" readonly>
       <kbd class="search-kbd" id="search-kbd" hidden></kbd>
     </div>
-    <button class="filter-toggle" id="filter-toggle" type="button" popovertarget="filters" aria-label="Filters">
-      <svg viewBox="0 0 24 24"><path d="M4 7h9M19 7h1M4 17h1M11 17h9"/><circle cx="16" cy="7" r="2.6"/><circle cx="8" cy="17" r="2.6"/></svg><span id="filter-label"></span>
+    <button class="filter-toggle" id="filter-toggle" type="button" popovertarget="filters" aria-label="Topic: All">
+      <span id="filter-label">All</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
     </button>
   </div>
-  <div class="filters" id="filters" popover></div>
-</div>
-<section class="weekly feed" id="weekly" aria-labelledby="weekly-title">
-  <div class="weekly-header">
-    <div class="weekly-heading">
-      <h2 class="weekly-title" id="weekly-title">The week’s essentials</h2>
-      <button class="info-btn" id="info" type="button" aria-expanded="false" aria-controls="info-pop" aria-label="About this selection" title="Five stories from the last seven days, chosen as most worth acting on, each with what to do.">i</button>
-      <div class="popover" id="info-pop" hidden>Five stories from the last seven days, chosen as most worth acting on, each with what to do.</div>
-    </div>
-    <span class="weekly-range" id="weekly-range"></span>
-    <div class="nav">
-      <button class="nav-btn" id="prev" type="button" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
-      <button class="nav-btn" id="next" type="button" aria-label="Next"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
-    </div>
-  </div>
-  <div class="rail" id="rail"><div class="weekly-card skeleton" aria-hidden="true"><span class="dot" style="--c:var(--border)"></span><div class="weekly-body"><div class="weekly-card-title"><span class="bone title"></span><span class="bone title" style="width:80%"></span></div><div class="weekly-meta"><span class="bone" style="width:45%;align-self:center"></span>&nbsp;</div></div></div><div class="weekly-card skeleton" aria-hidden="true"><span class="dot" style="--c:var(--border)"></span><div class="weekly-body"><div class="weekly-card-title"><span class="bone title"></span><span class="bone title" style="width:80%"></span></div><div class="weekly-meta"><span class="bone" style="width:45%;align-self:center"></span>&nbsp;</div></div></div><div class="weekly-card skeleton" aria-hidden="true"><span class="dot" style="--c:var(--border)"></span><div class="weekly-body"><div class="weekly-card-title"><span class="bone title"></span><span class="bone title" style="width:80%"></span></div><div class="weekly-meta"><span class="bone" style="width:45%;align-self:center"></span>&nbsp;</div></div></div></div>
-</section>
+  <nav class="filters" id="filters" popover aria-label="Topics"></nav>
+</aside>
+<div class="col">
 <div class="sr-only" id="status" role="status"></div>
-<main class="items feed" id="items" aria-busy="true"><div class="date-label skeleton" aria-hidden="true"><span class="bone" style="width:6em"></span><span class="day-meta">&nbsp;</span></div><div class="card skeleton" aria-hidden="true"><span class="dot" style="--c:var(--border)"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="dot" style="--c:var(--border)"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="dot" style="--c:var(--border)"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="dot" style="--c:var(--border)"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div></main>
+<main class="items feed" id="items" aria-busy="true"><div class="date-label skeleton" aria-hidden="true"><span class="bone" style="width:6em"></span><span class="day-meta">&nbsp;</span></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div></main>
 <div id="sentinel"></div>
 <footer class="site-foot feed" id="end" hidden>
   <span id="end-msg"></span>
   <a class="icon-btn" href="/rss.xml" title="RSS feed" aria-label="RSS feed"><svg viewBox="0 0 24 24"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg></a>
   <a class="icon-btn" href="https://github.com/davelevine/upshot" target="_blank" rel="noopener" title="Source on GitHub" aria-label="Source on GitHub"><svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.75c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></a>
 </footer>
+</div>
+</div>
 <div class="reader-backdrop" id="reader-backdrop"></div>
 <div class="reader" id="reader" tabindex="-1" role="dialog" aria-modal="true" aria-label="Reader" aria-hidden="true">
   <div class="reader-bar">
     <button class="icon-btn" id="reader-close" type="button" aria-label="Close reader"><svg class="close-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg><svg class="close-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
-    <img class="reader-icon" id="reader-icon" alt="" width="22" height="22" hidden><span class="reader-icon reader-mono" id="reader-mono" aria-hidden="true" hidden></span>
+    <img class="src-icon reader-icon" id="reader-icon" alt="" width="22" height="22" hidden><span class="src-icon src-mono reader-icon" id="reader-mono" aria-hidden="true" hidden></span>
     <span class="reader-spacer"></span>
     <span class="send-done" id="send-done" hidden>Copied</span>
     <span class="size-wrap">

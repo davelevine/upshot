@@ -10,7 +10,8 @@ const STALE_MINUTES = 12 * 60;  // three missed builds
 const KEEP_DAYS = 90;  // build.py prunes older stories
 // The latest entry decides: a batch can hold an older one from before the last redraw, and reading that stopped the feed short of its end.
 const io = new IntersectionObserver(es => { if (es.at(-1).isIntersecting && limit < shown.length) { limit += PAGE; renderPage(); } }, { rootMargin: '800px' });
-let tz, iconArt = {}, icons = new Set(), items = [], filter = 'all', shown = [], limit = PAGE, generatedAt = null;
+let tz, iconArt = {}, icons = new Set(), items = [], filter = 'all', shown = [], limit = PAGE, generatedAt = null, picks = new Map();  // picks: url -> what to do
+const label = f => (f === 'all' ? 'All' : f === 'essentials' ? 'Essentials' : CATS[f]);
 
 // Today in the site's time zone (data.json's tz), not the device's: some browsers report UTC for privacy, which
 // turned the evening's stories into "Yesterday".
@@ -38,18 +39,19 @@ function highlight(text, q) {
 function renderFilters() {
   const counts = {};
   for (const i of items) counts[cat(i.category)] = (counts[cat(i.category)] || 0) + 1;
-  $('filters').innerHTML = [`<button class="filter-btn${filter === 'all' ? ' active' : ''}" data-f="all">All</button>`]
-    .concat(ORDER.filter(c => counts[c] || filter === c).map(c => `<button class="filter-btn${filter === c ? ' active' : ''}" data-f="${c}">` +
-      `<span class="dot" style="--c:var(--cat-${c})"></span>${CATS[c]} (${counts[c] || 0})</button>`)).join('');
-  const name = filter === 'all' ? '' : CATS[filter];
-  $('filter-label').textContent = name;  // a hidden filter must still show, or stories look missing
-  $('filter-toggle').classList.toggle('active', !!name);
-  $('filter-toggle').setAttribute('aria-label', name ? `Filters: ${name}` : 'Filters');
+  const btn = (f, n, mark) => `<button class="filter-btn${filter === f ? ' active' : ''}" data-f="${f}" aria-pressed="${filter === f}">` +
+    `<span class="f-mark" aria-hidden="true">${mark}</span><span class="f-name">${label(f)}</span><span class="f-count">${n}</span></button>`;
+  $('filters').innerHTML = btn('all', items.length, '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>') +
+    (picks.size ? btn('essentials', picks.size, '<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>') : '') +
+    '<h2 class="f-head">Topics</h2>' + ORDER.filter(c => counts[c] || filter === c).map(c => btn(c, counts[c] || 0, `<span class="dot" style="--c:var(--cat-${c})"></span>`)).join('');
+  $('filter-label').textContent = label(filter);  // a hidden filter must still show, or stories look missing
+  $('filter-toggle').classList.toggle('active', filter !== 'all');
+  $('filter-toggle').setAttribute('aria-label', `Topic: ${label(filter)}`);
 }
 
 function renderItems(keepLimit) {
   const ql = $('search').value.trim().toLowerCase();
-  shown = items.filter(i => (filter === 'all' || cat(i.category) === filter) &&
+  shown = items.filter(i => (filter === 'all' || (filter === 'essentials' ? picks.has(i.url) : cat(i.category) === filter)) &&
     (!ql || `${i.title} ${i.summary} ${i.publisher} ${domain(i.url)}`.toLowerCase().includes(ql)));
   $('status').textContent = ql ? `${shown.length} articles found` : '';
   if (!keepLimit) limit = PAGE;
@@ -62,22 +64,24 @@ function renderPage() {
   const counts = {}, groups = {};
   // Grouped by the label shown (Today, Yesterday, a weekday or a date).
   const minutes = {}, unknown = {};
+  const group = i => (filter === 'essentials' && weekly?.window_start ? `This week, ${weekRange(weekly)}` : dayLabel(i.date));  // the picks span seven days
   for (const i of shown) {
-    const d = dayLabel(i.date);
+    const d = group(i);
     counts[d] = (counts[d] || 0) + 1;
     minutes[d] = (minutes[d] || 0) + (i.minutes || 0);
     if (!i.minutes) unknown[d] = true;
   }
   const dayMeta = d => `· ${counts[d]} ${counts[d] === 1 ? 'story' : 'stories'}${unknown[d] ? '' : ` · ${minutes[d]} min`}`;  // only a full count: a floor would teach people to ignore it
-  for (const i of shown.slice(0, limit)) (groups[dayLabel(i.date)] ||= []).push(i);
+  for (const i of shown.slice(0, limit)) (groups[group(i)] ||= []).push(i);
   $('items').innerHTML = shown.length ? Object.entries(groups).map(([d, list], n) => `
     <div class="date-label"><span>${d}</span><span class="day-meta">${dayMeta(d)}</span>${n ? '' : '<time id="updated"></time>'}</div>
-    ${list.map(i => { const c = cat(i.category); return `
-    <a class="card${readSet.has(i.url) ? ' read' : ''}" href="${esc(i.url)}" target="_blank" rel="noopener">
-      <span class="dot" style="--c:var(--cat-${c})"></span>
+    ${list.map(i => { const ess = picks.has(i.url), why = filter === 'essentials' && picks.get(i.url), preview = why || i.summary; return `
+    <a class="card${readSet.has(i.url) ? ' read' : ''}${ess ? ' essential' : ''}" href="${esc(i.url)}" target="_blank" rel="noopener"${i.url === readerFor ? ' aria-current="true"' : ''}>
+      ${iconHtml(i.publisher)}
       <div class="card-body">
         <div class="card-title">${highlight(i.title, q)}</div>
-        <div class="card-meta">${isNew(i) ? '<span class="new">New</span>' : ''}<span class="card-cat">${CATS[c]}</span><span>·</span><span class="card-url">${esc(domain(i.url))}</span></div>
+        <div class="card-meta"><span class="card-src">${esc(i.publisher)}</span>${i.minutes ? `<span>· ${i.minutes} min</span>` : ''}${ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : ''}${isNew(i) ? '<span class="new">New</span>' : ''}</div>
+        ${preview ? `<div class="card-sum">${why ? '<b>What to do: </b>' : ''}${highlight(preview, q)}</div>` : ''}
       </div>
     </a>`; }).join('')}`).join('')
     : '<p class="empty">No articles match your search.</p>';
@@ -88,7 +92,7 @@ function renderPage() {
   const ended = shown.length && limit >= shown.length;
   $('end').hidden = !ended;
   if (ended) {
-    const n = shown.length, what = `${filter === 'all' ? '' : `${CATS[filter]} `}stor${n === 1 ? 'y' : 'ies'}`;
+    const n = shown.length, what = `${filter === 'all' ? '' : `${label(filter)} `}stor${n === 1 ? 'y' : 'ies'}`;
     const days = Math.min(KEEP_DAYS, Math.ceil((Date.now() - Date.parse(items.reduce((o, i) => (i.date < o ? i.date : o), items[0].date))) / 864e5));
     const scope = q ? ` matching \u201c${q}\u201d` : filter === 'all' ? ` from the last ${days} days` : '';  // the real span: a young site hasn't reached KEEP_DAYS
     $('end-msg').textContent = `That\u2019s ${n === 1 ? 'the only' : `all ${n}`} ${what}${scope}.`;
@@ -101,27 +105,11 @@ function weekRange(w) {
   const [a, b] = [md(w.window_start), md(w.window_end)];
   return a.split(' ')[0] === b.split(' ')[0] ? `${a}–${b.split(' ')[1]}` : `${a} – ${b}`;
 }
-function renderWeekly(weekly) {
-  const byUrl = Object.fromEntries(items.map(i => [i.url, i]));
-  const picks = (weekly?.items || []).filter(p => byUrl[p.url]);
-  if (!picks.length) { $('weekly').hidden = true; return; }  // the placeholder tiles go too
-  $('weekly-range').textContent = weekly.window_start ? weekRange(weekly) : '';
-  $('rail').innerHTML = picks.map(p => { const i = byUrl[p.url]; return `
-    <a class="weekly-card" href="${esc(i.url)}" target="_blank" rel="noopener">
-      <span class="dot" role="img" aria-label="${CATS[cat(i.category)]}" style="--c:var(--cat-${cat(i.category)})"></span>
-      <div class="weekly-body">
-        <div class="weekly-card-title">${esc(i.title)}</div>
-        <div class="weekly-meta"><span class="weekly-source">${esc(i.publisher)}</span><span>· ${dayLabel(i.date)}</span></div>
-      </div>
-    </a>`; }).join('');
-  $('weekly').hidden = false;
-  const rail = $('rail');
-  const step = () => rail.firstElementChild.offsetWidth + 10;
-  const sync = () => { $('prev').disabled = rail.scrollLeft < 4; $('next').disabled = rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 4; };
-  $('prev').onclick = () => rail.scrollBy({ left: -step() });
-  $('next').onclick = () => rail.scrollBy({ left: step() });
-  rail.onscroll = sync;
-  sync();
+// The week's essentials: their own entry in the topics, and marked where they appear in the feed.
+function setPicks(weekly) {
+  const urls = new Set(items.map(i => i.url));
+  picks = new Map((weekly?.items || []).filter(p => urls.has(p.url)).map(p => [p.url, p.why]));
+  if (filter === 'essentials' && !picks.size) filter = 'all';
 }
 
 const syncThemeColor = () => {
@@ -152,13 +140,6 @@ $('theme').onclick = $('reader-theme').onclick = () => {
   else swap();
   localStorage.setItem('theme', t);
 };
-$('info').onclick = e => {
-  e.stopPropagation();
-  const open = $('info-pop').hidden;
-  $('info-pop').hidden = !open;
-  $('info').setAttribute('aria-expanded', open);
-};
-document.addEventListener('click', () => { $('info-pop').hidden = true; $('info').setAttribute('aria-expanded', false); });
 $('filters').onclick = e => {
   const b = e.target.closest('.filter-btn');
   if (!b) return;
@@ -222,13 +203,24 @@ function load() {
     icons = new Set(data.icons || []);
     iconArt = data.iconArt || {};
     pruneRead();
+    setPicks(data.weekly);
     renderFilters();
-    renderWeekly(data.weekly);
     renderItems(refresh);
     if (!refresh) syncFromUrl();
   });
 }
 let readerFor = null;
+// Wide screens dock the reader beside the list, as Feedbin does: the list stays usable while an article is open.
+const docked = matchMedia('(min-width: 1280px)');
+const setInert = () => {
+  const off = document.body.classList.contains('reading') && !docked.matches;
+  document.querySelectorAll('.feed, #top').forEach(el => { el.inert = off; });
+  $('reader').setAttribute('aria-modal', String(!docked.matches));
+};
+docked.addEventListener('change', setInert);  // resizing never strands an inert list
+const markCurrent = url => document.querySelectorAll('a.card').forEach(a => {
+  if (url && a.getAttribute('href') === url) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+});
 
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 // Inside the article frame, the only script allowed is this one. It must pass two policies: the frame's own (by nonce)
@@ -270,6 +262,14 @@ function frameVars(theme) {
   return out;
 }
 const iconSlug = name => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');  // same rule as build.py slug()
+// The publisher's icon, or its initial when the build found none, so a row or the reader bar never starts blank.
+function iconFor(publisher) {
+  const slug = iconSlug(publisher);
+  return { has: icons.has(slug), src: `/icons/${slug}.png`, art: iconArt[slug] || '', mono: (publisher.match(/[a-z0-9]/i) || ['·'])[0].toUpperCase() };
+}
+const iconHtml = publisher => { const f = iconFor(publisher); return f.has
+  ? `<img class="src-icon" src="${f.src}" alt="" width="20" height="20" loading="lazy" decoding="async" data-art="${f.art}">`
+  : `<span class="src-icon src-mono" aria-hidden="true">${esc(f.mono)}</span>`; };
 // Under the title, like Feedbin: when and by whom, then where from and how long.
 function storyMeta(i, byline, minutes) {
   const [y, m, d] = i.date.split('-').map(Number);
@@ -367,25 +367,27 @@ function openReader(i, { fromHash = false } = {}) {
   const fresh = !document.body.classList.contains('reading');
   readerFor = i.url;
   markRead(i.url);
-  const why = weekly?.items?.find(p => p.url === i.url)?.why;
-  const icon = iconSlug(i.publisher);
-  $('reader-icon').hidden = !icons.has(icon);
-  if (icons.has(icon)) $('reader-icon').src = `/icons/${icon}.png`;
-  $('reader-icon').dataset.art = iconArt[icon] || '';
-  $('reader-mono').hidden = icons.has(icon);  // no icon: the publisher's initial, so the bar never starts blank
-  $('reader-mono').textContent = (i.publisher.match(/[a-z0-9]/i) || ['·'])[0].toUpperCase();
+  const why = picks.get(i.url);
+  const icon = iconFor(i.publisher);
+  $('reader-icon').hidden = !icon.has;
+  if (icon.has) $('reader-icon').src = icon.src;
+  $('reader-icon').dataset.art = icon.art;
+  $('reader-mono').hidden = icon.has;
+  $('reader-mono').textContent = icon.mono;
   const at = shown.findIndex(x => x.url === i.url);
   $('reader-prev').disabled = at <= 0;
   $('reader-next').disabled = at < 0 || at >= shown.length - 1;
   showInReader(i, storyCard(i, 'Loading the full article…', true), why);  // before the fetch: the fetch can only upgrade this
   document.body.classList.add('reading');
   $('reader').setAttribute('aria-hidden', 'false');
-  document.querySelectorAll('.feed, #top').forEach(el => { el.inert = true; });
+  setInert();
+  markCurrent(i.url);
+  if (docked.matches) cardFor(i.url)?.scrollIntoView({ block: 'nearest' });
   // pushed: this entry sits on top of the feed, so closing goes back. Opened from a link, it doesn't, or it would leave
   // the site. Kept in the entry, so it survives back and forward.
   if (fresh && !fromHash) history.pushState({ reader: true, pushed: true }, '', readPath(i.url));
   else history.replaceState({ ...history.state, reader: true }, '', readPath(i.url));
-  if (fresh) (lastInput === 'key' ? $('reader-close') : $('reader')).focus({ preventScroll: true });  // no ring after a tap
+  if (fresh && !docked.matches) (lastInput === 'key' ? $('reader-close') : $('reader')).focus({ preventScroll: true });  // no ring after a tap; docked, focus stays in the list
   let unreadable = 'The reader view isn\u2019t available right now.';
   fetch('/api/read?url=' + encodeURIComponent(i.url), { cache: 'no-store' }).then(r => r.json()).then(r => {
     if (readerFor !== i.url) return;  // another article was opened meanwhile
@@ -447,10 +449,11 @@ function closeReader() {
   readerFor = null;
   document.body.classList.remove('reading');
   $('reader').setAttribute('aria-hidden', 'true');
-  document.querySelectorAll('.feed, #top').forEach(el => { el.inert = false; });
+  setInert();
+  markCurrent(null);
   const card = url && cardFor(url);  // back to where you were, even after j/k through several articles
   if (card) { card.focus({ preventScroll: true }); card.scrollIntoView({ block: 'nearest' }); }
-  setTimeout(() => { if (!readerFor) $('reader-body').replaceChildren(); }, 350);  // after the slide out
+  setTimeout(() => { if (!readerFor) $('reader-body').replaceChildren(); }, docked.matches ? 0 : 350);  // after the slide out; docked, nothing slides
 }
 function dismiss() {
   if (history.state?.pushed) return history.back();
@@ -673,10 +676,10 @@ $('palette-list').addEventListener('click', e => { const li = e.target.closest('
 $('palette-list').addEventListener('mousemove', e => { const li = e.target.closest('li[data-n]'); if (li && +li.dataset.n !== pal.sel) selectPalette(+li.dataset.n, false); });
 $('palette').addEventListener('click', e => { if (e.target === $('palette')) closePalette(); });  // the backdrop
 $('palette-close').addEventListener('click', () => closePalette());
-document.addEventListener('auxclick', e => { const a = e.target.closest('a.card, a.weekly-card'); if (a && e.button === 1) markRead(a.getAttribute('href')); });
+document.addEventListener('auxclick', e => { const a = e.target.closest('a.card'); if (a && e.button === 1) markRead(a.getAttribute('href')); });
 // Plain clicks on an article open the reader; modified and middle clicks still open the site.
 document.addEventListener('click', e => {
-  const a = e.target.closest('a.card, a.weekly-card');
+  const a = e.target.closest('a.card');
   if (!a) return;
   if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return markRead(a.getAttribute('href'));
   const i = items.find(x => x.url === a.getAttribute('href'));

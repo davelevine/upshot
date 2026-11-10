@@ -76,16 +76,19 @@ def test_feed_renders(browser):
     pg = open_site(browser)
     assert pg.locator("a.card").count() > 0
     assert pg.locator(".filter-btn").count() >= 2  # All + each category with stories
-    assert pg.locator(".filter-btn", has_text="(0)").count() == 0
+    assert "0" not in pg.locator("#filters .f-count").all_inner_texts()  # no empty topics
     assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".date-label #updated"))
     assert pg.locator("#end").is_hidden()  # not until the list runs out
     assert re.fullmatch(r"· \d+ stor(y|ies)( · \d+\+? min)?", pg.locator(".day-meta").first.inner_text())
     assert pg.locator(".card-arrow").count() == 0 and pg.locator(".card-time").count() == 0
-    # Headlines only: the summary is for search and the reader, not the list.
-    assert pg.locator(".card-summary").count() == 0
-    assert pg.evaluate("[...document.querySelector('a.card .card-body').children].map(e => e.className)") == ["card-title", "card-meta"]
-    # Tiles hold the placeholders' height (a 4-line title fits), so loading never shifts the page.
-    assert {round(c.bounding_box()["height"]) for c in pg.locator(".weekly-card").all()} == {133}
+    # After Feedbin: the publisher's icon, then title, source and the one-line summary. The topic is the sidebar's job.
+    first = pg.locator("a.card").first
+    assert pg.evaluate("[...document.querySelector('a.card .card-body').children].map(e => e.className)") == ["card-title", "card-meta", "card-sum"]
+    assert first.locator("> .src-icon").count() == 1 and pg.locator("a.card .dot").count() == 0
+    assert first.locator(".card-src").inner_text() == pg.evaluate("items[0].publisher")
+    assert first.locator(".card-sum").inner_text() == pg.evaluate("items[0].summary")
+    assert first.evaluate("e => [getComputedStyle(e).borderTopWidth, getComputedStyle(e).boxShadow]") == ["0px", "none"]  # rows, not boxes
+    assert pg.locator("#weekly, .weekly-card").count() == 0  # the essentials are an entry in the topics now
     assert pg.problems == []
 
 
@@ -128,7 +131,7 @@ def test_animations_run_under_reduced_motion(browser):
 
 def test_phone_filter_drawer(browser):
     pg = open_site(browser, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
-    assert pg.locator("#filters .filter-btn").first.is_hidden() and pg.locator("#filter-label").inner_text() == ""
+    assert pg.locator("#filters .filter-btn").first.is_hidden() and pg.locator("#filter-label").inner_text() == "All"
     assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
     pg.tap("#filter-toggle")
     pg.wait_for_function("() => !document.getElementById('filters').getAnimations().length")
@@ -138,25 +141,33 @@ def test_phone_filter_drawer(browser):
     pg.tap("#filters .filter-btn[data-f='security']")
     pg.locator("#filters .filter-btn").first.wait_for(state="hidden")
     assert pg.locator("#filter-label").inner_text() == "Security"
-    assert pg.locator("#filter-toggle").get_attribute("aria-label") == "Filters: Security"
-    assert pg.locator(".card-cat").evaluate_all("els => els.every(e => e.textContent === 'Security')")
+    assert pg.locator("#filter-toggle").get_attribute("aria-label") == "Topic: Security"
+    assert pg.evaluate("shown.length > 0 && shown.every(i => cat(i.category) === 'security')")
     pg.tap("#filter-toggle")
     pg.tap("#filters .filter-btn[data-f='all']")
     pg.locator("#filters .filter-btn").first.wait_for(state="hidden")
-    assert pg.locator("#filter-label").inner_text() == ""
+    assert pg.locator("#filter-label").inner_text() == "All"
     assert pg.problems == []
 
 
-def test_essentials_card_layout(browser):
+def test_essentials_have_their_own_entry_and_show_once(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 900})
-    card = pg.locator(".weekly-card").first
-    assert card.locator("> .dot").count() == 1 and card.locator(".rank").count() == 0  # the dot alone carries the category
-    assert card.locator("> .dot").get_attribute("aria-label") in ("AI", "Infrastructure", "Engineering", "Security", "Regulation", "Other")  # named for screen readers
-    # A long publisher shortens before the date does, and the line stays inside the card.
-    card.locator(".weekly-source").evaluate("e => { e.textContent = 'A Very Long Publisher Name That Cannot Possibly Fit Here' }")
-    fits = """c => { const m = c.querySelector('.weekly-meta').getBoundingClientRect(), r = c.getBoundingClientRect(),
-        d = c.querySelector('.weekly-meta > :last-child'); return m.right <= r.right && d.scrollWidth <= d.clientWidth && d.textContent.startsWith('·'); }"""
-    assert card.evaluate(fits)
+    picks = pg.evaluate("weekly.items.filter(p => items.some(i => i.url === p.url))")
+    hrefs = pg.locator("a.card").evaluate_all("els => els.map(e => e.getAttribute('href'))")
+    assert len(hrefs) == len(set(hrefs))  # nothing listed twice
+    marked = pg.locator("a.card.essential").evaluate_all("els => els.map(e => e.getAttribute('href'))")
+    assert set(marked) == {p["url"] for p in picks} & set(hrefs)
+    assert all(t == "Essential" for t in pg.locator("a.card.essential .ess").all_text_contents())  # text_content: off-screen rows aren't rendered yet
+    pg.click("#filters .filter-btn[data-f='essentials']")
+    assert pg.locator("#filters .filter-btn[data-f='essentials'] .f-count").inner_text() == str(len(picks))
+    cards = pg.locator("a.card")
+    assert cards.count() == len(picks)
+    # One week, not days, and each pick previews what to do rather than its summary.
+    assert pg.locator(".date-label > span").first.inner_text() == "This week, " + pg.evaluate("weekRange(weekly)")
+    for n, p in enumerate(picks):
+        sel = f'a.card[href="{p["url"]}"]'
+        assert pg.locator(f"{sel} .card-sum").inner_text() == f"What to do: {p['why']}"
+        assert pg.locator(f"{sel} .ess").count() == 0  # the view says it already
     assert pg.problems == []
 
 
@@ -260,19 +271,10 @@ def test_back_to_top_reacts_to_hover(browser):
     assert top.evaluate(look) != before and top.evaluate("e => getComputedStyle(e).transform") == "none"
 
 
-def test_week_range_shares_the_headings_baseline(browser):
-    baseline = """() => { const box = s => { const r = document.createRange(); r.selectNodeContents(document.querySelector(s));
-            return r.getBoundingClientRect(); }, base = s => { const e = document.querySelector(s), m = document.createElement('span');
-            m.style.cssText = 'display:inline-block;width:0;height:0'; e.append(m); const y = m.getBoundingClientRect().bottom; m.remove(); return y; };
-        return [Math.abs(base('.weekly-title') - base('#weekly-range')), document.documentElement.scrollWidth <= innerWidth,
-                box('.weekly-title').right <= box('#weekly-range').left]; }"""
-    for width in (1300, 412, 411, 410, 375, 360, 340):
-        extra = {} if width > 640 else {"has_touch": True, "is_mobile": True}
-        pg = open_site(browser, viewport={"width": width, "height": 700}, **extra)
-        gap, fits, apart = pg.evaluate(baseline)
-        assert gap < 1 and fits and apart, width
-    pg = open_site(browser, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)  # too narrow for it
-    assert pg.locator("#weekly-range").is_hidden() and pg.evaluate("document.querySelector('.weekly-title').getBoundingClientRect().height < 30")
+def show_essentials(pg):
+    """The essentials entry, whether it sits in the sidebar or behind the phone's topic picker."""
+    pg.evaluate("document.querySelector(\"#filters [data-f='essentials']\").click()")
+    pg.wait_for_function("() => shown.length && shown.every(i => picks.has(i.url))")
 
 
 def held_reader(browser, **context):
@@ -282,9 +284,10 @@ def held_reader(browser, **context):
     held = []
     ctx.route("**/api/read?*", lambda route: held.append(route))
     pg.goto(URL)
-    pg.wait_for_selector(".weekly-card:not(.skeleton)")  # the loading placeholders share the class, with empty titles
-    card = pg.locator(".weekly-card:not(.skeleton)").first
-    title = card.locator(".weekly-card-title").text_content()
+    pg.wait_for_selector("a.card")
+    show_essentials(pg)
+    card = pg.locator("a.card").first
+    title = card.locator(".card-title").text_content()
     card.click()
     return pg, held, title, pg.frame_locator("#reader-body iframe:not(.loading)")
 
@@ -516,8 +519,8 @@ def test_reader_bar_after_feedbin(browser):
     pg.locator("#reader-prev").tap()
     pg.wait_for_function("() => document.getElementById('reader-prev').disabled")
     assert pg.problems == []
-    # On a desktop: an X, no bottom bar, and the keyboard still lands on the close button.
-    dc = browser.new_context(viewport={"width": 1300, "height": 900})
+    # On a desktop where the reader slides over the list: an X, no bottom bar, and the keyboard still lands on the close button.
+    dc = browser.new_context(viewport={"width": 1024, "height": 800})
     def no_icons(route):  # a publisher with no icon listed
         res = route.fetch()
         route.fulfill(response=res, json={**res.json(), "icons": []})
@@ -578,11 +581,11 @@ def test_today_means_the_sites_today_whatever_the_device_reports(browser):
         pg = ctx.new_page()
         pg.goto(URL)
         pg.wait_for_selector("a.card")
-        assert pg.locator(".date-label").first.inner_text().startswith("TODAY"), device_tz
+        assert pg.locator(".date-label").first.inner_text().startswith("Today"), device_tz
 
 
 def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
-    ctx = browser.new_context(viewport={"width": 1300, "height": 900})
+    ctx = browser.new_context(viewport={"width": 1024, "height": 800})  # the sliding reader: this checks a click during its slide out
     def with_tldr(route):
         res = route.fetch()
         data = res.json()
@@ -596,8 +599,9 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     ctx.route("**/api/read?*", lambda r: r.fulfill(content_type="application/json", body=json.dumps({"reason": "pending", "frameable": False})))
     pg = ctx.new_page()
     pg.goto(URL)
-    pg.wait_for_selector(".weekly-card:not(.skeleton)")
-    pg.locator(".weekly-card:not(.skeleton)").first.click()  # an essential with an upshot
+    pg.wait_for_selector("a.card")
+    show_essentials(pg)
+    pg.locator("a.card").first.click()  # an essential with an upshot
     frame = pg.frame_locator("#reader-body iframe:not(.loading)")
     box = frame.locator(".tldr")
     box.wait_for()
@@ -617,10 +621,10 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     pg.keyboard.press("Escape")  # closes the size menu, leaving the reader open
     pg.keyboard.press("Escape")
     wait_until_closed(pg)  # Esc closes through history.back(), which lands a moment later: click before it and the tile is still inert
-    second = pg.locator(".weekly-card:not(.skeleton)").nth(1)
+    second = pg.locator("a.card").nth(1)
     # Still sliding out over this tile for a moment: a click meant for the tile must not land in the old article.
     assert pg.evaluate("getComputedStyle(document.getElementById('reader')).pointerEvents") == "none"
-    title = second.locator(".weekly-card-title").inner_text()
+    title = second.locator(".card-title").inner_text()
     # Still flaky on CI runners: log what the click does, so a failure says which of "never arrived", "landed elsewhere"
     # and "opened then closed" it was.
     popups = []
@@ -760,9 +764,9 @@ def test_the_search_bar_and_slash_open_the_palette(browser):
     ph = browser.new_context(viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True).new_page()
     ph.goto(URL)
     ph.wait_for_selector("a.card")
-    for sel in ("#search-wrap", "#filter-toggle"):  # header icons on phones, beside the menu
+    for sel in ("#search-wrap", "#filter-toggle"):  # in the header on phones, beside the menu
         box = ph.locator(sel).bounding_box()
-        assert box["width"] == 44 and box["height"] == 44 and box["y"] + 44 <= 52
+        assert box["width"] >= 44 and box["height"] == 44 and box["y"] + 44 <= 52
     ph.tap("#search")
     ph.locator("#palette").wait_for()
     # Below the header, and the search icon becomes the close button (no Esc key on a phone).
@@ -920,13 +924,6 @@ def test_closing_after_forward_doesnt_strand_a_history_entry(browser):
     assert pg.problems == []
 
 
-def test_stale_band_leaves_the_essentials_arrows_on_the_right(browser):
-    pg = stale_site(browser, 14, viewport={"width": 1300, "height": 900})
-    pg.locator("#stale").wait_for()
-    header, nav = pg.locator(".weekly-header").bounding_box(), pg.locator("#next").bounding_box()
-    assert header["x"] + header["width"] - (nav["x"] + nav["width"]) < 2  # the stale band shows, the arrows don't move
-
-
 def test_reader_header_tidies_bylines_and_never_starts_blank(browser):
     ctx = browser.new_context(viewport={"width": 1300, "height": 900})
     def article(route):
@@ -954,10 +951,9 @@ def test_reader_header_tidies_bylines_and_never_starts_blank(browser):
 
 def test_essentials_say_which_days_and_updated_sits_on_the_feed(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 900})
-    w = pg.evaluate("weekly")
-    assert pg.inner_text("#weekly-range") == pg.evaluate("w => weekRange(w)", w) and re.fullmatch(r"[A-Z][a-z]{2} \d{1,2}(–\d{1,2}| – [A-Z][a-z]{2} \d{1,2})", pg.inner_text("#weekly-range"))
+    assert re.fullmatch(r"[A-Z][a-z]{2} \d{1,2}(–\d{1,2}| – [A-Z][a-z]{2} \d{1,2})", pg.evaluate("weekRange(weekly)"))
     assert pg.evaluate("weekRange({window_start: '2026-10-29', window_end: '2026-11-04'})") == "Oct 29 – Nov 4"
-    assert pg.locator(".weekly-header #updated").count() == 0 and pg.locator(".date-label").first.locator("#updated").count() == 1
+    assert pg.locator(".date-label").first.locator("#updated").count() == 1
     pg.locator(".filter-btn", has_text="Security").click()  # a redraw keeps it filled in
     assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".date-label #updated"))
     assert pg.problems == []
@@ -986,4 +982,47 @@ def test_palette_opens_on_what_you_read_last(browser):
     pg.keyboard.press("Enter")  # the first entry is selected, so Enter opens it
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
     assert pg.evaluate("readerFor") == pg.evaluate("items[2].url")
+    assert pg.problems == []
+
+
+def test_wide_screens_dock_the_reader_beside_the_list(browser):
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    reader, backdrop = pg.locator("#reader"), pg.locator("#reader-backdrop")
+    # Docked before anything opens: an empty pane that says what it's for, no backdrop, a live list.
+    assert reader.is_visible() and backdrop.is_hidden()
+    assert pg.evaluate("getComputedStyle(document.getElementById('reader-body'), '::before').content") == '"Pick a story to read it here."'
+    side, items, pane = (pg.locator(s).bounding_box() for s in (".side", "#items", "#reader"))
+    assert side["x"] + side["width"] <= items["x"] and items["x"] + items["width"] <= pane["x"] + 1 and pane["x"] + pane["width"] <= 1440
+    cards = pg.locator("a.card")
+    cards.nth(1).click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    assert reading(pg) and backdrop.is_hidden()
+    assert not pg.evaluate("document.getElementById('items').inert") and reader.get_attribute("aria-modal") == "false"
+    assert cards.nth(1).get_attribute("aria-current") == "true" and pg.locator("a.card[aria-current]").count() == 1
+    assert pg.evaluate("document.activeElement.closest('#reader')") is None  # focus stays in the list, so j/k work there
+    # The list still takes clicks and scrolls while an article is open, and j moves through it.
+    cards.nth(3).click()
+    pg.locator("a.card").nth(3).and_(pg.locator("[aria-current='true']")).wait_for()
+    second = pg.evaluate("readerFor")
+    pg.keyboard.press("j")
+    pg.wait_for_function("u => readerFor && readerFor !== u", arg=second)
+    assert pg.evaluate("shown.findIndex(i => i.url === readerFor)") == 4
+    assert pg.locator("a.card").nth(4).get_attribute("aria-current") == "true"
+    pg.keyboard.press("Escape")
+    wait_until_closed(pg)
+    pg.locator("#reader-body iframe").first.wait_for(state="detached")  # cleared at once: nothing slides out
+    assert pg.locator("a.card[aria-current]").count() == 0
+    assert pg.problems == []
+
+
+def test_resizing_to_a_wide_screen_frees_the_list(browser):
+    pg = open_site(browser, viewport={"width": 1024, "height": 800})
+    pg.locator("a.card").first.click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    assert pg.evaluate("document.getElementById('items').inert")  # sliding over the list: the list waits
+    pg.set_viewport_size({"width": 1440, "height": 900})
+    pg.wait_for_function("() => !document.getElementById('items').inert")
+    assert pg.locator("#reader-backdrop").is_hidden()
+    pg.set_viewport_size({"width": 1024, "height": 800})
+    pg.wait_for_function("() => document.getElementById('items').inert")
     assert pg.problems == []
