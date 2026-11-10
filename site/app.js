@@ -933,7 +933,7 @@ function tickerLines() {
   const mins = Math.max(0, (Date.now() - Date.parse(generatedAt)) / 60e3);
   return [new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'long', month: 'long', day: 'numeric' }).format(new Date()),
     `Updated ${agoText(mins)}`,
-    ...(mins < STALE_MINUTES ? [`Next update in about ${hoursMinutes(nextBuildMinutes())}`] : [])];  // late: no promise of when
+    ...(mins < STALE_MINUTES ? [`Next update in ${hoursMinutes(nextBuildMinutes())}`] : [])];  // late: no promise of when
 }
 function stopTicker() {
   tickTimers.forEach(clearTimeout); tickTimers = [];
