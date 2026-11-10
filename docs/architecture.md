@@ -25,7 +25,7 @@ The layout follows desktop feed readers such as Feedbin, in three widths:
 
 - **Phones (up to 640px):** one column. Search and a topic picker ("All ⌄") sit in the header, and the reader covers the list.
 - **641–1279px:** topics in a sidebar beside the list. The reader slides over the list, which is inert while it's open.
-- **1280px and up:** sidebar, list and reader side by side. The reader stays docked, and the list stays live while an article is open, so `j`/`k` and clicks move through it.
+- **1280px and up:** sidebar, list and reader side by side, with no full-width header: the logo tops the sidebar, and the menu sits at the end of the reader bar. The reader stays docked, the list scrolls on its own, and it stays live while an article is open, so `j`/`k` and clicks move through it.
 
 The essentials are an entry in the topics, not a separate section, so no story is listed twice. [`site/_headers`](../site/_headers) sets the Content-Security-Policy. [`worker.js`](../worker.js) serves the static files and answers `/api/read` for the reader; [`wrangler.jsonc`](../wrangler.jsonc) configures the Worker.
 
