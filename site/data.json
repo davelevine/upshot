@@ -191,6 +191,22 @@
    "minutes": 0
   },
   {
+   "date": "2026-11-09",
+   "title": "The open AI-native stack on Kubernetes: From open models to distributed inference and agents",
+   "url": "https://cloud.google.com/blog/topics/developers-practitioners/the-open-ai-native-stack-on-kubernetes-from-open-models-to-distributed-inference-and-agents/",
+   "publisher": "Google Cloud Blog",
+   "category": "infrastructure",
+   "summary": "Google Cloud describes an open-source stack for running AI models, distributed inference, and agents on Kubernetes, with sample manifests and a KubeCon 2026 demo invitation.",
+   "relevance": 6,
+   "added": "2026-11-10T02:47:11+00:00",
+   "minutes": 9,
+   "tldr": [
+    "Google Cloud introduced an open-source AI-native stack for Kubernetes and GKE at KubeCon NA 2026, including OpenRL, llm-d 1.0, and KubeRay.",
+    "It addresses idle accelerators in RL, cache-blind load balancing, siloed Ray and Slurm clusters, and sandbox escapes from untrusted agent code.",
+    "Start with openrl.dev, llm-d.ai, and KubeRay documentation; Gemma deployment guides are in GKE docs."
+   ]
+  },
+  {
    "date": "2026-11-08",
    "title": "Introducing Claude Fable 5.2 and Claude Mythos 5.2",
    "url": "https://www.anthropic.com/claude-fable-and-mythos-5-2",
@@ -2036,7 +2052,7 @@
    }
   ]
  },
- "generated_at": "2026-11-10T00:18:25+00:00",
+ "generated_at": "2026-11-10T02:47:19+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
