@@ -1320,6 +1320,7 @@ def ticker_site(browser, built_hours_ago, now="2026-11-10T14:00:00Z", **context)
         route.fulfill(json=data)
     ctx.route("**/data.json*", patched)
     pg.clock.install(time=now)
+    pg.clock.pause_at(now)  # time moves only when the test says: a slow machine can't run the pass early
     pg.goto(URL)
     pg.wait_for_selector("#filters .filter-btn")
     pg.clock.run_for(50)
@@ -1387,7 +1388,9 @@ def test_a_pass_waits_for_the_wordmark_to_be_in_view(browser):
     pg.goto(URL)
     pg.wait_for_selector("#filters .filter-btn")
     path = pg.evaluate("readPath(items[0].url)")
-    pg.clock.install()
+    start = datetime.now(timezone.utc)
+    pg.clock.install(time=start)
+    pg.clock.pause_at(start)  # time moves only when the test says
     pg.goto(URL.rstrip("/") + path)
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
     ticking = lambda: pg.evaluate("document.body.classList.contains('ticking')")
