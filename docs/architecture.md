@@ -27,7 +27,9 @@ The layout follows desktop feed readers such as Feedbin, in three widths:
 - **641–1279px:** topics in a sidebar beside the list. Dragging the sidebar's edge resizes it (and, from 1280px, the list's too); the widths are kept in the browser, and a double-click resets them. The reader slides over the list, which is inert while it's open.
 - **1280px and up:** sidebar, list and reader side by side, with no full-width header: the logo tops the sidebar, and the menu sits at the end of the reader bar. The reader stays docked, the list scrolls on its own, and it stays live while an article is open, so `j`/`k` and clicks move through it.
 
-The essentials are an entry in the topics, not a separate section, so no story is listed twice. [`site/_headers`](../site/_headers) sets the Content-Security-Policy. [`worker.js`](../worker.js) serves the static files and answers `/api/read` for the reader; [`wrangler.jsonc`](../wrangler.jsonc) configures the Worker.
+The essentials are an entry in the topics, not a separate section, so no story is listed twice.
+
+Each time Upshot opens (or comes back after 15 minutes away), the wordmark's spot runs once through the date, when the news last updated and when the next build is due (from the build's schedule, `17 */4 * * *` UTC, and left out when a build is late), then settles back on the wordmark, after Kagi News. The pass takes under five seconds, so it needs no pause control under WCAG 2.2.2, and a tap ends it. [`site/_headers`](../site/_headers) sets the Content-Security-Policy. [`worker.js`](../worker.js) serves the static files and answers `/api/read` for the reader; [`wrangler.jsonc`](../wrangler.jsonc) configures the Worker.
 
 ## The reader, and what it does with your data
 

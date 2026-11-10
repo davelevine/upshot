@@ -245,12 +245,13 @@ addEventListener('pagehide', rememberSeen);
 document.addEventListener('visibilitychange', () => { if (document.hidden) rememberSeen(); });
 
 // "Updated 2h ago" at the top of the feed; a number that keeps growing means builds have stopped.
+const agoText = mins => (mins < 1 ? 'just now' : mins < 60 ? `${Math.floor(mins)}m ago`
+  : mins < 48 * 60 ? `${Math.floor(mins / 60)}h ago` : `${Math.floor(mins / 1440)}d ago`);
 function showUpdated() {
   const el = $('updated'), mins = Math.max(0, (Date.now() - Date.parse(generatedAt)) / 60e3);  // none on an empty feed
   el.dateTime = generatedAt;
   el.title = new Date(generatedAt).toLocaleString();
-  const ago = mins < 1 ? 'just now' : mins < 60 ? `${Math.floor(mins)}m ago`
-    : mins < 48 * 60 ? `${Math.floor(mins / 60)}h ago` : `${Math.floor(mins / 1440)}d ago`;
+  const ago = agoText(mins);
   el.innerHTML = `<span>Updated </span>${ago}`;
   $('stale').hidden = mins < STALE_MINUTES;
   el.hidden = !$('stale').hidden;  // one slot, two states: the bar says the same thing, where it can be acted on
@@ -289,6 +290,7 @@ function load() {
       document.body.classList.add('paging');
       syncFromUrl(); syncHome();
       requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('paging')));
+      if (document.hidden) tickOnShow = true; else playTicker();  // opened: one pass
     }
   });
 }
@@ -877,10 +879,53 @@ for (const [k, c] of Object.entries(COLS)) {
 }
 addEventListener('resize', () => { for (const k in COLS) if (localStorage.getItem(k + 'Width')) setCol(k, +localStorage.getItem(k + 'Width'), false); });
 
+// The wordmark's spot, once each time Upshot opens: the date, when it updated and when it's next due, then the wordmark
+// again (after Kagi News). Under five seconds, so it never needs a pause control (WCAG 2.2.2); a tap ends it at once.
+const BUILD_EVERY_HOURS = 4, BUILD_AT_MINUTE = 17;  // .github/workflows/build.yml: cron "17 */4 * * *", in UTC
+const TICK_MS = 1500, FADE_MS = 300, REOPEN_MINUTES = 15;
+let tickTimers = [], tickOnShow = false, hiddenAt = Date.now();
+function nextBuildMinutes(now = Date.now()) {
+  const t = new Date(now);
+  t.setUTCHours(t.getUTCHours() - t.getUTCHours() % BUILD_EVERY_HOURS, BUILD_AT_MINUTE, 0, 0);
+  while (t <= now) t.setUTCHours(t.getUTCHours() + BUILD_EVERY_HOURS);
+  return Math.round((t - now) / 60e3);
+}
+const hoursMinutes = m => (m < 60 ? `${m}m` : `${Math.floor(m / 60)}h ${m % 60}m`);
+function tickerLines() {
+  const mins = Math.max(0, (Date.now() - Date.parse(generatedAt)) / 60e3);
+  return [new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'long', month: 'long', day: 'numeric' }).format(new Date()),
+    `Updated ${agoText(mins)}`,
+    ...(mins < STALE_MINUTES ? [`Next update in about ${hoursMinutes(nextBuildMinutes())}`] : [])];  // late: no promise of when
+}
+function stopTicker() {
+  tickTimers.forEach(clearTimeout); tickTimers = [];
+  $('ticker').classList.remove('on');
+  document.body.classList.remove('ticking');
+}
+function playTicker() {
+  if (!generatedAt) return;
+  stopTicker();
+  const lines = tickerLines(), at = (ms, f) => tickTimers.push(setTimeout(f, ms));
+  document.body.classList.add('ticking');
+  lines.forEach((line, n) => {
+    if (n) at(n * TICK_MS, () => $('ticker').classList.remove('on'));
+    at(n * TICK_MS + FADE_MS, () => { $('ticker').textContent = line; $('ticker').classList.add('on'); });
+  });
+  at(lines.length * TICK_MS, () => $('ticker').classList.remove('on'));
+  at(lines.length * TICK_MS + FADE_MS, stopTicker);
+}
+// A tap or click on the wordmark mid-pass just ends it.
+document.querySelector('.logo-h').addEventListener('click', e => { if (document.body.classList.contains('ticking')) { e.preventDefault(); stopTicker(); } });
+
 syncThemeColor();
 load().catch(() => { $('items').innerHTML = '<p class="empty">Couldn’t load the news. Try again in a bit.</p>'; });
 // Builds land every ~4h: check every 15 min while visible, and when the tab comes back into view.
-const check = () => { if (!document.hidden) load().catch(() => {}); };
+const check = () => { if (!document.hidden) return load().catch(() => {}); };
 setInterval(check, 15 * 60e3);
 setInterval(() => { if (generatedAt && !document.hidden) { showUpdated(); refreshAges(); } }, 60e3);
-document.addEventListener('visibilitychange', check);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { hiddenAt = Date.now(); return stopTicker(); }
+  const back = tickOnShow || Date.now() - hiddenAt > REOPEN_MINUTES * 60e3;  // a phone reopens from the background, not a fresh load
+  tickOnShow = false;
+  check()?.then(() => { if (back) playTicker(); });
+});

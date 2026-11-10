@@ -154,8 +154,6 @@ def test_phones_open_on_the_topics(browser):
     assert pg.evaluate("document.getElementById('list-back').inert")  # faded out, and out of reach
     assert pg.evaluate(shown_, "#search-btn") == 0 and pg.evaluate("document.getElementById('search-btn').inert")  # search is for lists
     assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
-    foot = pg.locator(".side-foot").bounding_box()
-    assert foot["y"] + foot["height"] == 700  # "Updated" at the screen's foot, not under the last topic
     assert pg.locator(".resizer").evaluate_all("els => els.every(e => getComputedStyle(e).display === 'none')")  # desktop's column edges
     for row in pg.locator("#filters .filter-btn").all():
         box = row.bounding_box()
@@ -1058,9 +1056,6 @@ def test_essentials_say_which_days_and_updated_sits_on_the_feed(browser):
     assert re.fullmatch(r"[A-Z][a-z]{2} \d{1,2}(–\d{1,2}| – [A-Z][a-z]{2} \d{1,2})", pg.evaluate("weekRange(weekly)"))
     assert pg.evaluate("weekRange({window_start: '2026-10-29', window_end: '2026-11-04'})") == "Oct 29 – Nov 4"
     assert pg.locator(".side-foot #updated").count() == 1
-    # Centred in a band as tall as the late bar at the foot, so the two share a line when both show.
-    foot = pg.locator(".side-foot").bounding_box()
-    assert foot["y"] + foot["height"] == 900 and foot["height"] == 44
     pg.locator(".filter-btn", has_text="Security").click()  # a redraw keeps it filled in
     assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".side-foot #updated"))
     assert pg.problems == []
@@ -1283,3 +1278,68 @@ def test_wide_screens_resize_the_topics_and_the_list(browser):
     pg.locator("#resize-side").dblclick()
     assert width("--side-w") == side  # double-click: back to the default
     assert pg.locator("#resize-side").is_hidden() is False and pg.problems == []
+
+
+def ticker_site(browser, built_hours_ago, now="2026-11-10T14:00:00Z", **context):
+    """The site on a fake clock (so the pass can be stepped through exactly), with data built some hours before `now`."""
+    ctx = browser.new_context(**context)
+    pg = ctx.new_page()
+    built = (datetime.fromisoformat(now.replace("Z", "+00:00")) - timedelta(hours=built_hours_ago)).isoformat(timespec="seconds")
+    def patched(route):
+        data = route.fetch().json()
+        data["generated_at"], data["tz"] = built, "America/New_York"
+        route.fulfill(json=data)
+    ctx.route("**/data.json*", patched)
+    pg.clock.install(time=now)
+    pg.goto(URL)
+    pg.wait_for_selector("#filters .filter-btn")
+    pg.clock.run_for(50)
+    return pg
+
+
+def test_opening_runs_the_wordmark_through_how_fresh_the_news_is_once(browser):
+    pg = ticker_site(browser, 1, viewport={"width": 1440, "height": 900})
+    ticking = lambda: pg.evaluate("document.body.classList.contains('ticking')")
+    assert ticking() and pg.get_attribute("#ticker", "aria-hidden") == "true"  # screen readers get the sidebar's "Updated" instead
+    seen = []
+    for _ in range(4):
+        pg.clock.run_for(400)  # into the line, past its fade
+        seen.append(pg.inner_text("#ticker"))
+        pg.clock.run_for(1100)
+    # The date where the site is (9am in New York), when it updated, when the next build is due (16:17 UTC), then the wordmark.
+    assert seen[:3] == ["Tuesday, November 10", "Updated 1h ago", "Next update in about 2h 17m"]
+    pg.clock.run_for(400)
+    assert not ticking()  # back on the wordmark, in under five seconds all told (WCAG 2.2.2), and it stays there
+    pg.clock.run_for(60_000)
+    assert not ticking()
+
+
+def test_a_late_build_skips_the_promise_and_a_tap_ends_the_pass(browser):
+    pg = ticker_site(browser, 6, viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
+    lines = []
+    for _ in range(3):
+        pg.clock.run_for(400)
+        lines.append(pg.inner_text("#ticker"))
+        pg.clock.run_for(1100)
+    assert lines[:2] == ["Tuesday, November 10", "Updated 6h ago"] and not any("Next update" in l for l in lines)  # late: no promise
+    pg = ticker_site(browser, 1, viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
+    pg.clock.run_for(400)
+    pg.tap(".logo-h")  # mid-pass: it just ends, rather than navigating
+    assert not pg.evaluate("document.body.classList.contains('ticking')") and pg.evaluate("location.pathname") == "/"
+
+
+def test_coming_back_after_a_while_plays_the_pass_again(browser):
+    pg = ticker_site(browser, 1, viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
+    ticking = lambda: pg.evaluate("document.body.classList.contains('ticking')")
+    pg.clock.run_for(6000)
+    assert not ticking()
+    away = "h => { Object.defineProperty(document, 'hidden', { get: () => h, configurable: true }); document.dispatchEvent(new Event('visibilitychange')); }"
+    pg.evaluate(away, True)  # to the background, as a phone does when Upshot is closed
+    pg.clock.run_for(5 * 60_000)
+    pg.evaluate(away, False)  # back within minutes: still the same visit
+    pg.clock.run_for(500)
+    assert not ticking()
+    pg.evaluate(away, True)
+    pg.clock.run_for(20 * 60_000)
+    pg.evaluate(away, False)  # back after a while: an opening, so one pass
+    pg.wait_for_function("() => document.body.classList.contains('ticking')")
