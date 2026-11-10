@@ -2,6 +2,22 @@
  "items": [
   {
    "date": "2026-11-10",
+   "title": "Gemini 4 Carbon is now available for developers.",
+   "url": "https://blog.google/innovation-and-ai/technology/developers-tools/gemini-4-carbon-developers/",
+   "publisher": "Google Blog",
+   "category": "ai",
+   "summary": "Google made Gemini 4 Carbon available to developers, which it says has frontier performance in cybersecurity and long-horizon tasks.",
+   "relevance": 9,
+   "added": "2026-11-10T16:18:44+00:00",
+   "minutes": 1,
+   "tldr": [
+    "Google released Gemini 4 Carbon, its strongest model, with frontier performance in cybersecurity and long-horizon capabilities.",
+    "Developers can build with it via the paid tier of the API in Google AI Studio and Android Studio; Google AI Ultra subscribers can try it in AI Studio and Google Antigravity.",
+    "The Gemini API Developer Guide has model details and setup instructions, and the Google Antigravity blog covers using Carbon there."
+   ]
+  },
+  {
+   "date": "2026-11-10",
    "title": "Chrome Update Patches Exploited XML Zero-Day, Eighth This Year",
    "url": "https://www.securityweek.com/chrome-update-patches-exploited-xml-zero-day-eighth-this-year/",
    "publisher": "SecurityWeek",
@@ -51,6 +67,39 @@
   },
   {
    "date": "2026-11-10",
+   "title": "Critical Xen Orchestra auth bypass flaw exploited to hijack VM servers",
+   "url": "https://www.bleepingcomputer.com/news/security/critical-xen-orchestra-auth-bypass-flaw-exploited-to-hijack-vm-servers/",
+   "publisher": "BleepingComputer",
+   "category": "security",
+   "summary": "A critical authentication bypass in Xen Orchestra is being actively exploited, enabling administrator access and potential takeover of XCP-ng virtualization hosts.",
+   "relevance": 8,
+   "added": "2026-11-10T16:18:44+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Critical Xen Orchestra authentication bypass VSA-2026-062 is being actively exploited, letting attackers gain Admin privileges and take over XCP-ng hosts.",
+    "Affected are Xen Orchestra and the Xen Orchestra Appliance (XOA), where a crafted authenticationToken cookie bypasses login without credentials.",
+    "Install Xen Orchestra 6.9.1 or 6.10.0, which include patched xo-server 5.211.2 and 5.213.1.",
+    "If compromised, rotate passwords and secrets, and check for connections to 91.211.251.112:8001 and a VM named pivot2."
+   ]
+  },
+  {
+   "date": "2026-11-10",
+   "title": "Binance warns of iOS flaw that could leak crypto wallet secrets",
+   "url": "https://www.bleepingcomputer.com/news/security/binance-warns-of-ios-flaw-that-could-leak-crypto-wallet-secrets/",
+   "publisher": "BleepingComputer",
+   "category": "security",
+   "summary": "Binance warns that an Apple iOS flaw in versions 26.7.1, 27.0.1 and 27.2 lets third-party apps read other apps' private files, including crypto seed phrases and credentials.",
+   "relevance": 8,
+   "added": "2026-11-10T16:18:44+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Binance warns of an iOS vulnerability, worse_query, affecting iOS 26.7.1, 27.0.1, and 27.2 that lets malicious apps read other apps' files.",
+    "Exposed data could include seed phrases, private keys, and login credentials; no cryptocurrency losses have been confirmed.",
+    "Install Apple's iOS security update immediately, delete unnecessary and untrusted apps, and move funds to a new wallet on a clean device if compromise is suspected."
+   ]
+  },
+  {
+   "date": "2026-11-10",
    "title": "Introducing AlphaProof Code: a breakthrough in verifying complex software at depth",
    "url": "https://deepmind.google/blog/introducing-alphaproof-code/",
    "publisher": "Google DeepMind",
@@ -63,6 +112,40 @@
     "Google DeepMind used AlphaProof Code, a multi-LLM agentic framework, to formally verify the code underlying the Signal protocol.",
     "The proofs cover compiled code running on devices, not just design, and generated over six million lines of Lean. Verification took four weeks.",
     "Human experts reviewed about one percent of the codebase flagged by the agents; Lean automatically checks the rest. The team is open-sourcing its formal verification artifacts."
+   ]
+  },
+  {
+   "date": "2026-11-10",
+   "title": "Long-horizon agents and durable execution",
+   "url": "https://martinfowler.com/articles/durable-execution-agents.html",
+   "publisher": "Martin Fowler",
+   "category": "engineering",
+   "summary": "Martin Fowler's site publishes Kiran Prakash's explainer on durable execution, a pattern that logs completed external-facing steps so long-running agents can resume after crashes or failures.",
+   "relevance": 6,
+   "added": "2026-11-10T16:18:44+00:00",
+   "minutes": 25,
+   "tldr": [
+    "Long-horizon agents spend most of their time waiting on people and external systems, where restarts, failed calls, and lost messages can occur.",
+    "Durable execution records the result of each outside-world step in a log and replays it after a failure, skipping completed steps.",
+    "Retries can duplicate writes, so give each write an idempotency key that the harness keeps the same on every attempt.",
+    "Re-check facts before committing a hard-to-undo action, and version business-rule changes so running workflows finish under the rule they started with."
+   ]
+  },
+  {
+   "date": "2026-11-10",
+   "title": "How we rebuilt the Shopify app in 12 weeks",
+   "url": "https://shopify.engineering/shopify-app-rebuild",
+   "publisher": "Shopify Engineering",
+   "category": "engineering",
+   "summary": "Shopify describes rebuilding its mobile app in 12 weeks, redesigning architecture, tooling and workflow around validation after agents began writing its mobile code.",
+   "relevance": 6,
+   "added": "2026-11-10T16:18:44+00:00",
+   "minutes": 14,
+   "tldr": [
+    "Shopify rebuilt its mobile app from React Native into native Swift and Kotlin in 12 weeks, with about 30 engineers and agents writing most of the code.",
+    "The migration changed the surrounding system too: architecture, tests, review, remote machines, and coordination, so agents could work with fast feedback and clear checks.",
+    "Results reported for merchants include Android launch time P50 dropping from 1.71s to 0.87s and iOS peak memory P50 falling from 730MB to 190MB.",
+    "Every PR still gets human code review, and the article says humans remain the final decision makers on what ships."
    ]
   },
   {
@@ -2176,7 +2259,7 @@
    }
   ]
  },
- "generated_at": "2026-11-10T12:45:18+00:00",
+ "generated_at": "2026-11-10T16:18:55+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
