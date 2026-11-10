@@ -37,13 +37,18 @@ function highlight(text, q) {
 }
 
 function renderFilters() {
-  const counts = {};
-  for (const i of items) counts[cat(i.category)] = (counts[cat(i.category)] || 0) + 1;
+  // Unread stories, as in a feed reader: the counts go down as you read. Topics with stories stay listed at 0.
+  const counts = {}, unread = {}, unreadAll = items.filter(i => !readSet.has(i.url)).length;
+  for (const i of items) {
+    counts[cat(i.category)] = (counts[cat(i.category)] || 0) + 1;
+    if (!readSet.has(i.url)) unread[cat(i.category)] = (unread[cat(i.category)] || 0) + 1;
+  }
+  const unreadPicks = [...picks.keys()].filter(u => !readSet.has(u)).length;
   const btn = (f, n, mark) => `<button class="filter-btn${filter === f ? ' active' : ''}" data-f="${f}" aria-pressed="${filter === f}">` +
-    `<span class="f-mark" aria-hidden="true">${mark}</span><span class="f-name">${label(f)}</span><span class="f-count">${n}</span></button>`;
-  $('filters').innerHTML = btn('all', items.length, '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>') +
-    (picks.size ? btn('essentials', picks.size, '<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>') : '') +
-    '<h2 class="f-head">Topics</h2>' + ORDER.filter(c => counts[c] || filter === c).map(c => btn(c, counts[c] || 0, `<span class="dot" style="--c:var(--cat-${c})"></span>`)).join('');
+    `<span class="f-mark" aria-hidden="true">${mark}</span><span class="f-name">${label(f)}</span>${n ? `<span class="f-count">${n}<span class="sr-only"> unread</span></span>` : ''}</button>`;
+  $('filters').innerHTML = btn('all', unreadAll, '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>') +
+    (picks.size ? btn('essentials', unreadPicks, '<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>') : '') +
+    '<h2 class="f-head">Topics</h2>' + ORDER.filter(c => counts[c] || filter === c).map(c => btn(c, unread[c] || 0, `<span class="dot" style="--c:var(--cat-${c})"></span>`)).join('');
   $('filter-label').textContent = label(filter);  // a hidden filter must still show, or stories look missing
   $('filter-toggle').classList.toggle('active', filter !== 'all');
   $('filter-toggle').setAttribute('aria-label', `Topic: ${label(filter)}`);
@@ -168,7 +173,9 @@ function pruneRead() {
 }
 const cardFor = url => [...document.querySelectorAll('a.card')].find(a => a.getAttribute('href') === url);
 function markRead(url) {
+  const was = readSet.has(url);
   readSet.delete(url); readSet.add(url); saveRead();  // most recent last: the search panel's "Recently read" reads it backwards
+  if (!was) renderFilters();
   const card = cardFor(url);
   card?.classList.add('read');
   card?.querySelector('.new')?.remove();
@@ -176,6 +183,7 @@ function markRead(url) {
 function markUnread(url) {
   readSet.delete(url); saveRead();
   cardFor(url)?.classList.remove('read');
+  renderFilters();
 }
 // The reader's read/unread switch, after Feedbin's: opening a story marks it read; this takes that back.
 function syncUnread() {

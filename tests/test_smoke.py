@@ -159,7 +159,7 @@ def test_essentials_have_their_own_entry_and_show_once(browser):
     assert set(marked) == {p["url"] for p in picks} & set(hrefs)
     assert all(t == "Essential" for t in pg.locator("a.card.essential .ess").all_text_contents())  # text_content: off-screen rows aren't rendered yet
     pg.click("#filters .filter-btn[data-f='essentials']")
-    assert pg.locator("#filters .filter-btn[data-f='essentials'] .f-count").inner_text() == str(len(picks))
+    assert pg.locator("#filters .filter-btn[data-f='essentials'] .f-count").text_content() == f"{len(picks)} unread"  # nothing read yet
     cards = pg.locator("a.card")
     assert cards.count() == len(picks)
     # One week, not days, and each pick previews what to do rather than its summary.
@@ -684,9 +684,15 @@ def test_wide_screens_keep_the_filter_row(browser):
     assert pg.problems == []
 
 
-def test_wide_screens_keep_the_controls_in_the_header(browser):
+def test_wide_screens_keep_the_controls_in_a_small_menu(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 900})
-    assert pg.locator("#theme").is_visible() and pg.locator("#menu-btn").is_hidden()
+    assert pg.locator("#menu-btn").is_visible() and pg.locator("#theme").is_hidden()  # tucked away, as in Feedbin
+    pg.click("#menu-btn")
+    menu = pg.locator("#menu").bounding_box()
+    assert pg.locator("#menu a[href='/rss.xml']").is_visible() and pg.locator("#theme").is_visible()
+    assert menu["width"] < 300 and menu["x"] + menu["width"] <= 1300 and menu["y"] >= 52  # a dropdown at the top right, not a drawer
+    pg.keyboard.press("Escape")
+    pg.locator("#theme").wait_for(state="hidden")
     assert pg.problems == []
 
 
@@ -1044,8 +1050,8 @@ def test_the_reader_marks_a_story_unread_and_read_again(browser):
     assert not pg.evaluate("u => readSet.has(u)", url) and pg.inner_text("#status") == "Marked as unread"
     pg.keyboard.press("m")  # the shortcut toggles it back
     assert "read" in card.get_attribute("class").split() and pg.evaluate("u => readSet.has(u)", url)
-    # Docked under the header, the reader doesn't repeat the header's theme switch.
-    assert pg.locator("#reader-theme").is_hidden() and pg.locator("#theme").is_visible()
+    # Docked under the header, the reader doesn't repeat the theme switch in the header's menu.
+    assert pg.locator("#reader-theme").is_hidden() and pg.locator("#menu-btn").is_visible()
     assert pg.problems == []
 
 
@@ -1059,4 +1065,22 @@ def test_picking_a_topic_closes_the_open_story(browser):
         pg.locator("#reader-body iframe").first.wait_for(state="detached")
         assert pg.evaluate("location.pathname") == "/" and pg.locator("a.card[aria-current]").count() == 0
         assert pg.locator(f"#filters .filter-btn.active").get_attribute("data-f") == topic
+    assert pg.problems == []
+
+
+def test_sidebar_counts_unread_stories(browser):
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    count = lambda f: pg.locator(f"#filters .filter-btn[data-f='{f}'] .f-count").text_content()
+    total = pg.evaluate("items.length")
+    first = pg.evaluate("shown[0]")
+    topic = pg.evaluate("c => cat(c)", first["category"])
+    before = int(count(topic).split()[0])
+    assert count("all") == f"{total} unread"
+    pg.locator("a.card").first.click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    assert count("all") == f"{total - 1} unread" and count(topic) == f"{before - 1} unread"
+    pg.click("#reader-unread")  # marking it unread puts it back
+    assert count("all") == f"{total} unread" and count(topic) == f"{before} unread"
+    pg.evaluate("items.forEach(i => readSet.add(i.url)); renderFilters()")
+    assert pg.locator("#filters .f-count").count() == 0 and pg.locator("#filters .filter-btn").count() > 2  # all read: no counts, topics stay
     assert pg.problems == []
