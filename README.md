@@ -15,6 +15,13 @@
 
 The week’s tech news, minus the noise.
 
+<br>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/screenshot-dark.webp">
+  <img src=".github/screenshot-light.webp" alt="Upshot on a desktop, with the topics, the list and a story open side by side, and on a phone, showing the same story with its upshot" width="900">
+</picture>
+
 </div>
 
 <div align="center">
@@ -31,9 +38,9 @@ There's no server or database to look after. A scheduled GitHub Actions job comm
 
 ## What you get
 
-- **A calm feed.** A handful of stories on a big day and none on a slow one, grouped by day, with category filters and search.
-- **The week's essentials.** Five picks from the last seven days, each with what to do about it.
-- **A built-in reader.** Articles open in a clean pane that starts with the upshot: a few bullets on what happened, who's affected and what to do.
+- **A calm feed.** A handful of stories on a big day and none on a slow one. Each shows its source's icon, a one-line summary and how long ago it was published, with topics in a sidebar and search.
+- **The week's essentials.** Five picks from the last seven days, each with what to do about it, under their own entry beside the topics and marked where they appear in the feed.
+- **A built-in reader.** Articles open in a clean pane that starts with the upshot: a few bullets on what happened, who's affected and what to do. On wide screens the pane sits beside the list, as in a desktop feed reader.
 - **It remembers where you were.** New stories are marked, read ones are dimmed, and none of that leaves your browser.
 - **Works everywhere.** Swipe and install as an app on a phone; `⌘K` search and `j`/`k` navigation on a desktop (`?` lists the shortcuts). Light and dark themes, and an RSS feed.
 

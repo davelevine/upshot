@@ -19,11 +19,23 @@ Everything older than 90 days is pruned, so the data stays small.
 
 ## The site
 
-[`site/index.html`](../site/index.html) and [`site/app.js`](../site/app.js) are the whole front end: no framework, no build step. [`site/_headers`](../site/_headers) sets the Content-Security-Policy. [`worker.js`](../worker.js) serves the static files and answers `/api/read` for the reader; [`wrangler.jsonc`](../wrangler.jsonc) configures the Worker.
+[`site/index.html`](../site/index.html) and [`site/app.js`](../site/app.js) are the whole front end: no framework, no build step.
+
+The layout follows desktop feed readers such as Feedbin, in three widths:
+
+- **Phones (up to 640px):** pages, as in Feedbin's app. Upshot opens on the topics; picking one opens its list, with a back chevron and its name in the header, and a story covers the list. Each page slides over the one before and follows the finger when swiped. Back, the chevron and a swipe right step back through them; a swipe left goes forward again, into the list just left or the story just closed. Articles read once are kept for the visit, so reopening one is instant.
+- **641–1279px:** topics in a sidebar beside the list. Dragging the sidebar's edge resizes it (and, from 1280px, the list's too); the widths are kept in the browser, and a double-click resets them. The reader slides over the list, which is inert while it's open.
+- **1280px and up:** sidebar, list and reader side by side, with no full-width header: the logo tops the sidebar, and the menu sits at the end of the reader bar. The reader stays docked, the list scrolls on its own, and it stays live while an article is open, so `j`/`k` and clicks move through it.
+
+The essentials are an entry in the topics, not a separate section, so no story is listed twice.
+
+Each time Upshot opens, or comes back after 15 minutes away (but not on a refresh or a new tab within 15 minutes of the last pass), the wordmark shows for a moment, then its spot runs once through the date, when the news last updated and when the next build is due (from the build's schedule, `17 */4 * * *` UTC, and left out when a build is late), then settles back on the wordmark, after Kagi News. The pass takes under five seconds, so it needs no pause control under WCAG 2.2.2, and a tap ends it. [`site/_headers`](../site/_headers) sets the Content-Security-Policy. [`worker.js`](../worker.js) serves the static files and answers `/api/read` for the reader; [`wrangler.jsonc`](../wrangler.jsonc) configures the Worker.
 
 ## The reader, and what it does with your data
 
 Each build extracts new stories with Mozilla's [Readability](https://github.com/mozilla/readability), the same approach as Firefox's reader view, and stores the result in Cloudflare KV. Opening an article calls `/api/read`, which the Worker answers with what's stored. Parsing happens in the build because it costs far more CPU than the Worker is allowed per request on the free plan.
+
+Articles are set in Literata, with headings in Inter; both are self-hosted under `site/fonts/` (Latin only, OFL). The reader is a sandboxed frame, which the browser caches apart each time, so fonts loaded there by URL were downloaded again for every article. Instead, the page fetches each font once in the background after the list loads, cached as usual, and hands it to every frame inline as a `data:` URL; the page's CSP allows `data:` fonts for this.
 
 - **Each article opens with the upshot.** Two to four bullets, written once by the build from the article itself. Every figure in a bullet (CVE IDs, versions, dates, counts) must appear word for word in the article, or that bullet is dropped. The weekly essentials add their hand-picked "What to do" as the last line.
 - **Page furniture is removed by what it is, never by who published it.** Bylines, dates, tables of contents, same-page links and "N min read" lines come out before the article is stored. If that would remove more than 35% of the text, the article is kept whole instead, because a stray byline beats a lost paragraph.
@@ -45,4 +57,4 @@ Cloudflare Workers Builds deploys every push to `main` with `npx wrangler deploy
 - A feed that has failed for two weeks, gone quiet or moved lands in a single "Feed health" issue that closes itself once it's fixed. For failing and quiet feeds it suggests any feeds the publisher's homepage advertises.
 - A run where every LLM call fails exits with an error, so GitHub emails you.
 - If Cloudflare KV is down, the stories are still published (the reader shows a fallback until a later build stores their text) and the run is marked failed after committing, so you hear about it without losing the build.
-- The site shows a notice under its header when the data is more than 12 hours old.
+- When the data is more than 5 hours old (a build due every 4 hours is running at least 45 minutes late), a bar at the foot of the list says when it last updated, with a "Check again" button that fetches the data at once. Failed runs already email the repo's owner, so the bar is for readers and doesn't link to the build.

@@ -39,8 +39,16 @@ def open_site(browser, **context):
                       body=json.dumps({"url": url, "frameable": False, "content": f'<img src="{PIXEL}" alt="">{BODY}'}))
     ctx.route("**/api/read?*", stub)
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     return pg
+
+
+def enter_list(pg):
+    """Phones open on the topics; this steps into the All list, as a tap on it would. Elsewhere the list is already there."""
+    pg.wait_for_selector("a.card", state="attached")
+    if pg.evaluate("document.body.classList.contains('home') && matchMedia('(max-width: 640px)').matches"):
+        pg.evaluate("document.querySelector(\"#filters [data-f='all']\").click()")
+    pg.wait_for_selector("a.card")
 
 
 def first_card(pg):
@@ -76,16 +84,22 @@ def test_feed_renders(browser):
     pg = open_site(browser)
     assert pg.locator("a.card").count() > 0
     assert pg.locator(".filter-btn").count() >= 2  # All + each category with stories
-    assert pg.locator(".filter-btn", has_text="(0)").count() == 0
-    assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".date-label #updated"))
+    assert "0" not in pg.locator("#filters .f-count").all_inner_texts()  # no empty topics
+    assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".side-foot #updated"))
     assert pg.locator("#end").is_hidden()  # not until the list runs out
-    assert re.fullmatch(r"· \d+ stor(y|ies)( · \d+\+? min)?", pg.locator(".day-meta").first.inner_text())
+    # No headings or counts over the list, as in Feedbin: it starts at the top, and each story says how old it is.
+    assert pg.locator("#items > :not(a.card)").count() == 0
+    assert pg.evaluate("document.querySelector('a.card').getBoundingClientRect().top - document.getElementById('items').getBoundingClientRect().top") < 12
+    assert all(re.fullmatch(r"\d+[mhd]|[A-Z][a-z]{2} \d{1,2}(, \d{4})?", t) for t in pg.locator("a.card .card-age").all_text_contents())
     assert pg.locator(".card-arrow").count() == 0 and pg.locator(".card-time").count() == 0
-    # Headlines only: the summary is for search and the reader, not the list.
-    assert pg.locator(".card-summary").count() == 0
-    assert pg.evaluate("[...document.querySelector('a.card .card-body').children].map(e => e.className)") == ["card-title", "card-meta"]
-    # Tiles hold the placeholders' height (a 4-line title fits), so loading never shifts the page.
-    assert {round(c.bounding_box()["height"]) for c in pg.locator(".weekly-card").all()} == {133}
+    # After Feedbin: the publisher's icon, then title, source, the one-line summary and how old it is. The topic is the sidebar's job.
+    first = pg.locator("a.card").first
+    assert pg.evaluate("[...document.querySelector('a.card .card-body').children].map(e => e.className)") == ["card-title", "card-meta", "card-sum", "card-age"]
+    assert first.locator("> .src-icon").count() == 1 and pg.locator("a.card .dot").count() == 0
+    assert first.locator(".card-src").inner_text() == pg.evaluate("items[0].publisher")
+    assert first.locator(".card-sum").inner_text() == pg.evaluate("items[0].summary")
+    assert first.evaluate("e => [getComputedStyle(e).borderTopWidth, getComputedStyle(e).boxShadow]") == ["0px", "none"]  # rows, not boxes
+    assert pg.locator("#weekly, .weekly-card").count() == 0  # the essentials are an entry in the topics now
     assert pg.problems == []
 
 
@@ -126,90 +140,153 @@ def test_animations_run_under_reduced_motion(browser):
     assert pg.problems == []
 
 
-def test_phone_filter_drawer(browser):
-    pg = open_site(browser, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
-    assert pg.locator("#filters .filter-btn").first.is_hidden() and pg.locator("#filter-label").inner_text() == ""
+def test_phones_open_on_the_topics(browser):
+    ctx = browser.new_context(viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
+    pg = ctx.new_page()
+    problems = []
+    pg.on("pageerror", lambda e: problems.append(str(e)))
+    pg.goto(URL)
+    pg.wait_for_selector("#filters .filter-btn")
+    # The topics are the page: the list waits off to the right, out of reach, and every entry is a full-size row.
+    aside = "() => document.getElementById('col').getBoundingClientRect().left >= innerWidth && document.getElementById('col').inert"
+    shown_ = "s => +getComputedStyle(document.querySelector(s)).opacity"
+    assert pg.evaluate(aside) and pg.evaluate(shown_, ".logo-h") == 1 and pg.evaluate(shown_, "#list-back") == 0
+    assert pg.evaluate("document.getElementById('list-back').inert")  # faded out, and out of reach
+    assert pg.evaluate(shown_, "#search-btn") == 0 and pg.evaluate("document.getElementById('search-btn').inert")  # search is for lists
     assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
-    pg.tap("#filter-toggle")
-    pg.wait_for_function("() => !document.getElementById('filters').getAnimations().length")
-    for chip in pg.locator("#filters .filter-btn").all():
-        assert chip.is_visible() and chip.bounding_box()["x"] + chip.bounding_box()["width"] <= 320  # all reachable, wrapped
-    assert pg.evaluate("Math.round(document.getElementById('filters').getBoundingClientRect().top) === Math.round(document.querySelector('header').getBoundingClientRect().bottom)")
+    assert pg.locator(".resizer").evaluate_all("els => els.every(e => getComputedStyle(e).display === 'none')")  # desktop's column edges
+    for row in pg.locator("#filters .filter-btn").all():
+        box = row.bounding_box()
+        assert box["height"] >= 44 and box["x"] + box["width"] <= 320
+        for x in range(10, 320, 20):  # nothing sits over a row: every point of it taps the row
+            assert pg.evaluate("([x, y, f]) => document.elementFromPoint(x, y)?.closest('.filter-btn')?.dataset.f === f",
+                               [x, box["y"] + box["height"] / 2, row.get_attribute("data-f")]), x
     pg.tap("#filters .filter-btn[data-f='security']")
-    pg.locator("#filters .filter-btn").first.wait_for(state="hidden")
-    assert pg.locator("#filter-label").inner_text() == "Security"
-    assert pg.locator("#filter-toggle").get_attribute("aria-label") == "Filters: Security"
-    assert pg.locator(".card-cat").evaluate_all("els => els.every(e => e.textContent === 'Security')")
-    pg.tap("#filter-toggle")
-    pg.tap("#filters .filter-btn[data-f='all']")
-    pg.locator("#filters .filter-btn").first.wait_for(state="hidden")
-    assert pg.locator("#filter-label").inner_text() == ""
-    assert pg.problems == []
+    # It slides in over the topics, the way a story slides over the list, rather than jumping.
+    pg.wait_for_function("() => document.getAnimations().some(a => a.transitionProperty === 'transform' && a.effect.target?.id === 'col')")
+    # The header crossfades with it: the wordmark out, the list's chevron and name in, together.
+    pg.wait_for_function("() => document.getAnimations().some(a => a.transitionProperty === 'opacity' && a.effect.target?.id === 'list-name')")
+    pg.wait_for_function("() => document.getElementById('col').getBoundingClientRect().left === 0")
+    pg.wait_for_function("() => +getComputedStyle(document.querySelector('.logo-h')).opacity === 0 && document.querySelector('.logo-h').inert")
+    assert pg.evaluate(shown_, "#search-btn") == 1 and not pg.evaluate("document.getElementById('search-btn').inert")
+    # Its list, as a page: a back chevron and its name in the header, in place of the logo, and the topics out of reach.
+    assert pg.evaluate("document.getElementById('filters').inert") and pg.locator("#list-back").is_visible() and pg.inner_text("#list-name") == "Security"
+    assert pg.evaluate("shown.length > 0 && shown.every(i => cat(i.category) === 'security')")
+    assert pg.title() == "Security \u00b7 Upshot"
+    pg.go_back()  # the phone's back button
+    pg.wait_for_function(aside)
+    pg.go_forward()  # and forward again, to the same list
+    pg.wait_for_selector("a.card")
+    assert pg.inner_text("#list-name") == "Security"
+    pg.tap("#list-back")  # the chevron goes back too
+    pg.wait_for_function(aside)
+    assert problems == []
 
 
-def test_essentials_card_layout(browser):
+def test_essentials_have_their_own_entry_and_show_once(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 900})
-    card = pg.locator(".weekly-card").first
-    assert card.locator("> .dot").count() == 1 and card.locator(".rank").count() == 0  # the dot alone carries the category
-    assert card.locator("> .dot").get_attribute("aria-label") in ("AI", "Infrastructure", "Engineering", "Security", "Regulation", "Other")  # named for screen readers
-    # A long publisher shortens before the date does, and the line stays inside the card.
-    card.locator(".weekly-source").evaluate("e => { e.textContent = 'A Very Long Publisher Name That Cannot Possibly Fit Here' }")
-    fits = """c => { const m = c.querySelector('.weekly-meta').getBoundingClientRect(), r = c.getBoundingClientRect(),
-        d = c.querySelector('.weekly-meta > :last-child'); return m.right <= r.right && d.scrollWidth <= d.clientWidth && d.textContent.startsWith('·'); }"""
-    assert card.evaluate(fits)
+    picks = pg.evaluate("weekly.items.filter(p => items.some(i => i.url === p.url))")
+    hrefs = pg.locator("a.card").evaluate_all("els => els.map(e => e.getAttribute('href'))")
+    assert len(hrefs) == len(set(hrefs))  # nothing listed twice
+    marked = pg.locator("a.card.essential").evaluate_all("els => els.map(e => e.getAttribute('href'))")
+    assert set(marked) == {p["url"] for p in picks} & set(hrefs)
+    assert all(t == "Essential" for t in pg.locator("a.card.essential .ess").all_text_contents())  # text_content: off-screen rows aren't rendered yet
+    pg.click("#filters .filter-btn[data-f='essentials']")
+    assert pg.locator("#filters .filter-btn[data-f='essentials'] .f-count").text_content() == f"{len(picks)} unread"  # nothing read yet
+    cards = pg.locator("a.card")
+    assert cards.count() == len(picks)
+    # One week, not days, and each pick previews what to do rather than its summary.
+    pg.locator("#end").wait_for()  # five fit on one page: the end says which week they're from
+    assert pg.inner_text("#end-msg") == f"That\u2019s all {len(picks)} essentials from {pg.evaluate('weekRange(weekly)')}."
+    for n, p in enumerate(picks):
+        sel = f'a.card[href="{p["url"]}"]'
+        assert pg.locator(f"{sel} .card-sum").inner_text() == f"What to do: {p['why']}"
+        assert pg.locator(f"{sel} .ess").count() == 0  # the view says it already
     assert pg.problems == []
 
 
 def stale_site(browser, hours, **context):
     ctx = browser.new_context(**context)
     pg = ctx.new_page()
+    built = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat(timespec="seconds")  # once: every fetch sees the same build
     def patched(route):
         data = route.fetch().json()
-        data["generated_at"] = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat(timespec="seconds")
+        data["generated_at"] = built
         route.fulfill(json=data)
     ctx.route("**/data.json*", patched)
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     return pg
 
 
-def test_stale_band_appears_after_twelve_hours(browser):
-    pg = stale_site(browser, 11, viewport={"width": 1300, "height": 900})
+def test_late_bar_appears_once_a_build_is_late_and_can_check_again(browser):
+    pg = stale_site(browser, 4.5, viewport={"width": 1300, "height": 900})  # due, but GitHub runs schedules late
     assert pg.locator("#stale").is_hidden() and pg.locator("#updated").is_visible()
-    pg = stale_site(browser, 14, viewport={"width": 1300, "height": 900})
-    assert pg.locator("#stale").inner_text() == "Last updated 14h ago · the build may be stalled"
-    assert pg.get_attribute("#stale", "href").endswith("/actions/workflows/build.yml")
-    assert pg.locator("#updated").is_hidden()  # one slot, two states
+    pg = stale_site(browser, 6, viewport={"width": 1440, "height": 900})
+    bar, col = pg.locator("#stale").bounding_box(), pg.locator("#col").bounding_box()
+    assert pg.inner_text("#stale-msg") == "Last updated 6h ago" and pg.locator("#updated").is_hidden()  # one slot, two states
+    assert bar["y"] + bar["height"] == 900 and bar["x"] == col["x"] and bar["width"] <= col["width"]  # at the list's foot
+    fetches = []
+    pg.on("request", lambda r: fetches.append(r.url) if "/data.json" in r.url else None)
+    check = pg.locator("#stale-check")
+    assert check.inner_text() == "" and check.get_attribute("aria-label") == "Check again"  # a reload icon, named for screen readers
+    held = []
+    pg.route("**/data.json*", lambda r: held.append(r))  # held, so the check is caught in the act
+    check.click()
+    pg.wait_for_function("() => document.getElementById('stale-check').classList.contains('checking')")
+    assert check.is_disabled()
+    for _ in range(50):
+        if held:
+            break
+        pg.wait_for_timeout(20)
+    held[0].fallback()
+    pg.locator("#stale-msg", has_text="No new stories yet").wait_for()  # it looked, now, and says so
+    assert "checking" not in check.get_attribute("class").split()
+    assert fetches and pg.inner_text("#status") == "No new stories yet"
+    pg.locator("#stale-msg", has_text="Last updated").wait_for()
+    assert pg.problems == [] if hasattr(pg, "problems") else True
 
 
-def test_stale_band_sits_under_the_header_and_the_drawer_still_drops_from_it(browser):
-    pg = stale_site(browser, 14, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
+def test_late_bar_is_a_bottom_bar_on_a_phone(browser):
+    pg = stale_site(browser, 6, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
     assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
-    assert pg.evaluate("Math.round(document.getElementById('stale').getBoundingClientRect().top) === Math.round(document.querySelector('header').getBoundingClientRect().bottom)")
-    pg.tap("#filter-toggle")
-    pg.wait_for_function("() => !document.getElementById('filters').getAnimations().length")
-    assert pg.evaluate("Math.round(document.getElementById('filters').getBoundingClientRect().top) === Math.round(document.querySelector('header').getBoundingClientRect().bottom)")
+    bar = pg.locator("#stale").bounding_box()
+    assert bar["x"] == 0 and bar["width"] == 320 and bar["y"] + bar["height"] == 700
+    assert pg.locator("#stale-check").bounding_box()["height"] >= 44
 
 
-def test_day_minutes_show_only_when_every_story_has_one(browser):
+def test_each_story_says_how_long_ago_it_was_published(browser):
     ctx = browser.new_context(viewport={"width": 1300, "height": 900}, timezone_id="UTC")
     pg = ctx.new_page()
-    today = datetime.now(timezone.utc).date().isoformat()
-    yesterday = (datetime.now(timezone.utc).date() - timedelta(days=1)).isoformat()
+    now = datetime.now(timezone.utc)
+    ago = lambda **d: (now - timedelta(**d)).isoformat(timespec="seconds")
+    day = lambda n: (now.date() - timedelta(days=n)).isoformat()
     def patched(route):
         data = route.fetch().json()
-        a, b, c = data["items"][:3]
-        data["items"] = [{**a, "date": today, "minutes": 4}, {**b, "date": today, "minutes": 3}, {**c, "date": yesterday, "minutes": 0}]
-        data["tz"] = "UTC"  # the dates above are UTC ones; the page labels days in data.json's zone
+        a, b, c, d, e, f = data["items"][:6]
+        data["items"] = [
+            {**a, "date": day(0), "published": ago(minutes=5)},
+            {**b, "date": day(0), "published": ago(hours=5, minutes=10)},
+            {**c, "date": day(3), "published": ago(days=3, hours=2)},
+            {**d, "date": day(1), "added": ago(minutes=30)},  # before the exact time was kept: whole days by its date
+            {**e, "date": day(0), "added": ago(hours=2)},  # ...or when it arrived, the same day
+            {**f, "date": "2026-01-05", "published": "2026-01-05T09:00:00+00:00"},
+        ]
+        for i in data["items"][3:5]:
+            i.pop("published", None)
+        data["tz"] = "UTC"
+        data["weekly"] = None
         route.fulfill(json=data)
     ctx.route("**/data.json*", patched)
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
-    assert pg.locator(".day-meta").all_inner_texts()[:2] == ["· 2 stories · 7 min", "· 1 story"]
+    enter_list(pg)
+    old = "Jan 5" if now.year == 2026 else "Jan 5, 2026"
+    assert pg.locator("a.card .card-age").all_text_contents() == ["5m", "5h", "3d", "1d", "2h", old]
 
 
 def test_end_of_feed_message(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 900})
+    pg.mouse.move(460, 450)  # over the list, which scrolls on its own here
     end = pg.locator("#end")
     # Scrolling loads every page, then the message appears.
     for _ in range(40):
@@ -218,22 +295,27 @@ def test_end_of_feed_message(browser):
         pg.mouse.wheel(0, 3000)
         pg.wait_for_timeout(100)
     assert re.fullmatch(r"That\u2019s all \d+ stories from the last \d+ days\.", pg.inner_text("#end-msg"))
-    assert end.locator("a[href='/rss.xml']").count() == 1 and end.locator("a[href*='github.com']").count() == 1
+    assert end.locator("a, button").count() == 0  # just the line: RSS and GitHub live in the menu
     # It respects what's on screen.
-    pg.evaluate("window.scrollTo({top:0,behavior:'instant'})")
+    pg.evaluate("scroller().scrollTo({top:0,behavior:'instant'})")
     pg.click("#filters .filter-btn[data-f='security']")
     pg.wait_for_function("() => document.getElementById('end-msg').textContent.includes('Security') || document.getElementById('end').hidden")
+    pg.mouse.move(460, 450)
     security = pg.locator("#filters .filter-btn[data-f='security']").inner_text()
     for _ in range(40):
         if end.is_visible():
             break
         pg.mouse.wheel(0, 3000)
         pg.wait_for_timeout(100)
-    assert pg.inner_text("#end-msg") == f"That\u2019s all {re.search(r'\d+', security).group()} Security stories."
+    assert pg.inner_text("#end-msg") == f"That\u2019s all {re.search(r'\d+', security).group()} stories in Security."
+    # One story reads as one: "the only story in Other".
+    pg.evaluate("() => { filter = 'other'; items = items.filter((i, n) => cat(i.category) !== 'other' || n === items.findIndex(x => cat(x.category) === 'other')); renderFilters(); renderItems(); }")
+    pg.locator("#end").wait_for()
+    assert pg.inner_text("#end-msg") == "That\u2019s the only story in Other."
     assert pg.problems == []
 
 
-def test_back_to_top_never_covers_the_end_links(browser):
+def test_back_to_top_never_covers_the_end_message(browser):
     pg = open_site(browser, viewport={"width": 412, "height": 520}, has_touch=True, is_mobile=True)
     for _ in range(300):  # until the feed runs out, not a fixed count: a busy machine loads pages more slowly
         pg.evaluate("window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'instant'})")
@@ -243,14 +325,14 @@ def test_back_to_top_never_covers_the_end_links(browser):
     pg.evaluate("window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'instant'})")
     pg.locator("#top").wait_for()
     overlap = """() => { const t = document.getElementById('top').getBoundingClientRect();
-        return [...document.querySelectorAll('#end a')].map(a => a.getBoundingClientRect())
-            .some(r => r.left < t.right && r.right > t.left && r.top < t.bottom && r.bottom > t.top); }"""
+        const r = document.getElementById('end-msg').getBoundingClientRect();
+        return r.left < t.right && r.right > t.left && r.top < t.bottom && r.bottom > t.top; }"""
     assert pg.evaluate("!document.getElementById('end').hidden") and not pg.evaluate(overlap)
 
 
 def test_back_to_top_reacts_to_hover(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 700})
-    pg.evaluate("window.scrollTo({top: 2000, behavior: 'instant'})")
+    pg.evaluate("scroller().scrollTo({top: 2000, behavior: 'instant'})")
     top = pg.locator("#top")
     top.wait_for()
     look = "e => { const c = getComputedStyle(e); return [c.backgroundColor, c.color]; }"
@@ -260,19 +342,10 @@ def test_back_to_top_reacts_to_hover(browser):
     assert top.evaluate(look) != before and top.evaluate("e => getComputedStyle(e).transform") == "none"
 
 
-def test_week_range_shares_the_headings_baseline(browser):
-    baseline = """() => { const box = s => { const r = document.createRange(); r.selectNodeContents(document.querySelector(s));
-            return r.getBoundingClientRect(); }, base = s => { const e = document.querySelector(s), m = document.createElement('span');
-            m.style.cssText = 'display:inline-block;width:0;height:0'; e.append(m); const y = m.getBoundingClientRect().bottom; m.remove(); return y; };
-        return [Math.abs(base('.weekly-title') - base('#weekly-range')), document.documentElement.scrollWidth <= innerWidth,
-                box('.weekly-title').right <= box('#weekly-range').left]; }"""
-    for width in (1300, 412, 411, 410, 375, 360, 340):
-        extra = {} if width > 640 else {"has_touch": True, "is_mobile": True}
-        pg = open_site(browser, viewport={"width": width, "height": 700}, **extra)
-        gap, fits, apart = pg.evaluate(baseline)
-        assert gap < 1 and fits and apart, width
-    pg = open_site(browser, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)  # too narrow for it
-    assert pg.locator("#weekly-range").is_hidden() and pg.evaluate("document.querySelector('.weekly-title').getBoundingClientRect().height < 30")
+def show_essentials(pg):
+    """The essentials entry, whether it sits in the sidebar or behind the phone's topic picker."""
+    pg.evaluate("document.querySelector(\"#filters [data-f='essentials']\").click()")
+    pg.wait_for_function("() => shown.length && shown.every(i => picks.has(i.url))")
 
 
 def held_reader(browser, **context):
@@ -282,9 +355,10 @@ def held_reader(browser, **context):
     held = []
     ctx.route("**/api/read?*", lambda route: held.append(route))
     pg.goto(URL)
-    pg.wait_for_selector(".weekly-card:not(.skeleton)")  # the loading placeholders share the class, with empty titles
-    card = pg.locator(".weekly-card:not(.skeleton)").first
-    title = card.locator(".weekly-card-title").text_content()
+    enter_list(pg)
+    show_essentials(pg)
+    card = pg.locator("a.card").first
+    title = card.locator(".card-title").text_content()
     card.click()
     return pg, held, title, pg.frame_locator("#reader-body iframe:not(.loading)")
 
@@ -308,7 +382,8 @@ def test_reader_shows_the_story_before_the_fetch_finishes(browser):
     frame.locator(".meta", has_text="3 min read").wait_for()
     frame.locator(".status").wait_for(state="detached")
     meta = frame.locator(".meta").inner_text()
-    assert "by Ada Lovelace" in meta and "By By" not in meta  # Feedbin-style: date by author, then publisher and minutes
+    assert "by Ada Lovelace" in meta and "By By" not in meta  # Feedbin-style: date by author, then minutes
+    assert "\n" not in meta and pg.evaluate("readerFor && items.find(i => i.url === readerFor).publisher") == pg.inner_text("#reader-source")  # the source sits in the bar
     assert frame.locator("h1").evaluate("e => getComputedStyle(e).fontFamily").startswith("Inter")
     assert frame.locator("h1").inner_text() == title and frame.locator(".todo").count() == 1
 
@@ -380,16 +455,66 @@ def test_inter_is_served_from_the_site(browser):
     fonts = []
     pg.on("response", lambda r: fonts.append((r.url, r.status)) if "/fonts/" in r.url else None)
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     pg.evaluate("document.fonts.ready")
     assert any(u.endswith("/fonts/InterVariable.woff2") and s == 200 for u, s in fonts)
     assert pg.evaluate("document.fonts.check('16px Inter')")
 
 
+def test_articles_are_set_in_literata_without_downloading_fonts_each_time(browser):
+    ctx = browser.new_context(viewport={"width": 1440, "height": 900})
+    ctx.route("**/api/read?*", lambda route: route.fulfill(content_type="application/json", body=json.dumps(
+        {"frameable": False, "content": f'{BODY}<p><em>An italic line.</em></p>'})))
+    pg = ctx.new_page()
+    fonts = []
+    pg.on("response", lambda r: fonts.append(r.url.rsplit("/", 1)[-1]) if "/fonts/" in r.url else None)
+    pg.goto(URL)
+    enter_list(pg)
+    pg.wait_for_function("() => Object.keys(frameFonts).length === 3")  # fetched once, in the background, after the list
+    assert {"LiterataVariable.woff2", "LiterataVariable-Italic.woff2"} <= set(fonts)
+    before = len(fonts)
+    for n in (0, 1, 0):  # including one opened again
+        pg.evaluate("n => openReader(items[n])", n)
+        frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+        frame.locator("p").nth(29).wait_for()
+        faces = frame.locator("body").evaluate("() => document.fonts.ready.then(() => [...document.fonts].filter(f => f.status === 'loaded').map(f => f.family))")
+        assert "Literata" in faces and "Inter" in faces  # the article in Literata, its headings in Inter
+        assert frame.locator("em").evaluate("e => document.fonts.check('italic 17px Literata')")  # real italics, not slanted
+        assert frame.locator("main p").nth(3).evaluate("e => getComputedStyle(e).fontFamily").startswith("Literata")
+    # A sandboxed frame caches apart every time, so fonts loaded there by URL came down again for every article.
+    assert fonts[before:] == []
+    assert pg.problems == [] if hasattr(pg, "problems") else True
+
+
+def test_escape_returns_focus_to_the_row_for_the_keyboard(browser):
+    pg = open_site(browser, viewport={"width": 1024, "height": 800})
+    pg.locator("a.card").nth(1).focus()
+    pg.keyboard.press("Enter")
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.keyboard.press("Escape")
+    wait_until_closed(pg)
+    assert pg.evaluate("document.activeElement === document.querySelectorAll('a.card')[1]")  # back where the keyboard was
+    assert pg.problems == []
+
+
+@pytest.mark.parametrize("scheme", ["dark", "light"])
+def test_new_stories_are_marked_legibly(browser, scheme):
+    from axe_playwright_python.sync_playwright import Axe
+    ctx = browser.new_context(viewport={"width": 1300, "height": 900}, color_scheme=scheme)
+    ctx.add_init_script("localStorage.setItem('seenUntil', '2000-01-01T00:00:00+00:00')")  # a long-ago visit: everything since is new
+    pg = ctx.new_page()
+    pg.goto(URL)
+    pg.wait_for_selector("a.card .new")
+    pill = pg.locator("a.card .new").first
+    assert pill.inner_text().upper() == "NEW"
+    contrast = Axe().run(pg, options={"runOnly": {"type": "rule", "values": ["color-contrast"]}}).response["violations"]
+    assert [n["html"] for v in contrast for n in v["nodes"] if "new" in n["html"]] == []
+
+
 def test_question_mark_lists_the_shortcuts(browser):
     pg = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     pg.keyboard.press("?")
     assert pg.locator("#keys").is_visible()
     assert "Search every article" in pg.locator("#keys").inner_text()
@@ -404,7 +529,7 @@ def test_share_copies_the_publishers_url_on_desktop(browser):
     ctx.grant_permissions(["clipboard-read", "clipboard-write"])
     pg = ctx.new_page()
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     url = pg.locator("a.card").first.get_attribute("href")
     pg.locator("a.card").first.click()
     pg.locator("#reader-send").click()
@@ -437,7 +562,7 @@ def test_share_opens_the_share_sheet_on_a_phone(browser):
     ctx.add_init_script("window.__shared = null; navigator.share = d => { window.__shared = d; return Promise.resolve(); };")
     pg = ctx.new_page()
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     url = pg.locator("a.card").first.get_attribute("href")
     pg.locator("a.card").first.tap()
     pg.locator("#reader-send").tap()  # the same menu as desktop, with the system sheet under "More…"
@@ -454,7 +579,7 @@ def test_share_opens_the_share_sheet_on_a_phone(browser):
 def test_reader_links_are_short_and_survive_a_reload(browser):
     pg = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     card = pg.locator("a.card").first
     url, title = card.get_attribute("href"), card.locator(".card-title").inner_text()
     card.click()
@@ -497,7 +622,7 @@ def test_reader_bar_after_feedbin(browser):
     pg.problems = []
     pg.on("console", lambda m: pg.problems.append(m.text) if m.type == "error" else None)
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     first = pg.locator("a.card").first
     url = first.get_attribute("href")
     first.tap()
@@ -506,7 +631,7 @@ def test_reader_bar_after_feedbin(browser):
     assert pg.evaluate("document.activeElement.id") == "reader"
     assert pg.locator(".close-back").is_visible() and not pg.locator(".close-x").is_visible()
     assert pg.locator("#reader-original").count() == 0  # the title already links to the article
-    assert pg.locator("#reader-icon").is_visible()
+    assert pg.locator("#reader-icon").is_visible() and pg.locator("#reader-source").is_hidden()  # on a phone the icon alone says who
     # Previous is off at the first story; next moves on, and back again.
     assert pg.locator("#reader-prev").is_disabled()
     before = pg.evaluate("location.pathname")
@@ -516,15 +641,15 @@ def test_reader_bar_after_feedbin(browser):
     pg.locator("#reader-prev").tap()
     pg.wait_for_function("() => document.getElementById('reader-prev').disabled")
     assert pg.problems == []
-    # On a desktop: an X, no bottom bar, and the keyboard still lands on the close button.
-    dc = browser.new_context(viewport={"width": 1300, "height": 900})
+    # On a desktop where the reader slides over the list: an X, no bottom bar, and the keyboard still lands on the close button.
+    dc = browser.new_context(viewport={"width": 1024, "height": 800})
     def no_icons(route):  # a publisher with no icon listed
         res = route.fetch()
         route.fulfill(response=res, json={**res.json(), "icons": []})
     dc.route("**/data.json", no_icons)
     dk = dc.new_page()
     dk.goto(URL)
-    dk.wait_for_selector("a.card")
+    enter_list(dk)
     dk.locator("a.card").first.focus()
     dk.keyboard.press("Enter")
     dk.wait_for_selector("#reader-body iframe:not(.loading)")
@@ -537,7 +662,7 @@ def test_text_size_steps_and_is_remembered(browser):
     ctx = browser.new_context(viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True)
     pg = ctx.new_page()
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     pg.locator("a.card").first.tap()
     frame = pg.frame_locator("#reader-body iframe:not(.loading)")
     frame.locator("h1").wait_for()
@@ -562,27 +687,30 @@ def test_text_size_steps_and_is_remembered(browser):
     pg.wait_for_function("() => document.getElementById('size-pop').hidden")
 
 
-def test_today_means_the_sites_today_whatever_the_device_reports(browser):
-    from datetime import datetime
+def test_ages_count_days_in_the_sites_time_zone_whatever_the_device_reports(browser):
     from zoneinfo import ZoneInfo
-    today = datetime.now(ZoneInfo("America/New_York")).date().isoformat()
+    site = datetime.now(ZoneInfo("America/New_York")).date()
     for device_tz in ("UTC", "Asia/Tokyo", "Pacific/Honolulu"):
         ctx = browser.new_context(timezone_id=device_tz)
-        def dated_today(route):
+        def dated(route):
             res = route.fetch()
             data = res.json()
             data["tz"] = "America/New_York"
-            data["items"][0]["date"] = today
+            a, b = data["items"][:2]
+            for i in (a, b):
+                i.pop("published", None); i.pop("added", None)  # only a date, as stories from before the exact time was kept
+            a["date"], b["date"] = site.isoformat(), (site - timedelta(days=1)).isoformat()
+            data["items"] = [a, b]
             route.fulfill(response=res, json=data)
-        ctx.route("**/data.json", dated_today)
+        ctx.route("**/data.json", dated)
         pg = ctx.new_page()
         pg.goto(URL)
-        pg.wait_for_selector("a.card")
-        assert pg.locator(".date-label").first.inner_text().startswith("TODAY"), device_tz
+        enter_list(pg)
+        assert pg.locator("a.card .card-age").all_text_contents() == ["1m", "1d"], device_tz  # today is today, never a negative or a day early
 
 
 def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
-    ctx = browser.new_context(viewport={"width": 1300, "height": 900})
+    ctx = browser.new_context(viewport={"width": 1024, "height": 800})  # the sliding reader: this checks a click during its slide out
     def with_tldr(route):
         res = route.fetch()
         data = res.json()
@@ -596,8 +724,9 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     ctx.route("**/api/read?*", lambda r: r.fulfill(content_type="application/json", body=json.dumps({"reason": "pending", "frameable": False})))
     pg = ctx.new_page()
     pg.goto(URL)
-    pg.wait_for_selector(".weekly-card:not(.skeleton)")
-    pg.locator(".weekly-card:not(.skeleton)").first.click()  # an essential with an upshot
+    enter_list(pg)
+    show_essentials(pg)
+    pg.locator("a.card").first.click()  # an essential with an upshot
     frame = pg.frame_locator("#reader-body iframe:not(.loading)")
     box = frame.locator(".tldr")
     box.wait_for()
@@ -608,7 +737,7 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     # The text size control scales the box and the byline with the article, not just the body text.
     sizes = """() => ['body', '.tldr > b', '.tldr li', '.tldr .do', '.tldr .do b', '.meta'].map(s => parseFloat(getComputedStyle(document.querySelector(s)).fontSize))"""
     before = frame.locator("body").evaluate(f"({sizes})")
-    assert [round(v) for v in before] == [17, 14, 16, 16, 14, 15]  # the default size: unchanged by this
+    assert [round(v) for v in before] == [18, 15, 17, 17, 15, 16]  # the default size: 18px, a step up for Literata
     pg.locator("#reader-size").click()
     pg.locator("#size-pop button[data-size='3']").click()
     frame.locator("html[data-size='3']").wait_for(state="attached")
@@ -617,10 +746,10 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     pg.keyboard.press("Escape")  # closes the size menu, leaving the reader open
     pg.keyboard.press("Escape")
     wait_until_closed(pg)  # Esc closes through history.back(), which lands a moment later: click before it and the tile is still inert
-    second = pg.locator(".weekly-card:not(.skeleton)").nth(1)
+    second = pg.locator("a.card").nth(1)
     # Still sliding out over this tile for a moment: a click meant for the tile must not land in the old article.
     assert pg.evaluate("getComputedStyle(document.getElementById('reader')).pointerEvents") == "none"
-    title = second.locator(".weekly-card-title").inner_text()
+    title = second.locator(".card-title").inner_text()
     # Still flaky on CI runners: log what the click does, so a failure says which of "never arrived", "landed elsewhere"
     # and "opened then closed" it was.
     popups = []
@@ -672,16 +801,22 @@ def test_the_reader_endpoint_reaches_the_worker(browser):
 
 def test_wide_screens_keep_the_filter_row(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 900})
-    assert pg.locator("#filter-toggle").is_hidden() and pg.locator("#filters .filter-btn").first.is_visible()
+    assert pg.locator("#list-back").is_hidden() and pg.locator("#filters .filter-btn").first.is_visible()
     pg.click("#filters .filter-btn[data-f='ai']")
     assert pg.locator("#filters .filter-btn.active").get_attribute("data-f") == "ai"
     assert pg.locator("#filters .filter-btn").first.is_visible()  # picking one leaves the row in place
     assert pg.problems == []
 
 
-def test_wide_screens_keep_the_controls_in_the_header(browser):
+def test_wide_screens_keep_the_controls_in_a_small_menu(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 900})
-    assert pg.locator("#theme").is_visible() and pg.locator("#menu-btn").is_hidden()
+    assert pg.locator("#menu-btn").is_visible() and pg.locator("#theme").is_hidden()  # tucked away, as in Feedbin
+    pg.click("#menu-btn")
+    menu = pg.locator("#menu").bounding_box()
+    assert pg.locator("#menu a[href='/rss.xml']").is_visible() and pg.locator("#theme").is_visible()
+    assert menu["width"] < 300 and menu["x"] + menu["width"] <= 1300 and menu["y"] >= 52  # a dropdown at the top right, not a drawer
+    pg.keyboard.press("Escape")
+    pg.locator("#theme").wait_for(state="hidden")
     assert pg.problems == []
 
 
@@ -702,27 +837,11 @@ def test_wcag(browser, scheme):
     assert violations() == [] and pg.evaluate(small) == []
     assert pg.get_attribute("#theme", "aria-label") == f"Switch to {'light' if scheme == 'dark' else 'dark'} mode"
     pg.keyboard.press("Escape")
-    pg.tap("#filter-toggle")
-    pg.wait_for_function("() => !document.getElementById('filters').getAnimations().length")
+    pg.locator("#theme").wait_for(state="hidden")
+    pg.tap("#list-back")  # the topics, which phones open on
+    pg.wait_for_function("() => !document.getAnimations().length")  # once the pages and header have settled, as a reader sees them
     assert violations() == [] and pg.evaluate(small) == []
     assert pg.problems == []
-
-
-def test_one_today_section_when_utc_is_already_tomorrow(browser):
-    ctx = browser.new_context(timezone_id="America/New_York")
-    pg = ctx.new_page()
-    today = pg.evaluate("new Date().toLocaleDateString('en-CA')")  # YYYY-MM-DD in that zone
-    tomorrow = (date.fromisoformat(today) + timedelta(days=1)).isoformat()
-    def patched(route):
-        data = route.fetch().json()
-        data["items"] = [{**item, "date": day} for item, day in zip(data["items"], [tomorrow, today, today])]
-        route.fulfill(json=data)
-    ctx.route("**/data.json*", patched)
-    pg.goto(URL)
-    pg.wait_for_selector("a.card")
-    today_labels = pg.locator(".date-label", has_text="Today")
-    assert today_labels.count() == 1
-    assert today_labels.locator(".day-meta").inner_text().startswith("· 3 stories")
 
 
 def test_reader_and_frame_relay_run_under_csp(browser):
@@ -746,7 +865,7 @@ def test_the_search_bar_and_slash_open_the_palette(browser):
     for opener in ("click", "slash"):
         pg = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
         pg.goto(URL)
-        pg.wait_for_selector("a.card")
+        enter_list(pg)
         pg.click("#search") if opener == "click" else pg.keyboard.press("/")
         pg.locator("#palette").wait_for()
         assert pg.evaluate("document.getElementById('palette').matches(':modal')")  # native: Esc and the phone's back button close it
@@ -759,21 +878,20 @@ def test_the_search_bar_and_slash_open_the_palette(browser):
         assert pg.locator("#palette").is_hidden()  # closing doesn't bounce focus back into the bar and reopen it
     ph = browser.new_context(viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True).new_page()
     ph.goto(URL)
-    ph.wait_for_selector("a.card")
-    for sel in ("#search-wrap", "#filter-toggle"):  # header icons on phones, beside the menu
-        box = ph.locator(sel).bounding_box()
-        assert box["width"] == 44 and box["height"] == 44 and box["y"] + 44 <= 52
-    ph.tap("#search")
+    enter_list(ph)
+    box = ph.locator("#search-btn").bounding_box()  # in the header on phones, beside the menu
+    assert box["width"] == 44 and box["height"] == 44 and box["y"] + 44 <= 52
+    ph.tap("#search-btn")
     ph.locator("#palette").wait_for()
     # Below the header, and the search icon becomes the close button (no Esc key on a phone).
     assert ph.locator("#palette").bounding_box()["y"] >= 52
-    close, icon = ph.locator("#palette-close").bounding_box(), ph.locator("#search-wrap").bounding_box()
+    close, icon = ph.locator("#palette-close").bounding_box(), ph.locator("#search-btn").bounding_box()
     assert (close["x"], close["y"], close["width"], close["height"]) == (icon["x"], icon["y"], 44, 44)
     ph.locator("#palette-close").tap()
     ph.locator("#palette").wait_for(state="hidden")
     ph.wait_for_timeout(200)
     assert ph.locator("#palette").is_hidden()
-    ph.tap("#search")
+    ph.tap("#search-btn")
     ph.locator("#palette").wait_for()
     ph.mouse.click(20, 26)  # anywhere on the header closes it too
     ph.locator("#palette").wait_for(state="hidden")
@@ -782,14 +900,14 @@ def test_the_search_bar_and_slash_open_the_palette(browser):
 def test_share_icon_matches_the_device(browser):
     desktop = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
     desktop.goto(URL)
-    desktop.wait_for_selector("a.card")
+    enter_list(desktop)
     assert desktop.locator("#reader-send").get_attribute("data-kind") == "apple"
     assert desktop.locator("#reader-send .send-apple").evaluate("e => getComputedStyle(e).display") == "block"  # the box and arrow, not a link icon
     mac = browser.new_context(viewport={"width": 1300, "height": 900})
     mac.add_init_script("navigator.share = () => Promise.resolve();")  # a desktop browser with a share sheet uses it
     mp = mac.new_page()
     mp.goto(URL)
-    mp.wait_for_selector("a.card")
+    enter_list(mp)
     assert mp.locator("#reader-send").get_attribute("data-kind") == "apple"
     for ua, kind in (("Mozilla/5.0 (Linux; Android 16; Pixel 9 Pro) AppleWebKit/537.36 Chrome/131 Mobile Safari/537.36", "android"),
                      ("Mozilla/5.0 (iPhone; CPU iPhone OS 19_0 like Mac OS X) AppleWebKit/605.1.15 Version/19.0 Mobile/15E148 Safari/604.1", "apple")):
@@ -797,7 +915,7 @@ def test_share_icon_matches_the_device(browser):
         ctx.add_init_script("navigator.share = () => Promise.resolve();")
         pg = ctx.new_page()
         pg.goto(URL)
-        pg.wait_for_selector("a.card")
+        enter_list(pg)
         assert pg.locator("#reader-send").get_attribute("data-kind") == kind, ua
 
 
@@ -805,7 +923,7 @@ def test_share_survives_ad_blockers_social_lists(browser):
     # Ad blockers' social lists hide share widgets by name and by link address, which removed the whole button.
     pg = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     named = pg.evaluate("[...document.querySelectorAll('[id*=share], [class*=share]')].map(e => e.id || e.className)")
     assert named == [], named
     links = pg.evaluate("[...document.querySelectorAll('#send-pop a, #reader-send a')].length")
@@ -854,14 +972,31 @@ def test_swipe_back_on_a_phone(browser):
         if pg.evaluate("new DOMMatrix(getComputedStyle(document.getElementById('reader')).transform).m41") == 0:
             break
         pg.wait_for_timeout(100)
+    # Open, the story's bar has taken the header's place: it sits still at the top while the story slides, and crossfades.
+    bar = "() => [Math.round(document.querySelector('.reader-bar').getBoundingClientRect().left), +getComputedStyle(document.querySelector('.reader-bar')).opacity, +getComputedStyle(document.querySelector('header')).opacity]"
+    assert pg.evaluate(bar)[1:] == [1, 0] and pg.evaluate(bar)[0] <= 1
     pg.evaluate("window.__tw = []; addEventListener('message', e => __tw.push(e.data && e.data.tw))")
     cdp = pg.context.new_cdp_session(pg)
     cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": 80, "y": 600}]})
     for k in range(1, 13):
         cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": 80 + 22 * k, "y": 602}]})
         pg.wait_for_timeout(16)
+        if k == 5:  # partway: the bar holds still under the finger, half faded into the list's header
+            left, shown, header = pg.evaluate(bar)
+            assert left <= 1 and 0 < shown < 1 and 0 < header < 1 and abs(shown + header - 1) < 0.05
     cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
     wait_until_closed(pg)
+    assert pg.evaluate("!document.querySelector('a.card:focus')")  # no focus ring on the row after a swipe
+    # A swipe the other way, across the list, brings the story back, as in Feedbin.
+    url = card.get_attribute("href")
+    pg.wait_for_timeout(400)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": 360, "y": 500}]})
+    for k in range(1, 9):
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": 360 - 30 * k, "y": 504}]})
+        pg.wait_for_timeout(16)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+    pg.wait_for_function("u => readerFor === u", arg=url)
+    assert reading(pg)
     assert pg.problems == []
 
 
@@ -920,13 +1055,6 @@ def test_closing_after_forward_doesnt_strand_a_history_entry(browser):
     assert pg.problems == []
 
 
-def test_stale_band_leaves_the_essentials_arrows_on_the_right(browser):
-    pg = stale_site(browser, 14, viewport={"width": 1300, "height": 900})
-    pg.locator("#stale").wait_for()
-    header, nav = pg.locator(".weekly-header").bounding_box(), pg.locator("#next").bounding_box()
-    assert header["x"] + header["width"] - (nav["x"] + nav["width"]) < 2  # the stale band shows, the arrows don't move
-
-
 def test_reader_header_tidies_bylines_and_never_starts_blank(browser):
     ctx = browser.new_context(viewport={"width": 1300, "height": 900})
     def article(route):
@@ -936,7 +1064,7 @@ def test_reader_header_tidies_bylines_and_never_starts_blank(browser):
     ctx.route("**/api/read?*", article)
     pg = ctx.new_page()
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     icons = pg.evaluate("[...icons]")
     no_icon = pg.evaluate("p => items.find(i => !p.includes(iconSlug(i.publisher)))?.url", icons)
     with_icon = pg.evaluate("p => items.find(i => p.includes(iconSlug(i.publisher)))?.url", icons)
@@ -954,12 +1082,11 @@ def test_reader_header_tidies_bylines_and_never_starts_blank(browser):
 
 def test_essentials_say_which_days_and_updated_sits_on_the_feed(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 900})
-    w = pg.evaluate("weekly")
-    assert pg.inner_text("#weekly-range") == pg.evaluate("w => weekRange(w)", w) and re.fullmatch(r"[A-Z][a-z]{2} \d{1,2}(–\d{1,2}| – [A-Z][a-z]{2} \d{1,2})", pg.inner_text("#weekly-range"))
+    assert re.fullmatch(r"[A-Z][a-z]{2} \d{1,2}(–\d{1,2}| – [A-Z][a-z]{2} \d{1,2})", pg.evaluate("weekRange(weekly)"))
     assert pg.evaluate("weekRange({window_start: '2026-10-29', window_end: '2026-11-04'})") == "Oct 29 – Nov 4"
-    assert pg.locator(".weekly-header #updated").count() == 0 and pg.locator(".date-label").first.locator("#updated").count() == 1
+    assert pg.locator(".side-foot #updated").count() == 1
     pg.locator(".filter-btn", has_text="Security").click()  # a redraw keeps it filled in
-    assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".date-label #updated"))
+    assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".side-foot #updated"))
     assert pg.problems == []
 
 
@@ -987,3 +1114,317 @@ def test_palette_opens_on_what_you_read_last(browser):
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
     assert pg.evaluate("readerFor") == pg.evaluate("items[2].url")
     assert pg.problems == []
+
+
+def test_wide_screens_dock_the_reader_beside_the_list(browser):
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    reader, backdrop = pg.locator("#reader"), pg.locator("#reader-backdrop")
+    # Docked before anything opens: an empty pane that says what it's for, no backdrop, a live list, and no bar to mark off.
+    assert reader.is_visible() and backdrop.is_hidden()
+    rule = "getComputedStyle(document.querySelector('.reader-bar')).borderBottomColor"
+    assert pg.evaluate(rule) == "rgba(0, 0, 0, 0)"
+    assert pg.evaluate("getComputedStyle(document.getElementById('reader-body'), '::before').maskImage").startswith('url("data:image/svg+xml')  # the site's mark, faint
+    side, items, pane = (pg.locator(s).bounding_box() for s in (".side", "#items", "#reader"))
+    assert side["x"] + side["width"] <= items["x"] and items["x"] + items["width"] <= pane["x"] + 1 and pane["x"] + pane["width"] <= 1440
+    cards = pg.locator("a.card")
+    cards.nth(1).click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    assert reading(pg) and backdrop.is_hidden() and pg.evaluate(rule) != "rgba(0, 0, 0, 0)"  # the bar's line comes with the story
+    assert not pg.evaluate("document.getElementById('items').inert") and reader.get_attribute("aria-modal") == "false"
+    assert cards.nth(1).get_attribute("aria-current") == "true" and pg.locator("a.card[aria-current]").count() == 1
+    assert pg.evaluate("document.activeElement.closest('#reader')") is None  # focus stays in the list, so j/k work there
+    # The list still takes clicks and scrolls while an article is open, and j moves through it.
+    cards.nth(3).click()
+    pg.locator("a.card").nth(3).and_(pg.locator("[aria-current='true']")).wait_for()
+    second = pg.evaluate("readerFor")
+    pg.keyboard.press("j")
+    pg.wait_for_function("u => readerFor && readerFor !== u", arg=second)
+    assert pg.evaluate("shown.findIndex(i => i.url === readerFor)") == 4
+    assert pg.locator("a.card").nth(4).get_attribute("aria-current") == "true"
+    pg.keyboard.press("Escape")
+    wait_until_closed(pg)
+    pg.locator("#reader-body iframe").first.wait_for(state="detached")  # cleared at once: nothing slides out
+    assert pg.locator("a.card[aria-current]").count() == 0
+    assert pg.problems == []
+
+
+def test_resizing_to_a_wide_screen_frees_the_list(browser):
+    pg = open_site(browser, viewport={"width": 1024, "height": 800})
+    pg.locator("a.card").first.click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    assert pg.evaluate("document.getElementById('items').inert")  # sliding over the list: the list waits
+    pg.set_viewport_size({"width": 1440, "height": 900})
+    pg.wait_for_function("() => !document.getElementById('items').inert")
+    assert pg.locator("#reader-backdrop").is_hidden()
+    pg.set_viewport_size({"width": 1024, "height": 800})
+    pg.wait_for_function("() => document.getElementById('items').inert")
+    assert pg.problems == []
+
+
+def test_the_reader_marks_a_story_unread_and_read_again(browser):
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    card = pg.locator("a.card").nth(1)
+    url = card.get_attribute("href")
+    assert card.locator(".card-meta").inner_text().count("min") == 0  # reading time lives in the reader now
+    card.click()
+    frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+    frame.locator(".meta", has_text="min read").wait_for()
+    btn = pg.locator("#reader-unread")
+    assert "read" in card.get_attribute("class").split() and btn.get_attribute("aria-label") == "Mark as unread"
+    btn.click()
+    assert "read" not in card.get_attribute("class").split() and btn.get_attribute("aria-label") == "Mark as read"
+    assert not pg.evaluate("u => readSet.has(u)", url) and pg.inner_text("#status") == "Marked as unread"
+    pg.keyboard.press("m")  # the shortcut toggles it back
+    assert "read" in card.get_attribute("class").split() and pg.evaluate("u => readSet.has(u)", url)
+    # Docked under the header, the reader doesn't repeat the theme switch in the header's menu.
+    assert pg.locator("#reader-theme").is_hidden() and pg.locator("#menu-btn").is_visible()
+    assert pg.problems == []
+
+
+def test_picking_a_topic_closes_the_open_story(browser):
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    for topic in ("all", "security"):  # the current topic too, as in Feedbin
+        pg.locator("a.card").first.click()
+        pg.wait_for_selector("#reader-body iframe:not(.loading)")
+        pg.click(f"#filters .filter-btn[data-f='{topic}']")
+        wait_until_closed(pg)
+        pg.locator("#reader-body iframe").first.wait_for(state="detached")
+        assert pg.evaluate("location.pathname") == "/" and pg.locator("a.card[aria-current]").count() == 0
+        assert pg.locator(f"#filters .filter-btn.active").get_attribute("data-f") == topic
+    assert pg.problems == []
+
+
+def test_sidebar_counts_unread_stories(browser):
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    count = lambda f: pg.locator(f"#filters .filter-btn[data-f='{f}'] .f-count").text_content()
+    total = pg.evaluate("items.length")
+    first = pg.evaluate("shown[0]")
+    topic = pg.evaluate("c => cat(c)", first["category"])
+    before = int(count(topic).split()[0])
+    assert count("all") == f"{total} unread"
+    pg.locator("a.card").first.click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    assert count("all") == f"{total - 1} unread" and count(topic) == f"{before - 1} unread"
+    pg.click("#reader-unread")  # marking it unread puts it back
+    assert count("all") == f"{total} unread" and count(topic) == f"{before} unread"
+    pg.evaluate("items.forEach(i => readSet.add(i.url)); renderFilters()")
+    assert pg.locator("#filters .f-count").count() == 0 and pg.locator("#filters .filter-btn").count() > 2  # all read: no counts, topics stay
+    assert pg.problems == []
+
+
+def test_wide_screens_scroll_the_list_by_itself(browser):
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    col = pg.locator("#col").bounding_box()
+    assert pg.evaluate("document.documentElement.scrollHeight <= innerHeight")  # the window doesn't scroll
+    assert pg.evaluate("e => e.scrollHeight > e.clientHeight", pg.locator("#col").element_handle())
+    assert col["x"] + col["width"] <= pg.locator("#reader").bounding_box()["x"] + 1  # its scrollbar sits beside the list
+    pg.mouse.move(460, 450)
+    for _ in range(40):  # the next pages load as the list nears its end
+        if pg.locator("#end").is_visible():
+            break
+        pg.mouse.wheel(0, 3000)
+        pg.wait_for_timeout(100)
+    assert pg.locator("#end").is_visible() and pg.evaluate("limit >= shown.length")
+    pg.locator("#top").click()  # back to the top of the list
+    pg.wait_for_function("() => document.getElementById('col').scrollTop === 0")
+    assert pg.problems == []
+
+
+def test_phone_swipes_move_between_the_topics_and_a_list(browser):
+    pg = browser.new_context(viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True).new_page()
+    pg.goto(URL)
+    pg.wait_for_selector("#filters .filter-btn")
+    cdp = pg.context.new_cdp_session(pg)
+    def swipe(x0, x1, y=500):
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": x0, "y": y}]})
+        for k in range(1, 9):
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": x0 + (x1 - x0) * k / 8, "y": y + 2}]})
+            pg.wait_for_timeout(16)
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+    home = lambda: pg.evaluate("document.body.classList.contains('home')")
+    swipe(330, 80)  # nothing to go back into yet
+    pg.wait_for_timeout(400)
+    assert home()
+    pg.tap("#filters .filter-btn[data-f='ai']")
+    pg.wait_for_selector("a.card")
+    swipe(60, 320)  # right: back to the topics
+    pg.wait_for_function("() => document.body.classList.contains('home')")
+    swipe(330, 80)  # left: back into the list just left
+    pg.wait_for_selector("a.card")
+    assert not home() and pg.inner_text("#list-name") == "AI"
+    pg.go_back()  # it's a page in history, as a tap makes it
+    pg.wait_for_function("() => document.body.classList.contains('home')")
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": 300, "y": 700}]})  # mostly down: a scroll, not a swipe
+    for k in range(1, 9):
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": 300 - 10 * k, "y": 700 - 40 * k}]})
+        pg.wait_for_timeout(16)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+    pg.wait_for_timeout(400)
+    assert home()
+
+
+def test_a_story_read_once_reopens_without_fetching_again(browser):
+    pg = open_site(browser, viewport={"width": 412, "height": 915}, has_touch=True, is_mobile=True)
+    fetches = []
+    pg.on("request", lambda r: fetches.append(r.url) if "/api/read" in r.url else None)
+    card = pg.locator("a.card").nth(1)
+    card.tap()
+    pg.frame_locator("#reader-body iframe:not(.loading)").locator("p").nth(29).wait_for()
+    frame = pg.locator("#reader-body iframe:not(.loading)").element_handle()
+    pg.go_back()
+    wait_until_closed(pg)
+    card.tap()  # the same story again
+    pg.wait_for_function("() => document.body.classList.contains('reading')")
+    pg.wait_for_timeout(300)
+    assert len(fetches) == 1  # stored this visit: no second fetch
+    assert pg.evaluate("f => f.isConnected && document.querySelectorAll('#reader-body iframe').length === 1", frame)  # the same frame, where it was
+    assert pg.problems == []
+
+
+def test_wide_screens_resize_the_topics_and_the_list(browser):
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    width = lambda v: pg.evaluate(f"parseFloat(getComputedStyle(document.documentElement).getPropertyValue('{v}'))")
+    def drag(sel, by):
+        box = pg.locator(sel).bounding_box()
+        pg.mouse.move(box["x"] + box["width"] / 2, 400)
+        pg.mouse.down()
+        pg.mouse.move(box["x"] + box["width"] / 2 + by, 400, steps=5)
+        pg.mouse.up()
+    side, lst = width("--side-w"), width("--list-w")
+    drag("#resize-list", 120)
+    drag("#resize-side", -40)
+    assert width("--list-w") == lst + 120 and width("--side-w") == side - 40
+    assert abs(pg.locator("#reader").bounding_box()["x"] - (side - 40 + lst + 120)) <= 1  # the reader moves over
+    drag("#resize-list", 2000)  # the reader keeps room to read in
+    assert pg.locator("#reader").bounding_box()["width"] >= 480
+    pg.locator("#resize-side").focus()
+    pg.keyboard.press("ArrowRight")  # and from the keyboard
+    assert width("--side-w") == side - 40 + 16 and pg.get_attribute("#resize-side", "aria-valuenow") == str(int(side - 40 + 16))
+    kept = width("--side-w")
+    pg.reload()
+    enter_list(pg)
+    assert width("--side-w") == kept  # kept on this device
+    pg.locator("#resize-side").dblclick()
+    assert width("--side-w") == side  # double-click: back to the default
+    assert pg.locator("#resize-side").is_hidden() is False and pg.problems == []
+
+
+def ticker_site(browser, built_hours_ago, now="2026-11-10T14:00:00Z", **context):
+    """The site on a fake clock (so the pass can be stepped through exactly), with data built some hours before `now`."""
+    ctx = browser.new_context(**context)
+    pg = ctx.new_page()
+    built = (datetime.fromisoformat(now.replace("Z", "+00:00")) - timedelta(hours=built_hours_ago)).isoformat(timespec="seconds")
+    def patched(route):
+        data = route.fetch().json()
+        data["generated_at"], data["tz"] = built, "America/New_York"
+        route.fulfill(json=data)
+    ctx.route("**/data.json*", patched)
+    pg.clock.install(time=now)
+    pg.clock.pause_at(now)  # time moves only when the test says: a slow machine can't run the pass early
+    pg.goto(URL)
+    pg.wait_for_selector("#filters .filter-btn")
+    pg.clock.run_for(50)
+    assert not pg.evaluate("document.body.classList.contains('ticking')")  # the wordmark first, to be seen on arrival
+    pg.clock.run_for(1100)
+    assert not pg.evaluate("document.body.classList.contains('ticking')")
+    pg.clock.run_for(100)  # 1.2s in: the pass begins
+    return pg
+
+
+def test_opening_runs_the_wordmark_through_how_fresh_the_news_is_once(browser):
+    pg = ticker_site(browser, 1, viewport={"width": 1440, "height": 900})
+    ticking = lambda: pg.evaluate("document.body.classList.contains('ticking')")
+    assert ticking() and pg.get_attribute("#ticker", "aria-hidden") == "true"  # screen readers get the sidebar's "Updated" instead
+    seen = []
+    for _ in range(4):
+        pg.clock.run_for(400)  # into the line, past its fade
+        seen.append(pg.inner_text("#ticker"))
+        pg.clock.run_for(1100)
+    # The date where the site is (9am in New York), when it updated, when the next build is due (16:17 UTC), then the wordmark.
+    assert seen[:3] == ["Tuesday, November 10", "Updated 1h ago", "Next update in about 2h 17m"]
+    pg.clock.run_for(400)
+    assert not ticking()  # back on the wordmark, in under five seconds all told (WCAG 2.2.2), and it stays there
+    pg.clock.run_for(60_000)
+    assert not ticking()
+
+
+def test_a_late_build_skips_the_promise_and_a_tap_ends_the_pass(browser):
+    pg = ticker_site(browser, 6, viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
+    lines = []
+    for _ in range(3):
+        pg.clock.run_for(400)
+        lines.append(pg.inner_text("#ticker"))
+        pg.clock.run_for(1100)
+    assert lines[:2] == ["Tuesday, November 10", "Updated 6h ago"] and not any("Next update" in l for l in lines)  # late: no promise
+    pg = ticker_site(browser, 1, viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
+    pg.clock.run_for(400)
+    pg.tap(".logo-h")  # mid-pass: it just ends, rather than navigating
+    assert not pg.evaluate("document.body.classList.contains('ticking')") and pg.evaluate("location.pathname") == "/"
+
+
+def test_coming_back_after_a_while_plays_the_pass_again(browser):
+    pg = ticker_site(browser, 1, viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
+    ticking = lambda: pg.evaluate("document.body.classList.contains('ticking')")
+    pg.clock.run_for(6000)
+    assert not ticking()
+    away = "h => { Object.defineProperty(document, 'hidden', { get: () => h, configurable: true }); document.dispatchEvent(new Event('visibilitychange')); }"
+    pg.evaluate(away, True)  # to the background, as a phone does when Upshot is closed
+    pg.clock.run_for(5 * 60_000)
+    pg.evaluate(away, False)  # back within minutes: still the same visit
+    pg.clock.run_for(500)
+    assert not ticking()
+    pg.evaluate(away, True)
+    pg.clock.run_for(20 * 60_000)
+    pg.evaluate(away, False)  # back after a while: an opening, so one pass, after the wordmark's moment
+    pg.wait_for_timeout(300)
+    pg.clock.run_for(1300)
+    assert ticking()
+
+
+def test_a_pass_waits_for_the_wordmark_to_be_in_view(browser):
+    # Reloaded on a story, on a phone: the pass waits under it, and plays from the top on reaching the topics.
+    ctx = browser.new_context(viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
+    pg = ctx.new_page()
+    pg.goto(URL)
+    pg.wait_for_selector("#filters .filter-btn")
+    path = pg.evaluate("readPath(items[0].url)")
+    start = datetime.now(timezone.utc)
+    pg.clock.install(time=start)
+    pg.clock.pause_at(start)  # time moves only when the test says
+    pg.goto(URL.rstrip("/") + path)
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    ticking = lambda: pg.evaluate("document.body.classList.contains('ticking')")
+    pg.clock.run_for(8000)  # longer than a whole pass
+    assert not ticking() and pg.evaluate("tickPending")
+    pg.locator("#reader-close").click()  # back to the list: the wordmark's still out of view
+    pg.wait_for_function("() => !document.body.classList.contains('reading')")
+    pg.clock.run_for(3000)
+    assert not ticking()
+    pg.locator("#list-back").click()  # the topics: now it plays, wordmark first
+    pg.wait_for_function("() => document.body.classList.contains('home')")
+    pg.clock.run_for(600)
+    assert not ticking()
+    pg.clock.run_for(1000)
+    assert ticking()
+    # Leaving mid-pass stops it: back on the topics later, it's the wordmark, not the middle of the pass.
+    pg.locator("#filters .filter-btn[data-f='all']").click()
+    pg.clock.run_for(300)
+    assert not ticking()
+    pg.locator("#list-back").click()
+    pg.wait_for_function("() => document.body.classList.contains('home')")
+    pg.clock.run_for(3000)
+    assert not ticking()
+
+
+def test_a_refresh_is_not_an_opening(browser):
+    pg = ticker_site(browser, 1, viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)  # one pass, now
+    ticking = lambda: pg.evaluate("document.body.classList.contains('ticking')")
+    assert ticking()
+    pg.clock.run_for(6000)
+    for wait, plays in ((0, False), (5 * 60_000, False), (16 * 60_000, True)):  # moments, minutes, then a while after
+        pg.clock.run_for(wait)
+        pg.reload()
+        pg.wait_for_selector("#filters .filter-btn")
+        pg.clock.run_for(1300)  # past the wordmark's moment
+        assert ticking() == plays, wait
+        pg.clock.run_for(6000)

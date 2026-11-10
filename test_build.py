@@ -83,6 +83,7 @@ def test_stories_are_dated_in_the_site_time_zone():
     late = {"link": "https://x.test/a", "title": "T", "published_parsed": time.strptime("2026-11-07 01:00", "%Y-%m-%d %H:%M")}  # 8pm on the 6th, Eastern
     (item,) = build.candidates("P", [late], {}, datetime(2026, 11, 1, tzinfo=timezone.utc))
     assert item["date"] == "2026-11-06"
+    assert item["published"] == "2026-11-07T01:00:00+00:00"  # the exact time too, for "5h ago" on the page
 
 
 def test_icon_art_flags_only_single_colour_artwork_on_transparency(tmp_path):

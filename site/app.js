@@ -6,26 +6,51 @@ const OLD = { architecture: 'infrastructure', sdlc: 'engineering' };  // renamed
 const cat = c => (OLD[c] || (c in CATS ? c : 'other'));
 const domain = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
 const PAGE = 40;
-const STALE_MINUTES = 12 * 60;  // three missed builds
+const STALE_MINUTES = 5 * 60;  // builds land every 4h, give or take GitHub's scheduling: this is one running 45+ minutes late
 const KEEP_DAYS = 90;  // build.py prunes older stories
-const io = new IntersectionObserver(([e]) => { if (e.isIntersecting && limit < shown.length) { limit += PAGE; renderPage(); } }, { rootMargin: '800px' });
-let tz, iconArt = {}, icons = new Set(), items = [], filter = 'all', shown = [], limit = PAGE, generatedAt = null;
+// Wide screens dock the reader beside the list, as Feedbin does, and the list scrolls on its own; elsewhere the window scrolls it.
+const docked = matchMedia('(min-width: 1280px)');
+const scroller = () => (docked.matches ? $('col') : document.scrollingElement);
+// The latest entry decides: a batch can hold an older one from before the last redraw, and reading that stopped the feed short of its end.
+// Watched against whichever scrolls the list, so the 800px head start applies to it.
+let io;
+function watchEnd() {
+  io?.disconnect();
+  io = new IntersectionObserver(es => { if (es.at(-1).isIntersecting && limit < shown.length) { limit += PAGE; renderPage(); } },
+    { root: docked.matches ? $('col') : null, rootMargin: '800px' });
+  io.observe($('sentinel'));
+}
+watchEnd();
+docked.addEventListener('change', watchEnd);
+let tz, iconArt = {}, icons = new Set(), items = [], filter = 'all', shown = [], limit = PAGE, generatedAt = null, picks = new Map();  // picks: url -> what to do
+const label = f => (f === 'all' ? 'All' : f === 'essentials' ? 'Essentials' : CATS[f]);
 
 // Today in the site's time zone (data.json's tz), not the device's: some browsers report UTC for privacy, which
-// turned the evening's stories into "Yesterday".
+// turned the evening's stories into a day old.
 function todayIso() {
   const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' })
     .formatToParts(new Date()).map(x => [x.type, x.value]));
   return `${p.year}-${p.month}-${p.day}`;
 }
 const dayNumber = iso => Date.UTC(...iso.split('-').map((n, k) => +n - (k === 1))) / 864e5;
-function dayLabel(iso) {
-  const days = dayNumber(todayIso()) - dayNumber(iso);
-  if (days <= 0) return 'Today';
-  if (days === 1) return 'Yesterday';
-  const d = new Date(iso + 'T12:00:00Z');
-  return d.toLocaleDateString('en-US', days < 7 ? { weekday: 'long', timeZone: 'UTC' } : { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+// How long ago it was published, as Feedbin shows it: 21m, 5h, 3d, then the date. A calmer list than a count per day.
+// Stories from before the build kept the exact time only have a date: whole days, counted in the site's time zone,
+// or the time it reached the site when that was the same day.
+function age(i) {
+  let mins = (Date.now() - Date.parse(i.published || i.added)) / 60e3;
+  const days = dayNumber(todayIso()) - dayNumber(i.date);
+  if (!i.published && !(i.added && days <= 0)) mins = Math.max(0, days) * 1440;
+  if (mins < 60) return `${Math.max(1, Math.floor(mins))}m`;
+  if (mins < 1440) return `${Math.floor(mins / 60)}h`;
+  if (mins < 7 * 1440) return `${Math.floor(mins / 1440)}d`;
+  const d = new Date(i.date + 'T12:00:00Z'), year = i.date.slice(0, 4) !== todayIso().slice(0, 4);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...(year && { year: 'numeric' }), timeZone: 'UTC' });
 }
+const ageHtml = i => `<time class="card-age" datetime="${esc(i.published || i.added || i.date)}">${age(i)}</time>`;
+const refreshAges = () => document.querySelectorAll('a.card').forEach(a => {
+  const i = items.find(x => x.url === a.getAttribute('href')), t = a.querySelector('.card-age');
+  if (i && t) t.textContent = age(i);
+});
 
 function highlight(text, q) {
   if (!q) return esc(text);
@@ -35,20 +60,25 @@ function highlight(text, q) {
 }
 
 function renderFilters() {
-  const counts = {};
-  for (const i of items) counts[cat(i.category)] = (counts[cat(i.category)] || 0) + 1;
-  $('filters').innerHTML = [`<button class="filter-btn${filter === 'all' ? ' active' : ''}" data-f="all">All</button>`]
-    .concat(ORDER.filter(c => counts[c] || filter === c).map(c => `<button class="filter-btn${filter === c ? ' active' : ''}" data-f="${c}">` +
-      `<span class="dot" style="--c:var(--cat-${c})"></span>${CATS[c]} (${counts[c] || 0})</button>`)).join('');
-  const name = filter === 'all' ? '' : CATS[filter];
-  $('filter-label').textContent = name;  // a hidden filter must still show, or stories look missing
-  $('filter-toggle').classList.toggle('active', !!name);
-  $('filter-toggle').setAttribute('aria-label', name ? `Filters: ${name}` : 'Filters');
+  // Unread stories, as in a feed reader: the counts go down as you read. Topics with stories stay listed at 0.
+  const counts = {}, unread = {}, unreadAll = items.filter(i => !readSet.has(i.url)).length;
+  for (const i of items) {
+    counts[cat(i.category)] = (counts[cat(i.category)] || 0) + 1;
+    if (!readSet.has(i.url)) unread[cat(i.category)] = (unread[cat(i.category)] || 0) + 1;
+  }
+  const unreadPicks = [...picks.keys()].filter(u => !readSet.has(u)).length;
+  const btn = (f, n, mark) => `<button class="filter-btn${filter === f ? ' active' : ''}" data-f="${f}" aria-pressed="${filter === f}">` +
+    `<span class="f-mark" aria-hidden="true">${mark}</span><span class="f-name">${label(f)}</span>${n ? `<span class="f-count">${n}<span class="sr-only"> unread</span></span>` : ''}</button>`;
+  $('filters').innerHTML = btn('all', unreadAll, '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>') +
+    (picks.size ? btn('essentials', unreadPicks, '<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>') : '') +
+    '<h2 class="f-head">Topics</h2>' + ORDER.filter(c => counts[c] || filter === c).map(c => btn(c, unread[c] || 0, `<span class="dot" style="--c:var(--cat-${c})"></span>`)).join('');
+  $('list-name').textContent = label(filter);  // phones: the list's name above it, so a filter never makes stories look missing
+  document.title = filter === 'all' ? 'Upshot \u00b7 The week\u2019s tech news, minus the noise' : `${label(filter)} \u00b7 Upshot`;
 }
 
 function renderItems(keepLimit) {
   const ql = $('search').value.trim().toLowerCase();
-  shown = items.filter(i => (filter === 'all' || cat(i.category) === filter) &&
+  shown = items.filter(i => (filter === 'all' || (filter === 'essentials' ? picks.has(i.url) : cat(i.category) === filter)) &&
     (!ql || `${i.title} ${i.summary} ${i.publisher} ${domain(i.url)}`.toLowerCase().includes(ql)));
   $('status').textContent = ql ? `${shown.length} articles found` : '';
   if (!keepLimit) limit = PAGE;
@@ -58,27 +88,18 @@ function renderItems(keepLimit) {
 // Renders the first `limit` matches; the sentinel below the list raises it as you scroll.
 function renderPage() {
   const q = $('search').value.trim();
-  const counts = {}, groups = {};
-  // Grouped by the label shown (Today, Yesterday, a weekday or a date).
-  const minutes = {}, unknown = {};
-  for (const i of shown) {
-    const d = dayLabel(i.date);
-    counts[d] = (counts[d] || 0) + 1;
-    minutes[d] = (minutes[d] || 0) + (i.minutes || 0);
-    if (!i.minutes) unknown[d] = true;
-  }
-  const dayMeta = d => `· ${counts[d]} ${counts[d] === 1 ? 'story' : 'stories'}${unknown[d] ? '' : ` · ${minutes[d]} min`}`;  // only a full count: a floor would teach people to ignore it
-  for (const i of shown.slice(0, limit)) (groups[dayLabel(i.date)] ||= []).push(i);
-  $('items').innerHTML = shown.length ? Object.entries(groups).map(([d, list], n) => `
-    <div class="date-label"><span>${d}</span><span class="day-meta">${dayMeta(d)}</span>${n ? '' : '<time id="updated"></time>'}</div>
-    ${list.map(i => { const c = cat(i.category); return `
-    <a class="card${readSet.has(i.url) ? ' read' : ''}" href="${esc(i.url)}" target="_blank" rel="noopener">
-      <span class="dot" style="--c:var(--cat-${c})"></span>
+  // No headings or counts: the list starts at the top, each story says how old it is, and the sidebar says which list it is.
+  $('items').innerHTML = shown.length ? `
+    ${shown.slice(0, limit).map(i => { const ess = picks.has(i.url), why = filter === 'essentials' && picks.get(i.url), preview = why || i.summary; return `
+    <a class="card${readSet.has(i.url) ? ' read' : ''}${ess ? ' essential' : ''}" href="${esc(i.url)}" target="_blank" rel="noopener"${i.url === readerFor ? ' aria-current="true"' : ''}>
+      ${iconHtml(i.publisher)}
       <div class="card-body">
         <div class="card-title">${highlight(i.title, q)}</div>
-        <div class="card-meta">${isNew(i) ? '<span class="new">New</span>' : ''}<span class="card-cat">${CATS[c]}</span><span>·</span><span class="card-url">${esc(domain(i.url))}</span></div>
+        <div class="card-meta"><span class="card-src">${esc(i.publisher)}</span>${ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : ''}${isNew(i) ? '<span class="new">New</span>' : ''}</div>
+        ${preview ? `<div class="card-sum">${why ? '<b>What to do: </b>' : ''}${highlight(preview, q)}</div>` : ''}
+        ${ageHtml(i)}
       </div>
-    </a>`; }).join('')}`).join('')
+    </a>`; }).join('')}`
     : '<p class="empty">No articles match your search.</p>';
   $('items').removeAttribute('aria-busy');
   if (generatedAt) showUpdated();  // the feed was just redrawn, and its "Updated" with it
@@ -87,9 +108,12 @@ function renderPage() {
   const ended = shown.length && limit >= shown.length;
   $('end').hidden = !ended;
   if (ended) {
-    const n = shown.length, what = `${filter === 'all' ? '' : `${CATS[filter]} `}stor${n === 1 ? 'y' : 'ies'}`;
+    // A topic is where the stories are ("3 stories in Other"), not a word about them ("3 Other stories").
+    const n = shown.length, what = filter === 'essentials' ? `essential${n === 1 ? '' : 's'}`
+      : `stor${n === 1 ? 'y' : 'ies'}${filter === 'all' ? '' : ` in ${label(filter)}`}`;
     const days = Math.min(KEEP_DAYS, Math.ceil((Date.now() - Date.parse(items.reduce((o, i) => (i.date < o ? i.date : o), items[0].date))) / 864e5));
-    const scope = q ? ` matching \u201c${q}\u201d` : filter === 'all' ? ` from the last ${days} days` : '';  // the real span: a young site hasn't reached KEEP_DAYS
+    const scope = q ? ` matching \u201c${q}\u201d` : filter === 'all' ? ` from the last ${days} days`
+      : filter === 'essentials' && weekly?.window_start ? ` from ${weekRange(weekly)}` : '';  // the real span: a young site hasn't reached KEEP_DAYS
     $('end-msg').textContent = `That\u2019s ${n === 1 ? 'the only' : `all ${n}`} ${what}${scope}.`;
   }
 }
@@ -100,27 +124,11 @@ function weekRange(w) {
   const [a, b] = [md(w.window_start), md(w.window_end)];
   return a.split(' ')[0] === b.split(' ')[0] ? `${a}–${b.split(' ')[1]}` : `${a} – ${b}`;
 }
-function renderWeekly(weekly) {
-  const byUrl = Object.fromEntries(items.map(i => [i.url, i]));
-  const picks = (weekly?.items || []).filter(p => byUrl[p.url]);
-  if (!picks.length) { $('weekly').hidden = true; return; }  // the placeholder tiles go too
-  $('weekly-range').textContent = weekly.window_start ? weekRange(weekly) : '';
-  $('rail').innerHTML = picks.map(p => { const i = byUrl[p.url]; return `
-    <a class="weekly-card" href="${esc(i.url)}" target="_blank" rel="noopener">
-      <span class="dot" role="img" aria-label="${CATS[cat(i.category)]}" style="--c:var(--cat-${cat(i.category)})"></span>
-      <div class="weekly-body">
-        <div class="weekly-card-title">${esc(i.title)}</div>
-        <div class="weekly-meta"><span class="weekly-source">${esc(i.publisher)}</span><span>· ${dayLabel(i.date)}</span></div>
-      </div>
-    </a>`; }).join('');
-  $('weekly').hidden = false;
-  const rail = $('rail');
-  const step = () => rail.firstElementChild.offsetWidth + 10;
-  const sync = () => { $('prev').disabled = rail.scrollLeft < 4; $('next').disabled = rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 4; };
-  $('prev').onclick = () => rail.scrollBy({ left: -step() });
-  $('next').onclick = () => rail.scrollBy({ left: step() });
-  rail.onscroll = sync;
-  sync();
+// The week's essentials: their own entry in the topics, and marked where they appear in the feed.
+function setPicks(weekly) {
+  const urls = new Set(items.map(i => i.url));
+  picks = new Map((weekly?.items || []).filter(p => urls.has(p.url)).map(p => [p.url, p.why]));
+  if (filter === 'essentials' && !picks.size) filter = 'all';
 }
 
 const syncThemeColor = () => {
@@ -151,26 +159,50 @@ $('theme').onclick = $('reader-theme').onclick = () => {
   else swap();
   localStorage.setItem('theme', t);
 };
-$('info').onclick = e => {
-  e.stopPropagation();
-  const open = $('info-pop').hidden;
-  $('info-pop').hidden = !open;
-  $('info').setAttribute('aria-expanded', open);
-};
-document.addEventListener('click', () => { $('info-pop').hidden = true; $('info').setAttribute('aria-expanded', false); });
 $('filters').onclick = e => {
   const b = e.target.closest('.filter-btn');
   if (!b) return;
+  const same = b.dataset.f === filter && lastList !== null;  // back into the list just left, on a phone
   filter = b.dataset.f;
+  if (!same) lastClosed = null;  // a new list: nothing to swipe back into
+  if (document.body.classList.contains('reading')) dismiss();  // as in Feedbin: picking a topic, even the current one, closes the story
   renderFilters();
-  renderItems();
-  if ($('filters').matches(':popover-open')) $('filters').hidePopover();
+  if (!(same && phone.matches)) renderItems();
+  if (phone.matches && document.body.classList.contains('home')) enterList(same);  // into the list, as a page: back returns to the topics
+  else if (history.state?.list) history.replaceState({ ...history.state, f: filter }, '');
 };
+// Phones open on the topics (home); a topic's list is a history entry above it, so back, the chevron and swipe-back return.
+const phone = matchMedia('(max-width: 640px)');
+phone.addEventListener('change', () => syncHome());
+function syncHome() {
+  const st = history.state, home = !st?.list && !st?.reader;
+  document.body.classList.toggle('home', home);
+  setPd(null);  // a swipe that brought it here hands over to the state's own position
+  $('col').inert = phone.matches && home;  // the page that's aside can't be reached
+  $('filters').inert = phone.matches && !home;
+  $('list-back').inert = $('search-btn').inert = phone.matches && home;  // faded out: out of reach too
+  document.querySelector('.logo-h').inert = phone.matches && !home;
+  syncTicker();
+  if (st?.f && st.f !== filter && (st.f !== 'essentials' || picks.size)) { filter = st.f; renderFilters(); renderItems(); }
+}
+let lastList = null;  // the list a swipe left on the topics goes back into (the filter is still set to it)
+const setPd = v => (v == null ? document.documentElement.style.removeProperty('--pd') : document.documentElement.style.setProperty('--pd', v));
+function enterList(same) {
+  history.pushState({ list: true, f: filter }, '', location.pathname + location.search);
+  syncHome();  // the list slides in over the topics (CSS)
+  if (!same) scrollTo(0, 0);  // the same list again keeps its place
+}
+function leaveList() {
+  lastList = filter;
+  if (history.state?.list) history.back();  // popstate slides it out
+  else { history.replaceState(null, ''); syncHome(); }
+}
+$('list-back').onclick = leaveList;
 // The search bar opens the palette, the same search as ⌘K, rather than filtering the feed in place.
 $('search').addEventListener('focus', () => { $('search').blur(); openPalette(); });
-io.observe($('sentinel'));
-addEventListener('scroll', () => { $('top').hidden = scrollY < 800; }, { passive: true });
-$('top').onclick = () => scrollTo({ top: 0, behavior: 'smooth' });
+$('search-btn').onclick = () => openPalette();  // phones: the header's own
+addEventListener('scroll', () => { $('top').hidden = scroller().scrollTop < 800; }, { passive: true, capture: true });  // capture: the list's own scrolling doesn't bubble
+$('top').onclick = () => scroller().scrollTo({ top: 0, behavior: 'smooth' });
 
 // Read and "new since last visit" state lives only in this browser.
 let weekly = null;
@@ -185,27 +217,60 @@ function pruneRead() {
 }
 const cardFor = url => [...document.querySelectorAll('a.card')].find(a => a.getAttribute('href') === url);
 function markRead(url) {
+  const was = readSet.has(url);
   readSet.delete(url); readSet.add(url); saveRead();  // most recent last: the search panel's "Recently read" reads it backwards
+  if (!was) renderFilters();
   const card = cardFor(url);
   card?.classList.add('read');
   card?.querySelector('.new')?.remove();
 }
+function markUnread(url) {
+  readSet.delete(url); saveRead();
+  cardFor(url)?.classList.remove('read');
+  renderFilters();
+}
+// The reader's read/unread switch, after Feedbin's: opening a story marks it read; this takes that back.
+function syncUnread() {
+  const unread = !!readerFor && !readSet.has(readerFor), label = unread ? 'Mark as read' : 'Mark as unread';
+  $('reader-unread').classList.toggle('unread', unread);
+  $('reader-unread').setAttribute('aria-label', label);
+  $('reader-unread').title = label;
+}
+function toggleRead() {
+  if (!readerFor) return;
+  if (readSet.has(readerFor)) markUnread(readerFor); else markRead(readerFor);
+  syncUnread();
+  $('status').textContent = readSet.has(readerFor) ? 'Marked as read' : 'Marked as unread';
+}
+$('reader-unread').onclick = toggleRead;
 const rememberSeen = () => { if (generatedAt) localStorage.setItem('seenUntil', generatedAt); };
 addEventListener('pagehide', rememberSeen);
 document.addEventListener('visibilitychange', () => { if (document.hidden) rememberSeen(); });
 
 // "Updated 2h ago" at the top of the feed; a number that keeps growing means builds have stopped.
+const agoText = mins => (mins < 1 ? 'just now' : mins < 60 ? `${Math.floor(mins)}m ago`
+  : mins < 48 * 60 ? `${Math.floor(mins / 60)}h ago` : `${Math.floor(mins / 1440)}d ago`);
 function showUpdated() {
-  const el = $('updated') || document.createElement('time'), mins = Math.max(0, (Date.now() - Date.parse(generatedAt)) / 60e3);  // none on an empty feed
+  const el = $('updated'), mins = Math.max(0, (Date.now() - Date.parse(generatedAt)) / 60e3);  // none on an empty feed
   el.dateTime = generatedAt;
   el.title = new Date(generatedAt).toLocaleString();
-  const ago = mins < 1 ? 'just now' : mins < 60 ? `${Math.floor(mins)}m ago`
-    : mins < 48 * 60 ? `${Math.floor(mins / 60)}h ago` : `${Math.floor(mins / 1440)}d ago`;
+  const ago = agoText(mins);
   el.innerHTML = `<span>Updated </span>${ago}`;
   $('stale').hidden = mins < STALE_MINUTES;
-  el.hidden = !$('stale').hidden;  // one slot, two states: the band says the same thing, louder
-  $('stale').textContent = `Last updated ${ago} · the build may be stalled`;
+  el.hidden = !$('stale').hidden;  // one slot, two states: the bar says the same thing, where it can be acted on
+  if (!checking) $('stale-msg').textContent = `Last updated ${ago}`;
 }
+// The late bar's one action: look for a new build now, rather than at the next 15-minute check.
+let checking = false;
+$('stale-check').onclick = async () => {
+  const b = $('stale-check'), before = generatedAt;
+  checking = true; b.disabled = true; b.classList.add('checking');
+  try { await load(); } catch {}
+  b.disabled = false; b.classList.remove('checking');
+  if (generatedAt !== before) { checking = false; return showUpdated(); }  // new stories: the list redrew, and the bar goes
+  $('stale-msg').textContent = $('status').textContent = 'No new stories yet';
+  setTimeout(() => { checking = false; showUpdated(); }, 2500);
+};
 // Redraws only when a new build has landed, keeping the filter, search and loaded depth.
 function load() {
   return fetch('/data.json', { cache: 'no-cache' })  // absolute: the page is also served at /read/…
@@ -221,13 +286,29 @@ function load() {
     icons = new Set(data.icons || []);
     iconArt = data.iconArt || {};
     pruneRead();
+    setPicks(data.weekly);
     renderFilters();
-    renderWeekly(data.weekly);
     renderItems(refresh);
-    if (!refresh) syncFromUrl();
+    if (!refresh) {  // where the page starts is no move: no slide
+      document.body.classList.add('paging');
+      syncFromUrl(); syncHome();
+      requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('paging')));
+      if (passDue()) { if (document.hidden) tickOnShow = true; else playTicker(); }  // opened, not just refreshed: one pass
+      (window.requestIdleCallback || (f => setTimeout(f, 1000)))(loadFrameFonts);  // ahead of the first article
+    }
   });
 }
 let readerFor = null;
+// Docked, the list stays usable while an article is open.
+const setInert = () => {
+  const off = document.body.classList.contains('reading') && !docked.matches;
+  document.querySelectorAll('.feed, #top').forEach(el => { el.inert = off; });
+  $('reader').setAttribute('aria-modal', String(!docked.matches));
+};
+docked.addEventListener('change', setInert);  // resizing never strands an inert list
+const markCurrent = url => document.querySelectorAll('a.card').forEach(a => {
+  if (url && a.getAttribute('href') === url) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+});
 
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 // Inside the article frame, the only script allowed is this one. It must pass two policies: the frame's own (by nonce)
@@ -254,9 +335,26 @@ addEventListener('message', e => {  // the page's theme toggle
 });
 addEventListener('keydown', e => {  // keys pressed while the article has focus never reach the page
   const k = e.key.toLowerCase();
-  if (!e.altKey && ['escape', 'j', 'k', 'arrowleft', 'arrowright'].includes(k)) { e.preventDefault(); parent.postMessage({ tw: 'key', key: k, mod: e.metaKey || e.ctrlKey }, '*'); }
+  if (!e.altKey && ['escape', 'j', 'k', 'm', 'arrowleft', 'arrowright'].includes(k)) { e.preventDefault(); parent.postMessage({ tw: 'key', key: k, mod: e.metaKey || e.ctrlKey }, '*'); }
 });`;
 
+// The article frame's fonts: Inter for its headings, Literata for the article. A sandboxed frame has an opaque origin,
+// which the browser caches apart every time, so a font loaded there by URL was downloaded afresh for every frame (two
+// per article) and flashed the fallback meanwhile. The page fetches each once instead, cached as usual, and hands it to
+// every frame inline. Until one arrives, a frame loads it by URL as before.
+const FRAME_FONTS = { inter: '/fonts/InterVariable.woff2', literata: '/fonts/LiterataVariable.woff2', literataItalic: '/fonts/LiterataVariable-Italic.woff2' };
+const frameFonts = {};
+const frameFont = k => frameFonts[k] || location.origin + FRAME_FONTS[k];
+function loadFrameFonts() {
+  for (const [k, url] of Object.entries(FRAME_FONTS)) {
+    // Without credentials, as the page's preload of Inter asks, so the preloaded copy is reused rather than fetched again.
+    fetch(url, { credentials: 'omit' }).then(r => (r.ok ? r.blob() : Promise.reject())).then(b => new Promise(done => {
+      const read = new FileReader();
+      read.onload = () => { frameFonts[k] = read.result; done(); };
+      read.readAsDataURL(b);
+    })).catch(() => {});  // the URL still works
+  }
+}
 // The article frame can't see the page's CSS variables, so it gets both palettes, read from the page's own
 // tokens, and the relay flips data-theme on it when the theme changes.
 function frameVars(theme) {
@@ -269,14 +367,22 @@ function frameVars(theme) {
   return out;
 }
 const iconSlug = name => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');  // same rule as build.py slug()
-// Under the title, like Feedbin: when and by whom, then where from and how long.
+// The publisher's icon, or its initial when the build found none, so a row or the reader bar never starts blank.
+function iconFor(publisher) {
+  const slug = iconSlug(publisher);
+  return { has: icons.has(slug), src: `/icons/${slug}.png`, art: iconArt[slug] || '', mono: (publisher.match(/[a-z0-9]/i) || ['·'])[0].toUpperCase() };
+}
+const iconHtml = publisher => { const f = iconFor(publisher); return f.has
+  ? `<img class="src-icon" src="${f.src}" alt="" width="20" height="20" loading="lazy" decoding="async" data-art="${f.art}">`
+  : `<span class="src-icon src-mono" aria-hidden="true">${esc(f.mono)}</span>`; };
+// Under the title, like Feedbin: when and by whom, and how long. Where it's from is in the bar above.
 function storyMeta(i, byline, minutes) {
   const [y, m, d] = i.date.split('-').map(Number);
   const when = new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   // Bylines sometimes carry their own date: "Posted on November 8, 2026 by audra", "By Ada | Tuesday, October 27, 2026".
   let by = (byline || '').replace(/\s+/g, ' ').replace(/\s*\|.*$/, '').replace(/^(posted|published|updated)\b.*?\bby\s+/i, '').replace(/^by\s+/i, '').trim();
   if (/\b\d{4}\b/.test(by) && !Number.isNaN(Date.parse(by))) by = '';  // nothing left but a date
-  return `<div class="meta">${esc(when)}${by ? ` by ${esc(by)}` : ''}<br>${esc(i.publisher)}${minutes ? ` · ${minutes} min read` : ''}</div>`;
+  return `<div class="meta">${esc(when)}${by ? ` by ${esc(by)}` : ''}${minutes ? ` · ${minutes} min read` : ''}</div>`;
 }
 // The upshot (written and checked by the build) with, for weekly essentials, the hand-picked "What to do" as its last line.
 function summaryBox(tldr, why) {
@@ -285,17 +391,19 @@ function summaryBox(tldr, why) {
 }
 function articleDoc(i, html, nonce, why, minutes, byline) {
   return `<!doctype html><html data-theme="${document.documentElement.dataset.theme}" data-size="${textSize}"><head><meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${location.origin}; img-src https: data:; media-src https:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${location.origin} data:; img-src https: data:; media-src https:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'">
 <base target="_blank"><style>
 :root { ${frameVars('light')} } :root[data-theme="dark"] { ${frameVars('dark')} }
-body { margin: 0; background: var(--bg); color: var(--text); font: 1.0625rem/1.65 "Iowan Old Style", Charter, Georgia, serif; overflow-wrap: break-word; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 1.125rem/1.65 Literata, "Iowan Old Style", Charter, Georgia, serif; overflow-wrap: break-word; }
 main { max-width: 640px; margin: 0 auto; padding: 32px 24px 96px; }
 a { color: var(--accent); }
 h1 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 0 0 .4em; font-size: clamp(1.4rem, 1rem + 2vw, 1.75rem); font-weight: 700; line-height: 1.2; letter-spacing: -.01em; }
 h1 a { color: inherit; text-decoration: none; } h1 a:hover { text-decoration: underline; text-decoration-thickness: 2px; }
-@font-face { font-family: Inter; src: url("${location.origin}/fonts/InterVariable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: Inter; src: url("${frameFont('inter')}") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: Literata; src: url("${frameFont('literata')}") format("woff2"); font-weight: 400 700; font-style: normal; font-display: swap; }
+@font-face { font-family: Literata; src: url("${frameFont('literataItalic')}") format("woff2"); font-weight: 400 700; font-style: italic; font-display: swap; }
 h1 { font-family: Inter, system-ui, sans-serif; letter-spacing: -.01em; }
-[data-size="0"] body { font-size: 1rem; } [data-size="2"] body { font-size: 1.1875rem; } [data-size="3"] body { font-size: 1.3125rem; }
+[data-size="0"] body { font-size: 1.0625rem; } [data-size="2"] body { font-size: 1.25rem; } [data-size="3"] body { font-size: 1.375rem; }  /* a step up for Literata's smaller x-height (0.507) */
 .meta { margin-bottom: 1.8em; color: var(--text-muted); font: .88em/1.45 Inter, system-ui, sans-serif; }  /* em: follows the text size */
 .todo { margin: 0 0 1.8em; padding: 12px 16px; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; background: var(--bg-card); }
 .tldr ul { margin: .35em 0 0; padding-left: 1.15em; font: .94em/1.5 Inter, system-ui, sans-serif; } .tldr li + li { margin-top: .45em; }  /* sans: scanned, not read */
@@ -316,7 +424,7 @@ hr { border: 0; border-top: 1px solid var(--border); }
 .status { color: var(--text-muted); font: .9375rem/1.5 Inter, system-ui, sans-serif; }
 .pill { display: inline-block; padding: 10px 18px; border: 1px solid var(--accent); border-radius: 999px; font: 600 .9375rem/1.4 Inter, system-ui, sans-serif; text-decoration: none; }
 @media (max-width: 600px) { main { padding: 24px 18px 80px; } .pill { padding: 12px 18px; } }
-</style><script nonce="${nonce}">${SWIPE_REPORTER}<\/script></head><body><main><h1><a href="${esc(i.url)}" target="_blank" rel="noopener" title="Open the original">${esc(i.title)}</a></h1>${storyMeta(i, byline, minutes)}${summaryBox(i.tldr, why)}${html}</main></body></html>`;
+</style><script nonce="${nonce}">${SWIPE_REPORTER}<\/script></head><body><main><h1><a href="${esc(i.url)}" target="_blank" rel="noopener" title="Open the original">${esc(i.title)}</a></h1>${storyMeta(i, byline, minutes || i.minutes)}${summaryBox(i.tldr, why)}${html}</main></body></html>`;
 }
 // What we already know about a story, from data.json: shown at once, and all that's left if the article can't be fetched.
 // While loading, the body holds back a moment: most articles arrive before the panel has landed, and then just appear.
@@ -327,7 +435,7 @@ function showInReader(i, html, why, minutes, byline) {
   const frame = document.createElement('iframe');
   frame.sandbox = 'allow-scripts allow-popups allow-popups-to-escape-sandbox';
   frame.title = i.title;
-  frame.srcdoc = articleDoc(i, html, crypto.randomUUID(), why, minutes, byline);
+  frame.srcdoc = articleDoc(i, html, btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16)))), why, minutes, byline);  // not randomUUID: that needs HTTPS, which a dev server reached by address isn't
   mountFrame(frame);
 }
 // Loads behind whatever's showing and takes over once drawn, so the pane never blinks empty between frames.
@@ -362,34 +470,49 @@ function indexSlugs() {
 }
 const slugFor = url => [...slugs].find(([, u]) => u === url)?.[0];
 const readPath = url => '/read/' + slugFor(url);
+// Articles fetched this visit, so reopening one is instant; only full articles, since a pending one may arrive later.
+const articles = new Map();
+let frameFor = null;  // whose article the reader's frame holds
 function openReader(i, { fromHash = false } = {}) {
   const fresh = !document.body.classList.contains('reading');
   readerFor = i.url;
   markRead(i.url);
-  const why = weekly?.items?.find(p => p.url === i.url)?.why;
-  const icon = iconSlug(i.publisher);
-  $('reader-icon').hidden = !icons.has(icon);
-  if (icons.has(icon)) $('reader-icon').src = `/icons/${icon}.png`;
-  $('reader-icon').dataset.art = iconArt[icon] || '';
-  $('reader-mono').hidden = icons.has(icon);  // no icon: the publisher's initial, so the bar never starts blank
-  $('reader-mono').textContent = (i.publisher.match(/[a-z0-9]/i) || ['·'])[0].toUpperCase();
+  syncUnread();
+  const why = picks.get(i.url);
+  const icon = iconFor(i.publisher);
+  $('reader-icon').hidden = !icon.has;
+  if (icon.has) $('reader-icon').src = icon.src;
+  $('reader-icon').dataset.art = icon.art;
+  $('reader-mono').hidden = icon.has;
+  $('reader-mono').textContent = icon.mono;
+  $('reader-source').textContent = i.publisher;
   const at = shown.findIndex(x => x.url === i.url);
   $('reader-prev').disabled = at <= 0;
   $('reader-next').disabled = at < 0 || at >= shown.length - 1;
-  showInReader(i, storyCard(i, 'Loading the full article…', true), why);  // before the fetch: the fetch can only upgrade this
+  // Back into the story just closed: its frame is still there, scrolled where it was. Otherwise a stored article shows at
+  // once, and a new one shows its card until the fetch upgrades it.
+  const again = frameFor === i.url && articles.has(i.url) && $('reader-body').querySelector('iframe:not(.loading)');
+  if (!again) showInReader(i, articles.has(i.url) ? articles.get(i.url).content : storyCard(i, 'Loading the full article…', true), why,
+    articles.get(i.url)?.minutes, articles.get(i.url)?.byline);
+  frameFor = i.url;
   document.body.classList.add('reading');
   $('reader').setAttribute('aria-hidden', 'false');
-  document.querySelectorAll('.feed, #top').forEach(el => { el.inert = true; });
+  setInert();
+  markCurrent(i.url);
+  syncTicker();
+  if (docked.matches) cardFor(i.url)?.scrollIntoView({ block: 'nearest' });
   // pushed: this entry sits on top of the feed, so closing goes back. Opened from a link, it doesn't, or it would leave
   // the site. Kept in the entry, so it survives back and forward.
   if (fresh && !fromHash) history.pushState({ reader: true, pushed: true }, '', readPath(i.url));
   else history.replaceState({ ...history.state, reader: true }, '', readPath(i.url));
-  if (fresh) (lastInput === 'key' ? $('reader-close') : $('reader')).focus({ preventScroll: true });  // no ring after a tap
+  if (fresh && !docked.matches) (lastInput === 'key' ? $('reader-close') : $('reader')).focus({ preventScroll: true });  // no ring after a tap; docked, focus stays in the list
+  if (articles.has(i.url)) return;  // read once already this visit: articles don't change once stored
   let unreadable = 'The reader view isn\u2019t available right now.';
   fetch('/api/read?url=' + encodeURIComponent(i.url), { cache: 'no-store' }).then(r => r.json()).then(r => {
+    if (r.content) articles.set(i.url, { content: r.content, minutes: readingMinutes(r.content), byline: r.byline });
     if (readerFor !== i.url) return;  // another article was opened meanwhile
     if (r.content) {
-      const minutes = readingMinutes(r.content);
+      const { minutes } = articles.get(i.url);
       showInReader(i, r.content, why, minutes, r.byline);
     } else if (r.frameable) {
       const frame = document.createElement('iframe');
@@ -441,20 +564,31 @@ addEventListener('pointerdown', () => { lastInput = 'pointer'; }, true);
 addEventListener('keydown', () => { lastInput = 'key'; }, true);
 $('reader-prev').onclick = () => step(-1);
 $('reader-next').onclick = () => step(1);
+let lastClosed = null;  // what a swipe left on a phone's list brings back
 function closeReader() {
   const url = readerFor;
+  lastClosed = url;
   readerFor = null;
   document.body.classList.remove('reading');
   $('reader').setAttribute('aria-hidden', 'true');
-  document.querySelectorAll('.feed, #top').forEach(el => { el.inert = false; });
+  setInert();
+  markCurrent(null);
+  syncTicker();
   const card = url && cardFor(url);  // back to where you were, even after j/k through several articles
-  if (card) { card.focus({ preventScroll: true }); card.scrollIntoView({ block: 'nearest' }); }
-  setTimeout(() => { if (!readerFor) $('reader-body').replaceChildren(); }, 350);  // after the slide out
+  if (card) {
+    // Focus goes back to the row only after a key (no ring after a tap or swipe: one in the article's frame never reaches
+    // this page, so the browser would take it for the keyboard).
+    if (lastInput === 'key') card.focus({ preventScroll: true });
+    card.scrollIntoView({ block: 'nearest' });
+  }
+  // Docked, the pane empties at once. Sliding away, the frame stays, hidden, so swiping back into it finds it as it was.
+  if (docked.matches) { $('reader-body').replaceChildren(); frameFor = null; }
 }
 function dismiss() {
   if (history.state?.pushed) return history.back();
-  history.replaceState(null, '', '/' + location.search);
+  history.replaceState({ list: true, f: filter }, '', '/' + location.search);  // opened from a link: closing lands in its list, not the topics
   closeReader();
+  syncHome();
 }
 // Back/forward and reader links: the URL decides whether the reader is open and on what. Old #read=<url> links
 // still open, and are rewritten to the short form.
@@ -467,7 +601,14 @@ function syncFromUrl() {
   else if (!i && document.body.classList.contains('reading')) closeReader();
   else if (!i && path) history.replaceState(null, '', '/' + location.search);  // a story that's since left the site
 }
-addEventListener('popstate', syncFromUrl);
+addEventListener('popstate', e => {
+  syncFromUrl();
+  const home = !history.state?.list && !history.state?.reader;
+  if (home && !document.body.classList.contains('home')) lastList = filter;
+  // Safari's own swipe-back already animates the page: don't slide it a second time.
+  if (e.hasUAVisualTransition) { document.body.classList.add('paging'); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('paging'))); }
+  syncHome();
+});
 // Swipe right to close: the reader follows the finger, then closes past a third of its width or on a flick
 // (judged on the finger's speed at release, px/ms).
 let drag = null;
@@ -507,10 +648,51 @@ addEventListener('message', e => {
   if (e.data.tw === 'start') dragStart(e.data.x);
   else if (e.data.tw === 'move') dragMove(e.data.x);
   else if (e.data.tw === 'end') dragEnd();
-  else if (e.data.tw === 'key') onKey(e.data.key, !!e.data.mod);
+  else if (e.data.tw === 'key') { lastInput = 'key'; onKey(e.data.key, !!e.data.mod); }  // a key in the article: the keyboard's in use
   else if (e.data.tw === 'themed') frameThemed?.();
 });
 
+// Phone swipes, after Feedbin's: the topics sit left of a list, and a list left of its story, and each page follows the
+// finger. In a list, right goes back to the topics and left brings back the story just closed; on the topics, left goes
+// back into the list just left. Past a third of the way, or on a flick, it goes; otherwise it springs back.
+let pan = null;
+addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  pan = phone.matches && !document.body.classList.contains('reading') && !$('palette').open
+    ? { x: t.screenX, y: t.screenY, lx: t.screenX, lt: performance.now(), v: 0, mode: null } : null;
+}, { passive: true });
+addEventListener('touchmove', e => {
+  if (!pan) return;
+  const t = e.touches[0], dx = t.screenX - pan.x, dy = t.screenY - pan.y, w = innerWidth, home = document.body.classList.contains('home');
+  if (!pan.mode) {
+    if (Math.hypot(dx, dy) < 10) return;
+    if (Math.abs(dy) > Math.abs(dx)) { pan = null; return; }  // a scroll
+    const story = lastClosed && items.find(x => x.url === lastClosed);
+    pan.mode = home ? (dx < 0 && lastList !== null && (lastList !== 'essentials' || picks.size) ? 'list' : 'none')
+      : dx > 0 ? 'topics' : story ? 'story' : 'none';
+    if (pan.mode === 'none') { pan = null; return; }
+    if (pan.mode === 'story') { document.body.classList.add('dragging'); setDrag(1); openReader(story); }  // in from the right, under the finger
+    else document.body.classList.add('paging');
+  }
+  e.preventDefault();  // sideways now: the page moves, not the list
+  const now = performance.now();
+  if (now > pan.lt) pan.v = 0.6 * pan.v + 0.4 * (t.screenX - pan.lx) / (now - pan.lt);
+  pan.lx = t.screenX; pan.lt = now;
+  if (pan.mode === 'topics') setPd(Math.min(1, Math.max(0, dx / w)));
+  else if (pan.mode === 'list') setPd(Math.min(1, Math.max(0, 1 + dx / w)));
+  else setDrag(Math.min(1, Math.max(0, 1 + dx / w)));
+}, { passive: false });
+addEventListener('touchend', e => {
+  if (!pan?.mode) { pan = null; return; }
+  const { mode, x, v } = pan, dx = e.changedTouches[0].screenX - x, go = Math.abs(dx) > innerWidth / 3 || Math.abs(v) > 0.4 && Math.sign(v) === Math.sign(dx);
+  pan = null;
+  document.body.classList.remove('paging', 'dragging');  // from here the pages animate to where they settle
+  if (mode === 'topics') { if (go) { setPd(1); leaveList(); } else setPd(null); }
+  else if (mode === 'list') { if (go) enterList(true); else setPd(null); }
+  else if (go) setDrag(0);
+  else { setDrag(0); dismiss(); }
+}, { passive: true });
+addEventListener('touchcancel', () => { if (pan?.mode) { document.body.classList.remove('paging', 'dragging'); setPd(null); setDrag(0); } pan = null; });
 $('reader-close').onclick = dismiss;
 $('reader-backdrop').onclick = dismiss;
 // j/k or →/←: next/previous article (in the reader it switches articles in place); /: search bar; Cmd/Ctrl+K: search palette.
@@ -542,6 +724,7 @@ function onKey(key, mod, e) {
   if (mod || e?.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;
   if (key === '?') { e?.preventDefault(); $('keys').showModal(); }
   else if (key === '/' && !reading) { e?.preventDefault(); openPalette(); }
+  else if (key === 'm' && reading) { e?.preventDefault(); toggleRead(); }
   else if (key === 'j' || key === 'arrowright') { e?.preventDefault(); step(1); }
   else if (key === 'k' || key === 'arrowleft') { e?.preventDefault(); step(-1); }
 }
@@ -643,7 +826,7 @@ function renderPalette() {
   $('palette-list').innerHTML = head + (pal.results.length ? pal.results.map((i, n) => { const c = cat(i.category); return `
     <li role="option" id="p-${n}" data-n="${n}" aria-selected="${n === 0}">
       <span class="dot" style="--c:var(--cat-${c})"></span>
-      <div><div class="p-title">${highlight(i.title, q)}</div><div class="p-meta">${esc(i.publisher)} · ${CATS[c]} · ${dayLabel(i.date)}</div></div>
+      <div><div class="p-title">${highlight(i.title, q)}</div><div class="p-meta">${esc(i.publisher)} · ${CATS[c]} · ${age(i)}</div></div>
     </li>`; }).join('') : `<li class="palette-empty">No articles match “${esc(q)}”.</li>`);
   $('palette-q').setAttribute('aria-activedescendant', pal.results.length ? 'p-0' : '');
 }
@@ -672,10 +855,10 @@ $('palette-list').addEventListener('click', e => { const li = e.target.closest('
 $('palette-list').addEventListener('mousemove', e => { const li = e.target.closest('li[data-n]'); if (li && +li.dataset.n !== pal.sel) selectPalette(+li.dataset.n, false); });
 $('palette').addEventListener('click', e => { if (e.target === $('palette')) closePalette(); });  // the backdrop
 $('palette-close').addEventListener('click', () => closePalette());
-document.addEventListener('auxclick', e => { const a = e.target.closest('a.card, a.weekly-card'); if (a && e.button === 1) markRead(a.getAttribute('href')); });
+document.addEventListener('auxclick', e => { const a = e.target.closest('a.card'); if (a && e.button === 1) markRead(a.getAttribute('href')); });
 // Plain clicks on an article open the reader; modified and middle clicks still open the site.
 document.addEventListener('click', e => {
-  const a = e.target.closest('a.card, a.weekly-card');
+  const a = e.target.closest('a.card');
   if (!a) return;
   if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return markRead(a.getAttribute('href'));
   const i = items.find(x => x.url === a.getAttribute('href'));
@@ -684,10 +867,104 @@ document.addEventListener('click', e => {
   openReader(i);
 });
 
+// Desktop: drag the topics' or the list's right edge to resize it, as in Feedbin. Kept on this device; double-click resets.
+// The reader keeps at least READER_MIN beside them, so a narrower window narrows the columns rather than the article.
+const COLS = { side: { el: 'resize-side', v: '--side-w', min: 180, max: 360 }, list: { el: 'resize-list', v: '--list-w', min: 320, max: 720 } };
+const READER_MIN = 480;
+const colWidth = k => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(COLS[k].v));
+function setCol(k, px, keep = true) {
+  const c = COLS[k], others = k === 'side' ? (docked.matches ? colWidth('list') : 320) : colWidth('side');
+  const room = innerWidth - (docked.matches ? READER_MIN : 0) - others;
+  const w = Math.round(Math.max(c.min, Math.min(c.max, room, px)));
+  document.documentElement.style.setProperty(c.v, w + 'px');
+  $(c.el).setAttribute('aria-valuenow', w);
+  if (keep) localStorage.setItem(k + 'Width', w);
+}
+for (const [k, c] of Object.entries(COLS)) {
+  const el = $(c.el);
+  el.setAttribute('aria-valuemin', c.min); el.setAttribute('aria-valuemax', c.max);
+  if (localStorage.getItem(k + 'Width')) setCol(k, +localStorage.getItem(k + 'Width'), false);
+  el.setAttribute('aria-valuenow', colWidth(k));
+  el.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    el.setPointerCapture(e.pointerId);
+    el.classList.add('active'); document.body.classList.add('resizing');
+    const start = e.clientX - colWidth(k);
+    el.onpointermove = m => setCol(k, m.clientX - start);
+    el.onpointerup = el.onpointercancel = () => { el.onpointermove = el.onpointerup = el.onpointercancel = null; el.classList.remove('active'); document.body.classList.remove('resizing'); };
+  });
+  el.addEventListener('dblclick', () => { document.documentElement.style.removeProperty(c.v); localStorage.removeItem(k + 'Width'); el.setAttribute('aria-valuenow', colWidth(k)); });
+  el.addEventListener('keydown', e => {
+    const by = { arrowleft: -16, arrowright: 16 }[e.key.toLowerCase()];
+    if (!by) return;
+    e.preventDefault(); e.stopPropagation();  // not j/k-style navigation
+    setCol(k, colWidth(k) + by);
+  });
+}
+addEventListener('resize', () => { for (const k in COLS) if (localStorage.getItem(k + 'Width')) setCol(k, +localStorage.getItem(k + 'Width'), false); });
+
+// The wordmark's spot, once each time Upshot opens: the date, when it updated and when it's next due, then the wordmark
+// again (after Kagi News). Under five seconds, so it never needs a pause control (WCAG 2.2.2); a tap ends it at once.
+const BUILD_EVERY_HOURS = 4, BUILD_AT_MINUTE = 17;  // .github/workflows/build.yml: cron "17 */4 * * *", in UTC
+const HOLD_MS = 1200, TICK_MS = 1500, FADE_MS = 300, REOPEN_MINUTES = 15;  // the wordmark first, long enough to be seen
+let tickTimers = [], tickOnShow = false, tickPending = false, hiddenAt = Date.now();
+// An opening, not a refresh: the pass plays only if the last one seen was a while ago, so reloading (or a new tab,
+// or relaunching the app) moments later shows the wordmark rather than the pass again.
+const passDue = () => Date.now() - (+localStorage.getItem('lastPass') || 0) >= REOPEN_MINUTES * 60e3;
+// Where the wordmark can be seen: on a phone only the topics screen shows it; elsewhere a reader sliding over the page hides it.
+const wordmarkShown = () => {
+  const reading = document.body.classList.contains('reading');
+  return phone.matches ? document.body.classList.contains('home') && !reading : !reading || docked.matches;
+};
+// After the page changes: a pass waiting for the wordmark plays once it's in view; one running out of view stops, as seen.
+function syncTicker() {
+  if (!wordmarkShown()) { if (tickTimers.length) stopTicker(); return; }
+  if (tickPending) { tickPending = false; playTicker(); }
+}
+function nextBuildMinutes(now = Date.now()) {
+  const t = new Date(now);
+  t.setUTCHours(t.getUTCHours() - t.getUTCHours() % BUILD_EVERY_HOURS, BUILD_AT_MINUTE, 0, 0);
+  while (t <= now) t.setUTCHours(t.getUTCHours() + BUILD_EVERY_HOURS);
+  return Math.round((t - now) / 60e3);
+}
+const hoursMinutes = m => (m < 60 ? `${m}m` : `${Math.floor(m / 60)}h ${m % 60}m`);
+function tickerLines() {
+  const mins = Math.max(0, (Date.now() - Date.parse(generatedAt)) / 60e3);
+  return [new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'long', month: 'long', day: 'numeric' }).format(new Date()),
+    `Updated ${agoText(mins)}`,
+    ...(mins < STALE_MINUTES ? [`Next update in about ${hoursMinutes(nextBuildMinutes())}`] : [])];  // late: no promise of when
+}
+function stopTicker() {
+  tickTimers.forEach(clearTimeout); tickTimers = [];
+  $('ticker').classList.remove('on');
+  document.body.classList.remove('ticking');
+}
+function playTicker() {
+  if (!generatedAt) return;
+  stopTicker();
+  if (!wordmarkShown()) { tickPending = true; return; }  // opened on a story, say: it waits for the wordmark, rather than running unseen
+  const lines = tickerLines(), at = (ms, f) => tickTimers.push(setTimeout(f, HOLD_MS + ms));
+  at(0, () => { document.body.classList.add('ticking'); localStorage.setItem('lastPass', Date.now()); });  // seen: counts from here
+  lines.forEach((line, n) => {
+    if (n) at(n * TICK_MS, () => $('ticker').classList.remove('on'));
+    at(n * TICK_MS + FADE_MS, () => { $('ticker').textContent = line; $('ticker').classList.add('on'); });
+  });
+  at(lines.length * TICK_MS, () => $('ticker').classList.remove('on'));
+  at(lines.length * TICK_MS + FADE_MS, stopTicker);
+}
+// A tap or click on the wordmark mid-pass just ends it.
+document.querySelector('.logo-h').addEventListener('click', e => { if (document.body.classList.contains('ticking')) { e.preventDefault(); stopTicker(); } });
+
 syncThemeColor();
 load().catch(() => { $('items').innerHTML = '<p class="empty">Couldn’t load the news. Try again in a bit.</p>'; });
 // Builds land every ~4h: check every 15 min while visible, and when the tab comes back into view.
-const check = () => { if (!document.hidden) load().catch(() => {}); };
+const check = () => { if (!document.hidden) return load().catch(() => {}); };
 setInterval(check, 15 * 60e3);
-setInterval(() => { if (generatedAt && !document.hidden) showUpdated(); }, 60e3);
-document.addEventListener('visibilitychange', check);
+setInterval(() => { if (generatedAt && !document.hidden) { showUpdated(); refreshAges(); } }, 60e3);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { hiddenAt = Date.now(); return stopTicker(); }
+  const back = tickOnShow || (Date.now() - hiddenAt > REOPEN_MINUTES * 60e3 && passDue());  // a phone reopens from the background, not a fresh load
+  tickOnShow = false;
+  check()?.then(() => { if (back) playTicker(); });
+});

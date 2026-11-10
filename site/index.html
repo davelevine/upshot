@@ -33,8 +33,6 @@
     --header-bg: rgba(227, 230, 236, .88); --tag-text: #0a5652;
     /* Category dots: one lightness and chroma per theme, hues spread to stay apart with red-green colour blindness. Dots need 3:1, not text contrast. */
     --cat-security: #ce5978; --cat-ai: #ad65be; --cat-infrastructure: #168dd9; --cat-engineering: #409d48; --cat-regulation: #c9690c; --cat-other: #5d646f;
-    /* Cards are lifted by shadow, not colour; essentials one step more than the feed. */
-    --lift: 0 1px 3px rgba(23, 26, 36, .08); --lift-more: 0 2px 6px rgba(23, 26, 36, .10); --ess-bg: #ffffff;
     --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --read: 860px;
   }
   [data-theme="dark"] {
@@ -43,7 +41,6 @@
     --text: #eceff4; --urgent: #d9485a; --text-muted: #a3abbb; --accent: #4fcdbb; --accent-soft: #1d3b3e; --accent-contrast: #15161e;
     --header-bg: rgba(21, 22, 30, .88); --tag-text: #9ae6da;
     --cat-security: #f57595; --cat-ai: #d080e2; --cat-infrastructure: #19affe; --cat-engineering: #69bc57; --cat-regulation: #e98a13; --cat-other: #afb6c1;
-    --lift: 0 1px 2px rgba(0, 0, 0, .25), inset 0 1px 0 rgba(255, 255, 255, .04); --lift-more: 0 2px 6px rgba(0, 0, 0, .3), inset 0 1px 0 rgba(255, 255, 255, .05); --ess-bg: var(--bg-card);  /* featured by shadow, not brightness */
   }
   * { box-sizing: border-box; margin: 0; }
   [hidden] { display: none !important; }
@@ -76,7 +73,7 @@
   [data-theme="dark"] .only-light, [data-theme="light"] .only-dark { display: none; }
   .theme-switching *, .theme-switching *::before, .theme-switching *::after { transition: none !important; }
   ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .35s; animation-timing-function: ease; }
-  html { scrollbar-gutter: stable; scroll-padding-top: 170px; }  /* the reader locks scrolling; keep the scrollbar's space so nothing shifts */
+  html { scrollbar-gutter: stable; scroll-padding-top: 64px; }  /* the reader locks scrolling; keep the scrollbar's space so nothing shifts */
   * { -webkit-tap-highlight-color: transparent; }  /* Android paints it above the reader that opens on tap */
   body { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
   a { color: inherit; text-decoration: none; }
@@ -85,27 +82,45 @@
 
   header { position: sticky; top: 0; z-index: 100; height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
     border-bottom: 1px solid var(--border); background: var(--header-bg); backdrop-filter: blur(16px) saturate(1.35); -webkit-backdrop-filter: blur(16px) saturate(1.35); }
-  .logo-h { margin: 0; font-size: inherit; line-height: 1; }  /* the page heading: screen readers navigate by headings */
-  .logo { display: flex; align-items: center; min-height: 44px; }
+  .logo-h { position: relative; margin: 0; font-size: inherit; line-height: 1; }  /* the page heading: screen readers navigate by headings */
+  .logo { display: flex; align-items: center; min-height: 44px; transition: opacity .3s ease; }
+  /* Each time Upshot opens, the wordmark's spot runs once through how fresh the news is, then settles back on the wordmark
+     (after Kagi News). app.js plays it; the lines crossfade, and the whole pass is under five seconds. */
+  .ticker { position: absolute; inset: 0 auto 0 0; display: flex; align-items: center; width: max-content; max-width: calc(var(--side-w) - 30px);
+    overflow: hidden; color: var(--text); font-size: .875rem; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; opacity: 0; pointer-events: none; transition: opacity .3s ease; }
+  .ticker.on { opacity: 1; }
+  body.ticking .logo { opacity: 0; }
   .logo svg { height: 26px; stroke: none; }
   .logo .fg { fill: var(--text); }
   .logo .dot { fill: var(--urgent); }
   .controls { display: flex; align-items: center; gap: 6px; }
   .site-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2px 8px; padding: 8px 14px 32px; color: var(--text-muted); font-size: .8125rem; text-align: center; }
-  #updated { margin-left: auto; color: var(--text-muted); font-size: .8125rem; font-weight: 500; text-transform: none; letter-spacing: 0; white-space: nowrap; }  /* the site's age, on the feed it describes */
-  .weekly-range { color: var(--text-muted); font-size: .8125rem; font-weight: 500; white-space: nowrap; }  /* which seven days the picks cover */
   .icon-btn { display: inline-grid; place-items: center; width: 36px; height: 36px; border: 1px solid transparent; border-radius: var(--radius-sm); background: none; color: var(--text-muted); cursor: pointer; }
   .icon-btn svg { width: 17px; height: 17px; }
 
-  .subheader { position: sticky; top: 52px; z-index: 99; padding: 10px 20px 12px; border-bottom: 1px solid var(--border);
-    background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(16px) saturate(1.25); -webkit-backdrop-filter: blur(16px) saturate(1.25); }
-  .stale { display: block; height: 28px; margin: -10px -20px 10px; padding: 0 20px; overflow: hidden; border-bottom: 1px solid var(--border); background: var(--bg-card); color: var(--text-muted);
-    font-size: .75rem; line-height: 27px; text-align: center; white-space: nowrap; text-overflow: ellipsis; }
-  .stale:hover { color: var(--text); text-decoration: underline; }
+  /* After Feedbin: the topics in a sidebar, the list beside it, and on wide screens the reader docked beside that. The window scrolls the list. */
+  :root { --side-w: 220px; --list-w: 440px; }  /* the columns' widths; dragging their edges sets them (app.js) */
+  .shell { display: grid; grid-template-columns: var(--side-w) minmax(0, 1fr); }
+  /* The columns' edges, to drag (or focus and use the arrow keys); a line shows on hover and while dragging. */
+  .resizer { display: none; position: fixed; top: 52px; bottom: 0; z-index: 101; width: 9px; margin-left: -4px; cursor: col-resize; touch-action: none; }
+  .resizer::after { content: ""; position: absolute; inset: 0 3px; border-radius: 2px; background: var(--accent); opacity: 0; transition: opacity .15s ease; }
+  .resizer:hover::after, .resizer:focus-visible::after, .resizer.active::after { opacity: 1; }
+  .resizer:focus-visible { outline: none; }
+  @media (min-width: 641px) { #resize-side { display: block; left: var(--side-w); } }  /* not on phones: there's no column to resize, and it would sit over the topics */
+  body.resizing { cursor: col-resize; user-select: none; }
+  body.resizing iframe { pointer-events: none; }  /* or the article would take the drag */
+  .side { display: flex; flex-direction: column; position: sticky; top: 52px; align-self: start; height: calc(100dvh - 52px); overflow-y: auto; padding: 14px 10px 0; border-right: 1px solid var(--border); scrollbar-width: thin; }
+  /* Only when a build is late: a quiet bar at the foot of the list, as Feedbin keeps its toolbar, with the one thing a reader can do. */
+  .stale { position: fixed; inset: auto 0 0 var(--side-w); z-index: 90; display: flex; align-items: center; justify-content: center; gap: 12px; height: 44px; padding: 0 16px;
+    border-top: 1px solid var(--border); background: var(--bg); color: var(--text-muted); font-size: .8125rem; white-space: nowrap; }
+  .stale { gap: 4px; }
+  #stale-check:disabled { cursor: default; }
+  #stale-check.checking svg { animation: spin .8s linear infinite; }  /* looking for a new build */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  body:has(#stale:not([hidden])) .col { padding-bottom: 56px; }  /* the list's end stays clear of it */
+  body:has(#stale:not([hidden])) .back-to-top { bottom: 68px; }
   @media (max-width: 359px) { #updated span { display: none; } }  /* "1h ago" on the narrowest phones, where the day row is full */
-  @media (max-width: 339px) { .weekly-range { display: none; } }  /* no room beside the heading */
-  .search-row, .filters { max-width: calc(var(--read) - 48px); margin: 0 auto; }
-  .search-row { display: flex; gap: 8px; }
+  .search-row { display: flex; gap: 8px; margin-bottom: 12px; }
   .search-wrap { position: relative; flex: 1; min-width: 0; }
   .search-wrap > svg { position: absolute; left: 12px; top: 50%; width: 16px; height: 16px; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
   #search { width: 100%; padding: 8px 64px 8px 36px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text); font: inherit; font-size: .875rem; outline: none; }
@@ -136,52 +151,42 @@
   .palette-close { flex: none; padding: 0; border: 0; background: none; color: var(--accent); font: 500 1rem Inter, system-ui, sans-serif; cursor: pointer; }
   .palette-close svg { display: none; }
   /* A row on wide screens; a popover behind the filter button on phones. */
-  .filters { position: static; display: flex; gap: 8px; width: auto; height: auto; padding: 14px 0 0; border: 0; background: none; color: inherit; min-height: 48px;  /* the chips arrive with the data; hold their row */ overflow-x: auto; scrollbar-width: none; }
-  .filter-toggle { display: none; }
-  .filter-btn { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 5px 14px; border: 1px solid var(--border); border-radius: var(--radius-lg);
-    background: var(--bg-card); color: var(--text-muted); font-size: .875rem; font-weight: 500; cursor: pointer; }
-  .filter-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }  /* a tint: a solid block outweighed the headlines */
+  /* A list in the sidebar; the same list in a drawer behind the topic button on phones. */
+  .filters { position: static; display: flex; flex-direction: column; gap: 1px; width: auto; height: auto; margin: 0; padding: 0; overflow: visible; border: 0; background: none; color: inherit; }
+  .list-back, .list-name, .search-btn { display: none; }
+  .filter-btn { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 36px; padding: 6px 10px; border: 0; border-radius: var(--radius-sm);
+    background: none; color: var(--text); font-size: .9375rem; font-weight: 500; text-align: left; cursor: pointer; }
+  .f-mark { flex: none; display: grid; place-items: center; width: 16px; height: 16px; color: var(--text-muted); }
+  .f-mark svg { width: 16px; height: 16px; }
+  .f-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .f-count { flex: none; color: var(--text-muted); font-size: .8125rem; font-variant-numeric: tabular-nums; }
+  .filter-btn.active { background: var(--accent-soft); color: var(--tag-text); }  /* a tint: a solid block outweighed the headlines */
+  .filter-btn.active .f-mark, .filter-btn.active .f-count { color: inherit; }
+  .filters .f-head { margin: 18px 10px 6px; color: var(--text-muted); font-size: .8125rem; font-weight: 600; }
   .dot { flex: 0 0 auto; width: 7px; height: 7px; border-radius: 999px; background: var(--c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 14%, transparent); }
 
-  .weekly { max-width: var(--read); margin: 0 auto; padding: 18px 24px 0; }
-  .weekly[hidden] { display: none; }
-  .weekly-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
-  .weekly-heading { position: relative; display: flex; align-items: center; gap: 8px; min-height: 32px; margin-right: auto; }  /* keeps the nav right */
-  .weekly-title { font-size: 1.125rem; font-weight: 700; }
-  .info-btn { display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid currentColor; border-radius: 999px; background: none; color: var(--text-muted); font-size: .6875rem; font-weight: 700; cursor: pointer; }
-  .info-btn { position: relative; }
-  .info-btn::after { content: ""; position: absolute; inset: -11px; }  /* 44px target around the 22px circle */
-  .info-btn[aria-expanded="true"] { color: var(--accent); }
   .popover { position: absolute; top: calc(100% + 6px); left: 0; z-index: 50; width: min(320px, 80vw); padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-md);
     background: var(--bg-card); box-shadow: 0 24px 64px rgba(0, 0, 0, .25); color: var(--text-muted); font-size: .8125rem; line-height: 1.5; }
   .popover[hidden] { display: none; }
-  .nav { display: flex; align-self: center; gap: 8px; }
-  .nav-btn { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid var(--border); border-radius: 999px; background: var(--bg-card); color: var(--text); cursor: pointer; }
-  .nav-btn:disabled { cursor: default; opacity: .45; }
-  .nav-btn svg { width: 16px; height: 16px; stroke-width: 2.2; }
-  .rail { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 1px; scroll-behavior: smooth; padding: 1px 1px 4px; scrollbar-width: none; }
-  .rail::-webkit-scrollbar, .filters::-webkit-scrollbar { display: none; }
-  .weekly-card { flex: 0 0 calc((100% - 20px) / 3); min-width: 220px; min-height: 8.3125rem;  /* fits a 4-line title, so loading never shifts the page */ scroll-snap-align: start; display: flex; align-items: flex-start; gap: 10px; padding: 12px;
-    background: var(--ess-bg); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: inset 3px 0 0 var(--accent), var(--lift-more); transition: border-color .15s ease; }  /* the upshot box's teal rule: Upshot's picks */
-  .weekly-card .dot { width: 9px; height: 9px; margin-top: 6px; }  /* as on the feed cards */
-  .weekly-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
-  .weekly-meta { display: flex; gap: 4px; min-width: 0; color: var(--text-muted); font-size: .8125rem; white-space: nowrap; }
-  .weekly-meta > :last-child { flex: none; }
-  .weekly-source { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-  .weekly-card-title { font-size: 1rem; line-height: 1.3; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;}
+  .filters::-webkit-scrollbar { display: none; }
 
-  .items { max-width: var(--read); margin: 0 auto; padding: 14px 24px 48px; display: flex; flex-direction: column; gap: 7px; }
-  .date-label { display: flex; align-items: baseline; gap: 6px; margin: 6px 0 1px; padding: 8px 0 6px; border-bottom: 1px solid var(--border);
-    color: var(--text-muted); font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
-  .day-meta { color: var(--text-muted); font-weight: 500; text-transform: none; letter-spacing: 0; font-size: .8125rem; }
-  .card { content-visibility: auto; contain-intrinsic-block-size: auto 4rem; display: flex; align-items: flex-start; gap: 12px; padding: 13px 16px;
-    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--lift); transition: border-color .15s ease; }
-  .card .dot { width: 9px; height: 9px; margin-top: 6px; }
+  /* The feed, after Feedbin: rows with no box around them, the publisher's icon, then title, source and the summary. */
+  .items { max-width: var(--read); margin: 0 auto; padding: 8px 24px 48px; display: flex; flex-direction: column; }
+  /* How fresh the list is, at the sidebar's foot: centred in a band as tall as the late bar, so when that shows they share a line. */
+  .side-foot { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }  /* for screen readers: the pass in the wordmark's spot shows it */
+  .card-age { display: block; margin-top: 4px; color: var(--text-muted); font-size: .8125rem; font-variant-numeric: tabular-nums; }
+  .card { content-visibility: auto; contain-intrinsic-block-size: auto 6rem; display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: var(--radius-md); transition: background-color .15s ease; }
+  .card[aria-current="true"] { background: var(--bg-card); }
   .card-body { flex: 1; min-width: 0; }
-  .card-title { margin-bottom: 4px; font-size: 1rem; font-weight: 600; line-height: 1.4; }
-  .card-meta { display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--text-muted); font-size: .8125rem; }
-  .card-cat { flex: 0 0 auto; }
-  .card-url { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-title { font-size: 1rem; font-weight: 600; line-height: 1.35; }
+  .card-meta { display: flex; align-items: center; gap: 6px; min-width: 0; margin-top: 3px; color: var(--text); font-size: .875rem; }
+  .card-src { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-meta > :not(.card-src, .new) { flex: none; color: var(--text-muted); }  /* not the New pill: it keeps its own colours */
+  .card-sum { margin-top: 4px; color: var(--text-muted); font-size: .875rem; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .card-sum b { color: var(--accent); font-weight: 600; }
+  .card-meta .ess { color: var(--accent); font-size: .75rem; font-weight: 600; }  /* the week's picks, marked where they fall in the feed */
+  .src-icon { flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 5px; }
+  .src-mono { display: grid; place-items: center; background: var(--bg-card); box-shadow: inset 0 0 0 1px var(--border-strong); color: var(--text-muted); font: 700 .6875rem/1 Inter, system-ui, sans-serif; }
   mark { background: var(--accent-soft); color: inherit; border-radius: 2px; }
   .back-to-top { position: fixed; right: 24px; bottom: 24px; z-index: 90; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--accent);
     border-radius: 999px; background: var(--bg-card); color: var(--accent); cursor: pointer; box-shadow: 0 8px 24px rgba(0, 0, 0, .2); }
@@ -191,26 +196,35 @@
   .back-to-top:active { background: var(--accent); color: var(--accent-contrast); }
   @media (hover: hover) { .back-to-top:hover { background: var(--accent); color: var(--accent-contrast); } }  /* fills in, rather than moving */
   .card.read .card-title { color: var(--text-muted); font-weight: 500; }
+  .card.read .card-meta { color: var(--text-muted); }
   .new { flex: 0 0 auto; padding: 1px 7px; border-radius: 999px; background: var(--accent); color: var(--accent-contrast); font-size: .6875rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
   .skeleton { pointer-events: none; }
   .skeleton .bone { display: block; height: .8em; border-radius: 6px; background: var(--border); animation: pulse 1.4s ease-in-out infinite; }
+  .skeleton .src-icon.bone { height: 20px; }
   .skeleton .bone.title { height: 1em; margin-bottom: .4em; }
-  .skeleton.card { min-height: 104px; }
+  .skeleton.card { min-height: 96px; }
   @keyframes pulse { 50% { opacity: .45; } }
   .empty { padding: 60px 24px; color: var(--text-muted); text-align: center; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  /* Inline on wide screens; a popover behind the menu button on phones. The browser handles opening and dismissing it. */
-  .menu { position: static; display: flex; align-items: center; gap: 6px; width: auto; height: auto; margin: 0; padding: 0; border: 0; background: none; color: inherit; overflow: visible; }
-  .menu-btn, .menu-label { display: none; }
+  /* The header's links and theme switch live in a small menu at the top right, as in Feedbin; on phones it's a drawer.
+     The browser handles opening and dismissing it. */
+  .menu { position: fixed; inset: 56px 12px auto auto; display: flex; flex-direction: column; align-items: stretch; gap: 0; width: 220px; height: auto; margin: 0; padding: 6px;
+    border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-card); color: inherit; box-shadow: 0 24px 64px rgba(0, 0, 0, .25); overflow: visible; }
+  .menu:not(:popover-open) { display: none; }
+  .menu-btn:has(+ .menu:popover-open) { background: var(--bg-card-hover); color: var(--text); }
+  .menu .icon-btn { display: flex; align-items: center; justify-content: flex-start; gap: 12px; width: 100%; height: 40px; padding: 0 10px; border: 0; border-radius: var(--radius-sm);
+    background: none; color: var(--text-muted); font: inherit; text-align: left; }
+  .menu .icon-btn svg { width: 18px; height: 18px; flex: none; }
+  .menu .icon-btn:active { background: var(--bg-card-hover); }
+  .menu-label { color: var(--text); font-size: .9375rem; font-weight: 500; }
+  .menu .theme-btn { position: relative; margin-top: 7px; }
+  .menu .theme-btn::before { content: ""; position: absolute; inset: -4px 4px auto; border-top: 1px solid var(--border); }
   @media (max-width: 480px) {
-    .menu-btn { display: inline-grid; }
-    .menu-btn:has(+ .menu:popover-open) { background: var(--bg-card-hover); color: var(--text); }
     /* A drawer: full width under the header, its bottom edge wiping down while the rows stay still. */
-    .menu { flex-direction: column; align-items: stretch; gap: 0; position: fixed; inset: 52px 0 auto; width: 100%; padding: 4px; border-bottom: 1px solid var(--border-strong);
+    .menu { inset: 52px 0 auto; width: 100%; padding: 4px; border: 0; border-bottom: 1px solid var(--border-strong); border-radius: 0;
       background: var(--bg); box-shadow: 0 12px 24px rgba(0, 0, 0, .25); clip-path: inset(0 0 100% 0);
       transition: clip-path .22s cubic-bezier(.2, 0, 0, 1), display .22s allow-discrete, overlay .22s allow-discrete; }
     .menu::backdrop { top: 52px; background: transparent; transition: background .22s ease, display .22s allow-discrete, overlay .22s allow-discrete; }
-    .menu:not(:popover-open) { display: none; }
     body:has(.menu:popover-open) > :not(header) { pointer-events: none; }  /* a tap outside only closes the menu; it doesn't open the card underneath */
     .menu:popover-open { clip-path: inset(0 0 -40px 0); }
     .menu:popover-open::backdrop { background: rgba(0, 0, 0, .45); }
@@ -218,59 +232,47 @@
       .menu:popover-open { clip-path: inset(0 0 100% 0); }
       .menu:popover-open::backdrop { background: transparent; }
     }
-    .menu .icon-btn { display: flex; align-items: center; justify-content: flex-start; gap: 12px; width: 100%; height: 48px; padding: 0 10px; border: 0; border-radius: var(--radius-sm);
-      background: none; color: var(--text-muted); font: inherit; text-align: left; }
-    .menu .icon-btn svg { width: 22px; height: 22px; flex: none; }
-    .menu .icon-btn:active { background: var(--bg-card-hover); }
-    .menu-label { display: inline; color: var(--text); font-size: 16px; font-weight: 500; }
-    .menu .theme-btn { position: relative; margin-top: 7px; }
-    .menu .theme-btn::before { content: ""; position: absolute; inset: -4px 4px auto; border-top: 1px solid var(--border); }
+    .menu .icon-btn { height: 48px; }
+    .menu .icon-btn svg { width: 22px; height: 22px; }
+    .menu-label { font-size: 16px; }
   }
   @media (hover: hover) {
     .icon-btn:hover { border-color: var(--border); background: var(--bg-card-hover); color: var(--accent); }
-    .nav-btn:not(:disabled):hover { border-color: var(--border-strong); background: var(--bg-card-hover); }
-    .filter-btn:not(.active):hover { border-color: var(--border-strong); color: var(--text); }
-    .card:hover, .weekly-card:hover { border-color: var(--border-strong); }  /* a firmer edge; cards stay put */
+    .filter-btn:not(.active):hover { background: var(--bg-card-hover); }
+    .card:hover { background: var(--bg-card-hover); }
   }
   @media (max-width: 640px) {
     header { padding: 0 14px; }
-    /* Search and filters become header icons beside the menu; only the stale band (rare) stays below. */
+    /* One column. Search and the menu sit in the header. */
+    .shell { display: block; }
     .subheader { display: contents; }
-    .stale { margin: 0; padding: 0 14px; }
-    .search-row { position: fixed; top: 0; right: 58px; z-index: 101; height: 52px; align-items: center; gap: 0; max-width: none; margin: 0; }
-    .search-wrap { flex: none; width: 44px; height: 44px; }
-    .search-wrap > svg { left: 50%; width: 24px; height: 24px; transform: translate(-50%, -50%); }
-    #search, #search:focus { height: 44px; padding: 0; border-color: transparent; background: none; color: transparent; }
-    #search::placeholder { color: transparent; }
-    .filter-toggle { display: inline-flex; flex: none; align-items: center; justify-content: center; gap: 6px; min-width: 44px; height: 44px; padding: 0 9px; border: 1px solid transparent; border-radius: var(--radius-sm); background: none; color: var(--text-muted); font: inherit; font-size: .875rem; font-weight: 600; cursor: pointer; }
-    .filter-toggle svg { width: 24px; height: 24px; }
-    #filter-label:empty { display: none; }  /* or its gap widens the icon */
-    .filter-toggle.active { border-color: var(--accent); background: var(--accent-soft); color: var(--tag-text); }
-    .subheader:has(.filters:popover-open) .filter-toggle { border-color: var(--border-strong); background: var(--bg-card-hover); }
-    /* Same drawer as the menu, under the header. */
-    .filters { position: fixed; inset: 52px 0 auto; flex-wrap: wrap; width: 100%; max-width: none; min-height: 0; margin: 0; padding: 12px 14px 14px; overflow: visible; border-bottom: 1px solid var(--border-strong);
-      background: var(--bg); box-shadow: 0 12px 24px rgba(0, 0, 0, .25); clip-path: inset(0 0 100% 0);
-      transition: clip-path .22s cubic-bezier(.2, 0, 0, 1), display .22s allow-discrete, overlay .22s allow-discrete; }
-    .filters::backdrop { top: 52px; background: transparent; transition: background .22s ease, display .22s allow-discrete, overlay .22s allow-discrete; }
-    .filters:not(:popover-open) { display: none; }
-    body:has(.filters:popover-open) > :not(header, .subheader) { pointer-events: none; }  /* a tap outside only closes the drawer */
-    .filters:popover-open { clip-path: inset(0 0 -40px 0); }
-    .filters:popover-open::backdrop { background: rgba(0, 0, 0, .45); }
-    @starting-style {
-      .filters:popover-open { clip-path: inset(0 0 100% 0); }
-      .filters:popover-open::backdrop { background: transparent; }
-    }
-    .filter-btn { min-height: 44px; }
-    .icon-btn, .nav-btn { width: 44px; height: 44px; }
+    .stale { left: 0; height: calc(56px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); }  /* a phone's bottom bar */
+    .search-row { display: none; }  /* the header has its own search button here */
+    .search-btn { display: inline-grid; }
+    /* Phones open on the topics, as Feedbin does; picking one slides its list in over them, with a back chevron and its name above. */
+    body.home #top { display: none; }
+    .filters { padding: 16px 8px 0; }  /* room under the header */
+    .ticker { max-width: calc(100vw - 100px); }
+    /* The header crossfades with the pages, on the same --pd as their slide: the list's chevron and name fade out drifting right
+       with it, and the wordmark fades in from the left with the topics; on a swipe, under the finger. */
+    .logo-h, .list-back, .list-name, .search-btn { transition: opacity var(--slide-in) var(--ease-in), transform var(--slide-in) var(--ease-in); }
+    .search-btn { opacity: calc(1 - var(--pd, 0)); }  /* search is for lists, as in Feedbin: the topics are for choosing one */
+    body.home .search-btn { opacity: calc(1 - var(--pd, 1)); }
+    .logo-h { opacity: var(--pd, 0); transform: translateX(calc(-24px * (1 - var(--pd, 0)))); }
+    body.home .logo-h { opacity: var(--pd, 1); transform: translateX(calc(-24px * (1 - var(--pd, 1)))); }
+    .list-back { display: inline-grid; position: absolute; top: 3.5px; left: 4px; opacity: calc(1 - var(--pd, 0)); }
+    body.home .list-back { opacity: calc(1 - var(--pd, 1)); }
+    .list-name { display: block; position: absolute; top: 0; left: 50%; max-width: calc(100% - 220px); line-height: 52px; opacity: calc(1 - var(--pd, 0)); transform: translateX(calc(-50% + 48px * var(--pd, 0)));
+      overflow: hidden; font-size: 1.0625rem; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+    body.home .list-name { opacity: calc(1 - var(--pd, 1)); transform: translateX(calc(-50% + 48px * var(--pd, 1))); }
+    body.paging :is(.logo-h, .list-back, .list-name, .search-btn) { transition: none; }
+    .filter-btn { min-height: 44px; font-size: 1rem; }
+    .filters .f-head { margin-top: 12px; }
+    .icon-btn { width: 44px; height: 44px; }
     .icon-btn svg { width: 24px; height: 24px; }
     .palette-list li { min-height: 44px; }
-    .weekly, .items { padding-left: 14px; padding-right: 14px; }
-    .weekly-header { gap: 8px; }
-    .weekly-title { font-size: 1.0625rem; }
-    .nav { display: none; }
-    .rail { margin-right: -14px; padding-right: 14px; }
-    .weekly-card { flex-basis: min(82vw, 300px); }
-    .card { padding: 12px; gap: 10px; }
+    .items { padding-left: 6px; padding-right: 6px; }
+    .card { gap: 10px; }
     .back-to-top { right: 12px; bottom: 12px; }
     .site-foot { padding-bottom: 72px; }  /* clears the back-to-top button */
     /* Under the header, which stays clear; tapping it closes. */
@@ -278,9 +280,9 @@
     .palette::backdrop { background: linear-gradient(transparent 52px, rgba(0, 0, 0, .5) 52px); }
     .palette-foot { display: none; }
     /* No Esc key here: the close button sits over the header's search icon, so it turns into an X. */
-    .palette-close { position: fixed; top: 4px; right: 102px; display: grid; place-items: center; width: 44px; height: 44px; color: var(--text-muted); }
+    .palette-close { position: fixed; top: 3.5px; right: 64px; display: grid; place-items: center; width: 44px; height: 44px; color: var(--text-muted); }
     .palette-close kbd { display: none; } .palette-close svg { display: block; width: 24px; height: 24px; }
-    body:has(#palette[open]) .search-wrap > svg { visibility: hidden; }
+    body:has(#palette[open]) .search-btn svg { visibility: hidden; }
   }
   /* The reader's slide: the same both ways, moving at once and settling. Phones travel less, so take less time. */
   :root { --slide-in: .32s; --slide-out: .32s; --ease-in: cubic-bezier(.25, .6, .25, 1); --ease-out: cubic-bezier(.25, .6, .25, 1); }
@@ -302,9 +304,52 @@
     .reader-nav .icon-btn, .reader-bar .icon-btn { width: 44px; height: 44px; }
     .feed { transition: transform var(--slide-out) var(--ease-out); }
     body.reading .feed { transform: translateX(calc(-25% * (1 - var(--drag, 0)))); transition: transform var(--slide-in) var(--ease-in); }
+    /* The topics and a list are pages the same way: the list slides over the topics, which ease a quarter aside, following a
+       swipe (--pd: 0 is the list, 1 the topics) or on a tap, back or the chevron. The window scrolls the list; the topics scroll themselves. */
+    .shell { overflow-x: clip; }
+    .subheader.side { display: flex; flex-direction: column; position: fixed; inset: 52px 0 0; z-index: 1; height: auto; align-self: stretch;  /* desktop's start would shrink it to its content */ padding: 0; border: 0; overflow-y: auto; }
+    body.reading .side { transform: none; }  /* its search sits in the header; the list moving aside under a story is enough */
+    .side > nav { transform: translateX(calc(-25% * (1 - var(--pd, 0)))); transition: transform var(--slide-in) var(--ease-in); }
+    body.home .side > nav { transform: translateX(calc(-25% * (1 - var(--pd, 1)))); }
+    .col { position: relative; z-index: 2; min-height: calc(100dvh - 52px); background: var(--bg); box-shadow: -12px 0 24px rgba(0, 0, 0, .18);
+      transform: translateX(calc(var(--pd, 0) * 100%)); transition: transform var(--slide-in) var(--ease-in); }
+    body.home .col { transform: translateX(calc(var(--pd, 1) * 100%)); }
+    html:has(body.home) { overflow: hidden; }  /* the list keeps its place, off to the right */
+    body.paging .col, body.paging .side > * { transition: none; }
+  }
+  /* Wide screens: the reader docked beside the list for good, with no backdrop, and the list stays live while it's open. */
+  @media (min-width: 1280px) {
+    :root { --side-w: 240px; }
+    .shell { grid-template-columns: var(--side-w) var(--list-w); }
+    .resizer { top: 0; }
+    #resize-list { display: block; left: calc(var(--side-w) + var(--list-w)); }
+    .items { padding: 0 10px 48px; }
+    /* One bar across the top, as in Feedbin: the header shrinks to the sidebar's top (logo, then search), the reader runs to the
+       top of the window, and the menu button sits at the end of the reader bar, with the story's controls beside it. */
+    html { overflow: hidden; scrollbar-gutter: auto; }  /* the list scrolls itself, so its scrollbar sits beside it, not at the window's edge */
+    .col { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; scroll-padding-top: 12px; }
+    header { position: fixed; inset: 0 auto auto 0; width: var(--side-w); border-bottom: 0; border-right: 1px solid var(--border); background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
+    .controls { position: fixed; top: 8px; right: 12px; z-index: 101; }  /* fixed to the window: the header no longer reaches here */
+    .side { top: 0; height: 100dvh; padding-top: 66px; }
+    .stale { left: var(--side-w); width: var(--list-w); }  /* the list's foot */
+    .reader .reader-bar { padding-right: 64px; }  /* room for the menu button */
+    .reader { top: 0; left: calc(var(--side-w) + var(--list-w)); width: auto; z-index: 98; border-left: 1px solid var(--border); box-shadow: none; transform: none !important; visibility: visible; pointer-events: auto; transition: none; }
+    .reader-backdrop { display: none; }
+    body.reading { overflow: visible; }
+    /* Nothing open: the site's mark, faint and centred, as Feedbin does with its own. */
+    .reader-body:empty::before { content: ""; position: absolute; inset: 0; margin: auto; width: 96px; height: 96px; background: var(--border-strong);
+      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M16 16v17a10 10 0 0 0 20 0V16M36 16v31' fill='none' stroke='%23000' stroke-width='9'/%3E%3Ccircle cx='49' cy='42' r='5'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M16 16v17a10 10 0 0 0 20 0V16M36 16v31' fill='none' stroke='%23000' stroke-width='9'/%3E%3Ccircle cx='49' cy='42' r='5'/%3E%3C/svg%3E") center / contain no-repeat; }
+    body:not(.reading) .reader-bar > :not(.reader-spacer) { visibility: hidden; }  /* nothing open: no controls for it */
+    body:not(.reading) .reader-nav { display: none; }
+    .back-to-top { right: auto; left: calc(var(--side-w) + var(--list-w) - 68px); }  /* inside the list, not over the article */
+    #reader-theme { display: none; }  /* the menu beside it has the theme switch */
+    body:not(.reading) .reader-bar { border-bottom-color: transparent; }  /* nothing open: no bar to mark off */
   }
   .reader-bar { display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 12px; border-bottom: 1px solid var(--border); flex: 0 0 auto; }
   .reader-spacer { flex: 1; }
+  .reader-source { min-width: 0; overflow: hidden; color: var(--text); font-size: .9375rem; white-space: nowrap; text-overflow: ellipsis; }  /* who it's from, beside the icon, as in Feedbin */
+  #reader-unread.unread svg { fill: currentColor; }  /* a filled dot while it's unread, as in Feedbin */
+  #reader-unread.unread { color: var(--accent); }
   .text-size[aria-expanded="true"] { background: var(--bg-card-hover); color: var(--text); }
   /* Text size: four A's in growing sizes, the current one marked. */
   .size-wrap { position: relative; }
@@ -315,10 +360,9 @@
   .size-pop button:hover { background: var(--bg-card-hover); color: var(--text); }
   .size-pop button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
   .size-pop [data-size="0"] { font-size: 13px; } .size-pop [data-size="1"] { font-size: 16px; } .size-pop [data-size="2"] { font-size: 20px; } .size-pop [data-size="3"] { font-size: 24px; }
-  .reader-icon { flex: none; width: 22px; height: 22px; border-radius: 5px; }
+  .reader-icon { width: 22px; height: 22px; margin-top: 0; }
   /* Single-colour artwork on transparency would vanish against a background of its own tone, so it's inverted there. */
-  .reader-mono { display: grid; place-items: center; background: var(--bg-card); box-shadow: inset 0 0 0 1px var(--border-strong); color: var(--text-muted); font: 700 .75rem/1 Inter, system-ui, sans-serif; }
-  [data-theme="dark"] .reader-icon[data-art="dark"], [data-theme="light"] .reader-icon[data-art="light"] { filter: invert(1); }
+  [data-theme="dark"] .src-icon[data-art="dark"], [data-theme="light"] .src-icon[data-art="light"] { filter: invert(1); }
   #reader:focus { outline: none; }  /* focused on a tap open, so no ring appears on the close button */
   .close-back, .reader-nav { display: none; }
   .reader-nav { flex: 0 0 auto; justify-content: center; gap: 48px; height: 52px; border-top: 1px solid var(--border); }
@@ -326,15 +370,31 @@
   .reader-body { position: relative; flex: 1; min-height: 0; }
   .reader-body iframe { position: absolute; inset: 0; display: block; width: 100%; height: 100%; border: 0; background: var(--bg); }
   .reader-body iframe.loading { visibility: hidden; }
+  /* Phones: between a list and its story the top bar stays put, as a navigation bar does, and crossfades: the list's header
+     fades out and the story's bar fades in over it, while only the content beneath slides. The bar rides inside the sliding
+     reader, so it's moved back by the reader's offset to hold still, on the same --drag, so a swipe moves it with the finger. */
+  @media (max-width: 640px) {
+    .reader .reader-bar { position: relative; z-index: 1; background: var(--bg); transform: translateX(-100%); opacity: 0;
+      transition: transform var(--slide-out) var(--ease-out), opacity var(--slide-out) var(--ease-out); }
+    body.reading .reader .reader-bar { transform: translateX(calc(var(--drag, 0) * -100%)); opacity: calc(1 - var(--drag, 0));
+      transition: transform var(--slide-in) var(--ease-in), opacity var(--slide-in) var(--ease-in); }
+    header.feed { transition: transform var(--slide-out) var(--ease-out), opacity var(--slide-out) var(--ease-out); }
+    body.reading header.feed { transform: none; opacity: var(--drag, 0); transition: opacity var(--slide-in) var(--ease-in); }
+    body.dragging .reader .reader-bar, body.dragging header.feed { transition: none !important; }
+    .reader-source { display: none; }  /* the icon says who it's from; the name stays for wider screens */
+  }
 </style>
 </head>
-<body>
+<body class="home">
 <noscript><p class="noscript">Upshot needs JavaScript to show its stories. You can still read them in the <a href="/rss.xml">RSS feed</a>.</p></noscript>
 <header class="feed">
-  <h1 class="logo-h"><a class="logo" href="/"><svg viewBox="-4.00 -77.24 354.79 100.29" role="img" aria-label="Upshot"><path class="fg" d="M23.681640625 1.26953125Q17.578125 1.26953125 13.6474609375 -1.513671875Q9.716796875 -4.296875 7.8125 -9.228515625Q5.908203125 -14.16015625 5.908203125 -20.60546875V-52.734375H20.458984375V-22.314453125Q20.458984375 -15.91796875 22.65625 -12.8173828125Q24.853515625 -9.716796875 29.4921875 -9.716796875Q32.2265625 -9.716796875 34.6923828125 -11.1572265625Q37.158203125 -12.59765625 38.720703125 -15.966796875Q40.283203125 -19.3359375 40.283203125 -25.146484375V-52.734375H54.833984375V0.0H40.771484375V-12.353515625L41.11328125 -10.205078125Q38.76953125 -4.833984375 34.3505859375 -1.7822265625Q29.931640625 1.26953125 23.681640625 1.26953125Z M65.310546875 19.04296875V-52.734375H79.080078125V-42.138671875L78.93359375 -42.919921875Q81.66796875 -48.681640625 86.2333984375 -51.3427734375Q90.798828125 -54.00390625 96.462890625 -54.00390625Q103.103515625 -54.00390625 107.9619140625 -50.7080078125Q112.8203125 -47.412109375 115.45703125 -41.1865234375Q118.09375 -34.9609375 118.09375 -26.26953125Q118.09375 -17.578125 115.4326171875 -11.4013671875Q112.771484375 -5.224609375 107.8642578125 -1.9775390625Q102.95703125 1.26953125 96.21875 1.26953125Q90.359375 1.26953125 85.7939453125 -1.4404296875Q81.228515625 -4.150390625 78.396484375 -10.25390625L79.763671875 -10.3515625V19.04296875ZM91.04296875 -9.716796875Q96.365234375 -9.716796875 99.5390625 -14.1845703125Q102.712890625 -18.65234375 102.712890625 -26.5625Q102.712890625 -34.375 99.6123046875 -38.6962890625Q96.51171875 -43.017578125 91.140625 -43.017578125Q87.771484375 -43.017578125 85.0615234375 -41.2109375Q82.3515625 -39.404296875 80.7646484375 -35.7177734375Q79.177734375 -32.03125 79.177734375 -26.46484375Q79.177734375 -18.115234375 82.595703125 -13.916015625Q86.013671875 -9.716796875 91.04296875 -9.716796875Z M146.5390625 1.26953125Q140.58203125 1.26953125 135.30859375 -0.4638671875Q130.03515625 -2.197265625 126.421875 -5.859375Q122.80859375 -9.521484375 121.83203125 -15.380859375L135.11328125 -18.017578125Q135.552734375 -13.57421875 138.2626953125 -11.3037109375Q140.97265625 -9.033203125 146.001953125 -9.033203125Q150.8359375 -9.033203125 153.1796875 -10.9619140625Q155.5234375 -12.890625 155.5234375 -15.478515625Q155.5234375 -17.7734375 153.6923828125 -19.43359375Q151.861328125 -21.09375 147.369140625 -21.77734375L142.583984375 -22.55859375Q139.751953125 -22.998046875 136.5537109375 -23.7548828125Q133.35546875 -24.51171875 130.5234375 -26.0498046875Q127.69140625 -27.587890625 125.884765625 -30.322265625Q124.078125 -33.056640625 124.078125 -37.353515625Q124.078125 -42.578125 126.8857421875 -46.3134765625Q129.693359375 -50.048828125 134.673828125 -52.0263671875Q139.654296875 -54.00390625 146.05078125 -54.00390625Q151.958984375 -54.00390625 156.841796875 -52.2705078125Q161.724609375 -50.537109375 165.0205078125 -47.1923828125Q168.31640625 -43.84765625 169.29296875 -38.916015625L156.01171875 -36.181640625Q155.669921875 -38.18359375 154.7177734375 -39.94140625Q153.765625 -41.69921875 151.8125 -42.7978515625Q149.859375 -43.896484375 146.5390625 -43.896484375Q142.779296875 -43.896484375 140.5576171875 -42.431640625Q138.3359375 -40.966796875 138.3359375 -38.427734375Q138.3359375 -36.572265625 139.5810546875 -35.400390625Q140.826171875 -34.228515625 142.9990234375 -33.5205078125Q145.171875 -32.8125 147.90625 -32.32421875L153.375 -31.396484375Q157.57421875 -30.712890625 161.3583984375 -29.0283203125Q165.142578125 -27.34375 167.53515625 -24.21875Q169.927734375 -21.09375 169.927734375 -16.015625Q169.927734375 -10.400390625 166.8759765625 -6.54296875Q163.82421875 -2.685546875 158.5263671875 -0.7080078125Q153.228515625 1.26953125 146.5390625 1.26953125Z M177.279296875 0.0V-73.2421875H191.830078125V-40.380859375L191.0 -42.529296875Q193.34375 -47.94921875 197.7626953125 -50.9765625Q202.181640625 -54.00390625 208.431640625 -54.00390625Q214.583984375 -54.00390625 218.490234375 -51.220703125Q222.396484375 -48.4375 224.30078125 -43.505859375Q226.205078125 -38.57421875 226.205078125 -32.12890625V0.0H211.654296875V-30.419921875Q211.654296875 -36.9140625 209.9453125 -39.9658203125Q208.236328125 -43.017578125 203.5 -43.017578125Q197.787109375 -43.017578125 194.80859375 -38.671875Q191.830078125 -34.326171875 191.830078125 -25.634765625V0.0Z M259.630859375 1.26953125Q251.671875 1.26953125 245.5927734375 -2.24609375Q239.513671875 -5.76171875 236.095703125 -11.9873046875Q232.677734375 -18.212890625 232.677734375 -26.3671875Q232.677734375 -34.5703125 236.095703125 -40.7958984375Q239.513671875 -47.021484375 245.5927734375 -50.5126953125Q251.671875 -54.00390625 259.630859375 -54.00390625Q267.638671875 -54.00390625 273.7177734375 -50.5126953125Q279.796875 -47.021484375 283.21484375 -40.7958984375Q286.6328125 -34.5703125 286.6328125 -26.3671875Q286.6328125 -18.1640625 283.21484375 -11.9384765625Q279.796875 -5.712890625 273.693359375 -2.2216796875Q267.58984375 1.26953125 259.630859375 1.26953125ZM259.6796875 -9.423828125Q265.099609375 -9.423828125 268.2490234375 -13.9892578125Q271.3984375 -18.5546875 271.3984375 -26.3671875Q271.3984375 -34.228515625 268.2490234375 -38.76953125Q265.099609375 -43.310546875 259.630859375 -43.310546875Q254.2109375 -43.310546875 251.0615234375 -38.76953125Q247.912109375 -34.228515625 247.912109375 -26.3671875Q247.912109375 -18.505859375 251.0615234375 -13.96484375Q254.2109375 -9.423828125 259.6796875 -9.423828125Z M308.4375 0.0Q302.578125 0.0 299.4287109375 -2.8564453125Q296.279296875 -5.712890625 296.279296875 -11.083984375V-42.08984375H288.759765625V-52.734375H296.279296875V-63.0859375L310.830078125 -66.6015625V-52.734375H320.595703125V-42.08984375H310.830078125V-13.37890625Q310.830078125 -11.767578125 311.2939453125 -11.2060546875Q311.7578125 -10.64453125 313.271484375 -10.64453125H321.328125V0.0Z"/><path class="dot" d="M336.78515625 1.26953125Q332.29296875 1.26953125 329.509765625 -1.513671875Q326.7265625 -4.296875 326.7265625 -8.7890625Q326.7265625 -13.28125 329.509765625 -16.0400390625Q332.29296875 -18.798828125 336.78515625 -18.798828125Q341.27734375 -18.798828125 344.0361328125 -16.0400390625Q346.794921875 -13.28125 346.794921875 -8.7890625Q346.794921875 -4.296875 344.0361328125 -1.513671875Q341.27734375 1.26953125 336.78515625 1.26953125Z"/></svg></a></h1>
+  <button class="icon-btn list-back" id="list-back" type="button" aria-label="Topics" title="Topics"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
+  <span class="list-name" id="list-name" aria-hidden="true">All</span>
+  <h1 class="logo-h"><span class="ticker" id="ticker" aria-hidden="true"></span><a class="logo" href="/"><svg viewBox="-4.00 -77.24 354.79 100.29" role="img" aria-label="Upshot"><path class="fg" d="M23.681640625 1.26953125Q17.578125 1.26953125 13.6474609375 -1.513671875Q9.716796875 -4.296875 7.8125 -9.228515625Q5.908203125 -14.16015625 5.908203125 -20.60546875V-52.734375H20.458984375V-22.314453125Q20.458984375 -15.91796875 22.65625 -12.8173828125Q24.853515625 -9.716796875 29.4921875 -9.716796875Q32.2265625 -9.716796875 34.6923828125 -11.1572265625Q37.158203125 -12.59765625 38.720703125 -15.966796875Q40.283203125 -19.3359375 40.283203125 -25.146484375V-52.734375H54.833984375V0.0H40.771484375V-12.353515625L41.11328125 -10.205078125Q38.76953125 -4.833984375 34.3505859375 -1.7822265625Q29.931640625 1.26953125 23.681640625 1.26953125Z M65.310546875 19.04296875V-52.734375H79.080078125V-42.138671875L78.93359375 -42.919921875Q81.66796875 -48.681640625 86.2333984375 -51.3427734375Q90.798828125 -54.00390625 96.462890625 -54.00390625Q103.103515625 -54.00390625 107.9619140625 -50.7080078125Q112.8203125 -47.412109375 115.45703125 -41.1865234375Q118.09375 -34.9609375 118.09375 -26.26953125Q118.09375 -17.578125 115.4326171875 -11.4013671875Q112.771484375 -5.224609375 107.8642578125 -1.9775390625Q102.95703125 1.26953125 96.21875 1.26953125Q90.359375 1.26953125 85.7939453125 -1.4404296875Q81.228515625 -4.150390625 78.396484375 -10.25390625L79.763671875 -10.3515625V19.04296875ZM91.04296875 -9.716796875Q96.365234375 -9.716796875 99.5390625 -14.1845703125Q102.712890625 -18.65234375 102.712890625 -26.5625Q102.712890625 -34.375 99.6123046875 -38.6962890625Q96.51171875 -43.017578125 91.140625 -43.017578125Q87.771484375 -43.017578125 85.0615234375 -41.2109375Q82.3515625 -39.404296875 80.7646484375 -35.7177734375Q79.177734375 -32.03125 79.177734375 -26.46484375Q79.177734375 -18.115234375 82.595703125 -13.916015625Q86.013671875 -9.716796875 91.04296875 -9.716796875Z M146.5390625 1.26953125Q140.58203125 1.26953125 135.30859375 -0.4638671875Q130.03515625 -2.197265625 126.421875 -5.859375Q122.80859375 -9.521484375 121.83203125 -15.380859375L135.11328125 -18.017578125Q135.552734375 -13.57421875 138.2626953125 -11.3037109375Q140.97265625 -9.033203125 146.001953125 -9.033203125Q150.8359375 -9.033203125 153.1796875 -10.9619140625Q155.5234375 -12.890625 155.5234375 -15.478515625Q155.5234375 -17.7734375 153.6923828125 -19.43359375Q151.861328125 -21.09375 147.369140625 -21.77734375L142.583984375 -22.55859375Q139.751953125 -22.998046875 136.5537109375 -23.7548828125Q133.35546875 -24.51171875 130.5234375 -26.0498046875Q127.69140625 -27.587890625 125.884765625 -30.322265625Q124.078125 -33.056640625 124.078125 -37.353515625Q124.078125 -42.578125 126.8857421875 -46.3134765625Q129.693359375 -50.048828125 134.673828125 -52.0263671875Q139.654296875 -54.00390625 146.05078125 -54.00390625Q151.958984375 -54.00390625 156.841796875 -52.2705078125Q161.724609375 -50.537109375 165.0205078125 -47.1923828125Q168.31640625 -43.84765625 169.29296875 -38.916015625L156.01171875 -36.181640625Q155.669921875 -38.18359375 154.7177734375 -39.94140625Q153.765625 -41.69921875 151.8125 -42.7978515625Q149.859375 -43.896484375 146.5390625 -43.896484375Q142.779296875 -43.896484375 140.5576171875 -42.431640625Q138.3359375 -40.966796875 138.3359375 -38.427734375Q138.3359375 -36.572265625 139.5810546875 -35.400390625Q140.826171875 -34.228515625 142.9990234375 -33.5205078125Q145.171875 -32.8125 147.90625 -32.32421875L153.375 -31.396484375Q157.57421875 -30.712890625 161.3583984375 -29.0283203125Q165.142578125 -27.34375 167.53515625 -24.21875Q169.927734375 -21.09375 169.927734375 -16.015625Q169.927734375 -10.400390625 166.8759765625 -6.54296875Q163.82421875 -2.685546875 158.5263671875 -0.7080078125Q153.228515625 1.26953125 146.5390625 1.26953125Z M177.279296875 0.0V-73.2421875H191.830078125V-40.380859375L191.0 -42.529296875Q193.34375 -47.94921875 197.7626953125 -50.9765625Q202.181640625 -54.00390625 208.431640625 -54.00390625Q214.583984375 -54.00390625 218.490234375 -51.220703125Q222.396484375 -48.4375 224.30078125 -43.505859375Q226.205078125 -38.57421875 226.205078125 -32.12890625V0.0H211.654296875V-30.419921875Q211.654296875 -36.9140625 209.9453125 -39.9658203125Q208.236328125 -43.017578125 203.5 -43.017578125Q197.787109375 -43.017578125 194.80859375 -38.671875Q191.830078125 -34.326171875 191.830078125 -25.634765625V0.0Z M259.630859375 1.26953125Q251.671875 1.26953125 245.5927734375 -2.24609375Q239.513671875 -5.76171875 236.095703125 -11.9873046875Q232.677734375 -18.212890625 232.677734375 -26.3671875Q232.677734375 -34.5703125 236.095703125 -40.7958984375Q239.513671875 -47.021484375 245.5927734375 -50.5126953125Q251.671875 -54.00390625 259.630859375 -54.00390625Q267.638671875 -54.00390625 273.7177734375 -50.5126953125Q279.796875 -47.021484375 283.21484375 -40.7958984375Q286.6328125 -34.5703125 286.6328125 -26.3671875Q286.6328125 -18.1640625 283.21484375 -11.9384765625Q279.796875 -5.712890625 273.693359375 -2.2216796875Q267.58984375 1.26953125 259.630859375 1.26953125ZM259.6796875 -9.423828125Q265.099609375 -9.423828125 268.2490234375 -13.9892578125Q271.3984375 -18.5546875 271.3984375 -26.3671875Q271.3984375 -34.228515625 268.2490234375 -38.76953125Q265.099609375 -43.310546875 259.630859375 -43.310546875Q254.2109375 -43.310546875 251.0615234375 -38.76953125Q247.912109375 -34.228515625 247.912109375 -26.3671875Q247.912109375 -18.505859375 251.0615234375 -13.96484375Q254.2109375 -9.423828125 259.6796875 -9.423828125Z M308.4375 0.0Q302.578125 0.0 299.4287109375 -2.8564453125Q296.279296875 -5.712890625 296.279296875 -11.083984375V-42.08984375H288.759765625V-52.734375H296.279296875V-63.0859375L310.830078125 -66.6015625V-52.734375H320.595703125V-42.08984375H310.830078125V-13.37890625Q310.830078125 -11.767578125 311.2939453125 -11.2060546875Q311.7578125 -10.64453125 313.271484375 -10.64453125H321.328125V0.0Z"/><path class="dot" d="M336.78515625 1.26953125Q332.29296875 1.26953125 329.509765625 -1.513671875Q326.7265625 -4.296875 326.7265625 -8.7890625Q326.7265625 -13.28125 329.509765625 -16.0400390625Q332.29296875 -18.798828125 336.78515625 -18.798828125Q341.27734375 -18.798828125 344.0361328125 -16.0400390625Q346.794921875 -13.28125 346.794921875 -8.7890625Q346.794921875 -4.296875 344.0361328125 -1.513671875Q341.27734375 1.26953125 336.78515625 1.26953125Z"/></svg></a></h1>
   <div class="controls">
-    <button class="icon-btn menu-btn" id="menu-btn" type="button" popovertarget="menu" aria-label="Menu">
-      <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    <button class="icon-btn search-btn" id="search-btn" type="button" aria-label="Search articles" aria-haspopup="dialog" title="Search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+    <button class="icon-btn menu-btn" id="menu-btn" type="button" popovertarget="menu" aria-label="Menu" title="Menu">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="8" cy="12" r=".6" fill="currentColor"/><circle cx="12" cy="12" r=".6" fill="currentColor"/><circle cx="16" cy="12" r=".6" fill="currentColor"/></svg>
     </button>
     <div class="menu" id="menu" popover>
     <a class="icon-btn" href="/rss.xml" title="RSS feed" aria-label="RSS feed">
@@ -353,48 +413,33 @@
     </div>
   </div>
 </header>
-<div class="subheader feed">
-  <a class="stale" id="stale" href="https://github.com/davelevine/upshot/actions/workflows/build.yml" target="_blank" rel="noopener" hidden></a>
+<div class="stale feed" id="stale" hidden><span id="stale-msg"></span><button class="icon-btn" id="stale-check" type="button" aria-label="Check again" title="Check again"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button></div>
+<div class="shell">
+<aside class="subheader side feed">
   <div class="search-row" role="search">
     <div class="search-wrap" id="search-wrap">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="search" type="search" placeholder="Search..." aria-label="Search articles" aria-haspopup="dialog" autocomplete="off" readonly>
       <kbd class="search-kbd" id="search-kbd" hidden></kbd>
     </div>
-    <button class="filter-toggle" id="filter-toggle" type="button" popovertarget="filters" aria-label="Filters">
-      <svg viewBox="0 0 24 24"><path d="M4 7h9M19 7h1M4 17h1M11 17h9"/><circle cx="16" cy="7" r="2.6"/><circle cx="8" cy="17" r="2.6"/></svg><span id="filter-label"></span>
-    </button>
   </div>
-  <div class="filters" id="filters" popover></div>
-</div>
-<section class="weekly feed" id="weekly" aria-labelledby="weekly-title">
-  <div class="weekly-header">
-    <div class="weekly-heading">
-      <h2 class="weekly-title" id="weekly-title">The week’s essentials</h2>
-      <button class="info-btn" id="info" type="button" aria-expanded="false" aria-controls="info-pop" aria-label="About this selection" title="Five stories from the last seven days, chosen as most worth acting on, each with what to do.">i</button>
-      <div class="popover" id="info-pop" hidden>Five stories from the last seven days, chosen as most worth acting on, each with what to do.</div>
-    </div>
-    <span class="weekly-range" id="weekly-range"></span>
-    <div class="nav">
-      <button class="nav-btn" id="prev" type="button" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
-      <button class="nav-btn" id="next" type="button" aria-label="Next"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
-    </div>
-  </div>
-  <div class="rail" id="rail"><div class="weekly-card skeleton" aria-hidden="true"><span class="dot" style="--c:var(--border)"></span><div class="weekly-body"><div class="weekly-card-title"><span class="bone title"></span><span class="bone title" style="width:80%"></span></div><div class="weekly-meta"><span class="bone" style="width:45%;align-self:center"></span>&nbsp;</div></div></div><div class="weekly-card skeleton" aria-hidden="true"><span class="dot" style="--c:var(--border)"></span><div class="weekly-body"><div class="weekly-card-title"><span class="bone title"></span><span class="bone title" style="width:80%"></span></div><div class="weekly-meta"><span class="bone" style="width:45%;align-self:center"></span>&nbsp;</div></div></div><div class="weekly-card skeleton" aria-hidden="true"><span class="dot" style="--c:var(--border)"></span><div class="weekly-body"><div class="weekly-card-title"><span class="bone title"></span><span class="bone title" style="width:80%"></span></div><div class="weekly-meta"><span class="bone" style="width:45%;align-self:center"></span>&nbsp;</div></div></div></div>
-</section>
+  <nav class="filters" id="filters" aria-label="Topics"></nav>
+  <p class="side-foot"><time id="updated"></time></p>
+</aside>
+<div class="col" id="col">
 <div class="sr-only" id="status" role="status"></div>
-<main class="items feed" id="items" aria-busy="true"><div class="date-label skeleton" aria-hidden="true"><span class="bone" style="width:6em"></span><span class="day-meta">&nbsp;</span></div><div class="card skeleton" aria-hidden="true"><span class="dot" style="--c:var(--border)"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="dot" style="--c:var(--border)"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="dot" style="--c:var(--border)"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="dot" style="--c:var(--border)"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div></main>
+<main class="items feed" id="items" aria-busy="true"><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div></main>
 <div id="sentinel"></div>
-<footer class="site-foot feed" id="end" hidden>
-  <span id="end-msg"></span>
-  <a class="icon-btn" href="/rss.xml" title="RSS feed" aria-label="RSS feed"><svg viewBox="0 0 24 24"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg></a>
-  <a class="icon-btn" href="https://github.com/davelevine/upshot" target="_blank" rel="noopener" title="Source on GitHub" aria-label="Source on GitHub"><svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.75c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></a>
-</footer>
+<footer class="site-foot feed" id="end" hidden><span id="end-msg"></span></footer>
+</div>
+</div>
+<div class="resizer" id="resize-side" role="separator" aria-orientation="vertical" aria-label="Resize the topics" title="Drag to resize; double-click to reset" tabindex="0"></div>
+<div class="resizer" id="resize-list" role="separator" aria-orientation="vertical" aria-label="Resize the list" title="Drag to resize; double-click to reset" tabindex="0"></div>
 <div class="reader-backdrop" id="reader-backdrop"></div>
 <div class="reader" id="reader" tabindex="-1" role="dialog" aria-modal="true" aria-label="Reader" aria-hidden="true">
   <div class="reader-bar">
     <button class="icon-btn" id="reader-close" type="button" aria-label="Close reader"><svg class="close-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg><svg class="close-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
-    <img class="reader-icon" id="reader-icon" alt="" width="22" height="22" hidden><span class="reader-icon reader-mono" id="reader-mono" aria-hidden="true" hidden></span>
+    <img class="src-icon reader-icon" id="reader-icon" alt="" width="22" height="22" hidden><span class="src-icon src-mono reader-icon" id="reader-mono" aria-hidden="true" hidden></span><span class="reader-source" id="reader-source"></span>
     <span class="reader-spacer"></span>
     <span class="send-done" id="send-done" hidden>Copied</span>
     <span class="size-wrap">
@@ -414,6 +459,7 @@
         <button type="button" role="menuitem" id="send-more" hidden><svg class="send-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>More…</button>
       </span>
     </span>
+    <button class="icon-btn" id="reader-unread" type="button" title="Mark as unread" aria-label="Mark as unread"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/></svg></button>
     <button class="icon-btn" id="reader-theme" type="button" title="Toggle dark mode" aria-label="Toggle dark mode">
       <svg class="only-light" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       <svg class="only-dark" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
@@ -440,6 +486,7 @@
     <dt><kbd>j</kbd> / <kbd>→</kbd></dt><dd>Next article, in the feed or the reader</dd>
     <dt><kbd>k</kbd> / <kbd>←</kbd></dt><dd>Previous article</dd>
     <dt><kbd>Enter</kbd></dt><dd>Open the focused article</dd>
+    <dt><kbd>m</kbd></dt><dd>Mark the open article read or unread</dd>
     <dt><kbd>⌘K</kbd> / <kbd>Ctrl K</kbd> / <kbd>/</kbd></dt><dd>Search every article</dd>
     <dt><kbd>Esc</kbd></dt><dd>Close the reader, search or this list</dd>
     <dt><kbd>?</kbd></dt><dd>Show this list</dd>
