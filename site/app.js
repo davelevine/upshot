@@ -185,7 +185,7 @@ function pruneRead() {
 }
 const cardFor = url => [...document.querySelectorAll('a.card')].find(a => a.getAttribute('href') === url);
 function markRead(url) {
-  if (!readSet.has(url)) { readSet.add(url); saveRead(); }
+  readSet.delete(url); readSet.add(url); saveRead();  // most recent last: the search panel's "Recently read" reads it backwards
   const card = cardFor(url);
   card?.classList.add('read');
   card?.querySelector('.new')?.remove();
@@ -629,14 +629,22 @@ function renderPalette() {
     if (t.includes(ql)) return t.startsWith(ql) ? 3 : 2;
     return `${i.summary} ${i.publisher} ${domain(i.url)}`.toLowerCase().includes(ql) ? 1 : 0;
   };
-  // Every match: it's the only search now, and 90 days of stories is a few hundred at most.
-  pal.results = items.map(i => [rank(i), i]).filter(([r]) => r).sort((a, b) => b[0] - a[0]).map(([, i]) => i);
+  // Before typing: what you read last (or the newest few), not the whole feed again. Typing searches every story.
+  let head = '';
+  if (!ql) {
+    const byUrl = Object.fromEntries(items.map(i => [i.url, i]));
+    const recent = [...readSet].reverse().map(u => byUrl[u]).filter(Boolean).slice(0, 8);
+    pal.results = recent.length ? recent : items.slice(0, 5);
+    head = `<li class="palette-head" role="presentation">${recent.length ? 'Recently read' : 'Latest'}</li>`;
+  } else {
+    pal.results = items.map(i => [rank(i), i]).filter(([r]) => r).sort((a, b) => b[0] - a[0]).map(([, i]) => i);
+  }
   pal.sel = 0;
-  $('palette-list').innerHTML = pal.results.length ? pal.results.map((i, n) => { const c = cat(i.category); return `
+  $('palette-list').innerHTML = head + (pal.results.length ? pal.results.map((i, n) => { const c = cat(i.category); return `
     <li role="option" id="p-${n}" data-n="${n}" aria-selected="${n === 0}">
       <span class="dot" style="--c:var(--cat-${c})"></span>
       <div><div class="p-title">${highlight(i.title, q)}</div><div class="p-meta">${esc(i.publisher)} · ${CATS[c]} · ${dayLabel(i.date)}</div></div>
-    </li>`; }).join('') : `<li class="palette-empty">No articles match “${esc(q)}”.</li>`;
+    </li>`; }).join('') : `<li class="palette-empty">No articles match “${esc(q)}”.</li>`);
   $('palette-q').setAttribute('aria-activedescendant', pal.results.length ? 'p-0' : '');
 }
 function selectPalette(n, scroll = true) {
