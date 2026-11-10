@@ -179,7 +179,9 @@ function syncHome() {
 function slide(dir, update) {
   if (!phone.matches || !document.startViewTransition) return update();
   document.documentElement.dataset.slide = dir;
-  document.startViewTransition(update).finished.finally(() => delete document.documentElement.dataset.slide);
+  const t = document.startViewTransition(update);
+  t.ready.catch(() => {});  // skipped when another slide starts first: the page still updates, it just doesn't animate
+  t.finished.finally(() => delete document.documentElement.dataset.slide);
 }
 let lastList = null;  // the list a swipe left on the topics goes back into
 function enterList() {
@@ -259,9 +261,9 @@ function showUpdated() {
 let checking = false;
 $('stale-check').onclick = async () => {
   const b = $('stale-check'), before = generatedAt;
-  checking = true; b.disabled = true; b.textContent = 'Checking\u2026';
+  checking = true; b.disabled = true; b.classList.add('checking');
   try { await load(); } catch {}
-  b.disabled = false; b.textContent = 'Check again';
+  b.disabled = false; b.classList.remove('checking');
   if (generatedAt !== before) { checking = false; return showUpdated(); }  // new stories: the list redrew, and the bar goes
   $('stale-msg').textContent = $('status').textContent = 'No new stories yet';
   setTimeout(() => { checking = false; showUpdated(); }, 2500);

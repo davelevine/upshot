@@ -196,9 +196,10 @@ def test_essentials_have_their_own_entry_and_show_once(browser):
 def stale_site(browser, hours, **context):
     ctx = browser.new_context(**context)
     pg = ctx.new_page()
+    built = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat(timespec="seconds")  # once: every fetch sees the same build
     def patched(route):
         data = route.fetch().json()
-        data["generated_at"] = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat(timespec="seconds")
+        data["generated_at"] = built
         route.fulfill(json=data)
     ctx.route("**/data.json*", patched)
     pg.goto(URL)
@@ -215,8 +216,20 @@ def test_late_bar_appears_once_a_build_is_late_and_can_check_again(browser):
     assert bar["y"] + bar["height"] == 900 and bar["x"] == col["x"] and bar["width"] <= col["width"]  # at the list's foot
     fetches = []
     pg.on("request", lambda r: fetches.append(r.url) if "/data.json" in r.url else None)
-    pg.click("#stale-check")
+    check = pg.locator("#stale-check")
+    assert check.inner_text() == "" and check.get_attribute("aria-label") == "Check again"  # a reload icon, named for screen readers
+    held = []
+    pg.route("**/data.json*", lambda r: held.append(r))  # held, so the check is caught in the act
+    check.click()
+    pg.wait_for_function("() => document.getElementById('stale-check').classList.contains('checking')")
+    assert check.is_disabled()
+    for _ in range(50):
+        if held:
+            break
+        pg.wait_for_timeout(20)
+    held[0].fallback()
     pg.locator("#stale-msg", has_text="No new stories yet").wait_for()  # it looked, now, and says so
+    assert "checking" not in check.get_attribute("class").split()
     assert fetches and pg.inner_text("#status") == "No new stories yet"
     pg.locator("#stale-msg", has_text="Last updated").wait_for()
     assert pg.problems == [] if hasattr(pg, "problems") else True
