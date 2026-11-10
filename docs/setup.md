@@ -72,21 +72,17 @@ The knobs live at the top of [`build.py`](../build.py):
 | `SITE_TZ` | `America/New_York` | The time zone stories are dated in and "Today" means, on every device (env; set as a repo variable in forks) |
 | `SITE_URL` | `https://upshot.levine.io` | The site's address, for the feed's links (env; set as a repo variable in forks) |
 
-How often it runs is the `cron` line in [`build.yml`](../.github/workflows/build.yml).
+How often it runs is the `cron` line in [`build.yml`](../.github/workflows/build.yml) and in [`wrangler.jsonc`](../wrangler.jsonc) (see below).
 
 ## Keeping the schedule on time
 
-The workflow runs every four hours on GitHub's own scheduler, which often starts late and sometimes skips a slot. For a dependable cadence, trigger it from any scheduler you already have (cron, a systemd timer, a hosted cron service) with a fine-grained personal access token limited to your fork, with **Actions: read and write**:
+GitHub's own scheduler often starts the workflow late and sometimes skips a slot, so the Worker starts it instead: a Cloudflare cron trigger in [`wrangler.jsonc`](../wrangler.jsonc) fires at the same times and dispatches the workflow on `main`. To turn it on in a fork:
 
-```bash
-curl -fsS -X POST \
-  -H "Authorization: Bearer $GITHUB_DISPATCH_TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  -d '{"ref":"main"}' \
-  https://api.github.com/repos/<you>/upshot/actions/workflows/build.yml/dispatches
-```
+1. Create a fine-grained personal access token limited to the fork, with **Actions: read and write**.
+2. Set `BUILD_REPO` in `wrangler.jsonc` to `<you>/upshot`.
+3. Store the token as a Worker secret: `npx wrangler secret put GITHUB_DISPATCH_TOKEN`.
 
-Leave the built-in schedule in place as a fallback; a duplicate run finds nothing new.
+Without the secret the cron does nothing. A failed dispatch shows as an error in Workers Logs. The built-in GitHub schedule stays in place as a fallback; a duplicate run finds nothing new. If you change the schedule, change it in all three places: `build.yml`, `wrangler.jsonc` and `BUILD_EVERY_HOURS`/`BUILD_AT_MINUTE` in [`site/app.js`](../site/app.js).
 
 ## Optional: Renovate
 

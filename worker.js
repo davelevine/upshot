@@ -25,9 +25,28 @@ function withNonce(res) {
   return out;
 }
 
+// GitHub's own scheduler starts the build late or skips it under load; Cloudflare's cron (wrangler.jsonc) fires on
+// time, so it starts the build instead, and the GitHub schedule stays as a fallback. A fork without the token skips it.
+export async function dispatchBuild(env) {
+  if (!env.GITHUB_DISPATCH_TOKEN) return;
+  const res = await fetch(`https://api.github.com/repos/${env.BUILD_REPO}/actions/workflows/build.yml/dispatches`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.GITHUB_DISPATCH_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'User-Agent': 'upshot-worker',  // GitHub rejects requests without one
+    },
+    body: JSON.stringify({ ref: 'main' }),
+  });
+  if (!res.ok) throw new Error(`build dispatch failed: ${res.status} ${await res.text()}`);  // lands in Workers Logs
+}
+
 export default {
   async fetch(request, env) {
     if (new URL(request.url).pathname === '/api/read') return read(request, env);
     return withNonce(await env.ASSETS.fetch(request));
+  },
+  async scheduled(event, env) {
+    await dispatchBuild(env);
   },
 };
