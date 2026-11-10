@@ -23,7 +23,7 @@ Everything older than 90 days is pruned, so the data stays small.
 
 The layout follows desktop feed readers such as Feedbin, in three widths:
 
-- **Phones (up to 640px):** one column. Search and a topic picker ("All ⌄") sit in the header, and the reader covers the list.
+- **Phones (up to 640px):** pages, as in Feedbin's app. Upshot opens on the topics; picking one opens its list, with a back chevron and its name in the header, and a story covers the list. Back, the chevron and a swipe step back through them, and after swiping out of a story, a swipe the other way reopens it.
 - **641–1279px:** topics in a sidebar beside the list. The reader slides over the list, which is inert while it's open.
 - **1280px and up:** sidebar, list and reader side by side, with no full-width header: the logo tops the sidebar, and the menu sits at the end of the reader bar. The reader stays docked, the list scrolls on its own, and it stays live while an article is open, so `j`/`k` and clicks move through it.
 

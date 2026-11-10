@@ -39,8 +39,16 @@ def open_site(browser, **context):
                       body=json.dumps({"url": url, "frameable": False, "content": f'<img src="{PIXEL}" alt="">{BODY}'}))
     ctx.route("**/api/read?*", stub)
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     return pg
+
+
+def enter_list(pg):
+    """Phones open on the topics; this steps into the All list, as a tap on it would. Elsewhere the list is already there."""
+    pg.wait_for_selector("a.card", state="attached")
+    if pg.evaluate("document.body.classList.contains('home') && matchMedia('(max-width: 640px)').matches"):
+        pg.evaluate("document.querySelector(\"#filters [data-f='all']\").click()")
+    pg.wait_for_selector("a.card")
 
 
 def first_card(pg):
@@ -77,11 +85,11 @@ def test_feed_renders(browser):
     assert pg.locator("a.card").count() > 0
     assert pg.locator(".filter-btn").count() >= 2  # All + each category with stories
     assert "0" not in pg.locator("#filters .f-count").all_inner_texts()  # no empty topics
-    assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".list-head #updated"))
+    assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".side-foot #updated"))
     assert pg.locator("#end").is_hidden()  # not until the list runs out
-    # One header naming the view, no count per day: each story says how old it is instead, as in Feedbin.
-    assert pg.locator(".list-head").count() == 1 and pg.inner_text(".list-title") == "All"
-    assert "stories" not in pg.inner_text(".list-head") and pg.locator(".day-meta, .date-label").count() == 0
+    # No headings or counts over the list, as in Feedbin: it starts at the top, and each story says how old it is.
+    assert pg.locator("#items > :not(a.card)").count() == 0
+    assert pg.evaluate("document.querySelector('a.card').getBoundingClientRect().top - document.getElementById('items').getBoundingClientRect().top") < 12
     assert all(re.fullmatch(r"\d+[mhd]|[A-Z][a-z]{2} \d{1,2}(, \d{4})?", t) for t in pg.locator("a.card .card-age").all_text_contents())
     assert pg.locator(".card-arrow").count() == 0 and pg.locator(".card-time").count() == 0
     # After Feedbin: the publisher's icon, then title, source, the one-line summary and how old it is. The topic is the sidebar's job.
@@ -132,25 +140,34 @@ def test_animations_run_under_reduced_motion(browser):
     assert pg.problems == []
 
 
-def test_phone_filter_drawer(browser):
-    pg = open_site(browser, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
-    assert pg.locator("#filters .filter-btn").first.is_hidden() and pg.locator("#filter-label").inner_text() == "All"
+def test_phones_open_on_the_topics(browser):
+    ctx = browser.new_context(viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
+    pg = ctx.new_page()
+    problems = []
+    pg.on("pageerror", lambda e: problems.append(str(e)))
+    pg.goto(URL)
+    pg.wait_for_selector("#filters .filter-btn")
+    # The topics are the page: no list yet, and every entry a full-size row.
+    assert pg.locator("#items").is_hidden() and pg.locator(".logo").is_visible() and pg.locator("#list-back").is_hidden()
     assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
-    pg.tap("#filter-toggle")
-    pg.wait_for_function("() => !document.getElementById('filters').getAnimations().length")
-    for chip in pg.locator("#filters .filter-btn").all():
-        assert chip.is_visible() and chip.bounding_box()["x"] + chip.bounding_box()["width"] <= 320  # all reachable, wrapped
-    assert pg.evaluate("Math.round(document.getElementById('filters').getBoundingClientRect().top) === Math.round(document.querySelector('header').getBoundingClientRect().bottom)")
+    for row in pg.locator("#filters .filter-btn").all():
+        box = row.bounding_box()
+        assert box["height"] >= 44 and box["x"] + box["width"] <= 320
     pg.tap("#filters .filter-btn[data-f='security']")
-    pg.locator("#filters .filter-btn").first.wait_for(state="hidden")
-    assert pg.locator("#filter-label").inner_text() == "Security"
-    assert pg.locator("#filter-toggle").get_attribute("aria-label") == "Topic: Security"
+    pg.wait_for_selector("a.card")
+    # Its list, as a page: a back chevron and its name in the header, in place of the logo.
+    assert pg.locator("#filters").is_hidden() and pg.locator("#list-back").is_visible() and pg.inner_text("#list-name") == "Security"
     assert pg.evaluate("shown.length > 0 && shown.every(i => cat(i.category) === 'security')")
-    pg.tap("#filter-toggle")
-    pg.tap("#filters .filter-btn[data-f='all']")
-    pg.locator("#filters .filter-btn").first.wait_for(state="hidden")
-    assert pg.locator("#filter-label").inner_text() == "All"
-    assert pg.problems == []
+    assert pg.title() == "Security \u00b7 Upshot"
+    pg.go_back()  # the phone's back button
+    pg.locator("#filters .filter-btn").first.wait_for()
+    assert pg.locator("#items").is_hidden()
+    pg.go_forward()  # and forward again, to the same list
+    pg.wait_for_selector("a.card")
+    assert pg.inner_text("#list-name") == "Security"
+    pg.tap("#list-back")  # the chevron goes back too
+    pg.locator("#filters .filter-btn").first.wait_for()
+    assert problems == []
 
 
 def test_essentials_have_their_own_entry_and_show_once(browser):
@@ -166,7 +183,8 @@ def test_essentials_have_their_own_entry_and_show_once(browser):
     cards = pg.locator("a.card")
     assert cards.count() == len(picks)
     # One week, not days, and each pick previews what to do rather than its summary.
-    assert pg.inner_text(".list-title") == "Essentials" and pg.inner_text(".list-range") == pg.evaluate("weekRange(weekly)")
+    pg.locator("#end").wait_for()  # five fit on one page: the end says which week they're from
+    assert pg.inner_text("#end-msg") == f"That\u2019s all {len(picks)} essentials from {pg.evaluate('weekRange(weekly)')}."
     for n, p in enumerate(picks):
         sel = f'a.card[href="{p["url"]}"]'
         assert pg.locator(f"{sel} .card-sum").inner_text() == f"What to do: {p['why']}"
@@ -183,7 +201,7 @@ def stale_site(browser, hours, **context):
         route.fulfill(json=data)
     ctx.route("**/data.json*", patched)
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     return pg
 
 
@@ -196,13 +214,10 @@ def test_stale_band_appears_after_twelve_hours(browser):
     assert pg.locator("#updated").is_hidden()  # one slot, two states
 
 
-def test_stale_band_sits_under_the_header_and_the_drawer_still_drops_from_it(browser):
+def test_stale_band_sits_under_the_header_on_a_phone(browser):
     pg = stale_site(browser, 14, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
     assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
     assert pg.evaluate("Math.round(document.getElementById('stale').getBoundingClientRect().top) === Math.round(document.querySelector('header').getBoundingClientRect().bottom)")
-    pg.tap("#filter-toggle")
-    pg.wait_for_function("() => !document.getElementById('filters').getAnimations().length")
-    assert pg.evaluate("Math.round(document.getElementById('filters').getBoundingClientRect().top) === Math.round(document.querySelector('header').getBoundingClientRect().bottom)")
 
 
 def test_each_story_says_how_long_ago_it_was_published(browser):
@@ -229,7 +244,7 @@ def test_each_story_says_how_long_ago_it_was_published(browser):
         route.fulfill(json=data)
     ctx.route("**/data.json*", patched)
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     old = "Jan 5" if now.year == 2026 else "Jan 5, 2026"
     assert pg.locator("a.card .card-age").all_text_contents() == ["5m", "5h", "3d", "1d", "2h", old]
 
@@ -301,7 +316,7 @@ def held_reader(browser, **context):
     held = []
     ctx.route("**/api/read?*", lambda route: held.append(route))
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     show_essentials(pg)
     card = pg.locator("a.card").first
     title = card.locator(".card-title").text_content()
@@ -401,7 +416,7 @@ def test_inter_is_served_from_the_site(browser):
     fonts = []
     pg.on("response", lambda r: fonts.append((r.url, r.status)) if "/fonts/" in r.url else None)
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     pg.evaluate("document.fonts.ready")
     assert any(u.endswith("/fonts/InterVariable.woff2") and s == 200 for u, s in fonts)
     assert pg.evaluate("document.fonts.check('16px Inter')")
@@ -410,7 +425,7 @@ def test_inter_is_served_from_the_site(browser):
 def test_question_mark_lists_the_shortcuts(browser):
     pg = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     pg.keyboard.press("?")
     assert pg.locator("#keys").is_visible()
     assert "Search every article" in pg.locator("#keys").inner_text()
@@ -425,7 +440,7 @@ def test_share_copies_the_publishers_url_on_desktop(browser):
     ctx.grant_permissions(["clipboard-read", "clipboard-write"])
     pg = ctx.new_page()
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     url = pg.locator("a.card").first.get_attribute("href")
     pg.locator("a.card").first.click()
     pg.locator("#reader-send").click()
@@ -458,7 +473,7 @@ def test_share_opens_the_share_sheet_on_a_phone(browser):
     ctx.add_init_script("window.__shared = null; navigator.share = d => { window.__shared = d; return Promise.resolve(); };")
     pg = ctx.new_page()
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     url = pg.locator("a.card").first.get_attribute("href")
     pg.locator("a.card").first.tap()
     pg.locator("#reader-send").tap()  # the same menu as desktop, with the system sheet under "More…"
@@ -475,7 +490,7 @@ def test_share_opens_the_share_sheet_on_a_phone(browser):
 def test_reader_links_are_short_and_survive_a_reload(browser):
     pg = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     card = pg.locator("a.card").first
     url, title = card.get_attribute("href"), card.locator(".card-title").inner_text()
     card.click()
@@ -518,7 +533,7 @@ def test_reader_bar_after_feedbin(browser):
     pg.problems = []
     pg.on("console", lambda m: pg.problems.append(m.text) if m.type == "error" else None)
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     first = pg.locator("a.card").first
     url = first.get_attribute("href")
     first.tap()
@@ -545,7 +560,7 @@ def test_reader_bar_after_feedbin(browser):
     dc.route("**/data.json", no_icons)
     dk = dc.new_page()
     dk.goto(URL)
-    dk.wait_for_selector("a.card")
+    enter_list(dk)
     dk.locator("a.card").first.focus()
     dk.keyboard.press("Enter")
     dk.wait_for_selector("#reader-body iframe:not(.loading)")
@@ -558,7 +573,7 @@ def test_text_size_steps_and_is_remembered(browser):
     ctx = browser.new_context(viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True)
     pg = ctx.new_page()
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     pg.locator("a.card").first.tap()
     frame = pg.frame_locator("#reader-body iframe:not(.loading)")
     frame.locator("h1").wait_for()
@@ -601,7 +616,7 @@ def test_ages_count_days_in_the_sites_time_zone_whatever_the_device_reports(brow
         ctx.route("**/data.json", dated)
         pg = ctx.new_page()
         pg.goto(URL)
-        pg.wait_for_selector("a.card")
+        enter_list(pg)
         assert pg.locator("a.card .card-age").all_text_contents() == ["1m", "1d"], device_tz  # today is today, never a negative or a day early
 
 
@@ -620,7 +635,7 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     ctx.route("**/api/read?*", lambda r: r.fulfill(content_type="application/json", body=json.dumps({"reason": "pending", "frameable": False})))
     pg = ctx.new_page()
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     show_essentials(pg)
     pg.locator("a.card").first.click()  # an essential with an upshot
     frame = pg.frame_locator("#reader-body iframe:not(.loading)")
@@ -697,7 +712,7 @@ def test_the_reader_endpoint_reaches_the_worker(browser):
 
 def test_wide_screens_keep_the_filter_row(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 900})
-    assert pg.locator("#filter-toggle").is_hidden() and pg.locator("#filters .filter-btn").first.is_visible()
+    assert pg.locator("#list-back").is_hidden() and pg.locator("#filters .filter-btn").first.is_visible()
     pg.click("#filters .filter-btn[data-f='ai']")
     assert pg.locator("#filters .filter-btn.active").get_attribute("data-f") == "ai"
     assert pg.locator("#filters .filter-btn").first.is_visible()  # picking one leaves the row in place
@@ -733,8 +748,9 @@ def test_wcag(browser, scheme):
     assert violations() == [] and pg.evaluate(small) == []
     assert pg.get_attribute("#theme", "aria-label") == f"Switch to {'light' if scheme == 'dark' else 'dark'} mode"
     pg.keyboard.press("Escape")
-    pg.tap("#filter-toggle")
-    pg.wait_for_function("() => !document.getElementById('filters').getAnimations().length")
+    pg.locator("#theme").wait_for(state="hidden")
+    pg.tap("#list-back")  # the topics, which phones open on
+    pg.locator("#filters .filter-btn").first.wait_for()
     assert violations() == [] and pg.evaluate(small) == []
     assert pg.problems == []
 
@@ -760,7 +776,7 @@ def test_the_search_bar_and_slash_open_the_palette(browser):
     for opener in ("click", "slash"):
         pg = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
         pg.goto(URL)
-        pg.wait_for_selector("a.card")
+        enter_list(pg)
         pg.click("#search") if opener == "click" else pg.keyboard.press("/")
         pg.locator("#palette").wait_for()
         assert pg.evaluate("document.getElementById('palette').matches(':modal')")  # native: Esc and the phone's back button close it
@@ -773,10 +789,9 @@ def test_the_search_bar_and_slash_open_the_palette(browser):
         assert pg.locator("#palette").is_hidden()  # closing doesn't bounce focus back into the bar and reopen it
     ph = browser.new_context(viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True).new_page()
     ph.goto(URL)
-    ph.wait_for_selector("a.card")
-    for sel in ("#search-wrap", "#filter-toggle"):  # in the header on phones, beside the menu
-        box = ph.locator(sel).bounding_box()
-        assert box["width"] >= 44 and box["height"] == 44 and box["y"] + 44 <= 52
+    enter_list(ph)
+    box = ph.locator("#search-wrap").bounding_box()  # in the header on phones, beside the menu
+    assert box["width"] == 44 and box["height"] == 44 and box["y"] + 44 <= 52
     ph.tap("#search")
     ph.locator("#palette").wait_for()
     # Below the header, and the search icon becomes the close button (no Esc key on a phone).
@@ -796,14 +811,14 @@ def test_the_search_bar_and_slash_open_the_palette(browser):
 def test_share_icon_matches_the_device(browser):
     desktop = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
     desktop.goto(URL)
-    desktop.wait_for_selector("a.card")
+    enter_list(desktop)
     assert desktop.locator("#reader-send").get_attribute("data-kind") == "apple"
     assert desktop.locator("#reader-send .send-apple").evaluate("e => getComputedStyle(e).display") == "block"  # the box and arrow, not a link icon
     mac = browser.new_context(viewport={"width": 1300, "height": 900})
     mac.add_init_script("navigator.share = () => Promise.resolve();")  # a desktop browser with a share sheet uses it
     mp = mac.new_page()
     mp.goto(URL)
-    mp.wait_for_selector("a.card")
+    enter_list(mp)
     assert mp.locator("#reader-send").get_attribute("data-kind") == "apple"
     for ua, kind in (("Mozilla/5.0 (Linux; Android 16; Pixel 9 Pro) AppleWebKit/537.36 Chrome/131 Mobile Safari/537.36", "android"),
                      ("Mozilla/5.0 (iPhone; CPU iPhone OS 19_0 like Mac OS X) AppleWebKit/605.1.15 Version/19.0 Mobile/15E148 Safari/604.1", "apple")):
@@ -811,7 +826,7 @@ def test_share_icon_matches_the_device(browser):
         ctx.add_init_script("navigator.share = () => Promise.resolve();")
         pg = ctx.new_page()
         pg.goto(URL)
-        pg.wait_for_selector("a.card")
+        enter_list(pg)
         assert pg.locator("#reader-send").get_attribute("data-kind") == kind, ua
 
 
@@ -819,7 +834,7 @@ def test_share_survives_ad_blockers_social_lists(browser):
     # Ad blockers' social lists hide share widgets by name and by link address, which removed the whole button.
     pg = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     named = pg.evaluate("[...document.querySelectorAll('[id*=share], [class*=share]')].map(e => e.id || e.className)")
     assert named == [], named
     links = pg.evaluate("[...document.querySelectorAll('#send-pop a, #reader-send a')].length")
@@ -876,6 +891,16 @@ def test_swipe_back_on_a_phone(browser):
         pg.wait_for_timeout(16)
     cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
     wait_until_closed(pg)
+    # A swipe the other way, across the list, brings the story back, as in Feedbin.
+    url = card.get_attribute("href")
+    pg.wait_for_timeout(400)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": 360, "y": 500}]})
+    for k in range(1, 9):
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": 360 - 30 * k, "y": 504}]})
+        pg.wait_for_timeout(16)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+    pg.wait_for_function("u => readerFor === u", arg=url)
+    assert reading(pg)
     assert pg.problems == []
 
 
@@ -943,7 +968,7 @@ def test_reader_header_tidies_bylines_and_never_starts_blank(browser):
     ctx.route("**/api/read?*", article)
     pg = ctx.new_page()
     pg.goto(URL)
-    pg.wait_for_selector("a.card")
+    enter_list(pg)
     icons = pg.evaluate("[...icons]")
     no_icon = pg.evaluate("p => items.find(i => !p.includes(iconSlug(i.publisher)))?.url", icons)
     with_icon = pg.evaluate("p => items.find(i => p.includes(iconSlug(i.publisher)))?.url", icons)
@@ -963,9 +988,9 @@ def test_essentials_say_which_days_and_updated_sits_on_the_feed(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 900})
     assert re.fullmatch(r"[A-Z][a-z]{2} \d{1,2}(–\d{1,2}| – [A-Z][a-z]{2} \d{1,2})", pg.evaluate("weekRange(weekly)"))
     assert pg.evaluate("weekRange({window_start: '2026-10-29', window_end: '2026-11-04'})") == "Oct 29 – Nov 4"
-    assert pg.locator(".list-head #updated").count() == 1
+    assert pg.locator(".side-foot #updated").count() == 1
     pg.locator(".filter-btn", has_text="Security").click()  # a redraw keeps it filled in
-    assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".list-head #updated"))
+    assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".side-foot #updated"))
     assert pg.problems == []
 
 

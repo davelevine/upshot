@@ -72,9 +72,8 @@ function renderFilters() {
   $('filters').innerHTML = btn('all', unreadAll, '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>') +
     (picks.size ? btn('essentials', unreadPicks, '<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>') : '') +
     '<h2 class="f-head">Topics</h2>' + ORDER.filter(c => counts[c] || filter === c).map(c => btn(c, unread[c] || 0, `<span class="dot" style="--c:var(--cat-${c})"></span>`)).join('');
-  $('filter-label').textContent = label(filter);  // a hidden filter must still show, or stories look missing
-  $('filter-toggle').classList.toggle('active', filter !== 'all');
-  $('filter-toggle').setAttribute('aria-label', `Topic: ${label(filter)}`);
+  $('list-name').textContent = label(filter);  // phones: the list's name above it, so a filter never makes stories look missing
+  document.title = filter === 'all' ? 'Upshot \u00b7 The week\u2019s tech news, minus the noise' : `${label(filter)} \u00b7 Upshot`;
 }
 
 function renderItems(keepLimit) {
@@ -89,10 +88,8 @@ function renderItems(keepLimit) {
 // Renders the first `limit` matches; the sentinel below the list raises it as you scroll.
 function renderPage() {
   const q = $('search').value.trim();
-  // One quiet header: what you're looking at and how fresh it is. No count per day; each story says how old it is.
-  const range = filter === 'essentials' && weekly?.window_start ? `<span class="list-range">${weekRange(weekly)}</span>` : '';  // the picks' seven days
+  // No headings or counts: the list starts at the top, each story says how old it is, and the sidebar says which list it is.
   $('items').innerHTML = shown.length ? `
-    <div class="list-head"><h2 class="list-title">${label(filter)}</h2>${range}<time id="updated"></time></div>
     ${shown.slice(0, limit).map(i => { const ess = picks.has(i.url), why = filter === 'essentials' && picks.get(i.url), preview = why || i.summary; return `
     <a class="card${readSet.has(i.url) ? ' read' : ''}${ess ? ' essential' : ''}" href="${esc(i.url)}" target="_blank" rel="noopener"${i.url === readerFor ? ' aria-current="true"' : ''}>
       ${iconHtml(i.publisher)}
@@ -111,9 +108,10 @@ function renderPage() {
   const ended = shown.length && limit >= shown.length;
   $('end').hidden = !ended;
   if (ended) {
-    const n = shown.length, what = `${filter === 'all' ? '' : `${label(filter)} `}stor${n === 1 ? 'y' : 'ies'}`;
+    const n = shown.length, what = filter === 'essentials' ? `essential${n === 1 ? '' : 's'}` : `${filter === 'all' ? '' : `${label(filter)} `}stor${n === 1 ? 'y' : 'ies'}`;
     const days = Math.min(KEEP_DAYS, Math.ceil((Date.now() - Date.parse(items.reduce((o, i) => (i.date < o ? i.date : o), items[0].date))) / 864e5));
-    const scope = q ? ` matching \u201c${q}\u201d` : filter === 'all' ? ` from the last ${days} days` : '';  // the real span: a young site hasn't reached KEEP_DAYS
+    const scope = q ? ` matching \u201c${q}\u201d` : filter === 'all' ? ` from the last ${days} days`
+      : filter === 'essentials' && weekly?.window_start ? ` from ${weekRange(weekly)}` : '';  // the real span: a young site hasn't reached KEEP_DAYS
     $('end-msg').textContent = `That\u2019s ${n === 1 ? 'the only' : `all ${n}`} ${what}${scope}.`;
   }
 }
@@ -163,11 +161,24 @@ $('filters').onclick = e => {
   const b = e.target.closest('.filter-btn');
   if (!b) return;
   filter = b.dataset.f;
+  lastClosed = null;  // a new list: nothing to swipe back into
   if (document.body.classList.contains('reading')) dismiss();  // as in Feedbin: picking a topic, even the current one, closes the story
   renderFilters();
   renderItems();
-  if ($('filters').matches(':popover-open')) $('filters').hidePopover();
+  if (phone.matches && document.body.classList.contains('home')) {  // into the list, as a page: back returns to the topics
+    history.pushState({ list: true, f: filter }, '', location.pathname + location.search);
+    syncHome();
+    scrollTo(0, 0);
+  } else if (history.state?.list) history.replaceState({ ...history.state, f: filter }, '');
 };
+// Phones open on the topics (home); a topic's list is a history entry above it, so back, the chevron and swipe-back return.
+const phone = matchMedia('(max-width: 640px)');
+function syncHome() {
+  const st = history.state;
+  document.body.classList.toggle('home', !st?.list && !st?.reader);
+  if (st?.f && st.f !== filter && (st.f !== 'essentials' || picks.size)) { filter = st.f; renderFilters(); renderItems(); }
+}
+$('list-back').onclick = () => (history.state?.list ? history.back() : (history.replaceState(null, ''), syncHome()));
 // The search bar opens the palette, the same search as ⌘K, rather than filtering the feed in place.
 $('search').addEventListener('focus', () => { $('search').blur(); openPalette(); });
 addEventListener('scroll', () => { $('top').hidden = scroller().scrollTop < 800; }, { passive: true, capture: true });  // capture: the list's own scrolling doesn't bubble
@@ -218,7 +229,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) remem
 
 // "Updated 2h ago" at the top of the feed; a number that keeps growing means builds have stopped.
 function showUpdated() {
-  const el = $('updated') || document.createElement('time'), mins = Math.max(0, (Date.now() - Date.parse(generatedAt)) / 60e3);  // none on an empty feed
+  const el = $('updated'), mins = Math.max(0, (Date.now() - Date.parse(generatedAt)) / 60e3);  // none on an empty feed
   el.dateTime = generatedAt;
   el.title = new Date(generatedAt).toLocaleString();
   const ago = mins < 1 ? 'just now' : mins < 60 ? `${Math.floor(mins)}m ago`
@@ -246,7 +257,7 @@ function load() {
     setPicks(data.weekly);
     renderFilters();
     renderItems(refresh);
-    if (!refresh) syncFromUrl();
+    if (!refresh) { syncFromUrl(); syncHome(); }
   });
 }
 let readerFor = null;
@@ -485,8 +496,10 @@ addEventListener('pointerdown', () => { lastInput = 'pointer'; }, true);
 addEventListener('keydown', () => { lastInput = 'key'; }, true);
 $('reader-prev').onclick = () => step(-1);
 $('reader-next').onclick = () => step(1);
+let lastClosed = null;  // what a swipe left on a phone's list brings back
 function closeReader() {
   const url = readerFor;
+  lastClosed = url;
   readerFor = null;
   document.body.classList.remove('reading');
   $('reader').setAttribute('aria-hidden', 'true');
@@ -498,8 +511,9 @@ function closeReader() {
 }
 function dismiss() {
   if (history.state?.pushed) return history.back();
-  history.replaceState(null, '', '/' + location.search);
+  history.replaceState({ list: true, f: filter }, '', '/' + location.search);  // opened from a link: closing lands in its list, not the topics
   closeReader();
+  syncHome();
 }
 // Back/forward and reader links: the URL decides whether the reader is open and on what. Old #read=<url> links
 // still open, and are rewritten to the short form.
@@ -512,7 +526,7 @@ function syncFromUrl() {
   else if (!i && document.body.classList.contains('reading')) closeReader();
   else if (!i && path) history.replaceState(null, '', '/' + location.search);  // a story that's since left the site
 }
-addEventListener('popstate', syncFromUrl);
+addEventListener('popstate', () => { syncFromUrl(); syncHome(); });
 // Swipe right to close: the reader follows the finger, then closes past a third of its width or on a flick
 // (judged on the finger's speed at release, px/ms).
 let drag = null;
@@ -556,6 +570,20 @@ addEventListener('message', e => {
   else if (e.data.tw === 'themed') frameThemed?.();
 });
 
+// Phones: swiping back out of a story, then left across the list, brings the story back, as in Feedbin.
+let reopen = null;
+addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  reopen = phone.matches && lastClosed && !document.body.classList.contains('reading') && !document.body.classList.contains('home')
+    ? { x: t.screenX, y: t.screenY } : null;
+}, { passive: true });
+addEventListener('touchend', e => {
+  if (!reopen) return;
+  const t = e.changedTouches[0], dx = t.screenX - reopen.x, dy = t.screenY - reopen.y;
+  reopen = null;
+  const i = dx < -60 && Math.abs(dy) < Math.abs(dx) / 2 && items.find(x => x.url === lastClosed);  // clearly sideways, not a scroll
+  if (i) openReader(i);
+}, { passive: true });
 $('reader-close').onclick = dismiss;
 $('reader-backdrop').onclick = dismiss;
 // j/k or →/←: next/previous article (in the reader it switches articles in place); /: search bar; Cmd/Ctrl+K: search palette.
