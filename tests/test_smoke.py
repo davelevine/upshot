@@ -149,7 +149,9 @@ def test_phones_open_on_the_topics(browser):
     pg.wait_for_selector("#filters .filter-btn")
     # The topics are the page: the list waits off to the right, out of reach, and every entry is a full-size row.
     aside = "() => document.getElementById('col').getBoundingClientRect().left >= innerWidth && document.getElementById('col').inert"
-    assert pg.evaluate(aside) and pg.locator(".logo").is_visible() and pg.locator("#list-back").is_hidden()
+    shown_ = "s => +getComputedStyle(document.querySelector(s)).opacity"
+    assert pg.evaluate(aside) and pg.evaluate(shown_, ".logo-h") == 1 and pg.evaluate(shown_, "#list-back") == 0
+    assert pg.evaluate("document.getElementById('list-back').inert")  # faded out, and out of reach
     assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
     assert pg.locator(".resizer").evaluate_all("els => els.every(e => getComputedStyle(e).display === 'none')")  # desktop's column edges
     for row in pg.locator("#filters .filter-btn").all():
@@ -161,7 +163,10 @@ def test_phones_open_on_the_topics(browser):
     pg.tap("#filters .filter-btn[data-f='security']")
     # It slides in over the topics, the way a story slides over the list, rather than jumping.
     pg.wait_for_function("() => document.getAnimations().some(a => a.transitionProperty === 'transform' && a.effect.target?.id === 'col')")
+    # The header crossfades with it: the wordmark out, the list's chevron and name in, together.
+    pg.wait_for_function("() => document.getAnimations().some(a => a.transitionProperty === 'opacity' && a.effect.target?.id === 'list-name')")
     pg.wait_for_function("() => document.getElementById('col').getBoundingClientRect().left === 0")
+    pg.wait_for_function("() => +getComputedStyle(document.querySelector('.logo-h')).opacity === 0 && document.querySelector('.logo-h').inert")
     # Its list, as a page: a back chevron and its name in the header, in place of the logo, and the topics out of reach.
     assert pg.evaluate("document.getElementById('filters').inert") and pg.locator("#list-back").is_visible() and pg.inner_text("#list-name") == "Security"
     assert pg.evaluate("shown.length > 0 && shown.every(i => cat(i.category) === 'security')")
@@ -789,7 +794,7 @@ def test_wcag(browser, scheme):
     pg.keyboard.press("Escape")
     pg.locator("#theme").wait_for(state="hidden")
     pg.tap("#list-back")  # the topics, which phones open on
-    pg.locator("#filters .filter-btn").first.wait_for()
+    pg.wait_for_function("() => !document.getAnimations().length")  # once the pages and header have settled, as a reader sees them
     assert violations() == [] and pg.evaluate(small) == []
     assert pg.problems == []
 

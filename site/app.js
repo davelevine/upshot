@@ -178,6 +178,8 @@ function syncHome() {
   setPd(null);  // a swipe that brought it here hands over to the state's own position
   $('col').inert = phone.matches && home;  // the page that's aside can't be reached
   $('filters').inert = phone.matches && !home;
+  $('list-back').inert = phone.matches && home;  // faded out: out of reach too
+  document.querySelector('.logo-h').inert = phone.matches && !home;
   if (st?.f && st.f !== filter && (st.f !== 'essentials' || picks.size)) { filter = st.f; renderFilters(); renderItems(); }
 }
 let lastList = null;  // the list a swipe left on the topics goes back into (the filter is still set to it)
