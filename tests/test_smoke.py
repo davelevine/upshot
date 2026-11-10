@@ -309,7 +309,7 @@ def test_reader_shows_the_story_before_the_fetch_finishes(browser):
     frame.locator(".status").wait_for(state="detached")
     meta = frame.locator(".meta").inner_text()
     assert "by Ada Lovelace" in meta and "By By" not in meta  # Feedbin-style: date by author, then publisher and minutes
-    assert frame.locator("h1").evaluate("e => getComputedStyle(e).fontFamily").startswith("Inter")
+    assert frame.locator("h1").evaluate("e => getComputedStyle(e).fontFamily").startswith('"Untitled Serif"')
     assert frame.locator("h1").inner_text() == title and frame.locator(".todo").count() == 1
 
 
@@ -375,15 +375,20 @@ def test_reader_says_when_an_article_isnt_stored_yet(browser):
     frame.locator(".status", has_text="ready yet").wait_for()
 
 
-def test_inter_is_served_from_the_site(browser):
+def test_fonts_are_served_from_the_site(browser):
     pg = browser.new_context().new_page()
     fonts = []
     pg.on("response", lambda r: fonts.append((r.url, r.status)) if "/fonts/" in r.url else None)
     pg.goto(URL)
     pg.wait_for_selector("a.card")
     pg.evaluate("document.fonts.ready")
-    assert any(u.endswith("/fonts/InterVariable.woff2") and s == 200 for u, s in fonts)
-    assert pg.evaluate("document.fonts.check('16px Inter')")
+    for name in ("UntitledSansWeb-Regular", "UntitledSerifWeb-Medium"):
+        assert any(u.endswith(f"/fonts/untitled/{name}") and s == 200 for u, s in fonts), name
+    assert pg.evaluate("""document.fonts.check('16px "Untitled Sans"') && document.fonts.check('500 16px "Untitled Serif"')""")
+    # Only the allow-listed fonts come back, and only to the site and its reader frame.
+    assert pg.request.get(URL + "/fonts/untitled/UntitledSansWeb-Black").status == 404
+    other = pg.request.get(URL + "/fonts/untitled/UntitledSansWeb-Regular", headers={"Origin": "https://example.com"})
+    assert other.status == 200 and "access-control-allow-origin" not in other.headers
 
 
 def test_question_mark_lists_the_shortcuts(browser):
@@ -578,7 +583,7 @@ def test_today_means_the_sites_today_whatever_the_device_reports(browser):
         pg = ctx.new_page()
         pg.goto(URL)
         pg.wait_for_selector("a.card")
-        assert pg.locator(".date-label").first.inner_text().startswith("TODAY"), device_tz
+        assert pg.locator(".date-label").first.inner_text().startswith("Today"), device_tz
 
 
 def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
@@ -601,14 +606,14 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     frame = pg.frame_locator("#reader-body iframe:not(.loading)")
     box = frame.locator(".tldr")
     box.wait_for()
-    assert box.locator("> b").inner_text().upper() == "THE UPSHOT"
+    assert box.locator("> b").inner_text() == "The upshot"
     assert box.locator("li").all_inner_texts() == ["First fact & <detail>.", "Second fact.", "Third fact."]  # escaped, as text
-    assert box.locator(".do b").inner_text().upper() == "WHAT TO DO"  # the hand-picked note, last
+    assert box.locator(".do b").inner_text() == "What to do"  # the hand-picked note, last
     assert frame.locator(".todo").count() == 1  # one box, not two
     # The text size control scales the box and the byline with the article, not just the body text.
     sizes = """() => ['body', '.tldr > b', '.tldr li', '.tldr .do', '.tldr .do b', '.meta'].map(s => parseFloat(getComputedStyle(document.querySelector(s)).fontSize))"""
     before = frame.locator("body").evaluate(f"({sizes})")
-    assert [round(v) for v in before] == [17, 14, 16, 16, 14, 15]  # the default size: unchanged by this
+    assert [round(v) for v in before] == [18, 15, 16, 16, 14, 15]  # the default size: unchanged by this
     pg.locator("#reader-size").click()
     pg.locator("#size-pop button[data-size='3']").click()
     frame.locator("html[data-size='3']").wait_for(state="attached")
@@ -818,7 +823,7 @@ def test_palette_lists_every_match(browser):
     pg.keyboard.press("/")
     pg.locator("#palette").wait_for()
     # Nothing typed, nothing read yet: the newest five, not the whole feed again.
-    assert pg.inner_text(".palette-head") == "LATEST" and pg.locator("#palette-list li[data-n]").count() == 5 < total
+    assert pg.inner_text(".palette-head") == "Latest" and pg.locator("#palette-list li[data-n]").count() == 5 < total
     assert pg.locator("#palette-list .p-title").first.inner_text() == pg.evaluate("items[0].title")
     word = pg.evaluate("fetch('/data.json').then(r => r.json()).then(d => d.items.filter(i => i.category === 'ai').length)")
     pg.keyboard.type("a")  # a broad query, matching well over the old cap of 30
@@ -973,7 +978,7 @@ def test_palette_opens_on_what_you_read_last(browser):
         wait_until_closed(pg)
     pg.keyboard.press("/")
     pg.locator("#palette").wait_for()
-    assert pg.inner_text(".palette-head") == "RECENTLY READ"
+    assert pg.inner_text(".palette-head") == "Recently read"
     assert pg.locator("#palette-list .p-title").all_inner_texts() == titles[::-1]  # most recent first
     pg.keyboard.press("Escape")
     pg.evaluate("openReader(items[2])")  # reading one again moves it to the top

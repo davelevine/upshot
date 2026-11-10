@@ -24,6 +24,8 @@ Everything runs on the free tiers of GitHub Actions and Cloudflare Workers. The 
 
 4. **Connect Cloudflare Workers.** In [`wrangler.jsonc`](../wrangler.jsonc), change `routes` to your own domain, or delete it and set `workers_dev` to `true` to use the `workers.dev` address.
 
+   The site's fonts are licensed and come from a private R2 bucket you won't have. Delete both `r2_buckets` entries and the site uses system fonts instead, or point them at your own bucket and change the font names in `worker.js` and `site/index.html` to fonts you're licensed for.
+
    In Cloudflare, go to **Workers & Pages → Create → Import a repository**, pick your fork, and name the Worker `upshot`; it must match `name` in `wrangler.jsonc`. Leave the build command empty and the deploy and preview commands at their defaults.
 
 5. **Tell the build where the site lives.** Under **Settings → Secrets and variables → Actions → Variables**, add `SITE_URL` with your site's address, for example `https://news.example.com`. The build uses it for the RSS feed's links and to look up reading times through the site's reader.

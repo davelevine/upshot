@@ -1,5 +1,5 @@
-// The Worker behind upshot.levine.io. Files come straight from site/; this runs only for the reader's /api/read and for
-// pages (run_worker_first in wrangler.jsonc). Extraction happens in the build (extract.mjs), because parsing a page
+// The Worker behind upshot.levine.io. Files come straight from site/; this runs only for the reader's /api/read, the
+// licensed fonts, and pages (run_worker_first in wrangler.jsonc). Extraction happens in the build (extract.mjs), because parsing a page
 // costs far more CPU than a request is allowed. Only stored articles can come back.
 export async function keyFor(url) {
   const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(url));
@@ -25,9 +25,26 @@ function withNonce(res) {
   return out;
 }
 
+// Klim's licensed webfonts live in a private R2 bucket, never in this repository. Only these files can come back, so the
+// binding can't expose the rest of the bucket. No extension in the URL: run_worker_first skips every path with a dot.
+const FONTS = { UntitledSansWeb: 'woff', UntitledSerifWeb: 'woff2' };
+const STYLES = { UntitledSansWeb: ['Regular', 'Medium', 'Bold'], UntitledSerifWeb: ['Regular', 'RegularItalic', 'Medium', 'Bold', 'BoldItalic'] };
+
+async function font(name, request, env) {
+  const [family, style] = name.split('-');
+  const obj = STYLES[family]?.includes(style) && env.FONTS && await env.FONTS.get(`uploads/fonts/untitled/${name}.${FONTS[family]}`);
+  if (!obj) return new Response('Not found', { status: 404 });
+  const headers = { 'Content-Type': `font/${FONTS[family]}`, 'Cache-Control': 'public, max-age=2592000', ETag: obj.httpEtag, Vary: 'Origin' };
+  // Same-origin pages need no CORS. The reader frame's opaque origin sends "null"; other sites get nothing, so can't hotlink.
+  if (request.headers.get('Origin') === 'null') headers['Access-Control-Allow-Origin'] = 'null';
+  return new Response(obj.body, { headers });
+}
+
 export default {
   async fetch(request, env) {
-    if (new URL(request.url).pathname === '/api/read') return read(request, env);
+    const { pathname } = new URL(request.url);
+    if (pathname === '/api/read') return read(request, env);
+    if (pathname.startsWith('/fonts/untitled/')) return font(pathname.slice(16), request, env);
     return withNonce(await env.ASSETS.fetch(request));
   },
 };

@@ -283,24 +283,28 @@ function summaryBox(tldr, why) {
   if (!tldr?.length) return why ? `<div class="todo"><b>What to do</b>${esc(why)}</div>` : '';
   return `<div class="todo tldr"><b>The upshot</b><ul>${tldr.map(t => `<li>${esc(t)}</li>`).join('')}</ul>${why ? `<p class="do"><b>What to do</b>${esc(why)}</p>` : ''}</div>`;
 }
+// The frame's opaque origin makes these cross-origin requests; the Worker answers them (worker.js).
+const READER_FONTS = [['Sans', 'Regular', 'woff', 400], ['Sans', 'Medium', 'woff', 500], ['Sans', 'Bold', 'woff', '600 700'], ['Serif', 'Regular', 'woff2', 400],
+  ['Serif', 'RegularItalic', 'woff2', 400, 'italic'], ['Serif', 'Bold', 'woff2', 700], ['Serif', 'BoldItalic', 'woff2', 700, 'italic']]
+  .map(([f, s, ext, w, st = 'normal']) => `@font-face { font-family: "Untitled ${f}"; src: url("${location.origin}/fonts/untitled/Untitled${f}Web-${s}") format("${ext}"); font-weight: ${w}; font-style: ${st}; font-display: swap; }`).join('\n');
 function articleDoc(i, html, nonce, why, minutes, byline) {
   return `<!doctype html><html data-theme="${document.documentElement.dataset.theme}" data-size="${textSize}"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${location.origin}; img-src https: data:; media-src https:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'">
 <base target="_blank"><style>
 :root { ${frameVars('light')} } :root[data-theme="dark"] { ${frameVars('dark')} }
-body { margin: 0; background: var(--bg); color: var(--text); font: 1.0625rem/1.65 "Iowan Old Style", Charter, Georgia, serif; overflow-wrap: break-word; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 1.125rem/1.6 var(--serif); overflow-wrap: break-word; }
 main { max-width: 640px; margin: 0 auto; padding: 32px 24px 96px; }
 a { color: var(--accent); }
 h1 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 0 0 .4em; font-size: clamp(1.4rem, 1rem + 2vw, 1.75rem); font-weight: 700; line-height: 1.2; letter-spacing: -.01em; }
 h1 a { color: inherit; text-decoration: none; } h1 a:hover { text-decoration: underline; text-decoration-thickness: 2px; }
-@font-face { font-family: Inter; src: url("${location.origin}/fonts/InterVariable.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
-h1 { font-family: Inter, system-ui, sans-serif; letter-spacing: -.01em; }
-[data-size="0"] body { font-size: 1rem; } [data-size="2"] body { font-size: 1.1875rem; } [data-size="3"] body { font-size: 1.3125rem; }
-.meta { margin-bottom: 1.8em; color: var(--text-muted); font: .88em/1.45 Inter, system-ui, sans-serif; }  /* em: follows the text size */
-.todo { margin: 0 0 1.8em; padding: 12px 16px; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; background: var(--bg-card); }
-.tldr ul { margin: .35em 0 0; padding-left: 1.15em; font: .94em/1.5 Inter, system-ui, sans-serif; } .tldr li + li { margin-top: .45em; }  /* sans: scanned, not read */
-.tldr .do { margin: .8em 0 0; padding-top: .7em; border-top: 1px solid var(--border); font: 500 .94em/1.5 Inter, system-ui, sans-serif; } .tldr .do b { font-size: .875em; }
-.todo b { display: block; margin-bottom: 2px; color: var(--accent); font: 700 .82em/1.5 Inter, system-ui, sans-serif; letter-spacing: .07em; text-transform: uppercase; }  /* the box's sizes are em too */
+${READER_FONTS}
+:root { --sans: "Untitled Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --serif: "Untitled Serif", "Iowan Old Style", Charter, Georgia, serif; }
+[data-size="0"] body { font-size: 1.0625rem; } [data-size="2"] body { font-size: 1.25rem; } [data-size="3"] body { font-size: 1.375rem; }
+.meta { margin-bottom: 1.8em; color: var(--text-muted); font: .83em/1.45 var(--sans); }  /* em: follows the text size */
+.todo { margin: 0 0 1.8em; padding: 12px 16px; border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border)); border-radius: 8px; background: var(--bg-card); }
+.tldr ul { margin: .35em 0 0; padding-left: 1.15em; font: .89em/1.5 var(--sans); } .tldr li + li { margin-top: .45em; }  /* sans: scanned, not read */
+.tldr .do { margin: .8em 0 0; padding-top: .7em; border-top: 1px solid var(--border); font: 500 .89em/1.5 var(--sans); } .tldr .do b { font-size: .875em; }
+.todo b { display: block; margin-bottom: 2px; color: var(--accent); font: 700 .83em/1.5 var(--sans); }  /* the box's sizes are em too */
 h2, h3, h4 { margin: 1.8em 0 .5em; font-weight: 700; line-height: 1.3; }
 h2 { font-size: 1.375rem; } h3 { font-size: 1.125rem; } h4 { font-size: 1rem; }
 ul, ol { padding-left: 1.4em; } li + li { margin-top: .35em; }
@@ -313,8 +317,8 @@ pre code { padding: 0; background: none; font: inherit; }
 table { display: block; overflow-x: auto; border-collapse: collapse; font-size: .875rem; } th, td { padding: 4px 8px; border: 1px solid var(--border); } th { font-weight: 700; }
 hr { border: 0; border-top: 1px solid var(--border); }
 .late { animation: late .2s ease .4s both; } @keyframes late { from { opacity: 0; } }
-.status { color: var(--text-muted); font: .9375rem/1.5 Inter, system-ui, sans-serif; }
-.pill { display: inline-block; padding: 10px 18px; border: 1px solid var(--accent); border-radius: 999px; font: 600 .9375rem/1.4 Inter, system-ui, sans-serif; text-decoration: none; }
+.status { color: var(--text-muted); font: .9375rem/1.5 var(--sans); }
+.pill { display: inline-block; padding: 10px 18px; border: 1px solid var(--accent); border-radius: 999px; font: 600 .9375rem/1.4 var(--sans); text-decoration: none; }
 @media (max-width: 600px) { main { padding: 24px 18px 80px; } .pill { padding: 12px 18px; } }
 </style><script nonce="${nonce}">${SWIPE_REPORTER}<\/script></head><body><main><h1><a href="${esc(i.url)}" target="_blank" rel="noopener" title="Open the original">${esc(i.title)}</a></h1>${storyMeta(i, byline, minutes)}${summaryBox(i.tldr, why)}${html}</main></body></html>`;
 }
