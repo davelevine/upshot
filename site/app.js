@@ -182,6 +182,7 @@ function syncHome() {
   $('filters').inert = phone.matches && !home;
   $('list-back').inert = $('search-btn').inert = phone.matches && home;  // faded out: out of reach too
   document.querySelector('.logo-h').inert = phone.matches && !home;
+  syncTicker();
   if (st?.f && st.f !== filter && (st.f !== 'essentials' || picks.size)) { filter = st.f; renderFilters(); renderItems(); }
 }
 let lastList = null;  // the list a swipe left on the topics goes back into (the filter is still set to it)
@@ -478,6 +479,7 @@ function openReader(i, { fromHash = false } = {}) {
   $('reader').setAttribute('aria-hidden', 'false');
   setInert();
   markCurrent(i.url);
+  syncTicker();
   if (docked.matches) cardFor(i.url)?.scrollIntoView({ block: 'nearest' });
   // pushed: this entry sits on top of the feed, so closing goes back. Opened from a link, it doesn't, or it would leave
   // the site. Kept in the entry, so it survives back and forward.
@@ -551,6 +553,7 @@ function closeReader() {
   $('reader').setAttribute('aria-hidden', 'true');
   setInert();
   markCurrent(null);
+  syncTicker();
   const card = url && cardFor(url);  // back to where you were, even after j/k through several articles
   if (card) {
     // Focus goes back to the row only after a key (no ring after a tap or swipe: one in the article's frame never reaches
@@ -885,7 +888,17 @@ addEventListener('resize', () => { for (const k in COLS) if (localStorage.getIte
 // again (after Kagi News). Under five seconds, so it never needs a pause control (WCAG 2.2.2); a tap ends it at once.
 const BUILD_EVERY_HOURS = 4, BUILD_AT_MINUTE = 17;  // .github/workflows/build.yml: cron "17 */4 * * *", in UTC
 const HOLD_MS = 1200, TICK_MS = 1500, FADE_MS = 300, REOPEN_MINUTES = 15;  // the wordmark first, long enough to be seen
-let tickTimers = [], tickOnShow = false, hiddenAt = Date.now();
+let tickTimers = [], tickOnShow = false, tickPending = false, hiddenAt = Date.now();
+// Where the wordmark can be seen: on a phone only the topics screen shows it; elsewhere a reader sliding over the page hides it.
+const wordmarkShown = () => {
+  const reading = document.body.classList.contains('reading');
+  return phone.matches ? document.body.classList.contains('home') && !reading : !reading || docked.matches;
+};
+// After the page changes: a pass waiting for the wordmark plays once it's in view; one running out of view stops, as seen.
+function syncTicker() {
+  if (!wordmarkShown()) { if (tickTimers.length) stopTicker(); return; }
+  if (tickPending) { tickPending = false; playTicker(); }
+}
 function nextBuildMinutes(now = Date.now()) {
   const t = new Date(now);
   t.setUTCHours(t.getUTCHours() - t.getUTCHours() % BUILD_EVERY_HOURS, BUILD_AT_MINUTE, 0, 0);
@@ -907,6 +920,7 @@ function stopTicker() {
 function playTicker() {
   if (!generatedAt) return;
   stopTicker();
+  if (!wordmarkShown()) { tickPending = true; return; }  // opened on a story, say: it waits for the wordmark, rather than running unseen
   const lines = tickerLines(), at = (ms, f) => tickTimers.push(setTimeout(f, HOLD_MS + ms));
   at(0, () => document.body.classList.add('ticking'));
   lines.forEach((line, n) => {

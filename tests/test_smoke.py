@@ -1353,3 +1353,36 @@ def test_coming_back_after_a_while_plays_the_pass_again(browser):
     pg.wait_for_timeout(300)
     pg.clock.run_for(1300)
     assert ticking()
+
+
+def test_a_pass_waits_for_the_wordmark_to_be_in_view(browser):
+    # Reloaded on a story, on a phone: the pass waits under it, and plays from the top on reaching the topics.
+    ctx = browser.new_context(viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True)
+    pg = ctx.new_page()
+    pg.goto(URL)
+    pg.wait_for_selector("#filters .filter-btn")
+    path = pg.evaluate("readPath(items[0].url)")
+    pg.clock.install()
+    pg.goto(URL.rstrip("/") + path)
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    ticking = lambda: pg.evaluate("document.body.classList.contains('ticking')")
+    pg.clock.run_for(8000)  # longer than a whole pass
+    assert not ticking() and pg.evaluate("tickPending")
+    pg.locator("#reader-close").click()  # back to the list: the wordmark's still out of view
+    pg.wait_for_function("() => !document.body.classList.contains('reading')")
+    pg.clock.run_for(3000)
+    assert not ticking()
+    pg.locator("#list-back").click()  # the topics: now it plays, wordmark first
+    pg.wait_for_function("() => document.body.classList.contains('home')")
+    pg.clock.run_for(600)
+    assert not ticking()
+    pg.clock.run_for(1000)
+    assert ticking()
+    # Leaving mid-pass stops it: back on the topics later, it's the wordmark, not the middle of the pass.
+    pg.locator("#filters .filter-btn[data-f='all']").click()
+    pg.clock.run_for(300)
+    assert not ticking()
+    pg.locator("#list-back").click()
+    pg.wait_for_function("() => document.body.classList.contains('home')")
+    pg.clock.run_for(3000)
+    assert not ticking()
