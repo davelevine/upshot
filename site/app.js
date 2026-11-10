@@ -8,8 +8,20 @@ const domain = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } 
 const PAGE = 40;
 const STALE_MINUTES = 12 * 60;  // three missed builds
 const KEEP_DAYS = 90;  // build.py prunes older stories
+// Wide screens dock the reader beside the list, as Feedbin does, and the list scrolls on its own; elsewhere the window scrolls it.
+const docked = matchMedia('(min-width: 1280px)');
+const scroller = () => (docked.matches ? $('col') : document.scrollingElement);
 // The latest entry decides: a batch can hold an older one from before the last redraw, and reading that stopped the feed short of its end.
-const io = new IntersectionObserver(es => { if (es.at(-1).isIntersecting && limit < shown.length) { limit += PAGE; renderPage(); } }, { rootMargin: '800px' });
+// Watched against whichever scrolls the list, so the 800px head start applies to it.
+let io;
+function watchEnd() {
+  io?.disconnect();
+  io = new IntersectionObserver(es => { if (es.at(-1).isIntersecting && limit < shown.length) { limit += PAGE; renderPage(); } },
+    { root: docked.matches ? $('col') : null, rootMargin: '800px' });
+  io.observe($('sentinel'));
+}
+watchEnd();
+docked.addEventListener('change', watchEnd);
 let tz, iconArt = {}, icons = new Set(), items = [], filter = 'all', shown = [], limit = PAGE, generatedAt = null, picks = new Map();  // picks: url -> what to do
 const label = f => (f === 'all' ? 'All' : f === 'essentials' ? 'Essentials' : CATS[f]);
 
@@ -156,9 +168,8 @@ $('filters').onclick = e => {
 };
 // The search bar opens the palette, the same search as ⌘K, rather than filtering the feed in place.
 $('search').addEventListener('focus', () => { $('search').blur(); openPalette(); });
-io.observe($('sentinel'));
-addEventListener('scroll', () => { $('top').hidden = scrollY < 800; }, { passive: true });
-$('top').onclick = () => scrollTo({ top: 0, behavior: 'smooth' });
+addEventListener('scroll', () => { $('top').hidden = scroller().scrollTop < 800; }, { passive: true, capture: true });  // capture: the list's own scrolling doesn't bubble
+$('top').onclick = () => scroller().scrollTo({ top: 0, behavior: 'smooth' });
 
 // Read and "new since last visit" state lives only in this browser.
 let weekly = null;
@@ -237,8 +248,7 @@ function load() {
   });
 }
 let readerFor = null;
-// Wide screens dock the reader beside the list, as Feedbin does: the list stays usable while an article is open.
-const docked = matchMedia('(min-width: 1280px)');
+// Docked, the list stays usable while an article is open.
 const setInert = () => {
   const off = document.body.classList.contains('reading') && !docked.matches;
   document.querySelectorAll('.feed, #top').forEach(el => { el.inert = off; });

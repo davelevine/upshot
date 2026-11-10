@@ -221,6 +221,7 @@ def test_day_minutes_show_only_when_every_story_has_one(browser):
 
 def test_end_of_feed_message(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 900})
+    pg.mouse.move(460, 450)  # over the list, which scrolls on its own here
     end = pg.locator("#end")
     # Scrolling loads every page, then the message appears.
     for _ in range(40):
@@ -231,9 +232,10 @@ def test_end_of_feed_message(browser):
     assert re.fullmatch(r"That\u2019s all \d+ stories from the last \d+ days\.", pg.inner_text("#end-msg"))
     assert end.locator("a[href='/rss.xml']").count() == 1 and end.locator("a[href*='github.com']").count() == 1
     # It respects what's on screen.
-    pg.evaluate("window.scrollTo({top:0,behavior:'instant'})")
+    pg.evaluate("scroller().scrollTo({top:0,behavior:'instant'})")
     pg.click("#filters .filter-btn[data-f='security']")
     pg.wait_for_function("() => document.getElementById('end-msg').textContent.includes('Security') || document.getElementById('end').hidden")
+    pg.mouse.move(460, 450)
     security = pg.locator("#filters .filter-btn[data-f='security']").inner_text()
     for _ in range(40):
         if end.is_visible():
@@ -261,7 +263,7 @@ def test_back_to_top_never_covers_the_end_links(browser):
 
 def test_back_to_top_reacts_to_hover(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 700})
-    pg.evaluate("window.scrollTo({top: 2000, behavior: 'instant'})")
+    pg.evaluate("scroller().scrollTo({top: 2000, behavior: 'instant'})")
     top = pg.locator("#top")
     top.wait_for()
     look = "e => { const c = getComputedStyle(e); return [c.backgroundColor, c.color]; }"
@@ -1083,4 +1085,22 @@ def test_sidebar_counts_unread_stories(browser):
     assert count("all") == f"{total} unread" and count(topic) == f"{before} unread"
     pg.evaluate("items.forEach(i => readSet.add(i.url)); renderFilters()")
     assert pg.locator("#filters .f-count").count() == 0 and pg.locator("#filters .filter-btn").count() > 2  # all read: no counts, topics stay
+    assert pg.problems == []
+
+
+def test_wide_screens_scroll_the_list_by_itself(browser):
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    col = pg.locator("#col").bounding_box()
+    assert pg.evaluate("document.documentElement.scrollHeight <= innerHeight")  # the window doesn't scroll
+    assert pg.evaluate("e => e.scrollHeight > e.clientHeight", pg.locator("#col").element_handle())
+    assert col["x"] + col["width"] <= pg.locator("#reader").bounding_box()["x"] + 1  # its scrollbar sits beside the list
+    pg.mouse.move(460, 450)
+    for _ in range(40):  # the next pages load as the list nears its end
+        if pg.locator("#end").is_visible():
+            break
+        pg.mouse.wheel(0, 3000)
+        pg.wait_for_timeout(100)
+    assert pg.locator("#end").is_visible() and pg.evaluate("limit >= shown.length")
+    pg.locator("#top").click()  # back to the top of the list
+    pg.wait_for_function("() => document.getElementById('col').scrollTop === 0")
     assert pg.problems == []

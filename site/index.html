@@ -227,7 +227,7 @@
     /* One column. Search and the topic picker move into the header beside the menu; only the stale band (rare) stays below. */
     .shell { display: block; }
     .subheader { display: contents; }
-    .stale { padding: 0 14px; }
+    .stale { height: 44px; padding: 0 14px; line-height: 43px; }  /* a full-size tap target, like every control here */
     .search-row { position: fixed; top: 0; right: 58px; z-index: 101; height: 52px; align-items: center; gap: 0; max-width: none; margin: 0; }
     .search-wrap { order: 1; }  /* rightmost, so the palette's close button can sit exactly over it */
     .search-wrap { flex: none; width: 44px; height: 44px; }
@@ -296,7 +296,16 @@
     .shell { grid-template-columns: 240px 440px; }
     .items { padding: 0 10px 48px; }
     .items > .date-label:first-child { height: 52px; margin-top: 0; padding: 0 0 0; align-items: center; }  /* its rule lines up with the reader bar's */
-    .reader { top: 52px; left: 680px; width: auto; z-index: 98; border-left: 1px solid var(--border); box-shadow: none; transform: none !important; visibility: visible; pointer-events: auto; transition: none; }
+    /* One bar across the top, as in Feedbin: the header shrinks to the sidebar's top (logo, then search), the reader runs to the
+       top of the window, and the menu button sits at the end of the reader bar, with the story's controls beside it. */
+    html { overflow: hidden; scrollbar-gutter: auto; }  /* the list scrolls itself, so its scrollbar sits beside it, not at the window's edge */
+    .col { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; scroll-padding-top: 12px; }
+    header { position: fixed; inset: 0 auto auto 0; width: 240px; border-bottom: 0; border-right: 1px solid var(--border); background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
+    .controls { position: fixed; top: 8px; right: 12px; z-index: 101; }  /* fixed to the window: the header no longer reaches here */
+    .side { top: 0; height: 100dvh; padding-top: 66px; }
+    .stale { position: fixed; inset: auto auto 0 240px; z-index: 90; width: 440px; border-top: 1px solid var(--border); border-bottom: 0; }  /* the list's foot: nothing above it moves */
+    .reader .reader-bar { padding-right: 64px; }  /* room for the menu button */
+    .reader { top: 0; left: 680px; width: auto; z-index: 98; border-left: 1px solid var(--border); box-shadow: none; transform: none !important; visibility: visible; pointer-events: auto; transition: none; }
     .reader-backdrop { display: none; }
     body.reading { overflow: visible; }
     /* Nothing open: the site's mark, faint and centred, as Feedbin does with its own. */
@@ -305,7 +314,8 @@
     body:not(.reading) .reader-bar > :not(.reader-spacer) { visibility: hidden; }  /* nothing open: no controls for it */
     body:not(.reading) .reader-nav { display: none; }
     .back-to-top { right: auto; left: 612px; }  /* inside the list, not over the article */
-    #reader-theme { display: none; }  /* the header's switch sits right above it */
+    body:has(#stale:not([hidden])) .back-to-top { bottom: 44px; }  /* clear of the stale band at the list's foot */
+    #reader-theme { display: none; }  /* the menu beside it has the theme switch */
   }
   .reader-bar { display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 12px; border-bottom: 1px solid var(--border); flex: 0 0 auto; }
   .reader-spacer { flex: 1; }
@@ -374,7 +384,7 @@
   </div>
   <nav class="filters" id="filters" popover aria-label="Topics"></nav>
 </aside>
-<div class="col">
+<div class="col" id="col">
 <div class="sr-only" id="status" role="status"></div>
 <main class="items feed" id="items" aria-busy="true"><div class="date-label skeleton" aria-hidden="true"><span class="bone" style="width:6em"></span><span class="day-meta">&nbsp;</span></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div></main>
 <div id="sentinel"></div>
