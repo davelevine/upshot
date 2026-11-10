@@ -15,6 +15,13 @@
 
 The week’s tech news, minus the noise.
 
+<br>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/screenshot-dark.webp">
+  <img src=".github/screenshot-light.webp" alt="Upshot on a desktop, with the topics, the list and a story open side by side, and on a phone, showing the same story with its upshot" width="900">
+</picture>
+
 </div>
 
 <div align="center">
