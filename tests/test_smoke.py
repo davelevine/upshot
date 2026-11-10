@@ -151,9 +151,13 @@ def test_phones_open_on_the_topics(browser):
     aside = "() => document.getElementById('col').getBoundingClientRect().left >= innerWidth && document.getElementById('col').inert"
     assert pg.evaluate(aside) and pg.locator(".logo").is_visible() and pg.locator("#list-back").is_hidden()
     assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    assert pg.locator(".resizer").evaluate_all("els => els.every(e => getComputedStyle(e).display === 'none')")  # desktop's column edges
     for row in pg.locator("#filters .filter-btn").all():
         box = row.bounding_box()
         assert box["height"] >= 44 and box["x"] + box["width"] <= 320
+        for x in range(10, 320, 20):  # nothing sits over a row: every point of it taps the row
+            assert pg.evaluate("([x, y, f]) => document.elementFromPoint(x, y)?.closest('.filter-btn')?.dataset.f === f",
+                               [x, box["y"] + box["height"] / 2, row.get_attribute("data-f")]), x
     pg.tap("#filters .filter-btn[data-f='security']")
     # It slides in over the topics, the way a story slides over the list, rather than jumping.
     pg.wait_for_function("() => document.getAnimations().some(a => a.transitionProperty === 'transform' && a.effect.target?.id === 'col')")
