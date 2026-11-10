@@ -34,6 +34,39 @@
   },
   {
    "date": "2026-11-10",
+   "title": "Hackers now exploit critical Barracuda ESG flaws to gain root access",
+   "url": "https://www.bleepingcomputer.com/news/security/hackers-exploit-barracuda-email-security-gateway-flaws-to-get-root-access/",
+   "publisher": "BleepingComputer",
+   "category": "security",
+   "summary": "Barracuda warned that attackers are actively exploiting two recently patched Email Security Gateway flaws that allow commands to run with root privileges.",
+   "relevance": 8,
+   "added": "2026-11-10T12:18:29+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Barracuda says attackers are exploiting two patched Email Security Gateway flaws, CVE-2026-116606 and CVE-2026-111560, to gain root access.",
+    "Exploitation affects a small number of organizations, and attacks require access to the Admin UI of affected devices.",
+    "Apply the patch as soon as possible: BNSF-40425 for 9.4.017+, or BNSF-40430 for versions below 9.4.017.",
+    "Restrict Admin UI access to trusted internal networks and use network access controls to limit exposure."
+   ]
+  },
+  {
+   "date": "2026-11-10",
+   "title": "Introducing AlphaProof Code: a breakthrough in verifying complex software at depth",
+   "url": "https://deepmind.google/blog/introducing-alphaproof-code/",
+   "publisher": "Google DeepMind",
+   "category": "ai",
+   "summary": "Google DeepMind introduced AlphaProof Code, where AI agents wrote three million lines of Lean proofs verifying Signal's core encryption.",
+   "relevance": 7,
+   "added": "2026-11-10T12:18:29+00:00",
+   "minutes": 3,
+   "tldr": [
+    "Google DeepMind used AlphaProof Code, a multi-LLM agentic framework, to formally verify the code underlying the Signal protocol.",
+    "The proofs cover compiled code running on devices, not just design, and generated over six million lines of Lean. Verification took four weeks.",
+    "Human experts reviewed about one percent of the codebase flagged by the agents; Lean automatically checks the rest. The team is open-sourcing its formal verification artifacts."
+   ]
+  },
+  {
+   "date": "2026-11-10",
    "title": "Effect 4.0 Ships: Dependency-Free Rewrite with 5x Smaller Bundles and Long-Term Support",
    "url": "https://www.infoq.com/news/2026/11/effect-4-0-release/",
    "publisher": "InfoQ",
@@ -141,6 +174,39 @@
    "tldr": [
     "The score comes from the Artificial Analysis Intelligence Index v5.0.1, which includes nine evaluations.",
     "The evaluations include AA-Briefcase v1.1, AutomationBench-AA, Terminal-Bench 4.0, and HLE-Diamond."
+   ]
+  },
+  {
+   "date": "2026-11-09",
+   "title": "Anthropic launches roadshow for proposed initial public offering",
+   "url": "https://www.anthropic.com/news/roadshow-launch",
+   "publisher": "Anthropic (community feed)",
+   "category": "other",
+   "summary": "Anthropic, PBC has launched the roadshow for its proposed initial public offering of Class A common stock.",
+   "relevance": 7,
+   "added": "2026-11-10T12:18:29+00:00",
+   "minutes": 1,
+   "tldr": [
+    "Anthropic, PBC launched the roadshow for a proposed IPO of 825,000,000 Class A common shares.",
+    "Anthropic is offering 801,351,354 shares and existing stockholders are offering 23,648,646; Anthropic gets no proceeds from the latter.",
+    "Expected price range is $70.00 to $78.00 per share. Anthropic has applied to list on the Nasdaq Global Select Market as “ANT.”",
+    "Investors can get the preliminary prospectus from Goldman Sachs & Co. LLC or Morgan Stanley & Co. LLC. The registration statement is not yet effective."
+   ]
+  },
+  {
+   "date": "2026-11-09",
+   "title": "Muse Ember: Our smallest, most efficient model",
+   "url": "https://research.meta.ai/blog/muse-ember",
+   "publisher": "Hacker News 300+",
+   "category": "ai",
+   "summary": "Meta Research published a blog post announcing Muse Ember, which it describes as its smallest and most efficient model; it drew 310 points on Hacker News.",
+   "relevance": 7,
+   "added": "2026-11-10T12:18:29+00:00",
+   "minutes": 7,
+   "tldr": [
+    "Meta launched Muse Ember, its smallest and most efficient model, for repeated agent tasks such as tool calls, coding subtasks, and extraction.",
+    "It delivers more intelligence per dollar than Claude Haiku 5.5 or GPT-6 Luna, matching Haiku's best score at about a third of the cost.",
+    "Available today on Muse Code and the Meta Model API as muse-ember-1.0, at $0.10 per million input and $0.50 per million output tokens."
    ]
   },
   {
@@ -530,19 +596,13 @@
   },
   {
    "date": "2026-11-05",
-   "title": "OpenSSH flaw lets attackers log into password-disabled Linux accounts",
-   "url": "https://www.bleepingcomputer.com/news/security/openssh-flaw-lets-attackers-log-into-password-disabled-linux-accounts/",
-   "publisher": "BleepingComputer",
+   "title": "New OpenSSH Vulnerability",
+   "url": "https://www.schneier.com/blog/archives/2026/11/new-openssh-vulnerability.html",
+   "publisher": "Schneier on Security",
    "category": "security",
-   "summary": "A newly disclosed OpenSSH flaw lets attackers log into password-disabled Alpine and other musl-based Linux accounts by submitting an oversized password.",
+   "summary": "A newly disclosed OpenSSH flaw on musl-based Linux lets attackers log in to accounts blocking password authentication by sending a password longer than 256 bytes.",
    "relevance": 8,
-   "minutes": 3,
-   "tldr": [
-    "A flaw dubbed \"*sshole\" in OpenSSH lets attackers log into password-disabled accounts by submitting an oversized password.",
-    "Affects OpenSSH on musl-based systems like Alpine Linux, OpenWrt, Buildroot, and Yocto under certain authentication configurations.",
-    "Update to OpenSSH 10.6p2 with apk upgrade openssh on Alpine; admins who cannot update yet can set PasswordAuthentication no and restart SSH.",
-    "Alpine's AWS and Azure images have a default alpine account with passwordless doas, so check logs for successful password logins."
-   ]
+   "minutes": 0
   },
   {
    "date": "2026-11-05",
@@ -2116,7 +2176,7 @@
    }
   ]
  },
- "generated_at": "2026-11-10T08:18:43+00:00",
+ "generated_at": "2026-11-10T12:18:39+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
