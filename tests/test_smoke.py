@@ -1294,6 +1294,10 @@ def ticker_site(browser, built_hours_ago, now="2026-11-10T14:00:00Z", **context)
     pg.goto(URL)
     pg.wait_for_selector("#filters .filter-btn")
     pg.clock.run_for(50)
+    assert not pg.evaluate("document.body.classList.contains('ticking')")  # the wordmark first, to be seen on arrival
+    pg.clock.run_for(1100)
+    assert not pg.evaluate("document.body.classList.contains('ticking')")
+    pg.clock.run_for(100)  # 1.2s in: the pass begins
     return pg
 
 
@@ -1341,5 +1345,7 @@ def test_coming_back_after_a_while_plays_the_pass_again(browser):
     assert not ticking()
     pg.evaluate(away, True)
     pg.clock.run_for(20 * 60_000)
-    pg.evaluate(away, False)  # back after a while: an opening, so one pass
-    pg.wait_for_function("() => document.body.classList.contains('ticking')")
+    pg.evaluate(away, False)  # back after a while: an opening, so one pass, after the wordmark's moment
+    pg.wait_for_timeout(300)
+    pg.clock.run_for(1300)
+    assert ticking()

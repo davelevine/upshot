@@ -882,7 +882,7 @@ addEventListener('resize', () => { for (const k in COLS) if (localStorage.getIte
 // The wordmark's spot, once each time Upshot opens: the date, when it updated and when it's next due, then the wordmark
 // again (after Kagi News). Under five seconds, so it never needs a pause control (WCAG 2.2.2); a tap ends it at once.
 const BUILD_EVERY_HOURS = 4, BUILD_AT_MINUTE = 17;  // .github/workflows/build.yml: cron "17 */4 * * *", in UTC
-const TICK_MS = 1500, FADE_MS = 300, REOPEN_MINUTES = 15;
+const HOLD_MS = 1200, TICK_MS = 1500, FADE_MS = 300, REOPEN_MINUTES = 15;  // the wordmark first, long enough to be seen
 let tickTimers = [], tickOnShow = false, hiddenAt = Date.now();
 function nextBuildMinutes(now = Date.now()) {
   const t = new Date(now);
@@ -905,8 +905,8 @@ function stopTicker() {
 function playTicker() {
   if (!generatedAt) return;
   stopTicker();
-  const lines = tickerLines(), at = (ms, f) => tickTimers.push(setTimeout(f, ms));
-  document.body.classList.add('ticking');
+  const lines = tickerLines(), at = (ms, f) => tickTimers.push(setTimeout(f, HOLD_MS + ms));
+  at(0, () => document.body.classList.add('ticking'));
   lines.forEach((line, n) => {
     if (n) at(n * TICK_MS, () => $('ticker').classList.remove('on'));
     at(n * TICK_MS + FADE_MS, () => { $('ticker').textContent = line; $('ticker').classList.add('on'); });
