@@ -927,12 +927,18 @@ def test_swipe_back_on_a_phone(browser):
         if pg.evaluate("new DOMMatrix(getComputedStyle(document.getElementById('reader')).transform).m41") == 0:
             break
         pg.wait_for_timeout(100)
+    # Open, the story's bar has taken the header's place: it sits still at the top while the story slides, and crossfades.
+    bar = "() => [Math.round(document.querySelector('.reader-bar').getBoundingClientRect().left), +getComputedStyle(document.querySelector('.reader-bar')).opacity, +getComputedStyle(document.querySelector('header')).opacity]"
+    assert pg.evaluate(bar)[1:] == [1, 0] and pg.evaluate(bar)[0] <= 1
     pg.evaluate("window.__tw = []; addEventListener('message', e => __tw.push(e.data && e.data.tw))")
     cdp = pg.context.new_cdp_session(pg)
     cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": 80, "y": 600}]})
     for k in range(1, 13):
         cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": 80 + 22 * k, "y": 602}]})
         pg.wait_for_timeout(16)
+        if k == 5:  # partway: the bar holds still under the finger, half faded into the list's header
+            left, shown, header = pg.evaluate(bar)
+            assert left <= 1 and 0 < shown < 1 and 0 < header < 1 and abs(shown + header - 1) < 0.05
     cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
     wait_until_closed(pg)
     assert pg.evaluate("!document.querySelector('a.card:focus')")  # no focus ring on the row after a swipe

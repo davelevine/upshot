@@ -361,6 +361,18 @@
   .reader-body { position: relative; flex: 1; min-height: 0; }
   .reader-body iframe { position: absolute; inset: 0; display: block; width: 100%; height: 100%; border: 0; background: var(--bg); }
   .reader-body iframe.loading { visibility: hidden; }
+  /* Phones: between a list and its story the top bar stays put, as a navigation bar does, and crossfades: the list's header
+     fades out and the story's bar fades in over it, while only the content beneath slides. The bar rides inside the sliding
+     reader, so it's moved back by the reader's offset to hold still, on the same --drag, so a swipe moves it with the finger. */
+  @media (max-width: 640px) {
+    .reader .reader-bar { position: relative; z-index: 1; background: var(--bg); transform: translateX(-100%); opacity: 0;
+      transition: transform var(--slide-out) var(--ease-out), opacity var(--slide-out) var(--ease-out); }
+    body.reading .reader .reader-bar { transform: translateX(calc(var(--drag, 0) * -100%)); opacity: calc(1 - var(--drag, 0));
+      transition: transform var(--slide-in) var(--ease-in), opacity var(--slide-in) var(--ease-in); }
+    header.feed { transition: transform var(--slide-out) var(--ease-out), opacity var(--slide-out) var(--ease-out); }
+    body.reading header.feed { transform: none; opacity: var(--drag, 0); transition: opacity var(--slide-in) var(--ease-in); }
+    body.dragging .reader .reader-bar, body.dragging header.feed { transition: none !important; }
+  }
 </style>
 </head>
 <body class="home">
