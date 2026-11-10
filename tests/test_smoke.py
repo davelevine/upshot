@@ -468,6 +468,20 @@ def test_escape_returns_focus_to_the_row_for_the_keyboard(browser):
     assert pg.problems == []
 
 
+@pytest.mark.parametrize("scheme", ["dark", "light"])
+def test_new_stories_are_marked_legibly(browser, scheme):
+    from axe_playwright_python.sync_playwright import Axe
+    ctx = browser.new_context(viewport={"width": 1300, "height": 900}, color_scheme=scheme)
+    ctx.add_init_script("localStorage.setItem('seenUntil', '2000-01-01T00:00:00+00:00')")  # a long-ago visit: everything since is new
+    pg = ctx.new_page()
+    pg.goto(URL)
+    pg.wait_for_selector("a.card .new")
+    pill = pg.locator("a.card .new").first
+    assert pill.inner_text().upper() == "NEW"
+    contrast = Axe().run(pg, options={"runOnly": {"type": "rule", "values": ["color-contrast"]}}).response["violations"]
+    assert [n["html"] for v in contrast for n in v["nodes"] if "new" in n["html"]] == []
+
+
 def test_question_mark_lists_the_shortcuts(browser):
     pg = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
     pg.goto(URL)
