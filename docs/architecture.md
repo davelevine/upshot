@@ -32,7 +32,7 @@ Each build extracts new stories with Mozilla's [Readability](https://github.com/
 - **It isn't a proxy.** The Worker never fetches anything, and only returns articles the build stored.
 - **The page can't run anything from the source site.** Extracted HTML is stripped of scripts, frames, styles and event handlers during the build, then rendered in a sandboxed frame with no access to the page. The only script allowed in there is the site's own swipe and keyboard relay, admitted by a per-render nonce.
 - **A strict Content-Security-Policy backs all of this up.** Scripts load only from the site itself, plus two inline scripts allowed by exact hash; no plugins, forms or base-URL changes; network requests go only to the site. A test keeps the hashes in step with the code.
-- **No login, no tracking.** Read and New markers and hidden topics live in your browser's local storage and never leave it. A hidden topic is left out of All and the essentials, but its own chip and search still show it.
+- **No login, no tracking.** Read and New markers live in your browser's local storage and never leave it.
 
 ## The Worker
 

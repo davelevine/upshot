@@ -139,11 +139,7 @@
   .filter-toggle { display: none; }
   .filter-btn { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 5px 14px; border: 1px solid var(--border); border-radius: var(--radius-lg);
     background: var(--bg-card); color: var(--text-muted); font-size: .875rem; font-weight: 500; cursor: pointer; }
-  .filter-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
-  .filter-btn.muted:not(.active) { background: transparent; border-style: dashed; }  /* left out of All, still one tap away; text keeps its contrast */
-  .filter-btn .eye { width: 15px; height: 15px; flex: none; }
-  .topics-btn { color: var(--text-muted); border-style: dashed; }
-  @media (min-width: 641px) { .topics-btn span { display: none; } .topics-btn { padding-inline: 10px; } }  /* the row is full on desktop: an icon, named by its label */  /* a tint: a solid block outweighed the headlines */
+  .filter-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }  /* a tint: a solid block outweighed the headlines */
   .dot { flex: 0 0 auto; width: 7px; height: 7px; border-radius: 999px; background: var(--c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 14%, transparent); }
 
   .weekly { max-width: var(--read); margin: 0 auto; padding: 18px 24px 0; }
