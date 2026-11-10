@@ -154,6 +154,7 @@ def test_phones_open_on_the_topics(browser):
         box = row.bounding_box()
         assert box["height"] >= 44 and box["x"] + box["width"] <= 320
     pg.tap("#filters .filter-btn[data-f='security']")
+    pg.wait_for_function("() => document.getAnimations().some(a => a.animationName === 'page-in')")  # it slides in, not a jump
     pg.wait_for_selector("a.card")
     # Its list, as a page: a back chevron and its name in the header, in place of the logo.
     assert pg.locator("#filters").is_hidden() and pg.locator("#list-back").is_visible() and pg.inner_text("#list-name") == "Security"
@@ -1023,15 +1024,17 @@ def test_palette_opens_on_what_you_read_last(browser):
 def test_wide_screens_dock_the_reader_beside_the_list(browser):
     pg = open_site(browser, viewport={"width": 1440, "height": 900})
     reader, backdrop = pg.locator("#reader"), pg.locator("#reader-backdrop")
-    # Docked before anything opens: an empty pane that says what it's for, no backdrop, a live list.
+    # Docked before anything opens: an empty pane that says what it's for, no backdrop, a live list, and no bar to mark off.
     assert reader.is_visible() and backdrop.is_hidden()
+    rule = "getComputedStyle(document.querySelector('.reader-bar')).borderBottomColor"
+    assert pg.evaluate(rule) == "rgba(0, 0, 0, 0)"
     assert pg.evaluate("getComputedStyle(document.getElementById('reader-body'), '::before').maskImage").startswith('url("data:image/svg+xml')  # the site's mark, faint
     side, items, pane = (pg.locator(s).bounding_box() for s in (".side", "#items", "#reader"))
     assert side["x"] + side["width"] <= items["x"] and items["x"] + items["width"] <= pane["x"] + 1 and pane["x"] + pane["width"] <= 1440
     cards = pg.locator("a.card")
     cards.nth(1).click()
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
-    assert reading(pg) and backdrop.is_hidden()
+    assert reading(pg) and backdrop.is_hidden() and pg.evaluate(rule) != "rgba(0, 0, 0, 0)"  # the bar's line comes with the story
     assert not pg.evaluate("document.getElementById('items').inert") and reader.get_attribute("aria-modal") == "false"
     assert cards.nth(1).get_attribute("aria-current") == "true" and pg.locator("a.card[aria-current]").count() == 1
     assert pg.evaluate("document.activeElement.closest('#reader')") is None  # focus stays in the list, so j/k work there
@@ -1130,3 +1133,36 @@ def test_wide_screens_scroll_the_list_by_itself(browser):
     pg.locator("#top").click()  # back to the top of the list
     pg.wait_for_function("() => document.getElementById('col').scrollTop === 0")
     assert pg.problems == []
+
+
+def test_phone_swipes_move_between_the_topics_and_a_list(browser):
+    pg = browser.new_context(viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True).new_page()
+    pg.goto(URL)
+    pg.wait_for_selector("#filters .filter-btn")
+    cdp = pg.context.new_cdp_session(pg)
+    def swipe(x0, x1, y=500):
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": x0, "y": y}]})
+        for k in range(1, 9):
+            cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": x0 + (x1 - x0) * k / 8, "y": y + 2}]})
+            pg.wait_for_timeout(16)
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+    home = lambda: pg.evaluate("document.body.classList.contains('home')")
+    swipe(330, 80)  # nothing to go back into yet
+    pg.wait_for_timeout(400)
+    assert home()
+    pg.tap("#filters .filter-btn[data-f='ai']")
+    pg.wait_for_selector("a.card")
+    swipe(60, 320)  # right: back to the topics
+    pg.wait_for_function("() => document.body.classList.contains('home')")
+    swipe(330, 80)  # left: back into the list just left
+    pg.wait_for_selector("a.card")
+    assert not home() and pg.inner_text("#list-name") == "AI"
+    pg.go_back()  # it's a page in history, as a tap makes it
+    pg.wait_for_function("() => document.body.classList.contains('home')")
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": 300, "y": 700}]})  # mostly down: a scroll, not a swipe
+    for k in range(1, 9):
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": 300 - 10 * k, "y": 700 - 40 * k}]})
+        pg.wait_for_timeout(16)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+    pg.wait_for_timeout(400)
+    assert home()

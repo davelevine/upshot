@@ -165,11 +165,8 @@ $('filters').onclick = e => {
   if (document.body.classList.contains('reading')) dismiss();  // as in Feedbin: picking a topic, even the current one, closes the story
   renderFilters();
   renderItems();
-  if (phone.matches && document.body.classList.contains('home')) {  // into the list, as a page: back returns to the topics
-    history.pushState({ list: true, f: filter }, '', location.pathname + location.search);
-    syncHome();
-    scrollTo(0, 0);
-  } else if (history.state?.list) history.replaceState({ ...history.state, f: filter }, '');
+  if (phone.matches && document.body.classList.contains('home')) enterList();  // into the list, as a page: back returns to the topics
+  else if (history.state?.list) history.replaceState({ ...history.state, f: filter }, '');
 };
 // Phones open on the topics (home); a topic's list is a history entry above it, so back, the chevron and swipe-back return.
 const phone = matchMedia('(max-width: 640px)');
@@ -178,7 +175,26 @@ function syncHome() {
   document.body.classList.toggle('home', !st?.list && !st?.reader);
   if (st?.f && st.f !== filter && (st.f !== 'essentials' || picks.size)) { filter = st.f; renderFilters(); renderItems(); }
 }
-$('list-back').onclick = () => (history.state?.list ? history.back() : (history.replaceState(null, ''), syncHome()));
+// Pages slide on phones, as in Feedbin's app: a list in from the right over the topics, and back out the same way.
+function slide(dir, update) {
+  if (!phone.matches || !document.startViewTransition) return update();
+  document.documentElement.dataset.slide = dir;
+  document.startViewTransition(update).finished.finally(() => delete document.documentElement.dataset.slide);
+}
+let lastList = null;  // the list a swipe left on the topics goes back into
+function enterList() {
+  slide('in', () => {
+    history.pushState({ list: true, f: filter }, '', location.pathname + location.search);
+    syncHome();
+    scrollTo(0, 0);
+  });
+}
+function leaveList() {
+  lastList = filter;
+  if (history.state?.list) history.back();  // popstate slides it out
+  else slide('out', () => { history.replaceState(null, ''); syncHome(); });
+}
+$('list-back').onclick = leaveList;
 // The search bar opens the palette, the same search as ⌘K, rather than filtering the feed in place.
 $('search').addEventListener('focus', () => { $('search').blur(); openPalette(); });
 addEventListener('scroll', () => { $('top').hidden = scroller().scrollTop < 800; }, { passive: true, capture: true });  // capture: the list's own scrolling doesn't bubble
@@ -526,7 +542,14 @@ function syncFromUrl() {
   else if (!i && document.body.classList.contains('reading')) closeReader();
   else if (!i && path) history.replaceState(null, '', '/' + location.search);  // a story that's since left the site
 }
-addEventListener('popstate', () => { syncFromUrl(); syncHome(); });
+addEventListener('popstate', e => {
+  syncFromUrl();
+  const home = !history.state?.list && !history.state?.reader;
+  if (home && !document.body.classList.contains('home')) lastList = filter;
+  // Safari's own swipe-back already animates the page: don't slide it a second time.
+  if (home !== document.body.classList.contains('home') && !e.hasUAVisualTransition) slide(home ? 'out' : 'in', syncHome);
+  else syncHome();
+});
 // Swipe right to close: the reader follows the finger, then closes past a third of its width or on a flick
 // (judged on the finger's speed at release, px/ms).
 let drag = null;
@@ -570,19 +593,22 @@ addEventListener('message', e => {
   else if (e.data.tw === 'themed') frameThemed?.();
 });
 
-// Phones: swiping back out of a story, then left across the list, brings the story back, as in Feedbin.
-let reopen = null;
+// Phone swipes, after Feedbin's: the topics sit left of a list, and a list left of its story. In a list, right goes back
+// to the topics and left reopens the story just closed; on the topics, left goes back into the list just left.
+let swipe = null;
 addEventListener('touchstart', e => {
   const t = e.touches[0];
-  reopen = phone.matches && lastClosed && !document.body.classList.contains('reading') && !document.body.classList.contains('home')
-    ? { x: t.screenX, y: t.screenY } : null;
+  swipe = phone.matches && !document.body.classList.contains('reading') && !$('palette').open ? { x: t.screenX, y: t.screenY } : null;
 }, { passive: true });
 addEventListener('touchend', e => {
-  if (!reopen) return;
-  const t = e.changedTouches[0], dx = t.screenX - reopen.x, dy = t.screenY - reopen.y;
-  reopen = null;
-  const i = dx < -60 && Math.abs(dy) < Math.abs(dx) / 2 && items.find(x => x.url === lastClosed);  // clearly sideways, not a scroll
-  if (i) openReader(i);
+  if (!swipe) return;
+  const t = e.changedTouches[0], dx = t.screenX - swipe.x, dy = t.screenY - swipe.y;
+  swipe = null;
+  if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) / 2) return;  // clearly sideways, not a scroll or a tap
+  if (document.body.classList.contains('home')) {
+    if (dx < 0 && lastList && (lastList !== 'essentials' || picks.size)) { filter = lastList; renderFilters(); renderItems(); enterList(); }
+  } else if (dx > 0) leaveList();
+  else { const i = lastClosed && items.find(x => x.url === lastClosed); if (i) openReader(i); }
 }, { passive: true });
 $('reader-close').onclick = dismiss;
 $('reader-backdrop').onclick = dismiss;

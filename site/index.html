@@ -73,6 +73,16 @@
   [data-theme="dark"] .only-light, [data-theme="light"] .only-dark { display: none; }
   .theme-switching *, .theme-switching *::before, .theme-switching *::after { transition: none !important; }
   ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .35s; animation-timing-function: ease; }
+  /* Phones' pages slide (app.js slide()): a list in from the right over the topics, which ease left; back, the reverse. */
+  [data-slide]::view-transition-old(root), [data-slide]::view-transition-new(root) { animation-duration: .28s; animation-timing-function: cubic-bezier(.25, .6, .25, 1); animation-fill-mode: both; mix-blend-mode: normal; }
+  [data-slide="in"]::view-transition-old(root) { animation-name: page-aside; }
+  [data-slide="in"]::view-transition-new(root) { animation-name: page-in; }
+  [data-slide="out"]::view-transition-old(root) { z-index: 1; animation-name: page-out; }
+  [data-slide="out"]::view-transition-new(root) { animation-name: page-back; }
+  @keyframes page-in { from { transform: translateX(100%); } }
+  @keyframes page-out { to { transform: translateX(100%); } }
+  @keyframes page-aside { to { transform: translateX(-25%); } }
+  @keyframes page-back { from { transform: translateX(-25%); } }
   html { scrollbar-gutter: stable; scroll-padding-top: 64px; }  /* the reader locks scrolling; keep the scrollbar's space so nothing shifts */
   * { -webkit-tap-highlight-color: transparent; }  /* Android paints it above the reader that opens on tap */
   body { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
@@ -303,6 +313,7 @@
     .back-to-top { right: auto; left: 612px; }  /* inside the list, not over the article */
     body:has(#stale:not([hidden])) .back-to-top { bottom: 44px; }  /* clear of the stale band at the list's foot */
     #reader-theme { display: none; }  /* the menu beside it has the theme switch */
+    body:not(.reading) .reader-bar { border-bottom-color: transparent; }  /* nothing open: no bar to mark off */
   }
   .reader-bar { display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 12px; border-bottom: 1px solid var(--border); flex: 0 0 auto; }
   .reader-spacer { flex: 1; }
