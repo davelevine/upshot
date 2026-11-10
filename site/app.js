@@ -108,7 +108,9 @@ function renderPage() {
   const ended = shown.length && limit >= shown.length;
   $('end').hidden = !ended;
   if (ended) {
-    const n = shown.length, what = filter === 'essentials' ? `essential${n === 1 ? '' : 's'}` : `${filter === 'all' ? '' : `${label(filter)} `}stor${n === 1 ? 'y' : 'ies'}`;
+    // A topic is where the stories are ("3 stories in Other"), not a word about them ("3 Other stories").
+    const n = shown.length, what = filter === 'essentials' ? `essential${n === 1 ? '' : 's'}`
+      : `stor${n === 1 ? 'y' : 'ies'}${filter === 'all' ? '' : ` in ${label(filter)}`}`;
     const days = Math.min(KEEP_DAYS, Math.ceil((Date.now() - Date.parse(items.reduce((o, i) => (i.date < o ? i.date : o), items[0].date))) / 864e5));
     const scope = q ? ` matching \u201c${q}\u201d` : filter === 'all' ? ` from the last ${days} days`
       : filter === 'essentials' && weekly?.window_start ? ` from ${weekRange(weekly)}` : '';  // the real span: a young site hasn't reached KEEP_DAYS

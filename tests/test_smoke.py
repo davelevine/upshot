@@ -307,7 +307,11 @@ def test_end_of_feed_message(browser):
             break
         pg.mouse.wheel(0, 3000)
         pg.wait_for_timeout(100)
-    assert pg.inner_text("#end-msg") == f"That\u2019s all {re.search(r'\d+', security).group()} Security stories."
+    assert pg.inner_text("#end-msg") == f"That\u2019s all {re.search(r'\d+', security).group()} stories in Security."
+    # One story reads as one: "the only story in Other".
+    pg.evaluate("() => { filter = 'other'; items = items.filter((i, n) => cat(i.category) !== 'other' || n === items.findIndex(x => cat(x.category) === 'other')); renderFilters(); renderItems(); }")
+    pg.locator("#end").wait_for()
+    assert pg.inner_text("#end-msg") == "That\u2019s the only story in Other."
     assert pg.problems == []
 
 
