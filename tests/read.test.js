@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { classify, clean, extract, feedArticle, feedReader, frameable, kvClient, linkShare, readArticle, run, tidy } from '../extract.mjs';
-import worker, { keyFor } from '../worker.js';
+import worker, { dispatchBuild, keyFor } from '../worker.js';
 
 test('frameable honours X-Frame-Options and frame-ancestors', () => {
   const h = o => new Headers(o);
@@ -344,4 +344,22 @@ test('pages get a fresh CSP nonce for Cloudflare\'s injected script; files and t
   assert.equal(await a.text(), '<p>page</p>');
   assert.equal((await get('/data.json')).headers.get('Content-Security-Policy'), CSP);
   assert.equal((await (await get('/api/read?url=x')).json()).reason, 'pending');
+});
+
+test('the cron dispatches the Build workflow on main, skips without a token, and throws on a refusal', async () => {
+  const real = globalThis.fetch, calls = [];
+  let status = 204;
+  globalThis.fetch = async (url, init) => { calls.push({ url, init }); return new Response(status === 204 ? null : 'nope', { status }); };
+  try {
+    await worker.scheduled({}, {});
+    assert.equal(calls.length, 0);
+    const env = { GITHUB_DISPATCH_TOKEN: 't0k', BUILD_REPO: 'me/upshot' };
+    await worker.scheduled({}, env);
+    assert.equal(calls[0].url, 'https://api.github.com/repos/me/upshot/actions/workflows/build.yml/dispatches');
+    assert.equal(calls[0].init.headers.Authorization, 'Bearer t0k');
+    assert.ok(calls[0].init.headers['User-Agent']);
+    assert.deepEqual(JSON.parse(calls[0].init.body), { ref: 'main' });
+    status = 401;
+    await assert.rejects(dispatchBuild(env), /401/);
+  } finally { globalThis.fetch = real; }
 });

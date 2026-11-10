@@ -4,6 +4,7 @@
 # CF_KV_NAMESPACE_ID for the reader's articles.
 name: Build
 
+# The Worker's cron (wrangler.jsonc) dispatches this on time; GitHub's own schedule, often late, is the fallback.
 on:
   schedule:
     - cron: "17 */4 * * *"
