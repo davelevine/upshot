@@ -19,7 +19,15 @@ Everything older than 90 days is pruned, so the data stays small.
 
 ## The site
 
-[`site/index.html`](../site/index.html) and [`site/app.js`](../site/app.js) are the whole front end: no framework, no build step. [`site/_headers`](../site/_headers) sets the Content-Security-Policy. [`worker.js`](../worker.js) serves the static files and answers `/api/read` for the reader; [`wrangler.jsonc`](../wrangler.jsonc) configures the Worker.
+[`site/index.html`](../site/index.html) and [`site/app.js`](../site/app.js) are the whole front end: no framework, no build step.
+
+The layout follows desktop feed readers such as Feedbin, in three widths:
+
+- **Phones (up to 640px):** one column. Search and a topic picker ("All ⌄") sit in the header, and the reader covers the list.
+- **641–1279px:** topics in a sidebar beside the list. The reader slides over the list, which is inert while it's open.
+- **1280px and up:** sidebar, list and reader side by side. The reader stays docked, and the list stays live while an article is open, so `j`/`k` and clicks move through it.
+
+The essentials are an entry in the topics, not a separate section, so no story is listed twice. [`site/_headers`](../site/_headers) sets the Content-Security-Policy. [`worker.js`](../worker.js) serves the static files and answers `/api/read` for the reader; [`wrangler.jsonc`](../wrangler.jsonc) configures the Worker.
 
 ## The reader, and what it does with your data
 
