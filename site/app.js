@@ -80,7 +80,7 @@ function renderPage() {
       ${iconHtml(i.publisher)}
       <div class="card-body">
         <div class="card-title">${highlight(i.title, q)}</div>
-        <div class="card-meta"><span class="card-src">${esc(i.publisher)}</span>${i.minutes ? `<span>· ${i.minutes} min</span>` : ''}${ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : ''}${isNew(i) ? '<span class="new">New</span>' : ''}</div>
+        <div class="card-meta"><span class="card-src">${esc(i.publisher)}</span>${ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : ''}${isNew(i) ? '<span class="new">New</span>' : ''}</div>
         ${preview ? `<div class="card-sum">${why ? '<b>What to do: </b>' : ''}${highlight(preview, q)}</div>` : ''}
       </div>
     </a>`; }).join('')}`).join('')
@@ -172,6 +172,24 @@ function markRead(url) {
   card?.classList.add('read');
   card?.querySelector('.new')?.remove();
 }
+function markUnread(url) {
+  readSet.delete(url); saveRead();
+  cardFor(url)?.classList.remove('read');
+}
+// The reader's read/unread switch, after Feedbin's: opening a story marks it read; this takes that back.
+function syncUnread() {
+  const unread = !!readerFor && !readSet.has(readerFor), label = unread ? 'Mark as read' : 'Mark as unread';
+  $('reader-unread').classList.toggle('unread', unread);
+  $('reader-unread').setAttribute('aria-label', label);
+  $('reader-unread').title = label;
+}
+function toggleRead() {
+  if (!readerFor) return;
+  if (readSet.has(readerFor)) markUnread(readerFor); else markRead(readerFor);
+  syncUnread();
+  $('status').textContent = readSet.has(readerFor) ? 'Marked as read' : 'Marked as unread';
+}
+$('reader-unread').onclick = toggleRead;
 const rememberSeen = () => { if (generatedAt) localStorage.setItem('seenUntil', generatedAt); };
 addEventListener('pagehide', rememberSeen);
 document.addEventListener('visibilitychange', () => { if (document.hidden) rememberSeen(); });
@@ -247,7 +265,7 @@ addEventListener('message', e => {  // the page's theme toggle
 });
 addEventListener('keydown', e => {  // keys pressed while the article has focus never reach the page
   const k = e.key.toLowerCase();
-  if (!e.altKey && ['escape', 'j', 'k', 'arrowleft', 'arrowright'].includes(k)) { e.preventDefault(); parent.postMessage({ tw: 'key', key: k, mod: e.metaKey || e.ctrlKey }, '*'); }
+  if (!e.altKey && ['escape', 'j', 'k', 'm', 'arrowleft', 'arrowright'].includes(k)) { e.preventDefault(); parent.postMessage({ tw: 'key', key: k, mod: e.metaKey || e.ctrlKey }, '*'); }
 });`;
 
 // The article frame can't see the page's CSS variables, so it gets both palettes, read from the page's own
@@ -270,14 +288,14 @@ function iconFor(publisher) {
 const iconHtml = publisher => { const f = iconFor(publisher); return f.has
   ? `<img class="src-icon" src="${f.src}" alt="" width="20" height="20" loading="lazy" decoding="async" data-art="${f.art}">`
   : `<span class="src-icon src-mono" aria-hidden="true">${esc(f.mono)}</span>`; };
-// Under the title, like Feedbin: when and by whom, then where from and how long.
+// Under the title, like Feedbin: when and by whom, and how long. Where it's from is in the bar above.
 function storyMeta(i, byline, minutes) {
   const [y, m, d] = i.date.split('-').map(Number);
   const when = new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   // Bylines sometimes carry their own date: "Posted on November 8, 2026 by audra", "By Ada | Tuesday, October 27, 2026".
   let by = (byline || '').replace(/\s+/g, ' ').replace(/\s*\|.*$/, '').replace(/^(posted|published|updated)\b.*?\bby\s+/i, '').replace(/^by\s+/i, '').trim();
   if (/\b\d{4}\b/.test(by) && !Number.isNaN(Date.parse(by))) by = '';  // nothing left but a date
-  return `<div class="meta">${esc(when)}${by ? ` by ${esc(by)}` : ''}<br>${esc(i.publisher)}${minutes ? ` · ${minutes} min read` : ''}</div>`;
+  return `<div class="meta">${esc(when)}${by ? ` by ${esc(by)}` : ''}${minutes ? ` · ${minutes} min read` : ''}</div>`;
 }
 // The upshot (written and checked by the build) with, for weekly essentials, the hand-picked "What to do" as its last line.
 function summaryBox(tldr, why) {
@@ -317,7 +335,7 @@ hr { border: 0; border-top: 1px solid var(--border); }
 .status { color: var(--text-muted); font: .9375rem/1.5 Inter, system-ui, sans-serif; }
 .pill { display: inline-block; padding: 10px 18px; border: 1px solid var(--accent); border-radius: 999px; font: 600 .9375rem/1.4 Inter, system-ui, sans-serif; text-decoration: none; }
 @media (max-width: 600px) { main { padding: 24px 18px 80px; } .pill { padding: 12px 18px; } }
-</style><script nonce="${nonce}">${SWIPE_REPORTER}<\/script></head><body><main><h1><a href="${esc(i.url)}" target="_blank" rel="noopener" title="Open the original">${esc(i.title)}</a></h1>${storyMeta(i, byline, minutes)}${summaryBox(i.tldr, why)}${html}</main></body></html>`;
+</style><script nonce="${nonce}">${SWIPE_REPORTER}<\/script></head><body><main><h1><a href="${esc(i.url)}" target="_blank" rel="noopener" title="Open the original">${esc(i.title)}</a></h1>${storyMeta(i, byline, minutes || i.minutes)}${summaryBox(i.tldr, why)}${html}</main></body></html>`;
 }
 // What we already know about a story, from data.json: shown at once, and all that's left if the article can't be fetched.
 // While loading, the body holds back a moment: most articles arrive before the panel has landed, and then just appear.
@@ -367,6 +385,7 @@ function openReader(i, { fromHash = false } = {}) {
   const fresh = !document.body.classList.contains('reading');
   readerFor = i.url;
   markRead(i.url);
+  syncUnread();
   const why = picks.get(i.url);
   const icon = iconFor(i.publisher);
   $('reader-icon').hidden = !icon.has;
@@ -374,6 +393,7 @@ function openReader(i, { fromHash = false } = {}) {
   $('reader-icon').dataset.art = icon.art;
   $('reader-mono').hidden = icon.has;
   $('reader-mono').textContent = icon.mono;
+  $('reader-source').textContent = i.publisher;
   const at = shown.findIndex(x => x.url === i.url);
   $('reader-prev').disabled = at <= 0;
   $('reader-next').disabled = at < 0 || at >= shown.length - 1;
@@ -546,6 +566,7 @@ function onKey(key, mod, e) {
   if (mod || e?.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;
   if (key === '?') { e?.preventDefault(); $('keys').showModal(); }
   else if (key === '/' && !reading) { e?.preventDefault(); openPalette(); }
+  else if (key === 'm' && reading) { e?.preventDefault(); toggleRead(); }
   else if (key === 'j' || key === 'arrowright') { e?.preventDefault(); step(1); }
   else if (key === 'k' || key === 'arrowleft') { e?.preventDefault(); step(-1); }
 }

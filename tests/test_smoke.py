@@ -311,7 +311,8 @@ def test_reader_shows_the_story_before_the_fetch_finishes(browser):
     frame.locator(".meta", has_text="3 min read").wait_for()
     frame.locator(".status").wait_for(state="detached")
     meta = frame.locator(".meta").inner_text()
-    assert "by Ada Lovelace" in meta and "By By" not in meta  # Feedbin-style: date by author, then publisher and minutes
+    assert "by Ada Lovelace" in meta and "By By" not in meta  # Feedbin-style: date by author, then minutes
+    assert "\n" not in meta and pg.evaluate("readerFor && items.find(i => i.url === readerFor).publisher") == pg.inner_text("#reader-source")  # the source sits in the bar
     assert frame.locator("h1").evaluate("e => getComputedStyle(e).fontFamily").startswith("Inter")
     assert frame.locator("h1").inner_text() == title and frame.locator(".todo").count() == 1
 
@@ -1025,4 +1026,24 @@ def test_resizing_to_a_wide_screen_frees_the_list(browser):
     assert pg.locator("#reader-backdrop").is_hidden()
     pg.set_viewport_size({"width": 1024, "height": 800})
     pg.wait_for_function("() => document.getElementById('items').inert")
+    assert pg.problems == []
+
+
+def test_the_reader_marks_a_story_unread_and_read_again(browser):
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    card = pg.locator("a.card").nth(1)
+    url = card.get_attribute("href")
+    assert card.locator(".card-meta").inner_text().count("min") == 0  # reading time lives in the reader now
+    card.click()
+    frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+    frame.locator(".meta", has_text="min read").wait_for()
+    btn = pg.locator("#reader-unread")
+    assert "read" in card.get_attribute("class").split() and btn.get_attribute("aria-label") == "Mark as unread"
+    btn.click()
+    assert "read" not in card.get_attribute("class").split() and btn.get_attribute("aria-label") == "Mark as read"
+    assert not pg.evaluate("u => readSet.has(u)", url) and pg.inner_text("#status") == "Marked as unread"
+    pg.keyboard.press("m")  # the shortcut toggles it back
+    assert "read" in card.get_attribute("class").split() and pg.evaluate("u => readSet.has(u)", url)
+    # Docked under the header, the reader doesn't repeat the header's theme switch.
+    assert pg.locator("#reader-theme").is_hidden() and pg.locator("#theme").is_visible()
     assert pg.problems == []

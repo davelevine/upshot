@@ -300,9 +300,13 @@
     body:not(.reading) .reader-bar > :not(.reader-spacer) { visibility: hidden; }  /* nothing open: no controls for it */
     body:not(.reading) .reader-nav { display: none; }
     .back-to-top { right: auto; left: 612px; }  /* inside the list, not over the article */
+    #reader-theme { display: none; }  /* the header's switch sits right above it */
   }
   .reader-bar { display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 12px; border-bottom: 1px solid var(--border); flex: 0 0 auto; }
   .reader-spacer { flex: 1; }
+  .reader-source { min-width: 0; overflow: hidden; color: var(--text); font-size: .9375rem; white-space: nowrap; text-overflow: ellipsis; }  /* who it's from, beside the icon, as in Feedbin */
+  #reader-unread.unread svg { fill: currentColor; }  /* a filled dot while it's unread, as in Feedbin */
+  #reader-unread.unread { color: var(--accent); }
   .text-size[aria-expanded="true"] { background: var(--bg-card-hover); color: var(--text); }
   /* Text size: four A's in growing sizes, the current one marked. */
   .size-wrap { position: relative; }
@@ -380,8 +384,9 @@
 <div class="reader" id="reader" tabindex="-1" role="dialog" aria-modal="true" aria-label="Reader" aria-hidden="true">
   <div class="reader-bar">
     <button class="icon-btn" id="reader-close" type="button" aria-label="Close reader"><svg class="close-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg><svg class="close-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
-    <img class="src-icon reader-icon" id="reader-icon" alt="" width="22" height="22" hidden><span class="src-icon src-mono reader-icon" id="reader-mono" aria-hidden="true" hidden></span>
+    <img class="src-icon reader-icon" id="reader-icon" alt="" width="22" height="22" hidden><span class="src-icon src-mono reader-icon" id="reader-mono" aria-hidden="true" hidden></span><span class="reader-source" id="reader-source"></span>
     <span class="reader-spacer"></span>
+    <button class="icon-btn" id="reader-unread" type="button" title="Mark as unread" aria-label="Mark as unread"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/></svg></button>
     <span class="send-done" id="send-done" hidden>Copied</span>
     <span class="size-wrap">
       <button class="icon-btn text-size" id="reader-size" type="button" title="Text size" aria-label="Text size" aria-expanded="false" aria-controls="size-pop"><svg viewBox="0 0 24 24"><path d="M2 19 8 5l6 14M4.4 14h7.2M14.5 19l4-9.5 4 9.5M15.8 16h5.4"/></svg></button>
@@ -426,6 +431,7 @@
     <dt><kbd>j</kbd> / <kbd>→</kbd></dt><dd>Next article, in the feed or the reader</dd>
     <dt><kbd>k</kbd> / <kbd>←</kbd></dt><dd>Previous article</dd>
     <dt><kbd>Enter</kbd></dt><dd>Open the focused article</dd>
+    <dt><kbd>m</kbd></dt><dd>Mark the open article read or unread</dd>
     <dt><kbd>⌘K</kbd> / <kbd>Ctrl K</kbd> / <kbd>/</kbd></dt><dd>Search every article</dd>
     <dt><kbd>Esc</kbd></dt><dd>Close the reader, search or this list</dd>
     <dt><kbd>?</kbd></dt><dd>Show this list</dd>
