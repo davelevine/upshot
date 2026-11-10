@@ -817,7 +817,9 @@ def test_palette_lists_every_match(browser):
     total = pg.evaluate("fetch('/data.json').then(r => r.json()).then(d => d.items.length)")
     pg.keyboard.press("/")
     pg.locator("#palette").wait_for()
-    assert pg.locator("#palette-list li[data-n]").count() == total  # nothing typed: all of them
+    # Nothing typed, nothing read yet: the newest five, not the whole feed again.
+    assert pg.inner_text(".palette-head") == "LATEST" and pg.locator("#palette-list li[data-n]").count() == 5 < total
+    assert pg.locator("#palette-list .p-title").first.inner_text() == pg.evaluate("items[0].title")
     word = pg.evaluate("fetch('/data.json').then(r => r.json()).then(d => d.items.filter(i => i.category === 'ai').length)")
     pg.keyboard.type("a")  # a broad query, matching well over the old cap of 30
     shown = pg.locator("#palette-list li[data-n]").count()
@@ -958,4 +960,30 @@ def test_essentials_say_which_days_and_updated_sits_on_the_feed(browser):
     assert pg.locator(".weekly-header #updated").count() == 0 and pg.locator(".date-label").first.locator("#updated").count() == 1
     pg.locator(".filter-btn", has_text="Security").click()  # a redraw keeps it filled in
     assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".date-label #updated"))
+    assert pg.problems == []
+
+
+def test_palette_opens_on_what_you_read_last(browser):
+    pg = open_site(browser, viewport={"width": 1300, "height": 900})
+    titles = pg.evaluate("items.slice(2, 5).map(i => i.title)")
+    for n in (2, 3, 4):  # read three stories, oldest first
+        pg.evaluate("n => openReader(items[n])", n)
+        pg.wait_for_selector("#reader-body iframe:not(.loading)")
+        pg.keyboard.press("Escape")
+        wait_until_closed(pg)
+    pg.keyboard.press("/")
+    pg.locator("#palette").wait_for()
+    assert pg.inner_text(".palette-head") == "RECENTLY READ"
+    assert pg.locator("#palette-list .p-title").all_inner_texts() == titles[::-1]  # most recent first
+    pg.keyboard.press("Escape")
+    pg.evaluate("openReader(items[2])")  # reading one again moves it to the top
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.keyboard.press("Escape")
+    wait_until_closed(pg)
+    pg.keyboard.press("/")
+    pg.locator("#palette").wait_for()
+    assert pg.locator("#palette-list .p-title").first.inner_text() == titles[0]
+    pg.keyboard.press("Enter")  # the first entry is selected, so Enter opens it
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    assert pg.evaluate("readerFor") == pg.evaluate("items[2].url")
     assert pg.problems == []
