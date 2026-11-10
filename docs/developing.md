@@ -18,14 +18,6 @@ node --test 'tests/*.test.js'
 npx wrangler dev --port 8788
 ```
 
-The site's fonts are licensed and live in R2, so locally they fall back to system fonts. To fill the local bucket with stand-ins, as CI does, run once:
-
-```bash
-for k in UntitledSansWeb-{Regular,Medium,Bold}.woff UntitledSerifWeb-{Regular,RegularItalic,Medium,Bold,BoldItalic}.woff2; do
-  npx wrangler r2 object put "levine/uploads/fonts/untitled/$k" --file fonts/InterVariable.woff2 --local
-done
-```
-
 ## The browser smoke test
 
 With `npx wrangler dev --port 8788` running:
@@ -48,7 +40,7 @@ It loads the site in Chromium under its real CSP and checks the feed, reader, se
 | Workflow | Function | PR | Manual | Scheduled | Details |
 | -------- | -------- | :-: | :----: | :-------: | ------- |
 | [Build](../.github/workflows/build.yml) | Fetch, score, publish | ✓ | ✓ | ✓ | Every 4 hours at :17 UTC. On PRs it runs the Python and JavaScript tests only. Manual runs take an optional `backfill_days`. |
-| [Build › smoke](../.github/workflows/build.yml) | Browser smoke test | ✓ | | | The test above, against `wrangler dev` in the workflow, with stand-in fonts. |
+| [Build › smoke](../.github/workflows/build.yml) | Browser smoke test | ✓ | | | The test above, against `wrangler dev` in the workflow. |
 
 Cloudflare Workers Builds deploys every push to `main` with `npx wrangler deploy`, including the bot's data commits, and builds a Preview for every other branch with its URL posted on the PR.
 

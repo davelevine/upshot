@@ -16,8 +16,7 @@
 <meta property="og:image:alt" content="Upshot: this week’s top story and what to do about it">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="alternate" type="application/rss+xml" title="Upshot" href="/rss.xml">
-<link rel="preload" href="/fonts/untitled/UntitledSansWeb-Regular" as="font" type="font/woff" crossorigin>
-<link rel="preload" href="/fonts/untitled/UntitledSerifWeb-Medium" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/InterVariable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -25,12 +24,8 @@
 <meta name="theme-color" content="#15161e" media="(prefers-color-scheme: dark)">
 <script>document.documentElement.dataset.theme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');</script>
 <style>
-  /* Klim's Untitled Sans and Serif, licensed webfonts served by the Worker from R2 (worker.js), never committed. */
-  @font-face { font-family: "Untitled Sans"; src: url("/fonts/untitled/UntitledSansWeb-Regular") format("woff"); font-weight: 400; font-display: swap; }
-  @font-face { font-family: "Untitled Sans"; src: url("/fonts/untitled/UntitledSansWeb-Medium") format("woff"); font-weight: 500; font-display: swap; }
-  @font-face { font-family: "Untitled Sans"; src: url("/fonts/untitled/UntitledSansWeb-Bold") format("woff"); font-weight: 600 700; font-display: swap; }
-  @font-face { font-family: "Untitled Serif"; src: url("/fonts/untitled/UntitledSerifWeb-Regular") format("woff2"); font-weight: 400; font-display: swap; }
-  @font-face { font-family: "Untitled Serif"; src: url("/fonts/untitled/UntitledSerifWeb-Medium") format("woff2"); font-weight: 500; font-display: swap; }
+  /* Inter 4.1, Latin subset, so every visitor gets the same metrics and line clamps. Licence: /fonts/LICENSE-Inter.txt */
+  @font-face { font-family: Inter; src: url("/fonts/InterVariable.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
   :root, [data-theme="light"] {
     color-scheme: light;
     --bg: #e3e6ec; --bg-card: #fbfcfd; --bg-card-hover: #eceff3; --border: #dde1e8; --border-strong: #b6bdc9;
@@ -39,8 +34,7 @@
     /* Category dots: one lightness and chroma per theme, hues spread to stay apart with red-green colour blindness. Dots need 3:1, not text contrast. */
     --cat-security: #ce5978; --cat-ai: #ad65be; --cat-infrastructure: #168dd9; --cat-engineering: #409d48; --cat-regulation: #c9690c; --cat-other: #5d646f;
     /* Cards are lifted by shadow, not colour; essentials one step more than the feed. */
-    --lift: 0 1px 3px rgba(23, 26, 36, .08); --lift-more: 0 2px 6px rgba(23, 26, 36, .10); --ess-bg: var(--bg-card); --pick-border: color-mix(in srgb, var(--accent) 45%, var(--border));
-    --sans: "Untitled Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --serif: "Untitled Serif", "Iowan Old Style", Charter, Georgia, serif;
+    --lift: 0 1px 3px rgba(23, 26, 36, .08); --lift-more: 0 2px 6px rgba(23, 26, 36, .10); --ess-bg: var(--bg-card);
     --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --read: 860px;
   }
   [data-theme="dark"] {
@@ -69,7 +63,7 @@
   .popover.send-pop { left: auto; right: 0; width: auto; min-width: 180px; display: flex; flex-direction: column; padding: 6px; }
   .popover.send-pop[hidden] { display: none; }
   .send-pop > * { display: flex; align-items: center; min-height: 44px; padding: 0 12px; border: 0; border-radius: var(--radius-sm); background: none;
-    color: var(--text); font: 500 .9375rem/1.2 var(--sans); text-align: left; text-decoration: none; cursor: pointer; }
+    color: var(--text); font: 500 .9375rem/1.2 Inter, system-ui, sans-serif; text-align: left; text-decoration: none; cursor: pointer; }
   .send-pop > *:hover { background: var(--bg-card-hover); }
   .send-pop > * { gap: 12px; }
   .send-ico { flex: none; width: 18px; height: 18px; color: var(--text-muted); }
@@ -84,7 +78,7 @@
   ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .35s; animation-timing-function: ease; }
   html { scrollbar-gutter: stable; scroll-padding-top: 170px; }  /* the reader locks scrolling; keep the scrollbar's space so nothing shifts */
   * { -webkit-tap-highlight-color: transparent; }  /* Android paints it above the reader that opens on tap */
-  body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; }
+  body { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
   a { color: inherit; text-decoration: none; }
   button { font: inherit; }
   svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -119,7 +113,7 @@
   #search::placeholder { color: var(--text-muted); }
   #search::-webkit-search-cancel-button { display: none; }
   #search { cursor: pointer; }  /* opens the search palette, like ⌘K */
-  kbd { padding: 3px 6px; border: 1px solid var(--border-strong); border-bottom-width: 2px; border-radius: 5px; background: var(--bg); color: var(--text-muted); font: 600 .7rem/1 var(--sans); white-space: nowrap; }
+  kbd { padding: 3px 6px; border: 1px solid var(--border-strong); border-bottom-width: 2px; border-radius: 5px; background: var(--bg); color: var(--text-muted); font: 600 .7rem/1 Inter, system-ui, sans-serif; white-space: nowrap; }
   .search-kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; }
   .palette::backdrop { background: rgba(0, 0, 0, .5); }
   .palette { position: fixed; inset: 12vh auto auto 50%; transform: translateX(-50%); width: min(640px, calc(100vw - 24px)); max-width: none; max-height: 70vh; margin: 0; padding: 0; flex-direction: column;
@@ -133,13 +127,13 @@
   .palette-list li { display: flex; align-items: flex-start; gap: 10px; padding: 9px 10px; border-radius: var(--radius-sm); cursor: pointer; }
   .palette-list li[aria-selected="true"] { background: var(--accent-soft); }
   .palette-list .dot { margin-top: 6px; }
-  .p-title { font: 500 .975rem/1.35 var(--serif); }
+  .p-title { font-size: .9rem; font-weight: 600; line-height: 1.35; }
   .p-meta { margin-top: 2px; color: var(--text-muted); font-size: .75rem; }
   .palette-list .palette-head { display: block; min-height: 0; padding: 6px 10px 4px; color: var(--text-muted); font-size: .8125rem; font-weight: 700; cursor: default; }
   .palette-list .palette-empty { justify-content: center; padding: 22px; color: var(--text-muted); font-size: .875rem; cursor: default; }
   .palette-foot { display: flex; gap: 16px; padding: 8px 14px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: .72rem; }
   .palette-foot kbd { margin-right: 3px; }
-  .palette-close { flex: none; padding: 0; border: 0; background: none; color: var(--accent); font: 500 1rem var(--sans); cursor: pointer; }
+  .palette-close { flex: none; padding: 0; border: 0; background: none; color: var(--accent); font: 500 1rem Inter, system-ui, sans-serif; cursor: pointer; }
   .palette-close svg { display: none; }
   /* A row on wide screens; a popover behind the filter button on phones. */
   .filters { position: static; display: flex; gap: 8px; width: auto; height: auto; padding: 14px 0 0; border: 0; background: none; color: inherit; min-height: 48px;  /* the chips arrive with the data; hold their row */ overflow-x: auto; scrollbar-width: none; }
@@ -168,13 +162,13 @@
   .rail { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 1px; scroll-behavior: smooth; padding: 1px 1px 4px; scrollbar-width: none; }
   .rail::-webkit-scrollbar, .filters::-webkit-scrollbar { display: none; }
   .weekly-card { flex: 0 0 calc((100% - 20px) / 3); min-width: 220px; min-height: 8.3125rem;  /* fits a 4-line title, so loading never shifts the page */ scroll-snap-align: start; display: flex; align-items: flex-start; gap: 10px; padding: 12px;
-    background: var(--ess-bg); border: 1px solid var(--pick-border); border-radius: var(--radius-md); box-shadow: var(--lift-more); transition: border-color .15s ease; }  /* the upshot box's accent hairline: Upshot's picks */
+    background: var(--ess-bg); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: inset 3px 0 0 var(--accent), var(--lift-more); transition: border-color .15s ease; }  /* the teal rule: Upshot's picks */
   .weekly-card .dot { width: 9px; height: 9px; margin-top: 6px; }  /* as on the feed cards */
   .weekly-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
   .weekly-meta { display: flex; gap: 4px; min-width: 0; color: var(--text-muted); font-size: .8125rem; white-space: nowrap; }
   .weekly-meta > :last-child { flex: none; }
   .weekly-source { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-  .weekly-card-title { font: 500 1.0625rem/1.22 var(--serif); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;}
+  .weekly-card-title { font-size: 1rem; line-height: 1.3; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;}
 
   .items { max-width: var(--read); margin: 0 auto; padding: 14px 24px 48px; display: flex; flex-direction: column; gap: 7px; }
   .date-label { display: flex; align-items: baseline; gap: 6px; margin: 6px 0 1px; padding: 8px 0 6px; border-bottom: 1px solid var(--border);
@@ -184,7 +178,7 @@
     background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--lift); transition: border-color .15s ease; }
   .card .dot { width: 9px; height: 9px; margin-top: 6px; }
   .card-body { flex: 1; min-width: 0; }
-  .card-title { margin-bottom: 4px; font: 500 1.0625rem/1.35 var(--serif); }
+  .card-title { margin-bottom: 4px; font-size: 1rem; font-weight: 600; line-height: 1.4; }
   .card-meta { display: flex; align-items: center; gap: 8px; min-width: 0; color: var(--text-muted); font-size: .8125rem; }
   .card-cat { flex: 0 0 auto; }
   .card-url { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -196,7 +190,7 @@
   .back-to-top { transition: background-color .15s ease, color .15s ease; }
   .back-to-top:active { background: var(--accent); color: var(--accent-contrast); }
   @media (hover: hover) { .back-to-top:hover { background: var(--accent); color: var(--accent-contrast); } }  /* fills in, rather than moving */
-  .card.read .card-title { color: var(--text-muted); font-weight: 400; }
+  .card.read .card-title { color: var(--text-muted); font-weight: 500; }
   .new { flex: 0 0 auto; padding: 1px 7px; border-radius: 999px; background: var(--accent); color: var(--accent-contrast); font-size: .75rem; font-weight: 700; }
   .skeleton { pointer-events: none; }
   .skeleton .bone { display: block; height: .8em; border-radius: 6px; background: var(--border); animation: pulse 1.4s ease-in-out infinite; }
@@ -317,13 +311,13 @@
   .size-pop { left: auto; right: 0; width: auto; display: flex; gap: 4px; padding: 6px; }
   .size-pop[hidden] { display: none; }
   .size-pop button { display: grid; place-items: end center; width: 44px; height: 44px; padding-bottom: 11px; border: 1px solid transparent; border-radius: var(--radius-sm);
-    background: none; color: var(--text-muted); font-family: var(--sans); font-weight: 600; line-height: 1; cursor: pointer; }
+    background: none; color: var(--text-muted); font-family: Inter, system-ui, sans-serif; font-weight: 600; line-height: 1; cursor: pointer; }
   .size-pop button:hover { background: var(--bg-card-hover); color: var(--text); }
   .size-pop button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
   .size-pop [data-size="0"] { font-size: 13px; } .size-pop [data-size="1"] { font-size: 16px; } .size-pop [data-size="2"] { font-size: 20px; } .size-pop [data-size="3"] { font-size: 24px; }
   .reader-icon { flex: none; width: 22px; height: 22px; border-radius: 5px; }
   /* Single-colour artwork on transparency would vanish against a background of its own tone, so it's inverted there. */
-  .reader-mono { display: grid; place-items: center; background: var(--bg-card); box-shadow: inset 0 0 0 1px var(--border-strong); color: var(--text-muted); font: 700 .75rem/1 var(--sans); }
+  .reader-mono { display: grid; place-items: center; background: var(--bg-card); box-shadow: inset 0 0 0 1px var(--border-strong); color: var(--text-muted); font: 700 .75rem/1 Inter, system-ui, sans-serif; }
   [data-theme="dark"] .reader-icon[data-art="dark"], [data-theme="light"] .reader-icon[data-art="light"] { filter: invert(1); }
   #reader:focus { outline: none; }  /* focused on a tap open, so no ring appears on the close button */
   .close-back, .reader-nav { display: none; }

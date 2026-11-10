@@ -79,4 +79,3 @@ This project was built using AI-assisted development with [Claude](https://claud
 - [watch.edebost.com](https://watch.edebost.com/) — the inspiration, design language and palette
 - [Mozilla Readability](https://github.com/mozilla/readability) and [linkedom](https://github.com/WebReflection/linkedom) — article extraction
 - [feedparser](https://github.com/kurtmckee/feedparser) — making sense of every feed format there is
-- [Klim Type Foundry](https://klim.co.nz/) — Untitled Serif and Untitled Sans, licensed for this site only

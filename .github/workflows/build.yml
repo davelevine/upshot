@@ -113,8 +113,6 @@ jobs:
           cache: pip
       - run: npm ci
       - run: pip install pytest playwright==1.64.1 axe-playwright-python==0.1.8  # no browser download: the tests use the runner's Chrome
-      - name: Stand in for the fonts  # the licensed ones never leave R2; Inter under their names still exercises the Worker's route
-        run: for k in UntitledSansWeb-{Regular,Medium,Bold}.woff UntitledSerifWeb-{Regular,RegularItalic,Medium,Bold,BoldItalic}.woff2; do npx wrangler r2 object put "levine/uploads/fonts/untitled/$k" --file fonts/InterVariable.woff2 --local; done
       - name: Start the site
         run: |
           npx wrangler dev --port 8788 --ip 127.0.0.1 > wrangler.log 2>&1 &  # wrangler.jsonc: the Worker and site/, as deployed

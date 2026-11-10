@@ -36,9 +36,7 @@ Each build extracts new stories with Mozilla's [Readability](https://github.com/
 
 ## The Worker
 
-[`wrangler.jsonc`](../wrangler.jsonc) holds the Worker's config: static assets from `site/` with `404.html` for unknown paths; code runs only for `/api/read`, the fonts, and pages, which get a per-request CSP nonce so Cloudflare's Bot Fight Mode script can run; the `ARTICLES` KV binding; the custom domain; preview URLs for PRs; and Workers Logs, which keep a few days of the Worker's requests and errors.
-
-The site is set in Klim's Untitled Serif (headlines and articles) and Untitled Sans (everything else). They're licensed webfonts, so they live in a private R2 bucket, the `FONTS` binding, and never in this repository. The Worker serves only an allow-listed few, at extension-less URLs under `/fonts/untitled/`, and grants cross-origin access only to the reader's frame, so other sites can't hotlink them. Without the bucket, the site falls back to system fonts. The link-preview image is drawn with Inter, which is open source and kept in [`fonts/`](../fonts) for the build.
+[`wrangler.jsonc`](../wrangler.jsonc) holds the Worker's config: static assets from `site/` with `404.html` for unknown paths; code runs only for `/api/read` and for pages, which get a per-request CSP nonce so Cloudflare's Bot Fight Mode script can run; the `ARTICLES` KV binding; the custom domain; preview URLs for PRs; and Workers Logs, which keep a few days of the Worker's requests and errors.
 
 Cloudflare Workers Builds deploys every push to `main` with `npx wrangler deploy`, including the bot's data commits, and builds a Preview for every other branch with its URL posted on the PR.
 

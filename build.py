@@ -284,7 +284,7 @@ OG = {"w": 1200, "h": 630, "pad": 72, "bg": "#15161e", "text": "#eceff4", "muted
 
 
 def og_font(size, weight, opsz=14):
-    font = ImageFont.truetype(str(ROOT / "fonts" / "InterVariable.woff2"), size)
+    font = ImageFont.truetype(str(SITE / "fonts" / "InterVariable.woff2"), size)
     font.set_variation_by_axes([opsz, weight])
     return font
 

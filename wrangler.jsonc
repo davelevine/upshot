@@ -8,14 +8,12 @@
     "directory": "site",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
-    // Code runs for the reader, the fonts and pages (paths without a dot); pages get a per-request CSP nonce. Files
-    // (data.json, app.js, icons) are free static assets.
+    // Code runs for the reader and for pages (paths without a dot), which get a per-request CSP nonce. Files
+    // (data.json, app.js, icons, fonts) are free static assets.
     "run_worker_first": ["/*", "!/*.*"]
   },
   // The reader's stored articles. The Worker only reads them, so Previews safely share the namespace.
   "kv_namespaces": [{ "binding": "ARTICLES", "id": "1bba8ed2e55040b1b00a7f32be0ea5d3" }],
-  // Licensed webfonts (worker.js serves an allow-listed few). Read-only use, so Previews share the bucket too.
-  "r2_buckets": [{ "binding": "FONTS", "bucket_name": "levine" }],
   "routes": [{ "pattern": "upshot.levine.io", "custom_domain": true }],
   // Explicit, because with routes set both default to off: the site lives only on its domain, while PR branch builds
   // still get a preview URL on workers.dev.
@@ -24,7 +22,6 @@
   // Workers Logs: a few days of the Worker's requests and errors, for debugging after the fact. Free-tier allowance.
   "observability": { "enabled": true },
   "previews": {
-    "kv_namespaces": [{ "binding": "ARTICLES", "id": "1bba8ed2e55040b1b00a7f32be0ea5d3" }],
-    "r2_buckets": [{ "binding": "FONTS", "bucket_name": "levine" }]
+    "kv_namespaces": [{ "binding": "ARTICLES", "id": "1bba8ed2e55040b1b00a7f32be0ea5d3" }]
   }
 }
