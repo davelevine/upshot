@@ -295,7 +295,7 @@ def test_end_of_feed_message(browser):
         pg.mouse.wheel(0, 3000)
         pg.wait_for_timeout(100)
     assert re.fullmatch(r"That\u2019s all \d+ stories from the last \d+ days\.", pg.inner_text("#end-msg"))
-    assert end.locator("a[href='/rss.xml']").count() == 1 and end.locator("a[href*='github.com']").count() == 1
+    assert end.locator("a, button").count() == 0  # just the line: RSS and GitHub live in the menu
     # It respects what's on screen.
     pg.evaluate("scroller().scrollTo({top:0,behavior:'instant'})")
     pg.click("#filters .filter-btn[data-f='security']")
@@ -311,7 +311,7 @@ def test_end_of_feed_message(browser):
     assert pg.problems == []
 
 
-def test_back_to_top_never_covers_the_end_links(browser):
+def test_back_to_top_never_covers_the_end_message(browser):
     pg = open_site(browser, viewport={"width": 412, "height": 520}, has_touch=True, is_mobile=True)
     for _ in range(300):  # until the feed runs out, not a fixed count: a busy machine loads pages more slowly
         pg.evaluate("window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'instant'})")
@@ -321,8 +321,8 @@ def test_back_to_top_never_covers_the_end_links(browser):
     pg.evaluate("window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'instant'})")
     pg.locator("#top").wait_for()
     overlap = """() => { const t = document.getElementById('top').getBoundingClientRect();
-        return [...document.querySelectorAll('#end a')].map(a => a.getBoundingClientRect())
-            .some(r => r.left < t.right && r.right > t.left && r.top < t.bottom && r.bottom > t.top); }"""
+        const r = document.getElementById('end-msg').getBoundingClientRect();
+        return r.left < t.right && r.right > t.left && r.top < t.bottom && r.bottom > t.top; }"""
     assert pg.evaluate("!document.getElementById('end').hidden") and not pg.evaluate(overlap)
 
 
@@ -588,7 +588,7 @@ def test_reader_bar_after_feedbin(browser):
     assert pg.evaluate("document.activeElement.id") == "reader"
     assert pg.locator(".close-back").is_visible() and not pg.locator(".close-x").is_visible()
     assert pg.locator("#reader-original").count() == 0  # the title already links to the article
-    assert pg.locator("#reader-icon").is_visible()
+    assert pg.locator("#reader-icon").is_visible() and pg.locator("#reader-source").is_hidden()  # on a phone the icon alone says who
     # Previous is off at the first story; next moves on, and back again.
     assert pg.locator("#reader-prev").is_disabled()
     before = pg.evaluate("location.pathname")
