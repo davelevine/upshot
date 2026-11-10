@@ -206,19 +206,28 @@ def stale_site(browser, hours, **context):
     return pg
 
 
-def test_stale_band_appears_after_twelve_hours(browser):
-    pg = stale_site(browser, 11, viewport={"width": 1300, "height": 900})
+def test_late_bar_appears_once_a_build_is_late_and_can_check_again(browser):
+    pg = stale_site(browser, 4.5, viewport={"width": 1300, "height": 900})  # due, but GitHub runs schedules late
     assert pg.locator("#stale").is_hidden() and pg.locator("#updated").is_visible()
-    pg = stale_site(browser, 14, viewport={"width": 1300, "height": 900})
-    assert pg.locator("#stale").inner_text() == "Last updated 14h ago · the build may be stalled"
-    assert pg.get_attribute("#stale", "href").endswith("/actions/workflows/build.yml")
-    assert pg.locator("#updated").is_hidden()  # one slot, two states
+    pg = stale_site(browser, 6, viewport={"width": 1440, "height": 900})
+    bar, col = pg.locator("#stale").bounding_box(), pg.locator("#col").bounding_box()
+    assert pg.inner_text("#stale-msg") == "Last updated 6h ago" and pg.locator("#updated").is_hidden()  # one slot, two states
+    assert bar["y"] + bar["height"] == 900 and bar["x"] == col["x"] and bar["width"] <= col["width"]  # at the list's foot
+    fetches = []
+    pg.on("request", lambda r: fetches.append(r.url) if "/data.json" in r.url else None)
+    pg.click("#stale-check")
+    pg.locator("#stale-msg", has_text="No new stories yet").wait_for()  # it looked, now, and says so
+    assert fetches and pg.inner_text("#status") == "No new stories yet"
+    pg.locator("#stale-msg", has_text="Last updated").wait_for()
+    assert pg.problems == [] if hasattr(pg, "problems") else True
 
 
-def test_stale_band_sits_under_the_header_on_a_phone(browser):
-    pg = stale_site(browser, 14, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
+def test_late_bar_is_a_bottom_bar_on_a_phone(browser):
+    pg = stale_site(browser, 6, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
     assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
-    assert pg.evaluate("Math.round(document.getElementById('stale').getBoundingClientRect().top) === Math.round(document.querySelector('header').getBoundingClientRect().bottom)")
+    bar = pg.locator("#stale").bounding_box()
+    assert bar["x"] == 0 and bar["width"] == 320 and bar["y"] + bar["height"] == 700
+    assert pg.locator("#stale-check").bounding_box()["height"] >= 44
 
 
 def test_each_story_says_how_long_ago_it_was_published(browser):

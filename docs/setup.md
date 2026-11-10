@@ -28,7 +28,7 @@ Everything runs on the free tiers of GitHub Actions and Cloudflare Workers. The 
 
 5. **Tell the build where the site lives.** Under **Settings → Secrets and variables → Actions → Variables**, add `SITE_URL` with your site's address, for example `https://news.example.com`. The build uses it for the RSS feed's links and to look up reading times through the site's reader.
 
-6. **Make it yours.** Point the GitHub links, the stale-build link and the `og:url` tag in `site/index.html` at your fork and site. Change the README badges. Edit [`feeds.opml`](../feeds.opml) (see [Adding a feed](#adding-a-feed)). Adjust the bars in [`build.py`](../build.py) if you want more or fewer stories (see [Configuration](#configuration)).
+6. **Make it yours.** Point the GitHub links and the `og:url` tag in `site/index.html` at your fork and site. Change the README badges. Edit [`feeds.opml`](../feeds.opml) (see [Adding a feed](#adding-a-feed)). Adjust the bars in [`build.py`](../build.py) if you want more or fewer stories (see [Configuration](#configuration)).
 
 7. **Run the first build.** Under **Actions → Build → Run workflow**, start it on `main`. Set `backfill_days` to `30` to fill in the last month; a backfill only reaches as far back as each feed still lists. Cloudflare deploys the result a minute after the build commits.
 

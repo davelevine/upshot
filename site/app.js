@@ -6,7 +6,7 @@ const OLD = { architecture: 'infrastructure', sdlc: 'engineering' };  // renamed
 const cat = c => (OLD[c] || (c in CATS ? c : 'other'));
 const domain = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
 const PAGE = 40;
-const STALE_MINUTES = 12 * 60;  // three missed builds
+const STALE_MINUTES = 5 * 60;  // builds land every 4h, give or take GitHub's scheduling: this is one running 45+ minutes late
 const KEEP_DAYS = 90;  // build.py prunes older stories
 // Wide screens dock the reader beside the list, as Feedbin does, and the list scrolls on its own; elsewhere the window scrolls it.
 const docked = matchMedia('(min-width: 1280px)');
@@ -252,9 +252,20 @@ function showUpdated() {
     : mins < 48 * 60 ? `${Math.floor(mins / 60)}h ago` : `${Math.floor(mins / 1440)}d ago`;
   el.innerHTML = `<span>Updated </span>${ago}`;
   $('stale').hidden = mins < STALE_MINUTES;
-  el.hidden = !$('stale').hidden;  // one slot, two states: the band says the same thing, louder
-  $('stale').textContent = `Last updated ${ago} · the build may be stalled`;
+  el.hidden = !$('stale').hidden;  // one slot, two states: the bar says the same thing, where it can be acted on
+  if (!checking) $('stale-msg').textContent = `Last updated ${ago}`;
 }
+// The late bar's one action: look for a new build now, rather than at the next 15-minute check.
+let checking = false;
+$('stale-check').onclick = async () => {
+  const b = $('stale-check'), before = generatedAt;
+  checking = true; b.disabled = true; b.textContent = 'Checking\u2026';
+  try { await load(); } catch {}
+  b.disabled = false; b.textContent = 'Check again';
+  if (generatedAt !== before) { checking = false; return showUpdated(); }  // new stories: the list redrew, and the bar goes
+  $('stale-msg').textContent = $('status').textContent = 'No new stories yet';
+  setTimeout(() => { checking = false; showUpdated(); }, 2500);
+};
 // Redraws only when a new build has landed, keeping the filter, search and loaded depth.
 function load() {
   return fetch('/data.json', { cache: 'no-cache' })  // absolute: the page is also served at /read/…

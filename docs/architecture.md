@@ -53,4 +53,4 @@ Cloudflare Workers Builds deploys every push to `main` with `npx wrangler deploy
 - A feed that has failed for two weeks, gone quiet or moved lands in a single "Feed health" issue that closes itself once it's fixed. For failing and quiet feeds it suggests any feeds the publisher's homepage advertises.
 - A run where every LLM call fails exits with an error, so GitHub emails you.
 - If Cloudflare KV is down, the stories are still published (the reader shows a fallback until a later build stores their text) and the run is marked failed after committing, so you hear about it without losing the build.
-- The site shows a notice under its header when the data is more than 12 hours old.
+- When the data is more than 5 hours old (a build due every 4 hours is running at least 45 minutes late), a bar at the foot of the list says when it last updated, with a "Check again" button that fetches the data at once. Failed runs already email the repo's owner, so the bar is for readers and doesn't link to the build.
