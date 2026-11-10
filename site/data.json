@@ -100,6 +100,38 @@
   },
   {
    "date": "2026-11-10",
+   "title": "Microsoft November 2026 Patch Tuesday fixes 1,235 flaws, Outlook zero-day",
+   "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-november-2026-patch-tuesday-fixes-1-235-flaws-outlook-zero-day/",
+   "publisher": "BleepingComputer",
+   "category": "security",
+   "summary": "Microsoft's November 2026 Patch Tuesday fixes a record 1,235 flaws, including an actively exploited Outlook zero-day.",
+   "relevance": 8,
+   "added": "2026-11-10T20:18:44+00:00",
+   "minutes": 72,
+   "tldr": [
+    "Microsoft's November 2026 Patch Tuesday fixes 1,235 flaws, including one actively exploited Microsoft Outlook zero-day.",
+    "The Outlook spoofing flaw lets attackers steal NTLM hashes when a user opens a specially crafted message file. Exploitation requires network connectivity and user interaction.",
+    "Microsoft has patched the Outlook zero-day in the November 2026 updates, so apply them."
+   ]
+  },
+  {
+   "date": "2026-11-10",
+   "title": "SGLang RCE Exploit Breaches NEAR AI, Steals Data From 18 Agents and About 100 Users",
+   "url": "https://thehackernews.com/2026/11/sglang-rce-exploit-breaches-near-ai.html",
+   "publisher": "The Hacker News",
+   "category": "security",
+   "summary": "Attackers exploited a remote code execution flaw in the open-source SGLang inference engine to run code on a NEAR AI inference server, potentially exposing confidential-mode requests.",
+   "relevance": 8,
+   "added": "2026-11-10T20:18:44+00:00",
+   "minutes": 2,
+   "tldr": [
+    "An attacker exploited a remote code execution flaw in SGLang to run code on one of NEAR AI's inference servers, which also exposed requests there.",
+    "The attacker reached a deprecated Private Chat system, exposing account details for about 100 users, and 18 agents on an older NEAR AI Agents deployment outside the TEE.",
+    "NEAR AI has deployed a fix for the SGLang flaw on all inference servers, revoked sessions and credentials, and contacted affected users at security@near.ai."
+   ]
+  },
+  {
+   "date": "2026-11-10",
    "title": "Introducing AlphaProof Code: a breakthrough in verifying complex software at depth",
    "url": "https://deepmind.google/blog/introducing-alphaproof-code/",
    "publisher": "Google DeepMind",
@@ -146,6 +178,23 @@
     "The migration changed the surrounding system too: architecture, tests, review, remote machines, and coordination, so agents could work with fast feedback and clear checks.",
     "Results reported for merchants include Android launch time P50 dropping from 1.71s to 0.87s and iOS peak memory P50 falling from 730MB to 190MB.",
     "Every PR still gets human code review, and the article says humans remain the final decision makers on what ships."
+   ]
+  },
+  {
+   "date": "2026-11-10",
+   "title": "How We Built TLX: A Hardware-Native GPU Compiler for Production ML at Scale",
+   "url": "https://engineering.fb.com/2026/11/10/open-source/tlx-a-hardware-native-gpu-compiler-for-production-ml/",
+   "publisher": "Meta Engineering",
+   "category": "engineering",
+   "summary": "Meta describes TLX, a Triton extension adding explicit warp-group and cluster-level control for GPU kernels, reporting gains in RecSys and LLM pretraining workloads.",
+   "relevance": 6,
+   "added": "2026-11-10T20:18:44+00:00",
+   "minutes": 17,
+   "tldr": [
+    "Meta built TLX, a Triton extension that gives engineers explicit control over GPU warp-group and cluster execution.",
+    "TLX already runs production workloads at Meta, including GEM training at 20-25% E2E MFU on thousands of NVIDIA Blackwell GPUs.",
+    "TLX targets NVIDIA Hopper and Blackwell and AMD Mi300 and Mi350x; IKBO delivers up to a two-thirds reduction in compute-intensive net latency.",
+    "Engineers can add TLX only where explicit execution, memory, or synchronization control is needed, keeping the rest in standard Triton."
    ]
   },
   {
@@ -290,6 +339,22 @@
     "Meta launched Muse Ember, its smallest and most efficient model, for repeated agent tasks such as tool calls, coding subtasks, and extraction.",
     "It delivers more intelligence per dollar than Claude Haiku 5.5 or GPT-6 Luna, matching Haiku's best score at about a third of the cost.",
     "Available today on Muse Code and the Meta Model API as muse-ember-1.0, at $0.10 per million input and $0.50 per million output tokens."
+   ]
+  },
+  {
+   "date": "2026-11-09",
+   "title": "Gemini 4 Carbon in GitHub Copilot",
+   "url": "https://github.blog/changelog/2026-11-09-gemini-4-carbon-in-github-copilot",
+   "publisher": "GitHub Changelog",
+   "category": "ai",
+   "summary": "Google's Gemini 4 Carbon model is now generally available in GitHub Copilot, aimed at complex coding, agentic, and reasoning tasks.",
+   "relevance": 7,
+   "added": "2026-11-10T20:18:44+00:00",
+   "minutes": 1,
+   "tldr": [
+    "Gemini 4 Carbon, Google's latest model, is now generally available in GitHub Copilot.",
+    "It is available to Copilot Pro+, Max, Business, and Enterprise users, with a gradual rollout across VS Code, JetBrains IDEs, Xcode, Eclipse, and other clients.",
+    "Copilot Enterprise and Business administrators can manage access through the model policy in Copilot settings."
    ]
   },
   {
@@ -2259,7 +2324,7 @@
    }
   ]
  },
- "generated_at": "2026-11-10T16:18:55+00:00",
+ "generated_at": "2026-11-10T20:18:55+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
