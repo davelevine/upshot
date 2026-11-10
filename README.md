@@ -31,7 +31,7 @@ There's no server or database to look after. A scheduled GitHub Actions job comm
 
 ## What you get
 
-- **A calm feed.** A handful of stories on a big day and none on a slow one, grouped by day. Each shows its source's icon and a one-line summary, with topics in a sidebar and search.
+- **A calm feed.** A handful of stories on a big day and none on a slow one. Each shows its source's icon, a one-line summary and how long ago it was published, with topics in a sidebar and search.
 - **The week's essentials.** Five picks from the last seven days, each with what to do about it, under their own entry beside the topics and marked where they appear in the feed.
 - **A built-in reader.** Articles open in a clean pane that starts with the upshot: a few bullets on what happened, who's affected and what to do. On wide screens the pane sits beside the list, as in a desktop feed reader.
 - **It remembers where you were.** New stories are marked, read ones are dimmed, and none of that leaves your browser.

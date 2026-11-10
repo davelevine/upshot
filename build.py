@@ -132,6 +132,7 @@ def candidates(publisher, entries, seen, cutoff):
             "title": clean_text(e["title"], 300),
             "publisher": publisher,
             "date": when.astimezone(SITE_TZ).date().isoformat(),
+            "published": when.isoformat(timespec="seconds"),  # the page shows how long ago, as feed readers do
             "excerpt": clean_text(e.get("summary") or e.get("description")),
         })
     return sorted(out, key=lambda i: i["date"], reverse=True)[:PER_FEED]
@@ -775,7 +776,7 @@ def main():
                 continue
             kept.append((item, r))
             recent.append(item["title"])
-            data["items"].append({k: item[k] for k in ("date", "title", "url", "publisher")}
+            data["items"].append({k: item[k] for k in ("date", "published", "title", "url", "publisher")}
                                  | {"category": r["category"], "summary": r["summary"], "relevance": r["relevance"],
                                     "added": now().isoformat(timespec="seconds")})  # drives "new since last visit"
 

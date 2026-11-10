@@ -26,20 +26,31 @@ let tz, iconArt = {}, icons = new Set(), items = [], filter = 'all', shown = [],
 const label = f => (f === 'all' ? 'All' : f === 'essentials' ? 'Essentials' : CATS[f]);
 
 // Today in the site's time zone (data.json's tz), not the device's: some browsers report UTC for privacy, which
-// turned the evening's stories into "Yesterday".
+// turned the evening's stories into a day old.
 function todayIso() {
   const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' })
     .formatToParts(new Date()).map(x => [x.type, x.value]));
   return `${p.year}-${p.month}-${p.day}`;
 }
 const dayNumber = iso => Date.UTC(...iso.split('-').map((n, k) => +n - (k === 1))) / 864e5;
-function dayLabel(iso) {
-  const days = dayNumber(todayIso()) - dayNumber(iso);
-  if (days <= 0) return 'Today';
-  if (days === 1) return 'Yesterday';
-  const d = new Date(iso + 'T12:00:00Z');
-  return d.toLocaleDateString('en-US', days < 7 ? { weekday: 'long', timeZone: 'UTC' } : { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+// How long ago it was published, as Feedbin shows it: 21m, 5h, 3d, then the date. A calmer list than a count per day.
+// Stories from before the build kept the exact time only have a date: whole days, counted in the site's time zone,
+// or the time it reached the site when that was the same day.
+function age(i) {
+  let mins = (Date.now() - Date.parse(i.published || i.added)) / 60e3;
+  const days = dayNumber(todayIso()) - dayNumber(i.date);
+  if (!i.published && !(i.added && days <= 0)) mins = Math.max(0, days) * 1440;
+  if (mins < 60) return `${Math.max(1, Math.floor(mins))}m`;
+  if (mins < 1440) return `${Math.floor(mins / 60)}h`;
+  if (mins < 7 * 1440) return `${Math.floor(mins / 1440)}d`;
+  const d = new Date(i.date + 'T12:00:00Z'), year = i.date.slice(0, 4) !== todayIso().slice(0, 4);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...(year && { year: 'numeric' }), timeZone: 'UTC' });
 }
+const ageHtml = i => `<time class="card-age" datetime="${esc(i.published || i.added || i.date)}">${age(i)}</time>`;
+const refreshAges = () => document.querySelectorAll('a.card').forEach(a => {
+  const i = items.find(x => x.url === a.getAttribute('href')), t = a.querySelector('.card-age');
+  if (i && t) t.textContent = age(i);
+});
 
 function highlight(text, q) {
   if (!q) return esc(text);
@@ -78,29 +89,20 @@ function renderItems(keepLimit) {
 // Renders the first `limit` matches; the sentinel below the list raises it as you scroll.
 function renderPage() {
   const q = $('search').value.trim();
-  const counts = {}, groups = {};
-  // Grouped by the label shown (Today, Yesterday, a weekday or a date).
-  const minutes = {}, unknown = {};
-  const group = i => (filter === 'essentials' && weekly?.window_start ? `This week, ${weekRange(weekly)}` : dayLabel(i.date));  // the picks span seven days
-  for (const i of shown) {
-    const d = group(i);
-    counts[d] = (counts[d] || 0) + 1;
-    minutes[d] = (minutes[d] || 0) + (i.minutes || 0);
-    if (!i.minutes) unknown[d] = true;
-  }
-  const dayMeta = d => `· ${counts[d]} ${counts[d] === 1 ? 'story' : 'stories'}${unknown[d] ? '' : ` · ${minutes[d]} min`}`;  // only a full count: a floor would teach people to ignore it
-  for (const i of shown.slice(0, limit)) (groups[group(i)] ||= []).push(i);
-  $('items').innerHTML = shown.length ? Object.entries(groups).map(([d, list], n) => `
-    <div class="date-label"><span>${d}</span><span class="day-meta">${dayMeta(d)}</span>${n ? '' : '<time id="updated"></time>'}</div>
-    ${list.map(i => { const ess = picks.has(i.url), why = filter === 'essentials' && picks.get(i.url), preview = why || i.summary; return `
+  // One quiet header: what you're looking at and how fresh it is. No count per day; each story says how old it is.
+  const range = filter === 'essentials' && weekly?.window_start ? `<span class="list-range">${weekRange(weekly)}</span>` : '';  // the picks' seven days
+  $('items').innerHTML = shown.length ? `
+    <div class="list-head"><h2 class="list-title">${label(filter)}</h2>${range}<time id="updated"></time></div>
+    ${shown.slice(0, limit).map(i => { const ess = picks.has(i.url), why = filter === 'essentials' && picks.get(i.url), preview = why || i.summary; return `
     <a class="card${readSet.has(i.url) ? ' read' : ''}${ess ? ' essential' : ''}" href="${esc(i.url)}" target="_blank" rel="noopener"${i.url === readerFor ? ' aria-current="true"' : ''}>
       ${iconHtml(i.publisher)}
       <div class="card-body">
         <div class="card-title">${highlight(i.title, q)}</div>
         <div class="card-meta"><span class="card-src">${esc(i.publisher)}</span>${ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : ''}${isNew(i) ? '<span class="new">New</span>' : ''}</div>
         ${preview ? `<div class="card-sum">${why ? '<b>What to do: </b>' : ''}${highlight(preview, q)}</div>` : ''}
+        ${ageHtml(i)}
       </div>
-    </a>`; }).join('')}`).join('')
+    </a>`; }).join('')}`
     : '<p class="empty">No articles match your search.</p>';
   $('items').removeAttribute('aria-busy');
   if (generatedAt) showUpdated();  // the feed was just redrawn, and its "Updated" with it
@@ -687,7 +689,7 @@ function renderPalette() {
   $('palette-list').innerHTML = head + (pal.results.length ? pal.results.map((i, n) => { const c = cat(i.category); return `
     <li role="option" id="p-${n}" data-n="${n}" aria-selected="${n === 0}">
       <span class="dot" style="--c:var(--cat-${c})"></span>
-      <div><div class="p-title">${highlight(i.title, q)}</div><div class="p-meta">${esc(i.publisher)} · ${CATS[c]} · ${dayLabel(i.date)}</div></div>
+      <div><div class="p-title">${highlight(i.title, q)}</div><div class="p-meta">${esc(i.publisher)} · ${CATS[c]} · ${age(i)}</div></div>
     </li>`; }).join('') : `<li class="palette-empty">No articles match “${esc(q)}”.</li>`);
   $('palette-q').setAttribute('aria-activedescendant', pal.results.length ? 'p-0' : '');
 }
@@ -733,5 +735,5 @@ load().catch(() => { $('items').innerHTML = '<p class="empty">Couldn’t load th
 // Builds land every ~4h: check every 15 min while visible, and when the tab comes back into view.
 const check = () => { if (!document.hidden) load().catch(() => {}); };
 setInterval(check, 15 * 60e3);
-setInterval(() => { if (generatedAt && !document.hidden) showUpdated(); }, 60e3);
+setInterval(() => { if (generatedAt && !document.hidden) { showUpdated(); refreshAges(); } }, 60e3);
 document.addEventListener('visibilitychange', check);

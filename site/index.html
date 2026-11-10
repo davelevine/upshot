@@ -152,10 +152,11 @@
 
   /* The feed, after Feedbin: rows with no box around them, the publisher's icon, then title, source and the summary. */
   .items { max-width: var(--read); margin: 0 auto; padding: 8px 24px 48px; display: flex; flex-direction: column; }
-  .date-label { display: flex; align-items: baseline; gap: 6px; margin: 14px 4px 4px; padding: 0 0 8px; border-bottom: 1px solid var(--border);
+  .list-head { display: flex; align-items: baseline; gap: 8px; margin: 8px 4px 4px; padding: 0 0 8px; border-bottom: 1px solid var(--border);
     color: var(--text); font-size: .875rem; font-weight: 600; }
-  .date-label:first-child { margin-top: 8px; }
-  .day-meta { color: var(--text-muted); font-weight: 500; font-size: .8125rem; }
+  .list-title { margin: 0; font-size: inherit; font-weight: 600; }
+  .list-range { color: var(--text-muted); font-weight: 500; font-size: .8125rem; }
+  .card-age { display: block; margin-top: 4px; color: var(--text-muted); font-size: .8125rem; font-variant-numeric: tabular-nums; }
   .card { content-visibility: auto; contain-intrinsic-block-size: auto 6rem; display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: var(--radius-md); transition: background-color .15s ease; }
   .card[aria-current="true"] { background: var(--bg-card); }
   .card-body { flex: 1; min-width: 0; }
@@ -295,7 +296,7 @@
   @media (min-width: 1280px) {
     .shell { grid-template-columns: 240px 440px; }
     .items { padding: 0 10px 48px; }
-    .items > .date-label:first-child { height: 52px; margin-top: 0; padding: 0 0 0; align-items: center; }  /* its rule lines up with the reader bar's */
+    .items > .list-head { height: 52px; margin-top: 0; padding: 0; align-items: center; }  /* its rule lines up with the reader bar's */
     /* One bar across the top, as in Feedbin: the header shrinks to the sidebar's top (logo, then search), the reader runs to the
        top of the window, and the menu button sits at the end of the reader bar, with the story's controls beside it. */
     html { overflow: hidden; scrollbar-gutter: auto; }  /* the list scrolls itself, so its scrollbar sits beside it, not at the window's edge */
@@ -386,7 +387,7 @@
 </aside>
 <div class="col" id="col">
 <div class="sr-only" id="status" role="status"></div>
-<main class="items feed" id="items" aria-busy="true"><div class="date-label skeleton" aria-hidden="true"><span class="bone" style="width:6em"></span><span class="day-meta">&nbsp;</span></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div></main>
+<main class="items feed" id="items" aria-busy="true"><div class="list-head skeleton" aria-hidden="true"><span class="bone" style="width:6em"></span>&nbsp;</div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div></main>
 <div id="sentinel"></div>
 <footer class="site-foot feed" id="end" hidden>
   <span id="end-msg"></span>

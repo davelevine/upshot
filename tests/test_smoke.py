@@ -77,13 +77,16 @@ def test_feed_renders(browser):
     assert pg.locator("a.card").count() > 0
     assert pg.locator(".filter-btn").count() >= 2  # All + each category with stories
     assert "0" not in pg.locator("#filters .f-count").all_inner_texts()  # no empty topics
-    assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".date-label #updated"))
+    assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".list-head #updated"))
     assert pg.locator("#end").is_hidden()  # not until the list runs out
-    assert re.fullmatch(r"· \d+ stor(y|ies)( · \d+\+? min)?", pg.locator(".day-meta").first.inner_text())
+    # One header naming the view, no count per day: each story says how old it is instead, as in Feedbin.
+    assert pg.locator(".list-head").count() == 1 and pg.inner_text(".list-title") == "All"
+    assert "stories" not in pg.inner_text(".list-head") and pg.locator(".day-meta, .date-label").count() == 0
+    assert all(re.fullmatch(r"\d+[mhd]|[A-Z][a-z]{2} \d{1,2}(, \d{4})?", t) for t in pg.locator("a.card .card-age").all_text_contents())
     assert pg.locator(".card-arrow").count() == 0 and pg.locator(".card-time").count() == 0
-    # After Feedbin: the publisher's icon, then title, source and the one-line summary. The topic is the sidebar's job.
+    # After Feedbin: the publisher's icon, then title, source, the one-line summary and how old it is. The topic is the sidebar's job.
     first = pg.locator("a.card").first
-    assert pg.evaluate("[...document.querySelector('a.card .card-body').children].map(e => e.className)") == ["card-title", "card-meta", "card-sum"]
+    assert pg.evaluate("[...document.querySelector('a.card .card-body').children].map(e => e.className)") == ["card-title", "card-meta", "card-sum", "card-age"]
     assert first.locator("> .src-icon").count() == 1 and pg.locator("a.card .dot").count() == 0
     assert first.locator(".card-src").inner_text() == pg.evaluate("items[0].publisher")
     assert first.locator(".card-sum").inner_text() == pg.evaluate("items[0].summary")
@@ -163,7 +166,7 @@ def test_essentials_have_their_own_entry_and_show_once(browser):
     cards = pg.locator("a.card")
     assert cards.count() == len(picks)
     # One week, not days, and each pick previews what to do rather than its summary.
-    assert pg.locator(".date-label > span").first.inner_text() == "This week, " + pg.evaluate("weekRange(weekly)")
+    assert pg.inner_text(".list-title") == "Essentials" and pg.inner_text(".list-range") == pg.evaluate("weekRange(weekly)")
     for n, p in enumerate(picks):
         sel = f'a.card[href="{p["url"]}"]'
         assert pg.locator(f"{sel} .card-sum").inner_text() == f"What to do: {p['why']}"
@@ -202,21 +205,33 @@ def test_stale_band_sits_under_the_header_and_the_drawer_still_drops_from_it(bro
     assert pg.evaluate("Math.round(document.getElementById('filters').getBoundingClientRect().top) === Math.round(document.querySelector('header').getBoundingClientRect().bottom)")
 
 
-def test_day_minutes_show_only_when_every_story_has_one(browser):
+def test_each_story_says_how_long_ago_it_was_published(browser):
     ctx = browser.new_context(viewport={"width": 1300, "height": 900}, timezone_id="UTC")
     pg = ctx.new_page()
-    today = datetime.now(timezone.utc).date().isoformat()
-    yesterday = (datetime.now(timezone.utc).date() - timedelta(days=1)).isoformat()
+    now = datetime.now(timezone.utc)
+    ago = lambda **d: (now - timedelta(**d)).isoformat(timespec="seconds")
+    day = lambda n: (now.date() - timedelta(days=n)).isoformat()
     def patched(route):
         data = route.fetch().json()
-        a, b, c = data["items"][:3]
-        data["items"] = [{**a, "date": today, "minutes": 4}, {**b, "date": today, "minutes": 3}, {**c, "date": yesterday, "minutes": 0}]
-        data["tz"] = "UTC"  # the dates above are UTC ones; the page labels days in data.json's zone
+        a, b, c, d, e, f = data["items"][:6]
+        data["items"] = [
+            {**a, "date": day(0), "published": ago(minutes=5)},
+            {**b, "date": day(0), "published": ago(hours=5, minutes=10)},
+            {**c, "date": day(3), "published": ago(days=3, hours=2)},
+            {**d, "date": day(1), "added": ago(minutes=30)},  # before the exact time was kept: whole days by its date
+            {**e, "date": day(0), "added": ago(hours=2)},  # ...or when it arrived, the same day
+            {**f, "date": "2026-01-05", "published": "2026-01-05T09:00:00+00:00"},
+        ]
+        for i in data["items"][3:5]:
+            i.pop("published", None)
+        data["tz"] = "UTC"
+        data["weekly"] = None
         route.fulfill(json=data)
     ctx.route("**/data.json*", patched)
     pg.goto(URL)
     pg.wait_for_selector("a.card")
-    assert pg.locator(".day-meta").all_inner_texts()[:2] == ["· 2 stories · 7 min", "· 1 story"]
+    old = "Jan 5" if now.year == 2026 else "Jan 5, 2026"
+    assert pg.locator("a.card .card-age").all_text_contents() == ["5m", "5h", "3d", "1d", "2h", old]
 
 
 def test_end_of_feed_message(browser):
@@ -568,23 +583,26 @@ def test_text_size_steps_and_is_remembered(browser):
     pg.wait_for_function("() => document.getElementById('size-pop').hidden")
 
 
-def test_today_means_the_sites_today_whatever_the_device_reports(browser):
-    from datetime import datetime
+def test_ages_count_days_in_the_sites_time_zone_whatever_the_device_reports(browser):
     from zoneinfo import ZoneInfo
-    today = datetime.now(ZoneInfo("America/New_York")).date().isoformat()
+    site = datetime.now(ZoneInfo("America/New_York")).date()
     for device_tz in ("UTC", "Asia/Tokyo", "Pacific/Honolulu"):
         ctx = browser.new_context(timezone_id=device_tz)
-        def dated_today(route):
+        def dated(route):
             res = route.fetch()
             data = res.json()
             data["tz"] = "America/New_York"
-            data["items"][0]["date"] = today
+            a, b = data["items"][:2]
+            for i in (a, b):
+                i.pop("published", None); i.pop("added", None)  # only a date, as stories from before the exact time was kept
+            a["date"], b["date"] = site.isoformat(), (site - timedelta(days=1)).isoformat()
+            data["items"] = [a, b]
             route.fulfill(response=res, json=data)
-        ctx.route("**/data.json", dated_today)
+        ctx.route("**/data.json", dated)
         pg = ctx.new_page()
         pg.goto(URL)
         pg.wait_for_selector("a.card")
-        assert pg.locator(".date-label").first.inner_text().startswith("Today"), device_tz
+        assert pg.locator("a.card .card-age").all_text_contents() == ["1m", "1d"], device_tz  # today is today, never a negative or a day early
 
 
 def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
@@ -719,23 +737,6 @@ def test_wcag(browser, scheme):
     pg.wait_for_function("() => !document.getElementById('filters').getAnimations().length")
     assert violations() == [] and pg.evaluate(small) == []
     assert pg.problems == []
-
-
-def test_one_today_section_when_utc_is_already_tomorrow(browser):
-    ctx = browser.new_context(timezone_id="America/New_York")
-    pg = ctx.new_page()
-    today = pg.evaluate("new Date().toLocaleDateString('en-CA')")  # YYYY-MM-DD in that zone
-    tomorrow = (date.fromisoformat(today) + timedelta(days=1)).isoformat()
-    def patched(route):
-        data = route.fetch().json()
-        data["items"] = [{**item, "date": day} for item, day in zip(data["items"], [tomorrow, today, today])]
-        route.fulfill(json=data)
-    ctx.route("**/data.json*", patched)
-    pg.goto(URL)
-    pg.wait_for_selector("a.card")
-    today_labels = pg.locator(".date-label", has_text="Today")
-    assert today_labels.count() == 1
-    assert today_labels.locator(".day-meta").inner_text().startswith("· 3 stories")
 
 
 def test_reader_and_frame_relay_run_under_csp(browser):
@@ -962,9 +963,9 @@ def test_essentials_say_which_days_and_updated_sits_on_the_feed(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 900})
     assert re.fullmatch(r"[A-Z][a-z]{2} \d{1,2}(–\d{1,2}| – [A-Z][a-z]{2} \d{1,2})", pg.evaluate("weekRange(weekly)"))
     assert pg.evaluate("weekRange({window_start: '2026-10-29', window_end: '2026-11-04'})") == "Oct 29 – Nov 4"
-    assert pg.locator(".date-label").first.locator("#updated").count() == 1
+    assert pg.locator(".list-head #updated").count() == 1
     pg.locator(".filter-btn", has_text="Security").click()  # a redraw keeps it filled in
-    assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".date-label #updated"))
+    assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".list-head #updated"))
     assert pg.problems == []
 
 
