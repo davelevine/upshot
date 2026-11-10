@@ -8,7 +8,8 @@ const domain = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } 
 const PAGE = 40;
 const STALE_MINUTES = 12 * 60;  // three missed builds
 const KEEP_DAYS = 90;  // build.py prunes older stories
-const io = new IntersectionObserver(([e]) => { if (e.isIntersecting && limit < shown.length) { limit += PAGE; renderPage(); } }, { rootMargin: '800px' });
+// The latest entry decides: a batch can hold an older one from before the last redraw, and reading that stopped the feed short of its end.
+const io = new IntersectionObserver(es => { if (es.at(-1).isIntersecting && limit < shown.length) { limit += PAGE; renderPage(); } }, { rootMargin: '800px' });
 let tz, iconArt = {}, icons = new Set(), items = [], filter = 'all', shown = [], limit = PAGE, generatedAt = null;
 
 // Today in the site's time zone (data.json's tz), not the device's: some browsers report UTC for privacy, which
