@@ -160,45 +160,42 @@ $('theme').onclick = $('reader-theme').onclick = () => {
 $('filters').onclick = e => {
   const b = e.target.closest('.filter-btn');
   if (!b) return;
+  const same = b.dataset.f === filter && lastList !== null;  // back into the list just left, on a phone
   filter = b.dataset.f;
-  lastClosed = null;  // a new list: nothing to swipe back into
+  if (!same) lastClosed = null;  // a new list: nothing to swipe back into
   if (document.body.classList.contains('reading')) dismiss();  // as in Feedbin: picking a topic, even the current one, closes the story
   renderFilters();
-  renderItems();
-  if (phone.matches && document.body.classList.contains('home')) enterList();  // into the list, as a page: back returns to the topics
+  if (!(same && phone.matches)) renderItems();
+  if (phone.matches && document.body.classList.contains('home')) enterList(same);  // into the list, as a page: back returns to the topics
   else if (history.state?.list) history.replaceState({ ...history.state, f: filter }, '');
 };
 // Phones open on the topics (home); a topic's list is a history entry above it, so back, the chevron and swipe-back return.
 const phone = matchMedia('(max-width: 640px)');
+phone.addEventListener('change', () => syncHome());
 function syncHome() {
-  const st = history.state;
-  document.body.classList.toggle('home', !st?.list && !st?.reader);
+  const st = history.state, home = !st?.list && !st?.reader;
+  document.body.classList.toggle('home', home);
+  setPd(null);  // a swipe that brought it here hands over to the state's own position
+  $('col').inert = phone.matches && home;  // the page that's aside can't be reached
+  $('filters').inert = phone.matches && !home;
   if (st?.f && st.f !== filter && (st.f !== 'essentials' || picks.size)) { filter = st.f; renderFilters(); renderItems(); }
 }
-// Pages slide on phones, as in Feedbin's app: a list in from the right over the topics, and back out the same way.
-function slide(dir, update) {
-  if (!phone.matches || !document.startViewTransition) return update();
-  document.documentElement.dataset.slide = dir;
-  const t = document.startViewTransition(update);
-  t.ready.catch(() => {});  // skipped when another slide starts first: the page still updates, it just doesn't animate
-  t.finished.finally(() => delete document.documentElement.dataset.slide);
-}
-let lastList = null;  // the list a swipe left on the topics goes back into
-function enterList() {
-  slide('in', () => {
-    history.pushState({ list: true, f: filter }, '', location.pathname + location.search);
-    syncHome();
-    scrollTo(0, 0);
-  });
+let lastList = null;  // the list a swipe left on the topics goes back into (the filter is still set to it)
+const setPd = v => (v == null ? document.documentElement.style.removeProperty('--pd') : document.documentElement.style.setProperty('--pd', v));
+function enterList(same) {
+  history.pushState({ list: true, f: filter }, '', location.pathname + location.search);
+  syncHome();  // the list slides in over the topics (CSS)
+  if (!same) scrollTo(0, 0);  // the same list again keeps its place
 }
 function leaveList() {
   lastList = filter;
   if (history.state?.list) history.back();  // popstate slides it out
-  else slide('out', () => { history.replaceState(null, ''); syncHome(); });
+  else { history.replaceState(null, ''); syncHome(); }
 }
 $('list-back').onclick = leaveList;
 // The search bar opens the palette, the same search as ⌘K, rather than filtering the feed in place.
 $('search').addEventListener('focus', () => { $('search').blur(); openPalette(); });
+$('search-btn').onclick = () => openPalette();  // phones: the header's own
 addEventListener('scroll', () => { $('top').hidden = scroller().scrollTop < 800; }, { passive: true, capture: true });  // capture: the list's own scrolling doesn't bubble
 $('top').onclick = () => scroller().scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -286,7 +283,11 @@ function load() {
     setPicks(data.weekly);
     renderFilters();
     renderItems(refresh);
-    if (!refresh) { syncFromUrl(); syncHome(); }
+    if (!refresh) {  // where the page starts is no move: no slide
+      document.body.classList.add('paging');
+      syncFromUrl(); syncHome();
+      requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('paging')));
+    }
   });
 }
 let readerFor = null;
@@ -442,6 +443,9 @@ function indexSlugs() {
 }
 const slugFor = url => [...slugs].find(([, u]) => u === url)?.[0];
 const readPath = url => '/read/' + slugFor(url);
+// Articles fetched this visit, so reopening one is instant; only full articles, since a pending one may arrive later.
+const articles = new Map();
+let frameFor = null;  // whose article the reader's frame holds
 function openReader(i, { fromHash = false } = {}) {
   const fresh = !document.body.classList.contains('reading');
   readerFor = i.url;
@@ -458,7 +462,12 @@ function openReader(i, { fromHash = false } = {}) {
   const at = shown.findIndex(x => x.url === i.url);
   $('reader-prev').disabled = at <= 0;
   $('reader-next').disabled = at < 0 || at >= shown.length - 1;
-  showInReader(i, storyCard(i, 'Loading the full article…', true), why);  // before the fetch: the fetch can only upgrade this
+  // Back into the story just closed: its frame is still there, scrolled where it was. Otherwise a stored article shows at
+  // once, and a new one shows its card until the fetch upgrades it.
+  const again = frameFor === i.url && articles.has(i.url) && $('reader-body').querySelector('iframe:not(.loading)');
+  if (!again) showInReader(i, articles.has(i.url) ? articles.get(i.url).content : storyCard(i, 'Loading the full article…', true), why,
+    articles.get(i.url)?.minutes, articles.get(i.url)?.byline);
+  frameFor = i.url;
   document.body.classList.add('reading');
   $('reader').setAttribute('aria-hidden', 'false');
   setInert();
@@ -469,11 +478,13 @@ function openReader(i, { fromHash = false } = {}) {
   if (fresh && !fromHash) history.pushState({ reader: true, pushed: true }, '', readPath(i.url));
   else history.replaceState({ ...history.state, reader: true }, '', readPath(i.url));
   if (fresh && !docked.matches) (lastInput === 'key' ? $('reader-close') : $('reader')).focus({ preventScroll: true });  // no ring after a tap; docked, focus stays in the list
+  if (articles.has(i.url)) return;  // read once already this visit: articles don't change once stored
   let unreadable = 'The reader view isn\u2019t available right now.';
   fetch('/api/read?url=' + encodeURIComponent(i.url), { cache: 'no-store' }).then(r => r.json()).then(r => {
+    if (r.content) articles.set(i.url, { content: r.content, minutes: readingMinutes(r.content), byline: r.byline });
     if (readerFor !== i.url) return;  // another article was opened meanwhile
     if (r.content) {
-      const minutes = readingMinutes(r.content);
+      const { minutes } = articles.get(i.url);
       showInReader(i, r.content, why, minutes, r.byline);
     } else if (r.frameable) {
       const frame = document.createElement('iframe');
@@ -536,7 +547,8 @@ function closeReader() {
   markCurrent(null);
   const card = url && cardFor(url);  // back to where you were, even after j/k through several articles
   if (card) { card.focus({ preventScroll: true }); card.scrollIntoView({ block: 'nearest' }); }
-  setTimeout(() => { if (!readerFor) $('reader-body').replaceChildren(); }, docked.matches ? 0 : 350);  // after the slide out; docked, nothing slides
+  // Docked, the pane empties at once. Sliding away, the frame stays, hidden, so swiping back into it finds it as it was.
+  if (docked.matches) { $('reader-body').replaceChildren(); frameFor = null; }
 }
 function dismiss() {
   if (history.state?.pushed) return history.back();
@@ -560,8 +572,8 @@ addEventListener('popstate', e => {
   const home = !history.state?.list && !history.state?.reader;
   if (home && !document.body.classList.contains('home')) lastList = filter;
   // Safari's own swipe-back already animates the page: don't slide it a second time.
-  if (home !== document.body.classList.contains('home') && !e.hasUAVisualTransition) slide(home ? 'out' : 'in', syncHome);
-  else syncHome();
+  if (e.hasUAVisualTransition) { document.body.classList.add('paging'); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('paging'))); }
+  syncHome();
 });
 // Swipe right to close: the reader follows the finger, then closes past a third of its width or on a flick
 // (judged on the finger's speed at release, px/ms).
@@ -606,23 +618,47 @@ addEventListener('message', e => {
   else if (e.data.tw === 'themed') frameThemed?.();
 });
 
-// Phone swipes, after Feedbin's: the topics sit left of a list, and a list left of its story. In a list, right goes back
-// to the topics and left reopens the story just closed; on the topics, left goes back into the list just left.
-let swipe = null;
+// Phone swipes, after Feedbin's: the topics sit left of a list, and a list left of its story, and each page follows the
+// finger. In a list, right goes back to the topics and left brings back the story just closed; on the topics, left goes
+// back into the list just left. Past a third of the way, or on a flick, it goes; otherwise it springs back.
+let pan = null;
 addEventListener('touchstart', e => {
   const t = e.touches[0];
-  swipe = phone.matches && !document.body.classList.contains('reading') && !$('palette').open ? { x: t.screenX, y: t.screenY } : null;
+  pan = phone.matches && !document.body.classList.contains('reading') && !$('palette').open
+    ? { x: t.screenX, y: t.screenY, lx: t.screenX, lt: performance.now(), v: 0, mode: null } : null;
 }, { passive: true });
+addEventListener('touchmove', e => {
+  if (!pan) return;
+  const t = e.touches[0], dx = t.screenX - pan.x, dy = t.screenY - pan.y, w = innerWidth, home = document.body.classList.contains('home');
+  if (!pan.mode) {
+    if (Math.hypot(dx, dy) < 10) return;
+    if (Math.abs(dy) > Math.abs(dx)) { pan = null; return; }  // a scroll
+    const story = lastClosed && items.find(x => x.url === lastClosed);
+    pan.mode = home ? (dx < 0 && lastList !== null && (lastList !== 'essentials' || picks.size) ? 'list' : 'none')
+      : dx > 0 ? 'topics' : story ? 'story' : 'none';
+    if (pan.mode === 'none') { pan = null; return; }
+    if (pan.mode === 'story') { document.body.classList.add('dragging'); setDrag(1); openReader(story); }  // in from the right, under the finger
+    else document.body.classList.add('paging');
+  }
+  e.preventDefault();  // sideways now: the page moves, not the list
+  const now = performance.now();
+  if (now > pan.lt) pan.v = 0.6 * pan.v + 0.4 * (t.screenX - pan.lx) / (now - pan.lt);
+  pan.lx = t.screenX; pan.lt = now;
+  if (pan.mode === 'topics') setPd(Math.min(1, Math.max(0, dx / w)));
+  else if (pan.mode === 'list') setPd(Math.min(1, Math.max(0, 1 + dx / w)));
+  else setDrag(Math.min(1, Math.max(0, 1 + dx / w)));
+}, { passive: false });
 addEventListener('touchend', e => {
-  if (!swipe) return;
-  const t = e.changedTouches[0], dx = t.screenX - swipe.x, dy = t.screenY - swipe.y;
-  swipe = null;
-  if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) / 2) return;  // clearly sideways, not a scroll or a tap
-  if (document.body.classList.contains('home')) {
-    if (dx < 0 && lastList && (lastList !== 'essentials' || picks.size)) { filter = lastList; renderFilters(); renderItems(); enterList(); }
-  } else if (dx > 0) leaveList();
-  else { const i = lastClosed && items.find(x => x.url === lastClosed); if (i) openReader(i); }
+  if (!pan?.mode) { pan = null; return; }
+  const { mode, x, v } = pan, dx = e.changedTouches[0].screenX - x, go = Math.abs(dx) > innerWidth / 3 || Math.abs(v) > 0.4 && Math.sign(v) === Math.sign(dx);
+  pan = null;
+  document.body.classList.remove('paging', 'dragging');  // from here the pages animate to where they settle
+  if (mode === 'topics') { if (go) { setPd(1); leaveList(); } else setPd(null); }
+  else if (mode === 'list') { if (go) enterList(true); else setPd(null); }
+  else if (go) setDrag(0);
+  else { setDrag(0); dismiss(); }
 }, { passive: true });
+addEventListener('touchcancel', () => { if (pan?.mode) { document.body.classList.remove('paging', 'dragging'); setPd(null); setDrag(0); } pan = null; });
 $('reader-close').onclick = dismiss;
 $('reader-backdrop').onclick = dismiss;
 // j/k or →/←: next/previous article (in the reader it switches articles in place); /: search bar; Cmd/Ctrl+K: search palette.
@@ -796,6 +832,43 @@ document.addEventListener('click', e => {
   e.preventDefault();
   openReader(i);
 });
+
+// Desktop: drag the topics' or the list's right edge to resize it, as in Feedbin. Kept on this device; double-click resets.
+// The reader keeps at least READER_MIN beside them, so a narrower window narrows the columns rather than the article.
+const COLS = { side: { el: 'resize-side', v: '--side-w', min: 180, max: 360 }, list: { el: 'resize-list', v: '--list-w', min: 320, max: 720 } };
+const READER_MIN = 480;
+const colWidth = k => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(COLS[k].v));
+function setCol(k, px, keep = true) {
+  const c = COLS[k], others = k === 'side' ? (docked.matches ? colWidth('list') : 320) : colWidth('side');
+  const room = innerWidth - (docked.matches ? READER_MIN : 0) - others;
+  const w = Math.round(Math.max(c.min, Math.min(c.max, room, px)));
+  document.documentElement.style.setProperty(c.v, w + 'px');
+  $(c.el).setAttribute('aria-valuenow', w);
+  if (keep) localStorage.setItem(k + 'Width', w);
+}
+for (const [k, c] of Object.entries(COLS)) {
+  const el = $(c.el);
+  el.setAttribute('aria-valuemin', c.min); el.setAttribute('aria-valuemax', c.max);
+  if (localStorage.getItem(k + 'Width')) setCol(k, +localStorage.getItem(k + 'Width'), false);
+  el.setAttribute('aria-valuenow', colWidth(k));
+  el.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    el.setPointerCapture(e.pointerId);
+    el.classList.add('active'); document.body.classList.add('resizing');
+    const start = e.clientX - colWidth(k);
+    el.onpointermove = m => setCol(k, m.clientX - start);
+    el.onpointerup = el.onpointercancel = () => { el.onpointermove = el.onpointerup = el.onpointercancel = null; el.classList.remove('active'); document.body.classList.remove('resizing'); };
+  });
+  el.addEventListener('dblclick', () => { document.documentElement.style.removeProperty(c.v); localStorage.removeItem(k + 'Width'); el.setAttribute('aria-valuenow', colWidth(k)); });
+  el.addEventListener('keydown', e => {
+    const by = { arrowleft: -16, arrowright: 16 }[e.key.toLowerCase()];
+    if (!by) return;
+    e.preventDefault(); e.stopPropagation();  // not j/k-style navigation
+    setCol(k, colWidth(k) + by);
+  });
+}
+addEventListener('resize', () => { for (const k in COLS) if (localStorage.getItem(k + 'Width')) setCol(k, +localStorage.getItem(k + 'Width'), false); });
 
 syncThemeColor();
 load().catch(() => { $('items').innerHTML = '<p class="empty">Couldn’t load the news. Try again in a bit.</p>'; });

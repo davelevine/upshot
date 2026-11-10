@@ -147,27 +147,28 @@ def test_phones_open_on_the_topics(browser):
     pg.on("pageerror", lambda e: problems.append(str(e)))
     pg.goto(URL)
     pg.wait_for_selector("#filters .filter-btn")
-    # The topics are the page: no list yet, and every entry a full-size row.
-    assert pg.locator("#items").is_hidden() and pg.locator(".logo").is_visible() and pg.locator("#list-back").is_hidden()
+    # The topics are the page: the list waits off to the right, out of reach, and every entry is a full-size row.
+    aside = "() => document.getElementById('col').getBoundingClientRect().left >= innerWidth && document.getElementById('col').inert"
+    assert pg.evaluate(aside) and pg.locator(".logo").is_visible() and pg.locator("#list-back").is_hidden()
     assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
     for row in pg.locator("#filters .filter-btn").all():
         box = row.bounding_box()
         assert box["height"] >= 44 and box["x"] + box["width"] <= 320
     pg.tap("#filters .filter-btn[data-f='security']")
-    pg.wait_for_function("() => document.getAnimations().some(a => a.animationName === 'page-in')")  # it slides in, not a jump
-    pg.wait_for_selector("a.card")
-    # Its list, as a page: a back chevron and its name in the header, in place of the logo.
-    assert pg.locator("#filters").is_hidden() and pg.locator("#list-back").is_visible() and pg.inner_text("#list-name") == "Security"
+    # It slides in over the topics, the way a story slides over the list, rather than jumping.
+    pg.wait_for_function("() => document.getAnimations().some(a => a.transitionProperty === 'transform' && a.effect.target?.id === 'col')")
+    pg.wait_for_function("() => document.getElementById('col').getBoundingClientRect().left === 0")
+    # Its list, as a page: a back chevron and its name in the header, in place of the logo, and the topics out of reach.
+    assert pg.evaluate("document.getElementById('filters').inert") and pg.locator("#list-back").is_visible() and pg.inner_text("#list-name") == "Security"
     assert pg.evaluate("shown.length > 0 && shown.every(i => cat(i.category) === 'security')")
     assert pg.title() == "Security \u00b7 Upshot"
     pg.go_back()  # the phone's back button
-    pg.locator("#filters .filter-btn").first.wait_for()
-    assert pg.locator("#items").is_hidden()
+    pg.wait_for_function(aside)
     pg.go_forward()  # and forward again, to the same list
     pg.wait_for_selector("a.card")
     assert pg.inner_text("#list-name") == "Security"
     pg.tap("#list-back")  # the chevron goes back too
-    pg.locator("#filters .filter-btn").first.wait_for()
+    pg.wait_for_function(aside)
     assert problems == []
 
 
@@ -813,19 +814,19 @@ def test_the_search_bar_and_slash_open_the_palette(browser):
     ph = browser.new_context(viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True).new_page()
     ph.goto(URL)
     enter_list(ph)
-    box = ph.locator("#search-wrap").bounding_box()  # in the header on phones, beside the menu
+    box = ph.locator("#search-btn").bounding_box()  # in the header on phones, beside the menu
     assert box["width"] == 44 and box["height"] == 44 and box["y"] + 44 <= 52
-    ph.tap("#search")
+    ph.tap("#search-btn")
     ph.locator("#palette").wait_for()
     # Below the header, and the search icon becomes the close button (no Esc key on a phone).
     assert ph.locator("#palette").bounding_box()["y"] >= 52
-    close, icon = ph.locator("#palette-close").bounding_box(), ph.locator("#search-wrap").bounding_box()
+    close, icon = ph.locator("#palette-close").bounding_box(), ph.locator("#search-btn").bounding_box()
     assert (close["x"], close["y"], close["width"], close["height"]) == (icon["x"], icon["y"], 44, 44)
     ph.locator("#palette-close").tap()
     ph.locator("#palette").wait_for(state="hidden")
     ph.wait_for_timeout(200)
     assert ph.locator("#palette").is_hidden()
-    ph.tap("#search")
+    ph.tap("#search-btn")
     ph.locator("#palette").wait_for()
     ph.mouse.click(20, 26)  # anywhere on the header closes it too
     ph.locator("#palette").wait_for(state="hidden")
@@ -1188,3 +1189,49 @@ def test_phone_swipes_move_between_the_topics_and_a_list(browser):
     cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
     pg.wait_for_timeout(400)
     assert home()
+
+
+def test_a_story_read_once_reopens_without_fetching_again(browser):
+    pg = open_site(browser, viewport={"width": 412, "height": 915}, has_touch=True, is_mobile=True)
+    fetches = []
+    pg.on("request", lambda r: fetches.append(r.url) if "/api/read" in r.url else None)
+    card = pg.locator("a.card").nth(1)
+    card.tap()
+    pg.frame_locator("#reader-body iframe:not(.loading)").locator("p").nth(29).wait_for()
+    frame = pg.locator("#reader-body iframe:not(.loading)").element_handle()
+    pg.go_back()
+    wait_until_closed(pg)
+    card.tap()  # the same story again
+    pg.wait_for_function("() => document.body.classList.contains('reading')")
+    pg.wait_for_timeout(300)
+    assert len(fetches) == 1  # stored this visit: no second fetch
+    assert pg.evaluate("f => f.isConnected && document.querySelectorAll('#reader-body iframe').length === 1", frame)  # the same frame, where it was
+    assert pg.problems == []
+
+
+def test_wide_screens_resize_the_topics_and_the_list(browser):
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    width = lambda v: pg.evaluate(f"parseFloat(getComputedStyle(document.documentElement).getPropertyValue('{v}'))")
+    def drag(sel, by):
+        box = pg.locator(sel).bounding_box()
+        pg.mouse.move(box["x"] + box["width"] / 2, 400)
+        pg.mouse.down()
+        pg.mouse.move(box["x"] + box["width"] / 2 + by, 400, steps=5)
+        pg.mouse.up()
+    side, lst = width("--side-w"), width("--list-w")
+    drag("#resize-list", 120)
+    drag("#resize-side", -40)
+    assert width("--list-w") == lst + 120 and width("--side-w") == side - 40
+    assert abs(pg.locator("#reader").bounding_box()["x"] - (side - 40 + lst + 120)) <= 1  # the reader moves over
+    drag("#resize-list", 2000)  # the reader keeps room to read in
+    assert pg.locator("#reader").bounding_box()["width"] >= 480
+    pg.locator("#resize-side").focus()
+    pg.keyboard.press("ArrowRight")  # and from the keyboard
+    assert width("--side-w") == side - 40 + 16 and pg.get_attribute("#resize-side", "aria-valuenow") == str(int(side - 40 + 16))
+    kept = width("--side-w")
+    pg.reload()
+    enter_list(pg)
+    assert width("--side-w") == kept  # kept on this device
+    pg.locator("#resize-side").dblclick()
+    assert width("--side-w") == side  # double-click: back to the default
+    assert pg.locator("#resize-side").is_hidden() is False and pg.problems == []
