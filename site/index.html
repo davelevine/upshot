@@ -103,7 +103,7 @@
   @media (min-width: 641px) { #resize-side { display: block; left: var(--side-w); } }  /* not on phones: there's no column to resize, and it would sit over the topics */
   body.resizing { cursor: col-resize; user-select: none; }
   body.resizing iframe { pointer-events: none; }  /* or the article would take the drag */
-  .side { display: flex; flex-direction: column; position: sticky; top: 52px; align-self: start; height: calc(100dvh - 52px); overflow-y: auto; padding: 14px 10px 24px; border-right: 1px solid var(--border); scrollbar-width: thin; }
+  .side { display: flex; flex-direction: column; position: sticky; top: 52px; align-self: start; height: calc(100dvh - 52px); overflow-y: auto; padding: 14px 10px 0; border-right: 1px solid var(--border); scrollbar-width: thin; }
   /* Only when a build is late: a quiet bar at the foot of the list, as Feedbin keeps its toolbar, with the one thing a reader can do. */
   .stale { position: fixed; inset: auto 0 0 var(--side-w); z-index: 90; display: flex; align-items: center; justify-content: center; gap: 12px; height: 44px; padding: 0 16px;
     border-top: 1px solid var(--border); background: var(--bg); color: var(--text-muted); font-size: .8125rem; white-space: nowrap; }
@@ -166,7 +166,8 @@
 
   /* The feed, after Feedbin: rows with no box around them, the publisher's icon, then title, source and the summary. */
   .items { max-width: var(--read); margin: 0 auto; padding: 8px 24px 48px; display: flex; flex-direction: column; }
-  .side-foot { margin: auto 0 0; padding: 16px 10px 0; color: var(--text-muted); font-size: .8125rem; }  /* how fresh the list is, at the sidebar's foot */
+  /* How fresh the list is, at the sidebar's foot: centred in a band as tall as the late bar, so when that shows they share a line. */
+  .side-foot { display: flex; flex: none; align-items: center; height: 44px; margin: auto 0 0; padding: 0 10px; color: var(--text-muted); font-size: .8125rem; }
   .card-age { display: block; margin-top: 4px; color: var(--text-muted); font-size: .8125rem; font-variant-numeric: tabular-nums; }
   .card { content-visibility: auto; contain-intrinsic-block-size: auto 6rem; display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: var(--radius-md); transition: background-color .15s ease; }
   .card[aria-current="true"] { background: var(--bg-card); }
@@ -245,7 +246,7 @@
     /* Phones open on the topics, as Feedbin does; picking one slides its list in over them, with a back chevron and its name above. */
     body.home #top { display: none; }
     .filters { padding: 16px 8px 0; }  /* room under the header */
-    .side-foot { padding: 14px 18px calc(20px + env(safe-area-inset-bottom)); }  /* at the foot of the screen, as on desktop, where the late bar shows */
+    .side-foot { height: calc(56px + env(safe-area-inset-bottom)); padding: 0 18px env(safe-area-inset-bottom); }  /* in the phone's bottom-bar band, where the late bar shows */
     /* The header crossfades with the pages, on the same --pd as their slide: the list's chevron and name fade out drifting right
        with it, and the wordmark fades in from the left with the topics; on a swipe, under the finger. */
     .logo-h, .list-back, .list-name, .search-btn { transition: opacity var(--slide-in) var(--ease-in), transform var(--slide-in) var(--ease-in); }

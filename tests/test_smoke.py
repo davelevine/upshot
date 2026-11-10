@@ -1058,6 +1058,9 @@ def test_essentials_say_which_days_and_updated_sits_on_the_feed(browser):
     assert re.fullmatch(r"[A-Z][a-z]{2} \d{1,2}(–\d{1,2}| – [A-Z][a-z]{2} \d{1,2})", pg.evaluate("weekRange(weekly)"))
     assert pg.evaluate("weekRange({window_start: '2026-10-29', window_end: '2026-11-04'})") == "Oct 29 – Nov 4"
     assert pg.locator(".side-foot #updated").count() == 1
+    # Centred in a band as tall as the late bar at the foot, so the two share a line when both show.
+    foot = pg.locator(".side-foot").bounding_box()
+    assert foot["y"] + foot["height"] == 900 and foot["height"] == 44
     pg.locator(".filter-btn", has_text="Security").click()  # a redraw keeps it filled in
     assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".side-foot #updated"))
     assert pg.problems == []
