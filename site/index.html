@@ -248,7 +248,9 @@
     .side-foot { padding: 14px 18px 32px; }
     /* The header crossfades with the pages, on the same --pd as their slide: the list's chevron and name fade out drifting right
        with it, and the wordmark fades in from the left with the topics; on a swipe, under the finger. */
-    .logo-h, .list-back, .list-name { transition: opacity var(--slide-in) var(--ease-in), transform var(--slide-in) var(--ease-in); }
+    .logo-h, .list-back, .list-name, .search-btn { transition: opacity var(--slide-in) var(--ease-in), transform var(--slide-in) var(--ease-in); }
+    .search-btn { opacity: calc(1 - var(--pd, 0)); }  /* search is for lists, as in Feedbin: the topics are for choosing one */
+    body.home .search-btn { opacity: calc(1 - var(--pd, 1)); }
     .logo-h { opacity: var(--pd, 0); transform: translateX(calc(-24px * (1 - var(--pd, 0)))); }
     body.home .logo-h { opacity: var(--pd, 1); transform: translateX(calc(-24px * (1 - var(--pd, 1)))); }
     .list-back { display: inline-grid; position: absolute; top: 3.5px; left: 4px; opacity: calc(1 - var(--pd, 0)); }
@@ -256,7 +258,7 @@
     .list-name { display: block; position: absolute; top: 0; left: 50%; max-width: calc(100% - 220px); line-height: 52px; opacity: calc(1 - var(--pd, 0)); transform: translateX(calc(-50% + 48px * var(--pd, 0)));
       overflow: hidden; font-size: 1.0625rem; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
     body.home .list-name { opacity: calc(1 - var(--pd, 1)); transform: translateX(calc(-50% + 48px * var(--pd, 1))); }
-    body.paging :is(.logo-h, .list-back, .list-name) { transition: none; }
+    body.paging :is(.logo-h, .list-back, .list-name, .search-btn) { transition: none; }
     .filter-btn { min-height: 44px; font-size: 1rem; }
     .filters .f-head { margin-top: 12px; }
     .icon-btn { width: 44px; height: 44px; }
