@@ -216,6 +216,23 @@
   },
   {
    "date": "2026-11-10",
+   "published": "2026-11-10T10:25:58+00:00",
+   "title": "AI usage generates a fragile codebase",
+   "url": "https://evanxmerz.com/post/ai-usage-generates-a-fragile-codebase/",
+   "publisher": "Hacker News 300+",
+   "category": "engineering",
+   "summary": "An essay argues that heavy AI coding tool usage produces fragile codebases; it drew 351 points and 386 comments on Hacker News.",
+   "relevance": 6,
+   "added": "2026-11-11T00:18:01+00:00",
+   "minutes": 5,
+   "tldr": [
+    "An ex-Meta engineer argues AI-generated code makes SaaS codebases fragile, citing shallow tests, overly complex code, and reduced human understanding.",
+    "He links AI codebases to more incidents, slower incident recovery, and errors visible only to real users.",
+    "The article gives no specific fix; it concludes that high-quality products will keep a human touch and be built primarily by humans."
+   ]
+  },
+  {
+   "date": "2026-11-10",
    "title": "Effect 4.0 Ships: Dependency-Free Rewrite with 5x Smaller Bundles and Long-Term Support",
    "url": "https://www.infoq.com/news/2026/11/effect-4-0-release/",
    "publisher": "InfoQ",
@@ -2341,7 +2358,7 @@
    }
   ]
  },
- "generated_at": "2026-11-10T21:51:01+00:00",
+ "generated_at": "2026-11-11T00:18:05+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
