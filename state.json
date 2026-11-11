@@ -1,5 +1,7 @@
 {
- "failing_since": {},
+ "failing_since": {
+  "https://blog.google/rss/": "2026-11-11"
+ },
  "seen": {
   "http://muratbuffalo.blogspot.com/2026/11/writing-as-thinking-tool.html": "2026-11-08",
   "https://8rank.ai/game/apple-intelligence-personal-knowledge-graph": "2026-11-07",
@@ -508,6 +510,7 @@
   "https://huggingface.co/blog/nvidia/nemotron-personas-finance-japan": "2026-11-09",
   "https://huggingface.co/blog/open-asr-leaderboard-liva": "2026-11-06",
   "https://huggingface.co/blog/phonon-tts": "2026-11-05",
+  "https://huggingface.co/blog/qvac/botpsy": "2026-11-11",
   "https://huggingface.co/blog/reflection-beam": "2026-10-16",
   "https://huggingface.co/blog/swiss-ai/apertus-v15-release-notes": "2026-10-15",
   "https://huggingface.co/blog/tiiuae/falcon-asr": "2026-10-07",
@@ -603,11 +606,13 @@
   "https://openai.com/index/chatgpt-ads-expands-26-new-countries": "2026-10-21",
   "https://openai.com/index/chatgpt-enterprise-aws-marketplace": "2026-11-09",
   "https://openai.com/index/chatgpt-expanding-world-of-work": "2026-10-26",
+  "https://openai.com/index/chatgpt-plus-for-veterans": "2026-11-11",
   "https://openai.com/index/check-point-daybreak": "2026-10-27",
   "https://openai.com/index/cisco-cyber": "2026-11-03",
   "https://openai.com/index/closing-ai-guidance-gap-education": "2026-11-10",
   "https://openai.com/index/cloudflare-cyber": "2026-10-21",
   "https://openai.com/index/coderabbit-codex-daybreak": "2026-11-09",
+  "https://openai.com/index/cogent-security": "2026-11-09",
   "https://openai.com/index/community-safety-report-and-new-protections-for-teens": "2026-10-30",
   "https://openai.com/index/control-room": "2026-11-09",
   "https://openai.com/index/coordinated-disclosure-of-critical-vulnerabilities": "2026-10-21",
@@ -802,6 +807,7 @@
   "https://thehackernews.com/2026/11/cisa-confirms-hackers-exploiting.html": "2026-11-04",
   "https://thehackernews.com/2026/11/cisa-flags-sonicwall-sonicos-mfa-bypass.html": "2026-11-09",
   "https://thehackernews.com/2026/11/cisa-warns-of-active-exploitation-of.html": "2026-11-10",
+  "https://thehackernews.com/2026/11/cisco-broadworks-and-openwave-flaws.html": "2026-11-11",
   "https://thehackernews.com/2026/11/claude-codes-dont-ask-again-file.html": "2026-11-07",
   "https://thehackernews.com/2026/11/cpguard-update-channel-hijacked-to.html": "2026-11-03",
   "https://thehackernews.com/2026/11/critical-langflow-flaws-could-let.html": "2026-11-02",
@@ -901,6 +907,7 @@
   "https://unit42.paloaltonetworks.com/u42-threat-intelligence-highlights-oct-2026/": "2026-11-02",
   "https://unit42.paloaltonetworks.com/unwrapping-retail-cyber-threats/": "2026-10-28",
   "https://unit42.paloaltonetworks.com/web3-cloud-supply-chain-attacks/": "2026-10-07",
+  "https://www.ableton.com/en/live/": "2026-11-10",
   "https://www.aikido.dev/blog/ai-agent-security-in-kubernetes-prompt-injection": "2026-10-30",
   "https://www.aikido.dev/blog/ai-pentesting-existing-security-stack": "2026-10-24",
   "https://www.aikido.dev/blog/aikido-launches-external-network-pentesting": "2026-10-28",

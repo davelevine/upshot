@@ -2332,33 +2332,32 @@
   }
  ],
  "weekly": {
-  "window_start": "2026-11-04",
-  "window_end": "2026-11-10",
-  "selected_on": "2026-11-10",
+  "window_start": "2026-11-05",
+  "window_end": "2026-11-11",
   "items": [
    {
     "url": "https://www.securityweek.com/chrome-update-patches-exploited-xml-zero-day-eighth-this-year/",
-    "why": "Update Chrome now; the exploited flaw is already being used in live attacks."
+    "why": "Update Chrome immediately; this exploited flaw is already being used in attacks."
    },
    {
-    "url": "https://www.bleepingcomputer.com/news/security/hackers-exploit-sshole-openssh-flaw-to-breach-linux-systems/",
-    "why": "Patch OpenSSH now; the flaw grants commands, credential theft, and persistent Linux access."
+    "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-november-2026-patch-tuesday-fixes-1-235-flaws-outlook-zero-day/",
+    "why": "Patch the Outlook zero-day first, then work through the 1,235-fix batch by exposure."
    },
    {
-    "url": "https://socket.dev/blog/shai-hulud-descendant-malicious-ruby-gem",
-    "why": "Remove the gem, then rotate tokens carefully; revoking first can trigger file wiping."
+    "url": "https://www.bleepingcomputer.com/news/security/hackers-exploit-barracuda-email-security-gateway-flaws-to-get-root-access/",
+    "why": "If you run Email Security Gateway, check for compromise; root-level exploitation is live."
    },
    {
-    "url": "https://www.wiz.io/blog/qubole-cross-account-access-abused-in-the-wild",
-    "why": "Audit IAM roles trusting Qubole's AWS account; restrict external trust and review assume-role logs."
+    "url": "https://thehackernews.com/2026/11/chainalysis-breach-exposes-all-users.html",
+    "why": "Rotate credentials and revoke tokens if you ever used Chainalysis Reactor or Data Solutions."
    },
    {
-    "url": "https://www.bleepingcomputer.com/news/security/sonicwall-warns-of-new-ssl-vpn-mfa-bypass-flaw-exploited-in-attacks/",
-    "why": "Patch SonicOS now; the SSL-VPN MFA bypass is already exploited against unpatched firewalls."
+    "url": "https://socket.dev/blog/github-to-block-pull-request-target",
+    "why": "Audit pull_request_target workflows now; blocking becomes default on December 2."
    }
   ]
  },
- "generated_at": "2026-11-11T04:18:14+00:00",
+ "generated_at": "2026-11-11T06:41:22+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
