@@ -155,8 +155,7 @@ def llm(system, user, schema):
     # An unrecognized model name makes the CLI quietly answer with another model; scores would drift.
     if MODEL not in out.get("modelUsage", {}):
         raise RuntimeError(f"answered by {list(out.get('modelUsage', {}))}, not {MODEL}")
-    res = out["structured_output"]
-    return res if isinstance(res, list) else next(v for v in res.values() if isinstance(v, list))
+    return next(iter(out["structured_output"].values()))  # every schema is an object holding one list
 
 
 CLASSIFY_PROMPT = f"""You curate a tech news digest for a senior infrastructure/platform engineer
@@ -219,12 +218,10 @@ REPEATS_SCHEMA = {
 }
 
 
-def classify(batch):
-    """Returns {url: result} for the batch; items the model skipped are simply absent."""
-    payload = [{"id": n, "title": i["title"], "publisher": i["publisher"], "excerpt": i["excerpt"]}
-               for n, i in enumerate(batch)]
-    res = llm(CLASSIFY_PROMPT, json.dumps(payload), CLASSIFY_SCHEMA)
-    return {batch[r["id"]]["url"]: r for r in res if 0 <= r["id"] < len(batch)}
+def classify(item):
+    """The model's {category, relevance, summary} for one story."""
+    payload = [{"id": 0, "title": item["title"], "publisher": item["publisher"], "excerpt": item["excerpt"]}]
+    return llm(CLASSIFY_PROMPT, json.dumps(payload), CLASSIFY_SCHEMA)[0]
 
 
 def score_each(items):
@@ -233,7 +230,7 @@ def score_each(items):
     def one(item):
         for attempt in range(3):
             try:
-                return item["url"], classify([item]).get(item["url"])
+                return item["url"], classify(item)
             except Exception as e:
                 if attempt == 2:
                     print(f"::warning::scoring failed for {item['url']}: {e}")
@@ -277,7 +274,7 @@ def pick_weekly(items, today):
                for n, i in enumerate(week)]
     res = llm(WEEKLY_PROMPT, json.dumps(payload), WEEKLY_SCHEMA)
     picks = [{"url": week[p["id"]]["url"], "why": p["why"]} for p in res if 0 <= p["id"] < len(week)]
-    return {"window_start": start, "window_end": today.isoformat(), "selected_on": today.isoformat(), "items": picks[:5]}
+    return {"window_start": start, "window_end": today.isoformat(), "items": picks[:5]}
 
 
 OG = {"w": 1200, "h": 630, "pad": 72, "bg": "#15161e", "text": "#eceff4", "muted": "#a3abbb", "accent": "#73dbcc", "dot": "#d9485a",
@@ -361,6 +358,10 @@ ICONS = SITE / "icons"
 ICON_UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36"
 
 
+def get(url, limit):
+    return urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": ICON_UA}), timeout=10).read(limit)
+
+
 def slug(name):
     """Same rule as tests/fixtures/fetch.mjs slug() and app.js iconSlug()."""
     return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
@@ -382,7 +383,6 @@ def icon_candidates(page_html, base):
 
 def fetch_icon(site):
     """A 64px PNG of a site's icon, or None. Pillow reads PNG, ICO, JPEG, GIF and WebP; SVG-only sites get nothing."""
-    get = lambda u, n: urllib.request.urlopen(urllib.request.Request(u, headers={"User-Agent": ICON_UA}), timeout=10).read(n)
     try:
         page = get(site, 400_000).decode("utf-8", "replace")
     except Exception:
@@ -514,12 +514,16 @@ def words_in(html):
     return len(re.sub(r"<[^>]+>", " ", html or "").split())
 
 
+def entry_words(e):
+    return max([words_in(c.get("value")) for c in e.get("content", [])] + [words_in(e.get("summary"))])
+
+
 def feed_minutes(fetched):
     """{url: minutes} for feeds that publish whole articles, which some do for sites the reader can't get into."""
     out = {}
     for res in fetched.values():
         for e in (res[1] if res else ()):
-            words = max([words_in(c.get("value")) for c in e.get("content", [])] + [words_in(e.get("summary"))])
+            words = entry_words(e)
             if e.get("link") and words >= MIN_ARTICLE_WORDS:
                 out[normalize_url(e["link"])] = max(1, round(words / WORDS_PER_MINUTE))
     return out
@@ -528,7 +532,7 @@ def feed_minutes(fetched):
 def full_text_feeds(fetched):
     """{publisher: feed url} for feeds that publish whole articles. extract.mjs falls back to these when a page is blocked."""
     return {res[0]: url for url, res in fetched.items()
-            if res and any(max([words_in(c.get("value")) for c in e.get("content", [])] + [words_in(e.get("summary"))]) >= MIN_ARTICLE_WORDS for e in res[1])}
+            if res and any(entry_words(e) >= MIN_ARTICLE_WORDS for e in res[1])}
 
 
 def add_reading_times(items, known=None, feeds=None, texts=None):
@@ -606,7 +610,7 @@ def run_summary(feeds, feeds_failed, new, scores, kept, repeated, health):
     """Markdown for the Actions run page: what this build saw, kept and nearly kept."""
     title = {i["url"]: i for i in new}
     scored = {u: r for u, r in scores.items() if r}
-    near = sorted(((r, title[u]) for u, r in scored.items() if r["relevance"] == MIN_RELEVANCE.get(r["category"], 8) - 1),
+    near = sorted(((r, title[u]) for u, r in scored.items() if r["relevance"] == MIN_RELEVANCE[r["category"]] - 1),
                   key=lambda x: (x[0]["category"], x[1]["title"]))
     row = lambda r, i: f"| {r['category']} | {r['relevance']} | {i['publisher']} | [{i['title']}]({i['url']}) |"
     lines = [
@@ -623,13 +627,6 @@ def run_summary(feeds, feeds_failed, new, scores, kept, repeated, health):
     if health:
         lines += ["## Feed health", "", health, ""]
     return "\n".join(lines) + "\n"
-
-
-def write_summary(*args):
-    path = os.environ.get("GITHUB_STEP_SUMMARY")
-    if path:
-        with open(path, "a") as f:
-            f.write(run_summary(*args))
 
 
 def update_feed_health(health, results, today):
@@ -675,11 +672,9 @@ def feed_links(page_html, base):
 
 def discover_feeds(site):
     try:
-        req = urllib.request.Request(site, headers={"User-Agent": ICON_UA})
-        page = urllib.request.urlopen(req, timeout=10).read(400_000).decode("utf-8", "replace")
+        return feed_links(get(site, 400_000).decode("utf-8", "replace"), site)
     except Exception:
         return []
-    return feed_links(page, site)
 
 
 def feed_health_report(names, dead, silent, moved, suggestions):
@@ -697,22 +692,11 @@ def feed_health_report(names, dead, silent, moved, suggestions):
     return "Fix these in `feeds.opml`. This issue updates every build and closes itself once all feeds are healthy.\n\n" + "\n".join(out)
 
 
-RENAMED = {"architecture": "infrastructure", "sdlc": "engineering"}  # the old category ids, until 2026-11
-
-
-def rename_categories(items):
-    """Stories already on the site keep their place when a category is renamed."""
-    for i in items:
-        if i.get("category") in RENAMED:
-            i["category"] = RENAMED[i["category"]]
-
-
 def main():
     today = now().astimezone(SITE_TZ).date()
     state = json.loads(STATE.read_text()) if STATE.exists() else {"seen": {}, "failing_since": {}}
     data_path = SITE / "data.json"
     data = json.loads(data_path.read_text()) if data_path.exists() else {"items": [], "weekly": None}
-    rename_categories(data["items"])
     published = {id(i) for i in data["items"]}  # on the site already: these never give up their place
     seen = state["seen"]
     feeds = read_opml(ROOT / "feeds.opml")
@@ -748,7 +732,7 @@ def main():
         if not r:  # left unseen, so the next run retries it
             continue
         seen[item["url"]] = item["date"]
-        if r["relevance"] >= MIN_RELEVANCE.get(r["category"], 8):
+        if r["relevance"] >= MIN_RELEVANCE[r["category"]]:
             passing.append((item | {"summary": r["summary"]}, r))
 
     kept, repeated = [], []
@@ -787,7 +771,7 @@ def main():
     state["seen"] = {u: d for u, d in seen.items() if d >= keep}
 
     weekly = data.get("weekly")
-    if not weekly or weekly["selected_on"] != today.isoformat():
+    if not weekly or weekly["window_end"] != today.isoformat():
         try:
             data["weekly"] = pick_weekly(data["items"], today) or weekly
         except Exception as e:
@@ -813,7 +797,9 @@ def main():
     health = feed_health_report(names, dead, silent, {u: m for u, m in MOVED.items() if u in names}, suggestions)
     (ROOT / "feed-health.md").write_text(health)
 
-    write_summary(len(feeds), sum(r is None for r in fetched.values()), new, scores, kept, repeated, health)
+    if path := os.environ.get("GITHUB_STEP_SUMMARY"):
+        with open(path, "a") as f:
+            f.write(run_summary(len(feeds), sum(r is None for r in fetched.values()), new, scores, kept, repeated, health))
 
     if new and failed == len(new):
         sys.exit("every scoring call failed; check CLAUDE_CODE_OAUTH_TOKEN and the Claude Code CLI")

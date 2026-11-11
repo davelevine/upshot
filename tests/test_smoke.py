@@ -646,7 +646,7 @@ def test_reader_bar_after_feedbin(browser):
     pg.locator("#reader-prev").tap()
     pg.wait_for_function("() => document.getElementById('reader-prev').disabled")
     assert pg.problems == []
-    # On a desktop where the reader slides over the list: an X, no bottom bar, and the keyboard still lands on the close button.
+    # A small desktop window, where the reader is docked: an X, no bottom bar, and the keyboard stays in the list.
     dc = browser.new_context(viewport={"width": 900, "height": 800})
     def no_icons(route):  # a publisher with no icon listed
         res = route.fetch()
@@ -658,7 +658,7 @@ def test_reader_bar_after_feedbin(browser):
     dk.locator("a.card").first.focus()
     dk.keyboard.press("Enter")
     dk.wait_for_selector("#reader-body iframe:not(.loading)")
-    assert dk.evaluate("document.activeElement.id") == "reader-close"
+    assert dk.evaluate("document.activeElement.classList.contains('card')")
     assert dk.locator(".close-x").is_visible() and not dk.locator(".reader-nav").is_visible()
     assert not dk.locator("#reader-icon").is_visible()  # no icon listed for it: hidden, never a 404
 
@@ -715,7 +715,7 @@ def test_ages_count_days_in_the_sites_time_zone_whatever_the_device_reports(brow
 
 
 def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
-    ctx = browser.new_context(viewport={"width": 900, "height": 800})  # the sliding reader: this checks a click during its slide out
+    ctx = browser.new_context(viewport={"width": 600, "height": 800})  # the sliding reader: this checks a click during its slide out
     def with_tldr(route):
         res = route.fetch()
         data = res.json()
@@ -1154,7 +1154,7 @@ def test_wide_screens_dock_the_reader_beside_the_list(browser):
 
 
 def test_resizing_to_a_wide_screen_frees_the_list(browser):
-    pg = open_site(browser, viewport={"width": 900, "height": 800})
+    pg = open_site(browser, viewport={"width": 600, "height": 800})
     pg.locator("a.card").first.click()
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
     assert pg.evaluate("document.getElementById('items').inert")  # sliding over the list: the list waits
@@ -1163,8 +1163,52 @@ def test_resizing_to_a_wide_screen_frees_the_list(browser):
     assert pg.locator("#reader-backdrop").is_hidden()
     pg.set_viewport_size({"width": 1100, "height": 800})  # a laptop docks the reader too, as Feedbin does
     pg.wait_for_function("() => !document.getElementById('items').inert")
-    pg.set_viewport_size({"width": 900, "height": 800})
+    pg.set_viewport_size({"width": 900, "height": 800})  # a small window docks it too, beside the list
+    pg.wait_for_function("() => !document.getElementById('items').inert")
+    pg.set_viewport_size({"width": 600, "height": 800})
     pg.wait_for_function("() => document.getElementById('items').inert")
+    assert pg.problems == []
+
+
+def test_narrowing_the_window_doesnt_fling_a_closed_reader(browser):
+    # Docked, a story opened then closed by picking a topic; zooming in (or narrowing) past the breakpoint used to slide
+    # the closed panel across the screen, since the overlay's closed state is off to the right.
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    pg.locator("a.card").first.click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.locator("#filters [data-f='all']").click()
+    wait_until_closed(pg)
+    pg.set_viewport_size({"width": 600, "height": 800})
+    pg.wait_for_timeout(50)  # mid-slide, if there were one
+    assert pg.evaluate("getComputedStyle(document.getElementById('reader')).visibility") == "hidden"
+    assert pg.evaluate("document.getElementById('reader').getAnimations().length") == 0
+    assert pg.problems == []
+
+
+def test_mid_width_docks_the_reader_and_pages_topics_and_list(browser):
+    # Between phone and three columns, as in Feedbin: the reader stays docked, and the topics and the list are two pages of one
+    # left pane, scrolled sideways.
+    pg = open_site(browser, viewport={"width": 900, "height": 800})
+    shell = "document.querySelector('.shell')"
+    box = lambda s: pg.locator(s).bounding_box()
+    pg.wait_for_function(f"() => {shell}.scrollLeft > 0")  # opens on the stories
+    assert pg.locator("#reader").is_visible() and pg.locator("#reader-backdrop").is_hidden()
+    assert box("#col")["x"] == 0 and box("#reader")["x"] == 360 and box(".side")["x"] < 0
+    assert pg.locator("#resize-side").is_hidden() and pg.locator("#resize-list").is_hidden()  # no columns to resize
+    pg.locator("a.card").nth(1).click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    assert box("#col")["x"] == 0 and box("#reader")["x"] == 360  # the list stays beside the story
+    assert not pg.evaluate("document.getElementById('items').inert") and pg.get_attribute("#reader", "aria-modal") == "false"
+    pg.mouse.move(180, 400)  # over the list, not the scrollbar: a sideways swipe there pages back to the topics
+    pg.mouse.wheel(-400, 0)
+    pg.wait_for_function("() => document.querySelector('.side').getBoundingClientRect().left === 0")
+    pg.locator("#filters [data-f='security']").click()
+    pg.wait_for_function("() => document.getElementById('col').getBoundingClientRect().left === 0")  # slides to its list
+    assert pg.evaluate("shown.every(i => cat(i.category) === 'security')")
+    # The narrow end: the pane gives way so the article keeps 360px.
+    pg.set_viewport_size({"width": 641, "height": 800})
+    pane, reader = box("#col"), box("#reader")
+    assert pane["width"] >= 280 and reader["width"] >= 360 and abs(reader["x"] - pane["width"]) <= 1
     assert pg.problems == []
 
 

@@ -33,7 +33,7 @@ It loads the site in Chromium under its real CSP and checks the feed, reader, se
 
 - **CSP hashes.** If you change the theme script in `index.html` or the relay script in `app.js`, `node --test` prints the new hash to put in `site/_headers`.
 - **Reader fixtures.** Every publisher in `feeds.opml` has a saved test page under `tests/fixtures/`, with its article text scrambled. When a real page breaks the reader, save it the same way (see [Adding a feed](setup.md#adding-a-feed)), then fix the rule in `tidy()` so it keys on what the element is, never on a site's name or class.
-- **Category names.** A category has one name everywhere: its label in `app.js`, its id in `build.py` (`CATEGORIES`, the bars, the scoring prompt), `data.json` and the `--cat-*` colours. To rename one, change them all and add the old id to `RENAMED` in `build.py` and `OLD` in `app.js`, so stories already on the site move to the new name instead of vanishing.
+- **Category names.** A category has one name everywhere: its label in `app.js`, its id in `build.py` (`CATEGORIES`, the bars, the scoring prompt), `data.json` and the `--cat-*` colours. To rename one, change them all and map the old id to the new one in both `build.py` (on loading `data.json`) and `app.js` until a build has rewritten every stored story, so none vanish; then delete the mapping.
 
 ## CI/CD
 

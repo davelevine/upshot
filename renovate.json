@@ -16,9 +16,7 @@
   "commitBodyTable": true,
   "configMigration": true,
   "rebaseWhen": "behind-base-branch",
-  "automerge": false,
   "platformAutomerge": false,
-  "automergeType": "pr",
   "packageRules": [
     {
       "description": "Automerge digest, patch and minor updates once CI passes (unit tests plus the browser smoke test)",

@@ -2,14 +2,17 @@ const CATS = { security: 'Security', ai: 'AI', infrastructure: 'Infrastructure',
 const ORDER = ['ai', 'infrastructure', 'engineering', 'security', 'regulation', 'other'];
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const OLD = { architecture: 'infrastructure', sdlc: 'engineering' };  // renamed categories, until the next build migrates data.json
-const cat = c => (OLD[c] || (c in CATS ? c : 'other'));
+const cat = c => (c in CATS ? c : 'other');
 const domain = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
 const PAGE = 40;
 const STALE_MINUTES = 5 * 60;  // builds land every 4h, give or take GitHub's scheduling: this is one running 45+ minutes late
 const KEEP_DAYS = 90;  // build.py prunes older stories
-// Wide screens dock the reader beside the list, as Feedbin does, and the list scrolls on its own; elsewhere the window scrolls it.
-const docked = matchMedia('(min-width: 1024px)');
+// Past phone widths the reader is docked beside the list, as Feedbin does, and the list scrolls on its own; on phones the window scrolls it.
+const docked = matchMedia('(min-width: 641px)');
+// Below three columns, the topics and the list are two pages of one left pane, scrolled sideways (index.html).
+const paged = matchMedia('(min-width: 641px) and (max-width: 1023px)');
+const showList = smooth => { if (paged.matches) document.querySelector('.shell').scrollTo({ left: 1e5, behavior: smooth ? 'smooth' : 'instant' }); };
+paged.addEventListener('change', () => showList(false));
 const scroller = () => (docked.matches ? $('col') : document.scrollingElement);
 // The latest entry decides: a batch can hold an older one from before the last redraw, and reading that stopped the feed short of its end.
 // Watched against whichever scrolls the list, so the 800px head start applies to it.
@@ -170,6 +173,7 @@ $('filters').onclick = e => {
   if (document.body.classList.contains('reading')) dismiss();  // as in Feedbin: picking a topic, even the current one, closes the story
   renderFilters();
   if (!(same && phone.matches)) renderItems();
+  showList(true);  // picking a topic slides to its list, as in Feedbin
   if (phone.matches && document.body.classList.contains('home')) enterList(same);  // into the list, as a page: back returns to the topics
   else if (history.state?.list) history.replaceState({ ...history.state, f: filter }, '');
 };
@@ -312,7 +316,7 @@ function load() {
     renderItems(refresh);
     if (!refresh) {  // where the page starts is no move: no slide
       document.body.classList.add('paging');
-      syncFromUrl(); syncHome();
+      syncFromUrl(); syncHome(); showList(false);  // opens on the stories
       requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('paging')));
       if (passDue()) { if (document.hidden) tickOnShow = true; else playTicker(); }  // opened, not just refreshed: one pass
       (window.requestIdleCallback || (f => setTimeout(f, 1000)))(loadFrameFonts);  // ahead of the first article
@@ -327,6 +331,11 @@ const setInert = () => {
   $('reader').setAttribute('aria-modal', String(!docked.matches));
 };
 docked.addEventListener('change', setInert);  // resizing never strands an inert list
+// Crossing the breakpoint changes where the reader sits, not whether it's open: no slide (a closed one would fly off).
+docked.addEventListener('change', () => {
+  document.body.classList.add('dragging');
+  requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('dragging')));
+});
 const markCurrent = url => document.querySelectorAll('a.card').forEach(a => {
   if (url && a.getAttribute('href') === url) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
 });
