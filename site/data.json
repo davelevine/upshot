@@ -2,6 +2,57 @@
  "items": [
   {
    "date": "2026-11-11",
+   "published": "2026-11-11T14:24:46+00:00",
+   "title": "Choosing QuePaxa, an unusual consensus algorithm",
+   "url": "https://blog.cloudflare.com/choosing-quepaxa/",
+   "publisher": "Cloudflare Blog",
+   "category": "infrastructure",
+   "summary": "Cloudflare describes its experimental consensus service built on QuePaxa, a never-before-deployed consensus algorithm, and explains how it works and why it was chosen.",
+   "relevance": 7,
+   "added": "2026-11-11T16:18:31+00:00",
+   "minutes": 18,
+   "tldr": [
+    "Cloudflare announced Meerkat, an experimental global distributed consensus service for its internal control plane, powered by the new QuePaxa algorithm.",
+    "QuePaxa avoids relying on a single leader or fault detection, so it keeps making progress during latency spikes, broken connections, and leader failures, where Raft and Paxos can stall.",
+    "Meerkat has run across servers on nearly all continents without a complete stall; Cloudflare is formally verifying its QuePaxa implementation and Meerkat."
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "published": "2026-11-11T15:00:15+00:00",
+   "title": "AlphaGenome 2: Deciphering how cells read DNA to better understand disease",
+   "url": "https://deepmind.google/blog/alphagenome-2-deciphering-how-cells-read-dna-to-better-understand-disease/",
+   "publisher": "Google DeepMind",
+   "category": "ai",
+   "summary": "Google DeepMind announced AlphaGenome 2, a model that predicts how DNA sequence and variants affect specific human cell types and disease.",
+   "relevance": 7,
+   "added": "2026-11-11T16:18:31+00:00",
+   "minutes": 8,
+   "tldr": [
+    "AlphaGenome 2, a conditional DNA model, predicts how variants affect gene expression in specific human cell types.",
+    "On the TenK10K immune cell dataset, it found nearly twice as many causal variants (30% vs. 16%) as the original AlphaGenome.",
+    "Available today via the AlphaGenome API for non-commercial research, with commercial research in private preview; not validated for clinical or diagnostic use."
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "published": "2026-11-11T15:17:00+00:00",
+   "title": "Tests as data: ensuring AI-generated code does what we want",
+   "url": "https://martinfowler.com/articles/tests-as-data.html",
+   "publisher": "Martin Fowler",
+   "category": "engineering",
+   "summary": "Martin Fowler's article argues that with AI writing code, customer-level tests become the primary human-AI contract, and storing them as protected test data helps prevent agent modification.",
+   "relevance": 6,
+   "added": "2026-11-11T16:18:31+00:00",
+   "minutes": 31,
+   "tldr": [
+    "AI-written tests are often hard to read, coupled to implementation, and sometimes confirm existing bugs, so developers no longer trust them.",
+    "The article proposes customer tests written as data, such as tables or structured scenarios, interpreted by a small test runner that an AI agent can generate.",
+    "Protect test data files from unexpected changes with read-only permissions or CI checks, and validate tests with mutation testing and trusted oracles."
+   ]
+  },
+  {
+   "date": "2026-11-11",
    "published": "2026-11-11T07:06:00+00:00",
    "title": "Angular's TypeScript 7-Powered Compiler Enters Beta with Rust-Based Preprocessor",
    "url": "https://www.infoq.com/news/2026/11/angular-compiler-rust-typescript/",
@@ -2375,7 +2426,7 @@
    }
   ]
  },
- "generated_at": "2026-11-11T12:18:25+00:00",
+ "generated_at": "2026-11-11T16:18:42+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
