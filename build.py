@@ -281,9 +281,9 @@ OG = {"w": 1200, "h": 630, "pad": 72, "bg": "#15161e", "text": "#eceff4", "muted
       "cats": {"security": "#f7a3ad", "ai": "#d3abed", "infrastructure": "#80c7f8", "engineering": "#b7b5fc", "regulation": "#ebb077", "other": "#b6becb"}}
 
 
-def og_font(size, weight, opsz=14):
-    font = ImageFont.truetype(str(SITE / "fonts" / "InterVariable.woff2"), size)
-    font.set_variation_by_axes([opsz, weight])
+def og_font(size, weight):
+    font = ImageFont.truetype(str(SITE / "fonts" / "PublicSansVariable.woff2"), size)
+    font.set_variation_by_axes([weight])
     return font
 
 
@@ -310,7 +310,7 @@ def og_image(data, today):
     """The link-preview card: the week's #1 essential with what to do, or the site's tagline before there is one."""
     c, img = OG, Image.new("RGB", (OG["w"], OG["h"]), OG["bg"])
     d, x, right = ImageDraw.Draw(img), OG["pad"], OG["w"] - OG["pad"]
-    logo = og_font(46, 760, 32)
+    logo = og_font(46, 760)
     d.text((x, 62), "upshot", font=logo, fill=c["text"])
     end = x + logo.getlength("upshot")
     d.ellipse((end + 2, 98, end + 12, 108), fill=c["dot"])
@@ -322,8 +322,8 @@ def og_image(data, today):
     top = by_url.get(picks[0]["url"]) if picks else None
     if not top:
         y = 230
-        for line in wrap("The week’s tech news, minus the noise.", og_font(56, 700, 32), right - x, 3):
-            d.text((x, y), line, font=og_font(56, 700, 32), fill=c["text"])
+        for line in wrap("The week’s tech news, minus the noise.", og_font(56, 700), right - x, 3):
+            d.text((x, y), line, font=og_font(56, 700), fill=c["text"])
             y += 70
         d.text((x, y + 20), "Five weekly essentials, each with what to do.", font=og_font(30, 400), fill=c["muted"])
         d.text((x, 550), SITE_URL.split("//")[-1], font=small, fill=c["muted"])
@@ -335,7 +335,7 @@ def og_image(data, today):
     d.ellipse((cx, y + 7, cx + 12, y + 19), fill=c["cats"].get(top["category"], c["cats"]["other"]))
     d.text((cx + 22, y), top["category"].upper() if top["category"] != "ai" else "AI", font=small_bold, fill=c["muted"])
     y += 52
-    head = og_font(52, 700, 32)
+    head = og_font(52, 700)
     lines = wrap(top["title"], head, right - x, 3)
     for line in lines:
         d.text((x, y), line, font=head, fill=c["text"])

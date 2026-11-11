@@ -390,7 +390,7 @@ def test_reader_shows_the_story_before_the_fetch_finishes(browser):
     meta = frame.locator(".meta").inner_text()
     assert "by Ada Lovelace" in meta and "By By" not in meta  # Feedbin-style: date by author, then minutes
     assert "\n" not in meta and pg.evaluate("readerFor && items.find(i => i.url === readerFor).publisher") == pg.inner_text("#reader-source")  # the source sits in the bar
-    assert frame.locator("h1").evaluate("e => getComputedStyle(e).fontFamily").startswith("Inter")
+    assert frame.locator("h1").evaluate("e => getComputedStyle(e).fontFamily").startswith('"Public Sans"')
     assert frame.locator("h1").inner_text() == title and frame.locator(".todo").count() == 1
 
 
@@ -456,15 +456,17 @@ def test_reader_says_when_an_article_isnt_stored_yet(browser):
     frame.locator(".status", has_text="ready yet").wait_for()
 
 
-def test_inter_is_served_from_the_site(browser):
+def test_public_sans_is_served_from_the_site(browser):
     pg = browser.new_context().new_page()
     fonts = []
     pg.on("response", lambda r: fonts.append((r.url, r.status)) if "/fonts/" in r.url else None)
     pg.goto(URL)
     enter_list(pg)
     pg.evaluate("document.fonts.ready")
-    assert any(u.endswith("/fonts/InterVariable.woff2") and s == 200 for u, s in fonts)
-    assert pg.evaluate("document.fonts.check('16px Inter')")
+    assert any(u.endswith("/fonts/PublicSansVariable.woff2") and s == 200 for u, s in fonts)
+    assert pg.evaluate("""document.fonts.check('16px "Public Sans"')""")
+    # Public Sans's regular is heavier than Inter's (its other weights match), so regular text sits at 370.
+    assert pg.evaluate("[document.body, document.querySelector('.card-sum')].map(e => getComputedStyle(e).fontWeight)") == ["370", "370"]
 
 
 def test_articles_are_set_in_literata_without_downloading_fonts_each_time(browser):
@@ -484,7 +486,7 @@ def test_articles_are_set_in_literata_without_downloading_fonts_each_time(browse
         frame = pg.frame_locator("#reader-body iframe:not(.loading)")
         frame.locator("p").nth(29).wait_for()
         faces = frame.locator("body").evaluate("() => document.fonts.ready.then(() => [...document.fonts].filter(f => f.status === 'loaded').map(f => f.family))")
-        assert "Literata" in faces and "Inter" in faces  # the article in Literata, its headings in Inter
+        assert "Literata" in faces and "Public Sans" in faces  # the article in Literata, its headings in Public Sans
         assert frame.locator("em").evaluate("e => document.fonts.check('italic 17px Literata')")  # real italics, not slanted
         assert frame.locator("main p").nth(3).evaluate("e => getComputedStyle(e).fontFamily").startswith("Literata")
     # A sandboxed frame caches apart every time, so fonts loaded there by URL came down again for every article.

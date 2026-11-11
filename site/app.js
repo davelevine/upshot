@@ -371,16 +371,16 @@ addEventListener('keydown', e => {  // keys pressed while the article has focus 
   if (!e.altKey && ['escape', 'j', 'k', 'm', 'arrowleft', 'arrowright'].includes(k)) { e.preventDefault(); parent.postMessage({ tw: 'key', key: k, mod: e.metaKey || e.ctrlKey }, '*'); }
 });`;
 
-// The article frame's fonts: Inter for its headings, Literata for the article. A sandboxed frame has an opaque origin,
+// The article frame's fonts: Public Sans for its headings, Literata for the article. A sandboxed frame has an opaque origin,
 // which the browser caches apart every time, so a font loaded there by URL was downloaded afresh for every frame (two
 // per article) and flashed the fallback meanwhile. The page fetches each once instead, cached as usual, and hands it to
 // every frame inline. Until one arrives, a frame loads it by URL as before.
-const FRAME_FONTS = { inter: '/fonts/InterVariable.woff2', literata: '/fonts/LiterataVariable.woff2', literataItalic: '/fonts/LiterataVariable-Italic.woff2' };
+const FRAME_FONTS = { sans: '/fonts/PublicSansVariable.woff2', literata: '/fonts/LiterataVariable.woff2', literataItalic: '/fonts/LiterataVariable-Italic.woff2' };
 const frameFonts = {};
 const frameFont = k => frameFonts[k] || location.origin + FRAME_FONTS[k];
 function loadFrameFonts() {
   for (const [k, url] of Object.entries(FRAME_FONTS)) {
-    // Without credentials, as the page's preload of Inter asks, so the preloaded copy is reused rather than fetched again.
+    // Without credentials, as the page's preload of Public Sans asks, so the preloaded copy is reused rather than fetched again.
     fetch(url, { credentials: 'omit' }).then(r => (r.ok ? r.blob() : Promise.reject())).then(b => new Promise(done => {
       const read = new FileReader();
       read.onload = () => { frameFonts[k] = read.result; done(); };
@@ -432,16 +432,16 @@ main { max-width: 640px; margin: 0 auto; padding: 32px 24px 96px; }
 a { color: var(--accent); }
 h1 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 0 0 .4em; font-size: clamp(1.4rem, 1rem + 2vw, 1.75rem); font-weight: 700; line-height: 1.2; letter-spacing: -.01em; }
 h1 a { color: inherit; text-decoration: none; } h1 a:hover { text-decoration: underline; text-decoration-thickness: 2px; }
-@font-face { font-family: Inter; src: url("${frameFont('inter')}") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Public Sans"; src: url("${frameFont('sans')}") format("woff2"); font-weight: 100 900; size-adjust: 103%; font-display: swap; }
 @font-face { font-family: Literata; src: url("${frameFont('literata')}") format("woff2"); font-weight: 400 700; font-style: normal; font-display: swap; }
 @font-face { font-family: Literata; src: url("${frameFont('literataItalic')}") format("woff2"); font-weight: 400 700; font-style: italic; font-display: swap; }
-h1 { font-family: Inter, system-ui, sans-serif; letter-spacing: -.01em; }
+h1 { font-family: "Public Sans", system-ui, sans-serif; letter-spacing: -.01em; }
 [data-size="0"] body { font-size: 1.0625rem; } [data-size="2"] body { font-size: 1.25rem; } [data-size="3"] body { font-size: 1.375rem; }  /* a step up for Literata's smaller x-height (0.507) */
-.meta { margin-bottom: 1.8em; color: var(--text-muted); font: .88em/1.45 Inter, system-ui, sans-serif; }  /* em: follows the text size */
+.meta { margin-bottom: 1.8em; color: var(--text-muted); font: 370 .88em/1.45 "Public Sans", system-ui, sans-serif; }  /* em: follows the text size */
 .todo { margin: 0 0 1.8em; padding: 12px 16px; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; background: var(--bg-card); }
-.tldr ul { margin: .35em 0 0; padding-left: 1.15em; font: .94em/1.5 Inter, system-ui, sans-serif; } .tldr li + li { margin-top: .45em; }  /* sans: scanned, not read */
-.tldr .do { margin: .8em 0 0; padding-top: .7em; border-top: 1px solid var(--border); font: 500 .94em/1.5 Inter, system-ui, sans-serif; } .tldr .do b { font-size: .875em; }
-.todo b { display: block; margin-bottom: 2px; color: var(--accent); font: 700 .82em/1.5 Inter, system-ui, sans-serif; letter-spacing: .07em; text-transform: uppercase; }  /* the box's sizes are em too */
+.tldr ul { margin: .35em 0 0; padding-left: 1.15em; font: 370 .94em/1.5 "Public Sans", system-ui, sans-serif; } .tldr li + li { margin-top: .45em; }  /* sans: scanned, not read */
+.tldr .do { margin: .8em 0 0; padding-top: .7em; border-top: 1px solid var(--border); font: 500 .94em/1.5 "Public Sans", system-ui, sans-serif; } .tldr .do b { font-size: .875em; }
+.todo b { display: block; margin-bottom: 2px; color: var(--accent); font: 700 .82em/1.5 "Public Sans", system-ui, sans-serif; letter-spacing: .07em; text-transform: uppercase; }  /* the box's sizes are em too */
 h2, h3, h4 { margin: 1.8em 0 .5em; font-weight: 700; line-height: 1.3; }
 h2 { font-size: 1.375rem; } h3 { font-size: 1.125rem; } h4 { font-size: 1rem; }
 ul, ol { padding-left: 1.4em; } li + li { margin-top: .35em; }
@@ -454,8 +454,8 @@ pre code { padding: 0; background: none; font: inherit; }
 table { display: block; overflow-x: auto; border-collapse: collapse; font-size: .875rem; } th, td { padding: 4px 8px; border: 1px solid var(--border); } th { font-weight: 700; }
 hr { border: 0; border-top: 1px solid var(--border); }
 .late { animation: late .2s ease .4s both; } @keyframes late { from { opacity: 0; } }
-.status { color: var(--text-muted); font: .9375rem/1.5 Inter, system-ui, sans-serif; }
-.pill { display: inline-block; padding: 10px 18px; border: 1px solid var(--accent); border-radius: 999px; font: 600 .9375rem/1.4 Inter, system-ui, sans-serif; text-decoration: none; }
+.status { color: var(--text-muted); font: 370 .9375rem/1.5 "Public Sans", system-ui, sans-serif; }
+.pill { display: inline-block; padding: 10px 18px; border: 1px solid var(--accent); border-radius: 999px; font: 600 .9375rem/1.4 "Public Sans", system-ui, sans-serif; text-decoration: none; }
 @media (max-width: 600px) { main { padding: 24px 18px 80px; } .pill { padding: 12px 18px; } }
 </style><script nonce="${nonce}">${SWIPE_REPORTER}<\/script></head><body><main><h1><a href="${esc(i.url)}" target="_blank" rel="noopener" title="Open the original">${esc(i.title)}</a></h1>${storyMeta(i, byline, minutes || i.minutes)}${summaryBox(i.tldr, why)}${html}</main></body></html>`;
 }
