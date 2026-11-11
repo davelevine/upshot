@@ -98,7 +98,9 @@ def test_feed_renders(browser):
     first = pg.locator("a.card").first
     assert pg.evaluate("[...document.querySelector('a.card .card-body').children].map(e => e.className)") == ["card-title", "card-meta", "card-sum", "card-age"]
     assert first.locator("> .src-icon").count() == 1 and pg.locator("a.card .dot").count() == 0
-    assert first.locator(".card-src").inner_text() == pg.evaluate("items[0].publisher")
+    assert first.locator(".card-src").inner_text() == pg.evaluate("source(items[0])")
+    hn = pg.evaluate("items.find(i => i.publisher.startsWith('Hacker News '))?.url")  # who wrote it, not where it was found
+    assert hn and pg.locator(f'a.card[href="{hn}"] .card-src').text_content() == urllib.parse.urlsplit(hn).hostname.removeprefix("www.")
     assert first.locator(".card-sum").inner_text() == pg.evaluate("items[0].summary")
     assert first.evaluate("e => [getComputedStyle(e).borderTopWidth, getComputedStyle(e).boxShadow]") == ["0px", "none"]  # rows, not boxes
     assert pg.locator("#weekly, .weekly-card").count() == 0  # the essentials are an entry in the topics now
@@ -203,6 +205,7 @@ def test_essentials_have_their_own_entry_and_show_once(browser):
     for n, p in enumerate(picks):
         sel = f'a.card[href="{p["url"]}"]'
         assert pg.locator(f"{sel} .card-sum").inner_text() == f"What to do: {p['why']}"
+        assert pg.locator(f"{sel} .card-sum").evaluate("e => e.scrollHeight <= e.clientHeight")  # never cut short
         assert pg.locator(f"{sel} .ess").count() == 0  # the view says it already
     assert pg.problems == []
 
@@ -265,16 +268,17 @@ def test_each_story_says_how_long_ago_it_was_published(browser):
     day = lambda n: (now.date() - timedelta(days=n)).isoformat()
     def patched(route):
         data = route.fetch().json()
-        a, b, c, d, e, f = data["items"][:6]
+        a, b, c, d, e, f, g = data["items"][:7]
         data["items"] = [
             {**a, "date": day(0), "published": ago(minutes=5)},
             {**b, "date": day(0), "published": ago(hours=5, minutes=10)},
             {**c, "date": day(3), "published": ago(days=3, hours=2)},
-            {**d, "date": day(1), "added": ago(minutes=30)},  # before the exact time was kept: whole days by its date
+            {**d, "date": day(2), "added": ago(minutes=30)},  # before the exact time was kept: whole days by its date
             {**e, "date": day(0), "added": ago(hours=2)},  # ...or when it arrived, the same day
             {**f, "date": "2026-01-05", "published": "2026-01-05T09:00:00+00:00"},
+            {**g, "date": (now - timedelta(hours=20)).date().isoformat(), "added": ago(hours=20)},  # ...on its date, even if that was yesterday
         ]
-        for i in data["items"][3:5]:
+        for i in data["items"][3:5] + data["items"][6:]:
             i.pop("published", None)
         data["tz"] = "UTC"
         data["weekly"] = None
@@ -283,7 +287,7 @@ def test_each_story_says_how_long_ago_it_was_published(browser):
     pg.goto(URL)
     enter_list(pg)
     old = "Jan 5" if now.year == 2026 else "Jan 5, 2026"
-    assert pg.locator("a.card .card-age").all_text_contents() == ["5m", "2h", "5h", "1d", "3d", old]  # newest first
+    assert pg.locator("a.card .card-age").all_text_contents() == ["5m", "2h", "5h", "20h", "2d", "3d", old]  # newest first
 
 
 def test_end_of_feed_message(browser):
@@ -1269,8 +1273,10 @@ def test_a_first_visit_counts_only_the_last_day_as_unread(browser):
     pg.goto(URL)
     enter_list(pg)
     count = lambda: pg.locator("#filters .filter-btn[data-f='all'] .f-count").text_content()
-    fresh = pg.evaluate("items.filter(i => Date.parse(i.added || i.published || i.date) > Date.parse(generatedAt) - 864e5).length")
+    # The essentials count too, however old: they're the stories not to miss.
+    fresh = pg.evaluate("items.filter(i => Date.parse(i.added || i.published || i.date) > Date.parse(generatedAt) - 864e5 || picks.has(i.url)).length")
     assert 0 < fresh < pg.evaluate("items.length") and count() == f"{fresh} unread"
+    assert pg.evaluate("picks.size > 0 && [...picks.keys()].every(u => !isRead(u))")
     # Older stories show as read, and one marked unread by hand stays unread.
     old = pg.locator("a.card.read").first
     url = old.get_attribute("href")
@@ -1298,7 +1304,7 @@ def test_a_first_visit_after_a_quiet_stretch_still_counts_the_newest_five(browse
     pg.goto(URL)
     enter_list(pg)
     # The newest five, plus any that arrived in the same build as the fifth: a build's stories stay together.
-    want = pg.evaluate("(() => { const t = items.map(arrived).sort((a, b) => b - a); return t.filter(x => x >= t[4]).length; })()")
+    want = pg.evaluate("(() => { const t = items.map(arrived).sort((a, b) => b - a); return items.filter(i => arrived(i) >= t[4] || picks.has(i.url)).length; })()")
     assert want >= 5 and pg.locator("#filters .filter-btn[data-f='all'] .f-count").text_content() == f"{want} unread"
 
 

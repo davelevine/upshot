@@ -4,6 +4,8 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const cat = c => (c in CATS ? c : 'other');
 const domain = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
+// Who wrote it: an aggregator's links name the site they point to, not the aggregator.
+const source = i => (/^Hacker News\b/.test(i.publisher) && domain(i.url)) || i.publisher;
 const PAGE = 40;
 const STALE_MINUTES = 5 * 60;  // builds land every 4h, give or take GitHub's scheduling: this is one running 45+ minutes late
 const KEEP_DAYS = 90;  // build.py prunes older stories
@@ -30,18 +32,19 @@ const label = f => (f === 'all' ? 'All' : f === 'essentials' ? 'Essentials' : CA
 
 // Today in the site's time zone (data.json's tz), not the device's: some browsers report UTC for privacy, which
 // turned the evening's stories into a day old.
-function todayIso() {
+function isoDay(d = new Date()) {
   const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' })
-    .formatToParts(new Date()).map(x => [x.type, x.value]));
+    .formatToParts(d).map(x => [x.type, x.value]));
   return `${p.year}-${p.month}-${p.day}`;
 }
+const todayIso = () => isoDay();
 const dayNumber = iso => Date.UTC(...iso.split('-').map((n, k) => +n - (k === 1))) / 864e5;
 // How long ago it was published, as Feedbin shows it: 21m, 5h, 3d, then the date. A calmer list than a count per day.
 // Stories from before the build kept the exact time only have a date: whole days, counted in the site's time zone,
-// or the time it reached the site when that was the same day.
+// or the time it reached the site when that was on its date (hours late at most), not a later day.
 function ageMins(i) {
-  const days = dayNumber(todayIso()) - dayNumber(i.date);
-  return !i.published && !(i.added && days <= 0) ? Math.max(0, days) * 1440 : (Date.now() - Date.parse(i.published || i.added)) / 60e3;
+  const at = i.published || (i.added && isoDay(new Date(i.added)) === i.date && i.added);
+  return at ? (Date.now() - Date.parse(at)) / 60e3 : Math.max(0, dayNumber(todayIso()) - dayNumber(i.date)) * 1440;
 }
 function age(i) {
   const mins = ageMins(i);
@@ -100,8 +103,8 @@ function renderPage() {
       ${iconHtml(i.publisher)}
       <div class="card-body">
         <div class="card-title">${highlight(i.title, q)}</div>
-        <div class="card-meta"><span class="card-src">${esc(i.publisher)}</span>${ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : ''}${isNew(i) ? '<span class="new">New</span>' : ''}</div>
-        ${preview ? `<div class="card-sum">${why ? '<b>What to do: </b>' : ''}${highlight(preview, q)}</div>` : ''}
+        <div class="card-meta"><span class="card-src">${esc(source(i))}</span>${ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : ''}${isNew(i) ? '<span class="new">New</span>' : ''}</div>
+        ${preview ? `<div class="card-sum${why ? ' full' : ''}">${why ? '<b>What to do: </b>' : ''}${highlight(preview, q)}</div>` : ''}
         ${ageHtml(i)}
       </div>
     </a>`; }).join('')}`
@@ -215,14 +218,14 @@ let weekly = null;
 const readSet = new Set(JSON.parse(localStorage.getItem('read') || '[]'));
 const seenUntil = localStorage.getItem('seenUntil');  // the build you'd seen by the end of your last visit
 // A first visit starts with only the last day unread, as a feed reader does with a new subscription: older stories count as
-// read. After that, anything added since counts. `kept`: older stories marked unread by hand, which the cutoff would hide.
+// read. After that, anything added since counts. The week's essentials always count. `kept`: older stories marked unread by hand, which the cutoff would hide.
 const FRESH_MS = 864e5, FRESH_MIN = 5;  // the last day, or the newest five after a quiet stretch
 const arrived = i => Date.parse(i.added || i.published || i.date);
 let since = localStorage.getItem('since');
 const kept = new Set(JSON.parse(localStorage.getItem('kept') || '[]'));
 const saveKept = () => localStorage.setItem('kept', JSON.stringify([...kept]));
 const older = url => { const i = items.find(x => x.url === url); return !i || arrived(i) <= Date.parse(since); };
-const isRead = url => readSet.has(url) || (older(url) && !kept.has(url));
+const isRead = url => readSet.has(url) || (older(url) && !kept.has(url) && !picks.has(url));  // essentials stay unread until opened
 const isUnread = i => !isRead(i.url);
 const isNew = i => !!(seenUntil && i.added && i.added > seenUntil && !readSet.has(i.url));
 const saveRead = () => localStorage.setItem('read', JSON.stringify([...readSet]));
@@ -515,7 +518,7 @@ function openReader(i, { fromHash = false } = {}) {
   $('reader-icon').dataset.art = icon.art;
   $('reader-mono').hidden = icon.has;
   $('reader-mono').textContent = icon.mono;
-  $('reader-source').textContent = i.publisher;
+  $('reader-source').textContent = source(i);
   const at = shown.findIndex(x => x.url === i.url);
   $('reader-prev').disabled = at <= 0;
   $('reader-next').disabled = at < 0 || at >= shown.length - 1;
@@ -856,7 +859,7 @@ function renderPalette() {
   $('palette-list').innerHTML = head + (pal.results.length ? pal.results.map((i, n) => { const c = cat(i.category); return `
     <li role="option" id="p-${n}" data-n="${n}" aria-selected="${n === 0}">
       <span class="dot" style="--c:var(--cat-${c})"></span>
-      <div><div class="p-title">${highlight(i.title, q)}</div><div class="p-meta">${esc(i.publisher)} · ${CATS[c]} · ${age(i)}</div></div>
+      <div><div class="p-title">${highlight(i.title, q)}</div><div class="p-meta">${esc(source(i))} · ${CATS[c]} · ${age(i)}</div></div>
     </li>`; }).join('') : `<li class="palette-empty">No articles match “${esc(q)}”.</li>`);
   $('palette-q').setAttribute('aria-activedescendant', pal.results.length ? 'p-0' : '');
 }
