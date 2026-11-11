@@ -36,10 +36,12 @@ const dayNumber = iso => Date.UTC(...iso.split('-').map((n, k) => +n - (k === 1)
 // How long ago it was published, as Feedbin shows it: 21m, 5h, 3d, then the date. A calmer list than a count per day.
 // Stories from before the build kept the exact time only have a date: whole days, counted in the site's time zone,
 // or the time it reached the site when that was the same day.
-function age(i) {
-  let mins = (Date.now() - Date.parse(i.published || i.added)) / 60e3;
+function ageMins(i) {
   const days = dayNumber(todayIso()) - dayNumber(i.date);
-  if (!i.published && !(i.added && days <= 0)) mins = Math.max(0, days) * 1440;
+  return !i.published && !(i.added && days <= 0) ? Math.max(0, days) * 1440 : (Date.now() - Date.parse(i.published || i.added)) / 60e3;
+}
+function age(i) {
+  const mins = ageMins(i);
   if (mins < 60) return `${Math.max(1, Math.floor(mins))}m`;
   if (mins < 1440) return `${Math.floor(mins / 60)}h`;
   if (mins < 7 * 1440) return `${Math.floor(mins / 1440)}d`;
@@ -61,12 +63,12 @@ function highlight(text, q) {
 
 function renderFilters() {
   // Unread stories, as in a feed reader: the counts go down as you read. Topics with stories stay listed at 0.
-  const counts = {}, unread = {}, unreadAll = items.filter(i => !readSet.has(i.url)).length;
+  const counts = {}, unread = {}, unreadAll = items.filter(isUnread).length;
   for (const i of items) {
     counts[cat(i.category)] = (counts[cat(i.category)] || 0) + 1;
-    if (!readSet.has(i.url)) unread[cat(i.category)] = (unread[cat(i.category)] || 0) + 1;
+    if (isUnread(i)) unread[cat(i.category)] = (unread[cat(i.category)] || 0) + 1;
   }
-  const unreadPicks = [...picks.keys()].filter(u => !readSet.has(u)).length;
+  const unreadPicks = items.filter(i => picks.has(i.url) && isUnread(i)).length;
   const btn = (f, n, mark) => `<button class="filter-btn${filter === f ? ' active' : ''}" data-f="${f}" aria-pressed="${filter === f}">` +
     `<span class="f-mark" aria-hidden="true">${mark}</span><span class="f-name">${label(f)}</span>${n ? `<span class="f-count">${n}<span class="sr-only"> unread</span></span>` : ''}</button>`;
   $('filters').innerHTML = btn('all', unreadAll, '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>') +
@@ -91,7 +93,7 @@ function renderPage() {
   // No headings or counts: the list starts at the top, each story says how old it is, and the sidebar says which list it is.
   $('items').innerHTML = shown.length ? `
     ${shown.slice(0, limit).map(i => { const ess = picks.has(i.url), why = filter === 'essentials' && picks.get(i.url), preview = why || i.summary; return `
-    <a class="card${readSet.has(i.url) ? ' read' : ''}${ess ? ' essential' : ''}" href="${esc(i.url)}" target="_blank" rel="noopener"${i.url === readerFor ? ' aria-current="true"' : ''}>
+    <a class="card${isRead(i.url) ? ' read' : ''}${ess ? ' essential' : ''}" href="${esc(i.url)}" target="_blank" rel="noopener"${i.url === readerFor ? ' aria-current="true"' : ''}>
       ${iconHtml(i.publisher)}
       <div class="card-body">
         <div class="card-title">${highlight(i.title, q)}</div>
@@ -208,17 +210,29 @@ $('top').onclick = () => scroller().scrollTo({ top: 0, behavior: 'smooth' });
 let weekly = null;
 const readSet = new Set(JSON.parse(localStorage.getItem('read') || '[]'));
 const seenUntil = localStorage.getItem('seenUntil');  // the build you'd seen by the end of your last visit
+// A first visit starts with only the last day unread, as a feed reader does with a new subscription: older stories count as
+// read. After that, anything added since counts. `kept`: older stories marked unread by hand, which the cutoff would hide.
+const FRESH_MS = 864e5, FRESH_MIN = 5;  // the last day, or the newest five after a quiet stretch
+const arrived = i => Date.parse(i.added || i.published || i.date);
+let since = localStorage.getItem('since');
+const kept = new Set(JSON.parse(localStorage.getItem('kept') || '[]'));
+const saveKept = () => localStorage.setItem('kept', JSON.stringify([...kept]));
+const older = url => { const i = items.find(x => x.url === url); return !i || arrived(i) <= Date.parse(since); };
+const isRead = url => readSet.has(url) || (older(url) && !kept.has(url));
+const isUnread = i => !isRead(i.url);
 const isNew = i => !!(seenUntil && i.added && i.added > seenUntil && !readSet.has(i.url));
 const saveRead = () => localStorage.setItem('read', JSON.stringify([...readSet]));
 function pruneRead() {
   const urls = new Set(items.map(i => i.url));
   for (const u of readSet) if (!urls.has(u)) readSet.delete(u);
-  saveRead();
+  for (const u of kept) if (!urls.has(u)) kept.delete(u);
+  saveRead(); saveKept();
 }
 const cardFor = url => [...document.querySelectorAll('a.card')].find(a => a.getAttribute('href') === url);
 function markRead(url) {
-  const was = readSet.has(url);
-  readSet.delete(url); readSet.add(url); saveRead();  // most recent last: the search panel's "Recently read" reads it backwards
+  const was = isRead(url);
+  readSet.delete(url); readSet.add(url); saveRead();
+  if (kept.delete(url)) saveKept();  // most recent last: the search panel's "Recently read" reads it backwards
   if (!was) renderFilters();
   const card = cardFor(url);
   card?.classList.add('read');
@@ -226,21 +240,22 @@ function markRead(url) {
 }
 function markUnread(url) {
   readSet.delete(url); saveRead();
+  if (older(url)) { kept.add(url); saveKept(); }
   cardFor(url)?.classList.remove('read');
   renderFilters();
 }
 // The reader's read/unread switch, after Feedbin's: opening a story marks it read; this takes that back.
 function syncUnread() {
-  const unread = !!readerFor && !readSet.has(readerFor), label = unread ? 'Mark as read' : 'Mark as unread';
+  const unread = !!readerFor && !isRead(readerFor), label = unread ? 'Mark as read' : 'Mark as unread';
   $('reader-unread').classList.toggle('unread', unread);
   $('reader-unread').setAttribute('aria-label', label);
   $('reader-unread').title = label;
 }
 function toggleRead() {
   if (!readerFor) return;
-  if (readSet.has(readerFor)) markUnread(readerFor); else markRead(readerFor);
+  if (isRead(readerFor)) markUnread(readerFor); else markRead(readerFor);
   syncUnread();
-  $('status').textContent = readSet.has(readerFor) ? 'Marked as read' : 'Marked as unread';
+  $('status').textContent = isRead(readerFor) ? 'Marked as read' : 'Marked as unread';
 }
 $('reader-unread').onclick = toggleRead;
 const rememberSeen = () => { if (generatedAt) localStorage.setItem('seenUntil', generatedAt); };
@@ -280,8 +295,14 @@ function load() {
     generatedAt = data.generated_at;
     showUpdated();
     items = data.items || [];
+    if (!since) {  // just before the fifth newest, if the last day holds fewer
+      const fifth = items.map(arrived).sort((a, b) => b - a)[FRESH_MIN - 1] ?? Infinity;
+      localStorage.setItem('since', since = new Date(Math.min(Date.parse(generatedAt) - FRESH_MS, fifth - 1)).toISOString());
+    }
     try { tz = data.tz && new Intl.DateTimeFormat('en-US', { timeZone: data.tz }) && data.tz; } catch { tz = undefined; }  // unknown zone: the device's
     indexSlugs();
+    // Newest first, by the same age each row shows, so the list never reads 7h, 15h, 11h. Stable: score breaks ties.
+    items = items.map(i => [ageMins(i), i]).sort((a, b) => a[0] - b[0]).map(([, i]) => i);
     weekly = data.weekly;
     icons = new Set(data.icons || []);
     iconArt = data.iconArt || {};

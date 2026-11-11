@@ -29,6 +29,8 @@ The layout follows desktop feed readers such as Feedbin, in three widths:
 
 The essentials are an entry in the topics, not a separate section, so no story is listed twice.
 
+Lists run newest first, by the age each row shows; stories of the same age keep the build's order, most relevant first. The sidebar counts unread stories, as a feed reader does. A first visit starts with the last day's stories unread, or the newest five after a quiet stretch, and older ones show as read; after that, anything added since counts. An older story marked unread by hand stays unread.
+
 Each time Upshot opens, or comes back after 15 minutes away (but not on a refresh or a new tab within 15 minutes of the last pass), the wordmark shows for a moment, then its spot runs once through the date, when the news last updated and when the next build is due (from the build's schedule, `17 */4 * * *` UTC, and left out when a build is late), then settles back on the wordmark, after Kagi News. The pass takes under five seconds, so it needs no pause control under WCAG 2.2.2, and a tap ends it. [`site/_headers`](../site/_headers) sets the Content-Security-Policy. [`worker.js`](../worker.js) serves the static files and answers `/api/read` for the reader, and on a cron trigger starts the Build workflow, since GitHub's scheduler runs late or skips slots; [`wrangler.jsonc`](../wrangler.jsonc) configures the Worker.
 
 ## The reader, and what it does with your data
