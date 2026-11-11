@@ -221,7 +221,7 @@ def test_each_story_is_scored_alone(monkeypatch):
     monkeypatch.setattr(build, "classify", fake_classify)
     items = [{"url": f"https://x.test/{n}", "title": "T", "publisher": "P", "excerpt": "E"} for n in range(5)]
     out = build.score_each(items)
-    assert batches == [i["url"] for i in items] and set(out) == {i["url"] for i in items}
+    assert sorted(batches) == sorted(i["url"] for i in items) and set(out) == {i["url"] for i in items}  # one call each, in any order: they run in parallel
 
 
 def test_score_each_reports_failures_as_none(monkeypatch):
