@@ -1,7 +1,5 @@
 {
- "failing_since": {
-  "https://blog.google/rss/": "2026-11-11"
- },
+ "failing_since": {},
  "seen": {
   "http://muratbuffalo.blogspot.com/2026/11/writing-as-thinking-tool.html": "2026-11-08",
   "https://8rank.ai/game/apple-intelligence-personal-knowledge-graph": "2026-11-07",
@@ -676,6 +674,7 @@
   "https://openai.com/index/securing-our-frontier-model-training-environment": "2026-10-23",
   "https://openai.com/index/sentinelone": "2026-10-14",
   "https://openai.com/index/setting-new-standard-responsible-ai-infrastructure": "2026-11-05",
+  "https://openai.com/index/singapore-airlines-travel-work": "2026-11-10",
   "https://openai.com/index/sophos": "2026-10-09",
   "https://openai.com/index/stack-overflow-chatgpt-plugin": "2026-10-16",
   "https://openai.com/index/sullivan-cromwell": "2026-10-15",
@@ -1161,6 +1160,7 @@
   "https://www.huntress.com/blog/reports-that-siem-is-dead-are-exaggerated": "2026-10-29",
   "https://www.huntress.com/blog/screenconnect-power-bi": "2026-10-07",
   "https://www.huntress.com/blog/texas-hb-3834-cyber-security-awareness-training-requirements": "2026-10-14",
+  "https://www.huntress.com/blog/the-evolving-tradecraft-of-clickfix": "2026-11-10",
   "https://www.huntress.com/blog/token-replay-spray": "2026-10-22",
   "https://www.huntress.com/blog/unboxing-phishing-kits": "2026-10-22",
   "https://www.huntress.com/blog/vendor-credential-enables-unauthorized-access": "2026-10-16",
@@ -1172,6 +1172,7 @@
   "https://www.infoq.com/articles/llm-reliability-layers-limits-accuracy/": "2026-11-10",
   "https://www.infoq.com/articles/mobile-app-infrastructure-at-scale/": "2026-11-04",
   "https://www.infoq.com/news/2026/11/ai-credentials-isolation/": "2026-11-06",
+  "https://www.infoq.com/news/2026/11/angular-compiler-rust-typescript/": "2026-11-11",
   "https://www.infoq.com/news/2026/11/aws-continuum-ga/": "2026-11-06",
   "https://www.infoq.com/news/2026/11/aws-torchneuron-trainium-pytorch/": "2026-11-09",
   "https://www.infoq.com/news/2026/11/bumpy-changesets-alternative/": "2026-11-07",
@@ -1274,6 +1275,7 @@
   "https://www.securityweek.com/amplifon-americas-data-breach-impacts-1-3-million/": "2026-11-09",
   "https://www.securityweek.com/anthropic-rolls-out-mythos-5-2-with-improved-bug-hunting-fewer-sandbox-escapes/": "2026-11-10",
   "https://www.securityweek.com/bank-phishing-sites-show-fake-suspended-pages-to-evade-takedowns/": "2026-11-05",
+  "https://www.securityweek.com/bluetooth-airplay-pairing-vulnerabilities-patched-across-apple-platforms/": "2026-11-11",
   "https://www.securityweek.com/brava-security-emerges-from-stealth-with-15-million-in-funding/": "2026-11-08",
   "https://www.securityweek.com/chrome-update-patches-exploited-xml-zero-day-eighth-this-year/": "2026-11-10",
   "https://www.securityweek.com/cisco-watchguard-release-patches-sonicwall-wont-fix-gms-flaws/": "2026-11-05",
@@ -1298,6 +1300,7 @@
   "https://www.securityweek.com/openssh-rushes-patches-for-sshole-authentication-bypass/": "2026-11-06",
   "https://www.securityweek.com/over-a-dozen-organizations-hit-in-qubole-supply-chain-attack/": "2026-11-10",
   "https://www.securityweek.com/plex2shell-exploited-against-qnap-nas-users/": "2026-11-09",
+  "https://www.securityweek.com/recently-patched-barracuda-vulnerabilities-exploited-in-attacks/": "2026-11-11",
   "https://www.securityweek.com/researchers-find-residential-proxies-on-white-house-network/": "2026-11-06",
   "https://www.securityweek.com/revolve-puts-data-breach-victim-count-at-1-5-million/": "2026-11-09",
   "https://www.securityweek.com/russia-linked-hackers-hit-ios-android-devices-with-exploit-chains-via-watering-holes/": "2026-11-05",

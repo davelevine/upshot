@@ -1,6 +1,24 @@
 {
  "items": [
   {
+   "date": "2026-11-11",
+   "published": "2026-11-11T07:06:00+00:00",
+   "title": "Angular's TypeScript 7-Powered Compiler Enters Beta with Rust-Based Preprocessor",
+   "url": "https://www.infoq.com/news/2026/11/angular-compiler-rust-typescript/",
+   "publisher": "InfoQ",
+   "category": "engineering",
+   "summary": "Angular introduces ngp, a Rust-based (Oxc) compiler preprocessor replacing ngc's reliance on the TypeScript Transformer API removed in TypeScript 7.0; early benchmarks show 2-3x faster cold builds, beta stage.",
+   "relevance": 6,
+   "added": "2026-11-11T08:18:22+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Angular has entered beta with ngp, a Rust-based compiler that rewrites analysis on Oxc because TypeScript 7.0 removed the ts.Transformer API.",
+    "Early benchmarks show 2x to 3x faster cold builds, and largest-project memory dropped from 2.8 GB to 1.4 GB.",
+    "Teams on versions before v20 should run the standard update guide first to reach v20 or later.",
+    "Keep production builds on ngc until ngp is adopted in a minor Angular 22 release, once TypeScript 7.1 restores the compiler API."
+   ]
+  },
+  {
    "date": "2026-11-10",
    "title": "Gemini 4 Carbon is now available for developers.",
    "url": "https://blog.google/innovation-and-ai/technology/developers-tools/gemini-4-carbon-developers/",
@@ -2357,7 +2375,7 @@
    }
   ]
  },
- "generated_at": "2026-11-11T06:41:22+00:00",
+ "generated_at": "2026-11-11T08:18:33+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
