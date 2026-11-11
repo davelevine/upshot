@@ -28,6 +28,8 @@ def browser():
 
 def open_site(browser, **context):
     ctx = browser.new_context(**context)
+    # A reader from before the first story, so everything counts as unread. A first visit has its own test.
+    ctx.add_init_script("try { localStorage.getItem('since') || localStorage.setItem('since', '1970-01-01T00:00:00Z'); } catch {}")  # not in the sandboxed article frame
     pg = ctx.new_page()
     pg.problems = []
     pg.on("pageerror", lambda e: pg.problems.append(f"page error: {e}"))
@@ -281,7 +283,7 @@ def test_each_story_says_how_long_ago_it_was_published(browser):
     pg.goto(URL)
     enter_list(pg)
     old = "Jan 5" if now.year == 2026 else "Jan 5, 2026"
-    assert pg.locator("a.card .card-age").all_text_contents() == ["5m", "5h", "3d", "1d", "2h", old]
+    assert pg.locator("a.card .card-age").all_text_contents() == ["5m", "2h", "5h", "1d", "3d", old]  # newest first
 
 
 def test_end_of_feed_message(browser):
@@ -301,7 +303,7 @@ def test_end_of_feed_message(browser):
     pg.click("#filters .filter-btn[data-f='security']")
     pg.wait_for_function("() => document.getElementById('end-msg').textContent.includes('Security') || document.getElementById('end').hidden")
     pg.mouse.move(460, 450)
-    security = pg.locator("#filters .filter-btn[data-f='security']").inner_text()
+    security = pg.evaluate("String(items.filter(i => cat(i.category) === 'security').length)")
     for _ in range(40):
         if end.is_visible():
             break
@@ -611,10 +613,13 @@ def test_reader_bar_after_feedbin(browser):
     def with_icons(route):  # data.json only lists icons after a build, so give the first story's publisher one
         res = route.fetch()
         data = res.json()
-        slug = "".join(c if c.isalnum() else "-" for c in data["items"][0]["publisher"].lower()).strip("-")
-        while "--" in slug:
-            slug = slug.replace("--", "-")
-        data["icons"] = [slug]
+        slugs = []
+        for i in data["items"]:  # every publisher: the list is newest first, so the first card needn't be the first item
+            slug = "".join(c if c.isalnum() else "-" for c in i["publisher"].lower()).strip("-")
+            while "--" in slug:
+                slug = slug.replace("--", "-")
+            slugs.append(slug)
+        data["icons"] = slugs
         route.fulfill(response=res, json=data)
     ctx.route("**/data.json", with_icons)
     ctx.route("**/icons/*.png", lambda r: r.fulfill(content_type="image/png", body=PNG))
@@ -642,7 +647,7 @@ def test_reader_bar_after_feedbin(browser):
     pg.wait_for_function("() => document.getElementById('reader-prev').disabled")
     assert pg.problems == []
     # On a desktop where the reader slides over the list: an X, no bottom bar, and the keyboard still lands on the close button.
-    dc = browser.new_context(viewport={"width": 1024, "height": 800})
+    dc = browser.new_context(viewport={"width": 900, "height": 800})
     def no_icons(route):  # a publisher with no icon listed
         res = route.fetch()
         route.fulfill(response=res, json={**res.json(), "icons": []})
@@ -710,7 +715,7 @@ def test_ages_count_days_in_the_sites_time_zone_whatever_the_device_reports(brow
 
 
 def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
-    ctx = browser.new_context(viewport={"width": 1024, "height": 800})  # the sliding reader: this checks a click during its slide out
+    ctx = browser.new_context(viewport={"width": 900, "height": 800})  # the sliding reader: this checks a click during its slide out
     def with_tldr(route):
         res = route.fetch()
         data = res.json()
@@ -1149,14 +1154,16 @@ def test_wide_screens_dock_the_reader_beside_the_list(browser):
 
 
 def test_resizing_to_a_wide_screen_frees_the_list(browser):
-    pg = open_site(browser, viewport={"width": 1024, "height": 800})
+    pg = open_site(browser, viewport={"width": 900, "height": 800})
     pg.locator("a.card").first.click()
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
     assert pg.evaluate("document.getElementById('items').inert")  # sliding over the list: the list waits
     pg.set_viewport_size({"width": 1440, "height": 900})
     pg.wait_for_function("() => !document.getElementById('items').inert")
     assert pg.locator("#reader-backdrop").is_hidden()
-    pg.set_viewport_size({"width": 1024, "height": 800})
+    pg.set_viewport_size({"width": 1100, "height": 800})  # a laptop docks the reader too, as Feedbin does
+    pg.wait_for_function("() => !document.getElementById('items').inert")
+    pg.set_viewport_size({"width": 900, "height": 800})
     pg.wait_for_function("() => document.getElementById('items').inert")
     assert pg.problems == []
 
@@ -1210,6 +1217,45 @@ def test_sidebar_counts_unread_stories(browser):
     pg.evaluate("items.forEach(i => readSet.add(i.url)); renderFilters()")
     assert pg.locator("#filters .f-count").count() == 0 and pg.locator("#filters .filter-btn").count() > 2  # all read: no counts, topics stay
     assert pg.problems == []
+
+
+def test_a_first_visit_counts_only_the_last_day_as_unread(browser):
+    ctx = browser.new_context(viewport={"width": 1100, "height": 900})
+    pg = ctx.new_page()
+    pg.goto(URL)
+    enter_list(pg)
+    count = lambda: pg.locator("#filters .filter-btn[data-f='all'] .f-count").text_content()
+    fresh = pg.evaluate("items.filter(i => Date.parse(i.added || i.published || i.date) > Date.parse(generatedAt) - 864e5).length")
+    assert 0 < fresh < pg.evaluate("items.length") and count() == f"{fresh} unread"
+    # Older stories show as read, and one marked unread by hand stays unread.
+    old = pg.locator("a.card.read").first
+    url = old.get_attribute("href")
+    old.click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.click("#reader-unread")
+    assert count() == f"{fresh + 1} unread"
+    assert pg.evaluate("JSON.parse(localStorage.getItem('read'))") == []  # nothing in "Recently read" it wasn't
+    pg.goto(URL)
+    enter_list(pg)
+    assert count() == f"{fresh + 1} unread" and not pg.evaluate("u => isRead(u)", url)
+    # Newest first: no row is older than the one below it.
+    ages = pg.evaluate("shown.map(ageMins)")
+    assert ages == sorted(ages)
+
+
+def test_a_first_visit_after_a_quiet_stretch_still_counts_the_newest_five(browser):
+    ctx = browser.new_context(viewport={"width": 1100, "height": 900})
+    def quiet(route):  # a Monday morning: builds kept running, but nothing new since Friday
+        data = route.fetch().json()
+        data["generated_at"] = (datetime.now(timezone.utc) + timedelta(days=3)).isoformat(timespec="seconds")
+        route.fulfill(json=data)
+    ctx.route("**/data.json*", quiet)
+    pg = ctx.new_page()
+    pg.goto(URL)
+    enter_list(pg)
+    # The newest five, plus any that arrived in the same build as the fifth: a build's stories stay together.
+    want = pg.evaluate("(() => { const t = items.map(arrived).sort((a, b) => b - a); return t.filter(x => x >= t[4]).length; })()")
+    assert want >= 5 and pg.locator("#filters .filter-btn[data-f='all'] .f-count").text_content() == f"{want} unread"
 
 
 def test_wide_screens_scroll_the_list_by_itself(browser):

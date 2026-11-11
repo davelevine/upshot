@@ -318,8 +318,8 @@
     body.paging .col, body.paging .side > * { transition: none; }
   }
   /* Wide screens: the reader docked beside the list for good, with no backdrop, and the list stays live while it's open. */
-  @media (min-width: 1280px) {
-    :root { --side-w: 240px; }
+  @media (min-width: 1024px) {
+    :root { --list-w: 360px; }  /* a laptop: a narrower list, so the article keeps its width */
     .shell { grid-template-columns: var(--side-w) var(--list-w); }
     .resizer { top: 0; }
     #resize-list { display: block; left: calc(var(--side-w) + var(--list-w)); }
@@ -345,6 +345,7 @@
     #reader-theme { display: none; }  /* the menu beside it has the theme switch */
     body:not(.reading) .reader-bar { border-bottom-color: transparent; }  /* nothing open: no bar to mark off */
   }
+  @media (min-width: 1280px) { :root { --side-w: 240px; --list-w: 440px; } }
   .reader-bar { display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 12px; border-bottom: 1px solid var(--border); flex: 0 0 auto; }
   .reader-spacer { flex: 1; }
   .reader-source { min-width: 0; overflow: hidden; color: var(--text); font-size: .9375rem; white-space: nowrap; text-overflow: ellipsis; }  /* who it's from, beside the icon, as in Feedbin */
