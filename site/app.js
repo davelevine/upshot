@@ -326,6 +326,11 @@ const setInert = () => {
   $('reader').setAttribute('aria-modal', String(!docked.matches));
 };
 docked.addEventListener('change', setInert);  // resizing never strands an inert list
+// Crossing the breakpoint changes where the reader sits, not whether it's open: no slide (a closed one would fly off).
+docked.addEventListener('change', () => {
+  document.body.classList.add('dragging');
+  requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('dragging')));
+});
 const markCurrent = url => document.querySelectorAll('a.card').forEach(a => {
   if (url && a.getAttribute('href') === url) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
 });

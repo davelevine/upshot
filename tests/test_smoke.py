@@ -1168,6 +1168,21 @@ def test_resizing_to_a_wide_screen_frees_the_list(browser):
     assert pg.problems == []
 
 
+def test_narrowing_the_window_doesnt_fling_a_closed_reader(browser):
+    # Docked, a story opened then closed by picking a topic; zooming in (or narrowing) past the breakpoint used to slide
+    # the closed panel across the screen, since the overlay's closed state is off to the right.
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    pg.locator("a.card").first.click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.locator("#filters [data-f='all']").click()
+    wait_until_closed(pg)
+    pg.set_viewport_size({"width": 900, "height": 800})
+    pg.wait_for_timeout(50)  # mid-slide, if there were one
+    assert pg.evaluate("getComputedStyle(document.getElementById('reader')).visibility") == "hidden"
+    assert pg.evaluate("document.getElementById('reader').getAnimations().length") == 0
+    assert pg.problems == []
+
+
 def test_the_reader_marks_a_story_unread_and_read_again(browser):
     pg = open_site(browser, viewport={"width": 1440, "height": 900})
     card = pg.locator("a.card").nth(1)
