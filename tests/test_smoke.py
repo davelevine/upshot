@@ -720,10 +720,12 @@ def test_ages_count_days_in_the_sites_time_zone_whatever_the_device_reports(brow
 
 def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     ctx = browser.new_context(viewport={"width": 600, "height": 800})  # the sliding reader: this checks a click during its slide out
+    picked = []
     def with_tldr(route):
         res = route.fetch()
         data = res.json()
         top = data["weekly"]["items"][0]["url"]
+        picked.append(top)
         for i in data["items"]:
             i.pop("tldr", None)
             if i["url"] == top:
@@ -735,7 +737,7 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     pg.goto(URL)
     enter_list(pg)
     show_essentials(pg)
-    pg.locator("a.card").first.click()  # an essential with an upshot
+    pg.locator(f'a.card[href="{picked[0]}"]').click()  # an essential with an upshot: not always listed first, which goes by age
     frame = pg.frame_locator("#reader-body iframe:not(.loading)")
     box = frame.locator(".tldr")
     box.wait_for()
@@ -755,7 +757,7 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     pg.keyboard.press("Escape")  # closes the size menu, leaving the reader open
     pg.keyboard.press("Escape")
     wait_until_closed(pg)  # Esc closes through history.back(), which lands a moment later: click before it and the tile is still inert
-    second = pg.locator("a.card").nth(1)
+    second = pg.locator(f'a.card:not([href="{picked[0]}"])').first
     # Still sliding out over this tile for a moment: a click meant for the tile must not land in the old article.
     assert pg.evaluate("getComputedStyle(document.getElementById('reader')).pointerEvents") == "none"
     title = second.locator(".card-title").inner_text()
