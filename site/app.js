@@ -2,8 +2,7 @@ const CATS = { security: 'Security', ai: 'AI', infrastructure: 'Infrastructure',
 const ORDER = ['ai', 'infrastructure', 'engineering', 'security', 'regulation', 'other'];
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const OLD = { architecture: 'infrastructure', sdlc: 'engineering' };  // renamed categories, until the next build migrates data.json
-const cat = c => (OLD[c] || (c in CATS ? c : 'other'));
+const cat = c => (c in CATS ? c : 'other');
 const domain = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
 const PAGE = 40;
 const STALE_MINUTES = 5 * 60;  // builds land every 4h, give or take GitHub's scheduling: this is one running 45+ minutes late
