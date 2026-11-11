@@ -647,7 +647,7 @@ def test_reader_bar_after_feedbin(browser):
     pg.wait_for_function("() => document.getElementById('reader-prev').disabled")
     assert pg.problems == []
     # On a desktop where the reader slides over the list: an X, no bottom bar, and the keyboard still lands on the close button.
-    dc = browser.new_context(viewport={"width": 1024, "height": 800})
+    dc = browser.new_context(viewport={"width": 900, "height": 800})
     def no_icons(route):  # a publisher with no icon listed
         res = route.fetch()
         route.fulfill(response=res, json={**res.json(), "icons": []})
@@ -715,7 +715,7 @@ def test_ages_count_days_in_the_sites_time_zone_whatever_the_device_reports(brow
 
 
 def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
-    ctx = browser.new_context(viewport={"width": 1024, "height": 800})  # the sliding reader: this checks a click during its slide out
+    ctx = browser.new_context(viewport={"width": 900, "height": 800})  # the sliding reader: this checks a click during its slide out
     def with_tldr(route):
         res = route.fetch()
         data = res.json()
@@ -1154,14 +1154,16 @@ def test_wide_screens_dock_the_reader_beside_the_list(browser):
 
 
 def test_resizing_to_a_wide_screen_frees_the_list(browser):
-    pg = open_site(browser, viewport={"width": 1024, "height": 800})
+    pg = open_site(browser, viewport={"width": 900, "height": 800})
     pg.locator("a.card").first.click()
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
     assert pg.evaluate("document.getElementById('items').inert")  # sliding over the list: the list waits
     pg.set_viewport_size({"width": 1440, "height": 900})
     pg.wait_for_function("() => !document.getElementById('items').inert")
     assert pg.locator("#reader-backdrop").is_hidden()
-    pg.set_viewport_size({"width": 1024, "height": 800})
+    pg.set_viewport_size({"width": 1100, "height": 800})  # a laptop docks the reader too, as Feedbin does
+    pg.wait_for_function("() => !document.getElementById('items').inert")
+    pg.set_viewport_size({"width": 900, "height": 800})
     pg.wait_for_function("() => document.getElementById('items').inert")
     assert pg.problems == []
 

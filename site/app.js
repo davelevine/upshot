@@ -9,7 +9,7 @@ const PAGE = 40;
 const STALE_MINUTES = 5 * 60;  // builds land every 4h, give or take GitHub's scheduling: this is one running 45+ minutes late
 const KEEP_DAYS = 90;  // build.py prunes older stories
 // Wide screens dock the reader beside the list, as Feedbin does, and the list scrolls on its own; elsewhere the window scrolls it.
-const docked = matchMedia('(min-width: 1280px)');
+const docked = matchMedia('(min-width: 1024px)');
 const scroller = () => (docked.matches ? $('col') : document.scrollingElement);
 // The latest entry decides: a batch can hold an older one from before the last redraw, and reading that stopped the feed short of its end.
 // Watched against whichever scrolls the list, so the 800px head start applies to it.
@@ -891,7 +891,7 @@ document.addEventListener('click', e => {
 // Desktop: drag the topics' or the list's right edge to resize it, as in Feedbin. Kept on this device; double-click resets.
 // The reader keeps at least READER_MIN beside them, so a narrower window narrows the columns rather than the article.
 const COLS = { side: { el: 'resize-side', v: '--side-w', min: 180, max: 360 }, list: { el: 'resize-list', v: '--list-w', min: 320, max: 720 } };
-const READER_MIN = 480;
+const READER_MIN = 440;
 const colWidth = k => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(COLS[k].v));
 function setCol(k, px, keep = true) {
   const c = COLS[k], others = k === 'side' ? (docked.matches ? colWidth('list') : 320) : colWidth('side');
