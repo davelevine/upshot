@@ -360,6 +360,7 @@
     .shell { width: var(--pane-w); height: calc(100dvh - 52px); margin-top: 52px; grid-template-columns: var(--pane-w) var(--pane-w);
       overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; }
     .side, .col { height: calc(100dvh - 52px); scroll-snap-align: start; }
+    .col { overscroll-behavior-x: auto; }  /* contain is for its own vertical scroll: a sideways swipe on the list pages the pane */
     .side { position: relative; top: 0; }
   }
   @media (min-width: 1280px) { :root { --side-w: 240px; --list-w: 440px; } }

@@ -1199,7 +1199,8 @@ def test_mid_width_docks_the_reader_and_pages_topics_and_list(browser):
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
     assert box("#col")["x"] == 0 and box("#reader")["x"] == 360  # the list stays beside the story
     assert not pg.evaluate("document.getElementById('items').inert") and pg.get_attribute("#reader", "aria-modal") == "false"
-    pg.evaluate(f"{shell}.scrollTo({{ left: 0, behavior: 'instant' }})")  # back to the topics
+    pg.mouse.move(180, 400)  # over the list, not the scrollbar: a sideways swipe there pages back to the topics
+    pg.mouse.wheel(-400, 0)
     pg.wait_for_function("() => document.querySelector('.side').getBoundingClientRect().left === 0")
     pg.locator("#filters [data-f='security']").click()
     pg.wait_for_function("() => document.getElementById('col').getBoundingClientRect().left === 0")  # slides to its list
