@@ -36,7 +36,7 @@ Everything runs on the free tiers of GitHub Actions and Cloudflare Workers. The 
 
 Edit [`feeds.opml`](../feeds.opml). Each feed is one `<outline>` line, and its `text` attribute is the publisher name shown on the site.
 
-Some big publishers (Anthropic, Cohere, Reuters) don't publish RSS. Anthropic, Cohere and a few others come from community-maintained feeds, and the Hacker News 300+ feed catches most of the rest.
+Some big publishers (Anthropic, Cohere, Reuters) don't publish RSS. Anthropic, Cohere and a few others come from community-maintained feeds, and the Hacker News 300+ feed catches most of the rest. Its stories show the linked site's domain rather than the feed's name.
 
 A feed isn't added until the reader has been proven on it, so CI fails until the new feed has a test page. It takes two commands:
 

@@ -182,6 +182,7 @@
   .card-src { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .card-meta > :not(.card-src, .new) { flex: none; color: var(--text-muted); }  /* not the New pill: it keeps its own colours */
   .card-sum { margin-top: 4px; color: var(--text-muted); font-size: .875rem; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .card-sum.full { display: block; }  /* what to do: the whole point, never cut short */
   .card-sum b { color: var(--accent); font-weight: 600; }
   .card-meta .ess { color: var(--accent); font-size: .75rem; font-weight: 600; }  /* the week's picks, marked where they fall in the feed */
   .src-icon { flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 5px; }
