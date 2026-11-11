@@ -98,7 +98,7 @@
   .icon-btn { display: inline-grid; place-items: center; width: 36px; height: 36px; border: 1px solid transparent; border-radius: var(--radius-sm); background: none; color: var(--text-muted); cursor: pointer; }
   .icon-btn svg { width: 17px; height: 17px; }
 
-  /* After Feedbin: the topics in a sidebar, the list beside it, and on wide screens the reader docked beside that. The window scrolls the list. */
+  /* After Feedbin: the topics in a sidebar, the list beside it, and past phone widths the reader docked beside that (see the 641px+ blocks). */
   :root { --side-w: 220px; --list-w: 440px; }  /* the columns' widths; dragging their edges sets them (app.js) */
   .shell { display: grid; grid-template-columns: var(--side-w) minmax(0, 1fr); }
   /* The columns' edges, to drag (or focus and use the arrow keys); a line shows on hover and while dragging. */
@@ -106,7 +106,6 @@
   .resizer::after { content: ""; position: absolute; inset: 0 3px; border-radius: 2px; background: var(--accent); opacity: 0; transition: opacity .15s ease; }
   .resizer:hover::after, .resizer:focus-visible::after, .resizer.active::after { opacity: 1; }
   .resizer:focus-visible { outline: none; }
-  @media (min-width: 641px) { #resize-side { display: block; left: var(--side-w); } }  /* not on phones: there's no column to resize, and it would sit over the topics */
   body.resizing { cursor: col-resize; user-select: none; }
   body.resizing iframe { pointer-events: none; }  /* or the article would take the drag */
   .side { display: flex; flex-direction: column; position: sticky; top: 52px; align-self: start; height: calc(100dvh - 52px); overflow-y: auto; padding: 14px 10px 0; border-right: 1px solid var(--border); scrollbar-width: thin; }
@@ -317,23 +316,17 @@
     html:has(body.home) { overflow: hidden; }  /* the list keeps its place, off to the right */
     body.paging .col, body.paging .side > * { transition: none; }
   }
-  /* Wide screens: the reader docked beside the list for good, with no backdrop, and the list stays live while it's open. */
-  @media (min-width: 1024px) {
-    :root { --list-w: 360px; }  /* a laptop: a narrower list, so the article keeps its width */
-    .shell { grid-template-columns: var(--side-w) var(--list-w); }
-    .resizer { top: 0; }
-    #resize-list { display: block; left: calc(var(--side-w) + var(--list-w)); }
+  /* Past phone widths: the reader docked beside the list for good, with no backdrop, and the list stays live while it's open. */
+  @media (min-width: 641px) {
     .items { padding: 0 10px 48px; }
     /* One bar across the top, as in Feedbin: the header shrinks to the sidebar's top (logo, then search), the reader runs to the
        top of the window, and the menu button sits at the end of the reader bar, with the story's controls beside it. */
     html { overflow: hidden; scrollbar-gutter: auto; }  /* the list scrolls itself, so its scrollbar sits beside it, not at the window's edge */
     .col { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; scroll-padding-top: 12px; }
-    header { position: fixed; inset: 0 auto auto 0; width: var(--side-w); border-bottom: 0; border-right: 1px solid var(--border); background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
+    header { position: fixed; inset: 0 auto auto 0; border-bottom: 0; border-right: 1px solid var(--border); background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
     .controls { position: fixed; top: 8px; right: 12px; z-index: 101; }  /* fixed to the window: the header no longer reaches here */
-    .side { top: 0; height: 100dvh; padding-top: 66px; }
-    .stale { left: var(--side-w); width: var(--list-w); }  /* the list's foot */
     .reader .reader-bar { padding-right: 64px; }  /* room for the menu button */
-    .reader { top: 0; left: calc(var(--side-w) + var(--list-w)); width: auto; z-index: 98; border-left: 1px solid var(--border); box-shadow: none; transform: none !important; visibility: visible; pointer-events: auto; transition: none; }
+    .reader { top: 0; width: auto; z-index: 98; border-left: 1px solid var(--border); box-shadow: none; transform: none !important; visibility: visible; pointer-events: auto; transition: none; }
     .reader-backdrop { display: none; }
     body.reading { overflow: visible; }
     /* Nothing open: the site's mark, faint and centred, as Feedbin does with its own. */
@@ -341,9 +334,33 @@
       -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M16 16v17a10 10 0 0 0 20 0V16M36 16v31' fill='none' stroke='%23000' stroke-width='9'/%3E%3Ccircle cx='49' cy='42' r='5'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M16 16v17a10 10 0 0 0 20 0V16M36 16v31' fill='none' stroke='%23000' stroke-width='9'/%3E%3Ccircle cx='49' cy='42' r='5'/%3E%3C/svg%3E") center / contain no-repeat; }
     body:not(.reading) .reader-bar > :not(.reader-spacer) { visibility: hidden; }  /* nothing open: no controls for it */
     body:not(.reading) .reader-nav { display: none; }
-    .back-to-top { right: auto; left: calc(var(--side-w) + var(--list-w) - 68px); }  /* inside the list, not over the article */
+    .back-to-top { right: auto; left: calc(var(--left-w) - 68px); }  /* inside the list, not over the article */
     #reader-theme { display: none; }  /* the menu beside it has the theme switch */
     body:not(.reading) .reader-bar { border-bottom-color: transparent; }  /* nothing open: no bar to mark off */
+    .reader { left: var(--left-w); }  /* --left-w: everything left of the reader, set per layout below */
+  }
+  /* Three columns: sidebar, list and reader side by side, each column resizable. */
+  @media (min-width: 1024px) {
+    :root { --list-w: 360px; --left-w: calc(var(--side-w) + var(--list-w)); }  /* a laptop: a narrower list, so the article keeps its width */
+    .shell { grid-template-columns: var(--side-w) var(--list-w); }
+    .resizer { top: 0; }
+    #resize-side { display: block; left: var(--side-w); }
+    #resize-list { display: block; left: var(--left-w); }
+    header { width: var(--side-w); }
+    .stale { left: var(--side-w); width: var(--list-w); }  /* the list's foot */
+    .side { top: 0; height: 100dvh; padding-top: 66px; }
+  }
+  /* A small window, or a zoomed-in one: the reader stays docked, and the topics and the list are two pages of one left pane,
+     scrolled sideways, as in Feedbin. The pane narrows at the low end so the article keeps at least 360px. */
+  @media (min-width: 641px) and (max-width: 1023px) {
+    :root { --pane-w: clamp(280px, 100vw - 360px, 360px); --left-w: var(--pane-w); }
+    header, .stale { width: var(--pane-w); }
+    .stale { left: 0; }
+    .ticker { max-width: calc(var(--pane-w) - 30px); }
+    .shell { width: var(--pane-w); height: calc(100dvh - 52px); margin-top: 52px; grid-template-columns: var(--pane-w) var(--pane-w);
+      overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; }
+    .side, .col { height: calc(100dvh - 52px); scroll-snap-align: start; }
+    .side { position: relative; top: 0; }
   }
   @media (min-width: 1280px) { :root { --side-w: 240px; --list-w: 440px; } }
   .reader-bar { display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 12px; border-bottom: 1px solid var(--border); flex: 0 0 auto; }

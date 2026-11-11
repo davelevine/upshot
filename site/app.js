@@ -7,8 +7,12 @@ const domain = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } 
 const PAGE = 40;
 const STALE_MINUTES = 5 * 60;  // builds land every 4h, give or take GitHub's scheduling: this is one running 45+ minutes late
 const KEEP_DAYS = 90;  // build.py prunes older stories
-// Wide screens dock the reader beside the list, as Feedbin does, and the list scrolls on its own; elsewhere the window scrolls it.
-const docked = matchMedia('(min-width: 1024px)');
+// Past phone widths the reader is docked beside the list, as Feedbin does, and the list scrolls on its own; on phones the window scrolls it.
+const docked = matchMedia('(min-width: 641px)');
+// Below three columns, the topics and the list are two pages of one left pane, scrolled sideways (index.html).
+const paged = matchMedia('(min-width: 641px) and (max-width: 1023px)');
+const showList = smooth => { if (paged.matches) document.querySelector('.shell').scrollTo({ left: 1e5, behavior: smooth ? 'smooth' : 'instant' }); };
+paged.addEventListener('change', () => showList(false));
 const scroller = () => (docked.matches ? $('col') : document.scrollingElement);
 // The latest entry decides: a batch can hold an older one from before the last redraw, and reading that stopped the feed short of its end.
 // Watched against whichever scrolls the list, so the 800px head start applies to it.
@@ -169,6 +173,7 @@ $('filters').onclick = e => {
   if (document.body.classList.contains('reading')) dismiss();  // as in Feedbin: picking a topic, even the current one, closes the story
   renderFilters();
   if (!(same && phone.matches)) renderItems();
+  showList(true);  // picking a topic slides to its list, as in Feedbin
   if (phone.matches && document.body.classList.contains('home')) enterList(same);  // into the list, as a page: back returns to the topics
   else if (history.state?.list) history.replaceState({ ...history.state, f: filter }, '');
 };
@@ -311,7 +316,7 @@ function load() {
     renderItems(refresh);
     if (!refresh) {  // where the page starts is no move: no slide
       document.body.classList.add('paging');
-      syncFromUrl(); syncHome();
+      syncFromUrl(); syncHome(); showList(false);  // opens on the stories
       requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('paging')));
       if (passDue()) { if (document.hidden) tickOnShow = true; else playTicker(); }  // opened, not just refreshed: one pass
       (window.requestIdleCallback || (f => setTimeout(f, 1000)))(loadFrameFonts);  // ahead of the first article

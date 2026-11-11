@@ -24,8 +24,10 @@ Everything older than 90 days is pruned, so the data stays small.
 The layout follows desktop feed readers such as Feedbin, in three widths:
 
 - **Phones (up to 640px):** pages, as in Feedbin's app. Upshot opens on the topics; picking one opens its list, with a back chevron and its name in the header, and a story covers the list. Each page slides over the one before and follows the finger when swiped. Back, the chevron and a swipe right step back through them; a swipe left goes forward again, into the list just left or the story just closed. Articles read once are kept for the visit, so reopening one is instant.
-- **641–1023px:** topics in a sidebar beside the list. Dragging the sidebar's edge resizes it (and, from 1024px, the list's too); the widths are kept in the browser, and a double-click resets them. The reader slides over the list, which is inert while it's open.
-- **1024px and up:** sidebar, list and reader side by side, with no full-width header: the logo tops the sidebar, and the menu sits at the end of the reader bar. The reader stays docked, the list scrolls on its own, and it stays live while an article is open, so `j`/`k` and clicks move through it.
+- **641–1023px:** the reader docked on the right, as from 1024px, and the topics and the list as two pages of one left pane, scrolled sideways, as in Feedbin. Upshot opens on the list, and picking a topic slides to its list. The pane narrows (to 280px at 641px) so the article keeps at least 360px.
+- **1024px and up:** sidebar, list and reader side by side. Dragging the sidebar's or the list's edge resizes it; the widths are kept in the browser, and a double-click resets them.
+
+From 641px there is no full-width header: the logo tops the left pane, and the menu sits at the end of the reader bar. The reader stays docked, the list scrolls on its own, and it stays live while an article is open, so `j`/`k` and clicks move through it.
 
 The essentials are an entry in the topics, not a separate section, so no story is listed twice.
 
