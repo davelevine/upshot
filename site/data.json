@@ -36,6 +36,24 @@
   },
   {
    "date": "2026-11-11",
+   "published": "2026-11-11T18:21:38+00:00",
+   "title": "AWS Finally Built Its Own AWS Emulator",
+   "url": "https://github.com/aws/aws-emulator",
+   "publisher": "Hacker News 300+",
+   "category": "infrastructure",
+   "summary": "AWS published an official emulator repository on GitHub, which reached 432 points and 132 comments on Hacker News.",
+   "relevance": 7,
+   "added": "2026-11-11T21:29:50+00:00",
+   "minutes": 6,
+   "tldr": [
+    "AWS Emulator is a local emulator of AWS APIs for testing software without calling AWS, with no additional service fee.",
+    "It suits developers testing on their own machine, a development server, or in CI, and no AWS account is needed.",
+    "Linux users can install the RPM or Debian package and run aws-emulator; Windows and macOS users can use Docker.",
+    "Don't use it for production workloads or to test security."
+   ]
+  },
+  {
+   "date": "2026-11-11",
    "published": "2026-11-11T15:17:00+00:00",
    "title": "Tests as data: ensuring AI-generated code does what we want",
    "url": "https://martinfowler.com/articles/tests-as-data.html",
@@ -49,6 +67,40 @@
     "AI-written tests are often hard to read, coupled to implementation, and sometimes confirm existing bugs, so developers no longer trust them.",
     "The article proposes customer tests written as data, such as tables or structured scenarios, interpreted by a small test runner that an AI agent can generate.",
     "Protect test data files from unexpected changes with read-only permissions or CI checks, and validate tests with mutation testing and trusted oracles."
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "published": "2026-11-11T16:38:44+00:00",
+   "title": "A false smoke alarm almost drowned Jane Street's only NYC datacenter",
+   "url": "https://michael.bacarella.com/2026/11/10/false-smoke-alarm-jane-street-datacenter/",
+   "publisher": "Hacker News 300+",
+   "category": "infrastructure",
+   "summary": "A blog post describes how a false smoke alarm nearly flooded Jane Street's only New York City datacenter, drawing 307 Hacker News points.",
+   "relevance": 6,
+   "added": "2026-11-11T21:29:50+00:00",
+   "minutes": 7,
+   "tldr": [
+    "A false smoke alarm at Jane Street's NYC datacenter, set off by contractor dust, shut down cooling and risked sprinkler damage to servers.",
+    "An engineer ran over and pulled power cables across the room, and the temperature stopped at 143.6 F.",
+    "Jane Street kept the sprinklers, tightened procedures, and added an OCaml monitor that alerts on averaged server temperatures each minute."
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "published": "2026-11-11T17:00:38+00:00",
+   "title": "Intelligent Delivery: Making Every Unit of Compute Serve Better Ads",
+   "url": "https://engineering.fb.com/2026/11/11/ml-applications/intelligent-delivery-serve-better-ads/",
+   "publisher": "Meta Engineering",
+   "category": "infrastructure",
+   "summary": "Meta Engineering describes an approach to allocating limited compute across ads ranking requests, models, and chips to maximize system-wide outcomes as ranking models scale.",
+   "relevance": 6,
+   "added": "2026-11-11T21:29:50+00:00",
+   "minutes": 9,
+   "tldr": [
+    "Meta's Intelligent Delivery is an ML-driven system that allocates compute across its ads serving stack, adding ~10% ranking performance since 2017.",
+    "Ads ranking models are growing toward LLM scale, but compute does not scale at the same rate, so each unit of compute must go where it has the most impact.",
+    "Agents now contribute to about 20% of Intelligent Delivery optimizations, with engineers reviewing and approving every change before it ships."
    ]
   },
   {
@@ -67,6 +119,24 @@
     "Early benchmarks show 2x to 3x faster cold builds, and largest-project memory dropped from 2.8 GB to 1.4 GB.",
     "Teams on versions before v20 should run the standard update guide first to reach v20 or later.",
     "Keep production builds on ngc until ngp is adopted in a minor Angular 22 release, once TypeScript 7.1 restores the compiler API."
+   ]
+  },
+  {
+   "date": "2026-11-11",
+   "published": "2026-11-11T17:00:00+00:00",
+   "title": "GitHub Makes Agentic Workflows Generally Available with Isolation and Budget Controls",
+   "url": "https://www.infoq.com/news/2026/11/github-agentic-workflows-ga/",
+   "publisher": "InfoQ",
+   "category": "engineering",
+   "summary": "GitHub Agentic Workflows reached general availability, running coding agents in GitHub Actions with read-only defaults and separately scoped write jobs, though protections depend on workflow configuration.",
+   "relevance": 6,
+   "added": "2026-11-11T21:29:50+00:00",
+   "minutes": 2,
+   "tldr": [
+    "GitHub has made Agentic Workflows generally available, running coding agents inside GitHub Actions for tasks such as issue triage and CI failure analysis.",
+    "Agent protections do not automatically cover direct write permissions or custom jobs a workflow author adds, so safety depends on configuration.",
+    "Authors can add a GitHub Environment protection rule to require a reviewer before a write job runs.",
+    "Spending is capped by default at 1,000 AIC ($10) per run, and organisations can override these limits."
    ]
   },
   {
@@ -2426,7 +2496,7 @@
    }
   ]
  },
- "generated_at": "2026-11-11T16:19:34+00:00",
+ "generated_at": "2026-11-11T21:30:05+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
