@@ -85,10 +85,14 @@ function renderFilters() {
   document.title = filter === 'all' ? 'Upshot \u00b7 The week\u2019s tech news, minus the noise' : `${label(filter)} \u00b7 Upshot`;
 }
 
+const PIN_MS = 48 * 36e5;
+const pinned = i => !!i.exploited && Date.now() - Date.parse(i.added || i.published || i.date) < PIN_MS;
 function renderItems(keepLimit) {
   const ql = $('search').value.trim().toLowerCase();
   shown = items.filter(i => (filter === 'all' || (filter === 'essentials' ? picks.has(i.url) : cat(i.category) === filter)) &&
     (!ql || `${i.title} ${i.summary} ${i.publisher} ${domain(i.url)}`.toLowerCase().includes(ql)));
+  // An exploited flaw leads All and Security for its first two days on the site, then takes its place by age (keeping its tag).
+  if (!ql && (filter === 'all' || filter === 'security')) shown = [...shown.filter(pinned), ...shown.filter(i => !pinned(i))];
   $('status').textContent = ql ? `${shown.length} articles found` : '';
   if (!keepLimit) limit = PAGE;
   renderPage();
@@ -104,7 +108,7 @@ function renderPage() {
       ${iconHtml(i.publisher)}
       <div class="card-body">
         <div class="card-title">${highlight(i.title, q)}</div>
-        <div class="card-meta"><span class="card-src">${esc(source(i))}</span>${ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : ''}${isNew(i) ? '<span class="new">New</span>' : ''}</div>
+        <div class="card-meta"><span class="card-src">${esc(source(i))}</span>${i.exploited ? '<span class="exploited">Exploited</span>' : ''}${ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : ''}${isNew(i) ? '<span class="new">New</span>' : ''}</div>
         ${preview ? `<div class="card-sum${why ? ' full' : ''}">${why ? '<b>What to do: </b>' : ''}${highlight(preview, q)}</div>` : ''}
         ${ageHtml(i)}
       </div>
@@ -462,7 +466,7 @@ function frameVars(theme) {
   probe.dataset.theme = theme;
   document.body.append(probe);
   const cs = getComputedStyle(probe);
-  const out = `color-scheme: ${theme}; ` + ["--accent", "--bg", "--bg-card", "--border", "--border-strong", "--text", "--text-muted"].map(v => `${v}: ${cs.getPropertyValue(v).trim()};`).join(' ');
+  const out = `color-scheme: ${theme}; ` + ["--accent", "--bg", "--bg-card", "--border", "--border-strong", "--text", "--text-muted", "--exploited", "--exploited-text"].map(v => `${v}: ${cs.getPropertyValue(v).trim()};`).join(' ');
   probe.remove();
   return out;
 }
@@ -482,7 +486,8 @@ function storyMeta(i, byline, minutes) {
   // Bylines sometimes carry their own date: "Posted on November 8, 2026 by audra", "By Ada | Tuesday, October 27, 2026".
   let by = (byline || '').replace(/\s+/g, ' ').replace(/\s*\|.*$/, '').replace(/^(posted|published|updated)\b.*?\bby\s+/i, '').replace(/^by\s+/i, '').trim();
   if (/\b\d{4}\b/.test(by) && !Number.isNaN(Date.parse(by))) by = '';  // nothing left but a date
-  return `<div class="meta">${esc(when)}${by ? ` by ${esc(by)}` : ''}${minutes ? ` · ${minutes} min read` : ''}</div>`;
+  const exploited = i.exploited ? `<span class="exploited">Actively exploited</span>${i.exploited.kev?.length ? ' · confirmed by CISA' : ''}` : '';
+  return `<div class="meta">${exploited ? `<p class="flag">${exploited}</p>` : ''}${esc(when)}${by ? ` by ${esc(by)}` : ''}${minutes ? ` · ${minutes} min read` : ''}</div>`;
 }
 // The upshot (written and checked by the build) with, for weekly essentials, the hand-picked "What to do" as its last line.
 function summaryBox(tldr, why) {
@@ -520,6 +525,7 @@ pre { overflow-x: auto; padding: 12px 14px; border-radius: 8px; background: var(
 pre code { padding: 0; background: none; font: inherit; }
 table { display: block; overflow-x: auto; border-collapse: collapse; font-size: .875rem; } th, td { padding: 4px 8px; border: 1px solid var(--border); } th { font-weight: 700; }
 hr { border: 0; border-top: 1px solid var(--border); }
+.flag { margin: 0 0 .35em; } .exploited { display: inline-block; margin-right: 6px; padding: 1px 8px; border-radius: 999px; background: var(--exploited); color: var(--exploited-text); font-size: .78em; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .late { animation: late .2s ease .4s both; } @keyframes late { from { opacity: 0; } }
 .status { color: var(--text-muted); font: 370 .9375rem/1.5 "Public Sans", system-ui, sans-serif; }
 .pill { display: inline-block; padding: 10px 18px; border: 1px solid var(--accent); border-radius: 999px; font: 600 .9375rem/1.4 "Public Sans", system-ui, sans-serif; text-decoration: none; }

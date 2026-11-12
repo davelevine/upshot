@@ -26,8 +26,15 @@ def browser():
         b.close()
 
 
-def open_site(browser, **context):
+def open_site(browser, patch=None, **context):
+    """The site in a fresh browser, on the All list. `patch` edits data.json on its way in."""
     ctx = browser.new_context(**context)
+    if patch:
+        def patched(route):
+            data = route.fetch().json()
+            patch(data)
+            route.fulfill(json=data)
+        ctx.route("**/data.json*", patched)
     # A reader from before the first story, so everything counts as unread. A first visit has its own test.
     ctx.add_init_script("try { localStorage.getItem('since') || localStorage.setItem('since', '1970-01-01T00:00:00Z'); } catch {}")  # not in the sandboxed article frame
     pg = ctx.new_page()
@@ -1377,6 +1384,43 @@ def test_phones_get_feedbins_toolbar_and_keep_the_closed_story_selected(browser)
     pg.click("#list-back")
     pg.wait_for_function("() => getComputedStyle(document.getElementById('list-bar')).opacity === '0'")
     assert pg.evaluate("document.getElementById('read-all').inert")  # on the topics: gone, and out of reach
+    assert pg.problems == []
+
+
+def flag_some(data):
+    """Two exploited stories added an hour ago (one security, one not) and a security one added three days ago."""
+    at = lambda h: (datetime.now(timezone.utc) - timedelta(hours=h)).isoformat(timespec="seconds")
+    sec = [i for i in data["items"] if i["category"] == "security"]
+    other = next(i for i in data["items"] if i["category"] == "infrastructure")
+    for i, h, kev in ((sec[5], 1, ["CVE-2026-1"]), (other, 1, ["CVE-2026-2"]), (sec[1], 72, [])):
+        i["added"] = at(h)
+        i["exploited"] = {"kev": kev, "at": at(h)} | ({} if kev else {"quote": "is being exploited in the wild"})
+    data["flagged"] = [sec[5]["url"], other["url"], sec[1]["url"]]  # for the test to find them; the site ignores it
+
+
+@pytest.mark.parametrize("scheme", ["light", "dark"])
+def test_exploited_stories_are_tagged_and_lead_all_and_security_for_two_days(browser, scheme):
+    from axe_playwright_python.sync_playwright import Axe
+    pg = open_site(browser, patch=flag_some, viewport={"width": 1440, "height": 900}, color_scheme=scheme)
+    fresh_sec, fresh_other, old_sec = pg.evaluate("fetch('/data.json').then(r => r.json()).then(d => d.flagged)")  # patched too
+    by_age = lambda list: pg.evaluate(f"{list}.every((i, n, a) => !n || ageMins(a[n - 1]) <= ageMins(i))")
+    urls = lambda: pg.evaluate("shown.map(i => i.url)")
+    assert set(urls()[:2]) == {fresh_sec, fresh_other} and by_age("shown.slice(2)")  # pinned for two days; then by age
+    card = lambda u: pg.locator(f'a.card[href="{u}"]')
+    for u in (fresh_sec, fresh_other, old_sec):
+        assert card(u).locator(".exploited").inner_text().lower() == "exploited"  # the tag stays after the pin
+    assert pg.locator("a.card .exploited").count() == 3
+    pg.click("#filters [data-f='security']")
+    assert urls()[0] == fresh_sec and fresh_other not in urls()
+    assert by_age("shown.slice(1)")
+    pg.click("#filters [data-f='infrastructure']")
+    assert fresh_other in urls() and by_age("shown")  # other topics: no pin
+    pg.click("#filters [data-f='all']")
+    tags = {"runOnly": {"type": "tag", "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]}}
+    assert [(v["id"], v["nodes"][0]["html"][:80]) for v in Axe().run(pg, options=tags).response["violations"]] == []
+    card(fresh_sec).click()
+    flag = pg.frame_locator("#reader-body iframe:not(.loading)").locator(".meta .flag")
+    assert flag.inner_text().replace("\n", " ").lower() == "actively exploited · confirmed by cisa"
     assert pg.problems == []
 
 

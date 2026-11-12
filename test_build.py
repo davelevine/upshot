@@ -380,3 +380,91 @@ def test_fetch_reports_only_permanent_redirects():
 def test_categories_are_defined():
     assert "architecture" not in build.CATEGORIES and "sdlc" not in build.CATEGORIES and "sdlc" not in build.CLASSIFY_PROMPT
     assert "infrastructure:" in build.CLASSIFY_PROMPT and "engineering:" in build.CLASSIFY_PROMPT  # each is defined
+
+
+def test_cves_are_found_once_each_upper_cased():
+    assert build.cves("Patch cve-2026-1234 and CVE-2026-123456, again CVE-2026-1234; not CVE-26-1") == ["CVE-2026-1234", "CVE-2026-123456"]
+    assert build.cves(None) == []
+
+
+def test_a_claim_counts_only_if_its_quote_is_in_the_story_and_about_exploitation():
+    item = {"title": "Ivanti patches VPN flaw", "excerpt": "Ivanti says the flaw  is being exploited in the wild against a small number of customers."}
+    claim = lambda evidence, exploited=True: build.verified_claim({"exploited": exploited, "evidence": evidence}, item)
+    assert claim("is being exploited in the wild") == "is being exploited in the wild"  # spacing and case don't matter
+    assert claim("being actively exploited by attackers") is None        # not in the story
+    assert claim("against a small number of customers") is None         # in the story, but says nothing of exploitation
+    assert claim("exploited") is None                                    # too short to check
+    assert claim("is being exploited in the wild", exploited=False) is None
+
+
+def test_a_story_is_flagged_by_cisas_catalog_or_a_checked_claim():
+    kev = {"CVE-2026-1111": "2026-11-10"}
+    item = {"title": "Router flaw", "excerpt": "CVE-2026-1111 is a zero-day under attack.", "cves": ["CVE-2026-1111"]}
+    r = {"category": "infrastructure", "exploited": False, "evidence": "", "relevance": 6}
+    flag = build.exploited(item, r, kev)
+    assert flag["kev"] == ["CVE-2026-1111"] and "quote" not in flag  # the catalog needs no claim, in any category
+    claim = {"category": "security", "exploited": True, "evidence": "is a zero-day under attack", "relevance": 7}
+    assert build.exploited({**item, "cves": []}, claim, {})["quote"] == "is a zero-day under attack"
+    assert build.exploited({**item, "cves": []}, {**claim, "category": "ai"}, {}) is None  # claims count for security only
+    assert build.exploited({**item, "cves": []}, {**r, "category": "security"}, kev) is None  # no match, no claim
+
+
+def test_a_flagged_story_publishes_below_its_bar():
+    r = {"category": "security", "relevance": build.MIN_RELEVANCE["security"] - 1}
+    assert not build.passes(r, None) and build.passes(r, {"kev": ["CVE-2026-1"], "at": "t"})
+    assert build.passes({**r, "relevance": build.MIN_RELEVANCE["security"]}, None)
+
+
+def test_the_catalog_failing_leaves_the_build_running(monkeypatch, capsys):
+    def boom(*a, **k):
+        raise OSError("timed out")
+    monkeypatch.setattr(build.urllib.request, "urlopen", boom)
+    assert build.fetch_kev() == {} and "catalog couldn't be read" in capsys.readouterr().out
+
+
+def test_the_catalog_is_read_as_cve_to_date(monkeypatch):
+    class Res:
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def read(self, *a): return json.dumps({"vulnerabilities": [{"cveID": "cve-2026-9", "dateAdded": "2026-11-01"}]}).encode()
+    monkeypatch.setattr(build.urllib.request, "urlopen", lambda req, timeout: Res())
+    assert build.fetch_kev() == {"CVE-2026-9": "2026-11-01"}
+
+
+def test_a_flagged_repeat_hands_its_flag_to_the_copy_on_the_site():
+    on_site = {"title": "Big Flaw Exploited", "url": "a", "cves": [], "exploited": {"kev": ["CVE-2026-1"], "at": "t0"}}
+    other = {"title": "Something else", "url": "b"}
+    build.carry_flag([other, on_site], "big flaw  exploited", {"kev": ["CVE-2026-2"], "at": "t1", "quote": "q"})
+    assert on_site["exploited"] == {"kev": ["CVE-2026-1", "CVE-2026-2"], "at": "t0", "quote": "q"}  # kept its first date
+    assert "exploited" not in other
+    build.carry_flag([other], "Something else", None)
+    assert "exploited" not in other
+
+
+def test_the_daily_cap_never_drops_a_flagged_story():
+    day = lambda rel, url, **k: {"date": "2026-11-08", "category": "security", "relevance": rel, "publisher": "P", "url": url, **k}
+    full = [day(9, f"p{n}") for n in range(build.DAILY_MAX)] + [day(5, "flagged", exploited={"kev": [], "at": "t", "quote": "q"})]
+    assert "flagged" in [i["url"] for i in build.cap_per_day(full)]
+
+
+def test_a_late_catalog_listing_tags_a_story_but_keeps_its_dates():
+    old = {"title": "T", "url": "a", "added": "2026-11-01T10:00:00+00:00", "cves": ["CVE-2026-5"]}
+    plain = {"title": "U", "url": "b", "cves": ["CVE-2026-6"]}
+    build.tag_kev([old, plain], {"CVE-2026-5": "2026-11-12"})
+    assert old["exploited"]["kev"] == ["CVE-2026-5"] and old["added"] == "2026-11-01T10:00:00+00:00"  # the pin counts from added
+    assert "exploited" not in plain
+    first = old["exploited"]["at"]
+    build.tag_kev([old], {"CVE-2026-5": "2026-11-12"})
+    assert old["exploited"]["at"] == first  # listed again: unchanged
+
+
+def test_upgrading_the_source_keeps_both_copies_cves():
+    r = {"category": "security", "summary": "s", "relevance": 8}
+    old = {"title": "Big Flaw", "url": "n", "publisher": "BleepingComputer", "relevance": 8, "date": "2026-01-01", "cves": ["CVE-2026-1"]}
+    assert build.upgrade_source([old], "big flaw", {"title": "Advisory", "url": "v", "publisher": "Rapid7", "cves": ["CVE-2026-2"]}, r)
+    assert old["cves"] == ["CVE-2026-1", "CVE-2026-2"]
+
+
+def test_scoring_asks_for_the_exploited_claim_in_the_same_call():
+    fields = build.CLASSIFY_SCHEMA["properties"]["items"]["items"]["required"]
+    assert {"exploited", "evidence"} <= set(fields) and "exploited" in build.CLASSIFY_PROMPT

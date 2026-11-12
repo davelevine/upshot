@@ -43,6 +43,10 @@ DAILY_MAX = 20        # anomaly guard (a broken feed, a scoring bug), set above 
 DEAD_AFTER_DAYS = 14  # a feed failing this long gets reported
 SILENT_AFTER_DAYS = 45  # a feed that loads but hasn't posted in this long gets reported
 BATCH = 20            # stories per repeat check
+# Urgent security news: an exploited flaw is flagged, published whatever its score, and pinned on the site for a while.
+KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"  # CISA: CVEs exploited in the wild
+CVE = re.compile(r"\bCVE-\d{4}-\d{4,}\b", re.I)
+EXPLOIT_TERMS = re.compile(r"exploit|zero[- ]?day|0[- ]?day|in the wild|under attack|emergency (patch|update|fix)|out[- ]of[- ]band", re.I)
 SCORE_WORKERS = 6     # parallel scoring calls (each is a CLI process)
 UA = "upshot/1.0 (+https://github.com/davelevine/upshot)"
 WORDS_PER_MINUTE = 230
@@ -180,7 +184,10 @@ For each item return:
   1-3 = marketing, hiring, events, webinars, customer stories, off-topic.
   Most items are 4-7; reserve 8+ for roughly the top tenth of a day's news.
 - summary: one plain factual sentence (max 30 words) saying what happened. No hype, no "this article".
-Return JSON: {{"items": [{{"id", "category", "relevance", "summary"}}, ...]}} covering every input id."""
+- exploited: true only if the item says a security flaw is being exploited in the wild, is a zero-day, or gets an
+  emergency or out-of-band patch. Not for a flaw that could be exploited, a proof of concept, or a routine patch.
+- evidence: when exploited is true, the words from the title or excerpt that say so, copied exactly; else "".
+Return JSON: {{"items": [{{"id", "category", "relevance", "summary", "exploited", "evidence"}}, ...]}} covering every input id."""
 
 # A separate call, so the recent headlines can't skew relevance: shown alongside scoring, the model
 # graded new items against the week's biggest stories and scored borderline ones a point low.
@@ -201,8 +208,10 @@ CLASSIFY_SCHEMA = {
             "category": {"type": "string", "enum": CATEGORIES},
             "relevance": {"type": "integer"},
             "summary": {"type": "string"},
+            "exploited": {"type": "boolean"},
+            "evidence": {"type": "string"},
         },
-        "required": ["id", "category", "relevance", "summary"], "additionalProperties": False,
+        "required": ["id", "category", "relevance", "summary", "exploited", "evidence"], "additionalProperties": False,
     }}},
     "required": ["items"], "additionalProperties": False,
 }
@@ -219,7 +228,7 @@ REPEATS_SCHEMA = {
 
 
 def classify(item):
-    """The model's {category, relevance, summary} for one story."""
+    """The model's {category, relevance, summary, exploited, evidence} for one story."""
     payload = [{"id": 0, "title": item["title"], "publisher": item["publisher"], "excerpt": item["excerpt"]}]
     return llm(CLASSIFY_PROMPT, json.dumps(payload), CLASSIFY_SCHEMA)[0]
 
@@ -237,6 +246,69 @@ def score_each(items):
         return item["url"], None
     with ThreadPoolExecutor(SCORE_WORKERS) as ex:
         return dict(ex.map(one, items))
+
+
+def cves(text):
+    """The CVE IDs a text mentions, upper-cased, sorted and unique."""
+    return sorted({c.upper() for c in CVE.findall(text or "")})
+
+
+def fetch_kev():
+    """CISA's Known Exploited Vulnerabilities: {cveID: dateAdded}. Empty if it can't be read, so the build carries on
+    with the model's checked claims alone."""
+    try:
+        req = urllib.request.Request(KEV_URL, headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return {v["cveID"].upper(): v["dateAdded"] for v in json.load(r)["vulnerabilities"]}
+    except Exception as e:
+        print(f"::warning::CISA's exploited-vulnerabilities catalog couldn't be read: {e}")
+        return {}
+
+
+def verified_claim(r, item):
+    """The model's "exploited" claim, if its evidence is really in the story and really about exploitation: the model
+    claims, the code checks, as with repeats. Returns the quote, or None."""
+    quote = " ".join((r.get("evidence") or "").split())
+    source = " ".join(f"{item['title']} {item.get('excerpt', '')}".split()).lower()
+    if r.get("exploited") and len(quote) >= 15 and quote.lower() in source and EXPLOIT_TERMS.search(quote):
+        return quote
+    return None
+
+
+def exploited(item, r, kev):
+    """The flag for a story, or None: one of its CVEs is in CISA's catalog, or it's a security story whose claim to an
+    exploited flaw checks out."""
+    hits = [c for c in item.get("cves", []) if c in kev]
+    quote = verified_claim(r, item) if r.get("category") == "security" else None
+    if not hits and not quote:
+        return None
+    return {"kev": hits, "at": now().isoformat(timespec="seconds")} | ({"quote": quote} if quote else {})
+
+
+def passes(r, flag):
+    """The one rule: a story clears its category's bar, or it's an exploited flaw, worth knowing about whatever its score."""
+    return r["relevance"] >= MIN_RELEVANCE[r["category"]] or bool(flag)
+
+
+def carry_flag(items, title, flag):
+    """A flagged repeat hands its flag to the copy on the site, so removing repeats never drops the signal."""
+    if not flag:
+        return
+    for i in items:
+        if norm(i["title"]) == norm(title):
+            old = i.get("exploited") or {}
+            i["exploited"] = (flag | old) | {"kev": sorted(set(old.get("kev", [])) | set(flag["kev"]))}
+            return
+
+
+def tag_kev(items, kev):
+    """Flags stories on the site whose CVEs CISA has since listed. The pin still counts from when the story was added,
+    so a days-old story gets the tag without jumping to the top."""
+    for i in items:
+        hits = [c for c in i.get("cves", []) if c in kev]
+        old = i.get("exploited")
+        if hits and (not old or set(hits) - set(old["kev"])):
+            i["exploited"] = (old or {"at": now().isoformat(timespec="seconds")}) | {"kev": sorted(set((old or {}).get("kev", [])) | set(hits))}
 
 
 def find_repeats(batch, recent):
@@ -478,16 +550,17 @@ def repeats(dup_of, n, covered_ids, recent_titles):
 
 
 def cap_per_day(items, published=()):
-    """Newest day first. Each day keeps every story already on the site (`published`: ids of their dicts), then the
-    best new ones up to DAILY_MAX. Within a day: most relevant first, the original source ahead of a news outlet."""
+    """Newest day first. Each day keeps every story already on the site (`published`: ids of their dicts) and every
+    flagged one, then the best new ones up to DAILY_MAX. Within a day: most relevant first, the original source ahead of a news outlet."""
     rank = lambda i: (-i.get("relevance", 0), i.get("publisher") in NEWS_SOURCES)
     by_day = {}
     for i in items:
         by_day.setdefault(i["date"], []).append(i)
     out = []
     for day in sorted(by_day, reverse=True):
-        kept = [i for i in by_day[day] if id(i) in published]
-        fresh = sorted((i for i in by_day[day] if id(i) not in published), key=rank)[:max(0, DAILY_MAX - len(kept))]
+        keep = lambda i: id(i) in published or bool(i.get("exploited"))
+        kept = [i for i in by_day[day] if keep(i)]
+        fresh = sorted((i for i in by_day[day] if not keep(i)), key=rank)[:max(0, DAILY_MAX - len(kept))]
         out += sorted(kept + fresh, key=rank)
     return out
 
@@ -505,7 +578,8 @@ def upgrade_source(items, title, item, result, weekly=None):
             old.pop("minutes", None)
             old.pop("tldr", None)  # checked against the outlet's article: rewritten from the original's
             old.update({k: item[k] for k in ("title", "url", "publisher")},
-                       category=result["category"], summary=result["summary"], relevance=max(old.get("relevance", 0), result["relevance"]))
+                       category=result["category"], summary=result["summary"], relevance=max(old.get("relevance", 0), result["relevance"]),
+                       cves=sorted(set(old.get("cves", [])) | set(item.get("cves", []))))
             return True
     return False
 
@@ -726,14 +800,17 @@ def main():
     recent = [i["title"] for i in data["items"] if i["date"] >= week_ago]
     scores = score_each(new)
     failed = sum(1 for r in scores.values() if r is None)
+    kev = fetch_kev()
     passing = []
     for item in new:
         r = scores.get(item["url"])
         if not r:  # left unseen, so the next run retries it
             continue
         seen[item["url"]] = item["date"]
-        if r["relevance"] >= MIN_RELEVANCE[r["category"]]:
-            passing.append((item | {"summary": r["summary"]}, r))
+        item["cves"] = cves(f"{item['title']} {item['excerpt']}")
+        flag = exploited(item, r, kev)
+        if passes(r, flag):
+            passing.append((item | {"summary": r["summary"], "exploited": flag}, r))
 
     kept, repeated = [], []
     for n0 in range(0, len(passing), BATCH):
@@ -755,14 +832,17 @@ def main():
                 if upgrade_source(data["items"], target, item, r, data.get("weekly")):
                     kept.append((item, r))
                     recent.append(item["title"])
+                    carry_flag(data["items"], item["title"], item["exploited"])
                 else:
                     repeated.append(item)
+                    carry_flag(data["items"], target, item["exploited"])
                 continue
             kept.append((item, r))
             recent.append(item["title"])
-            data["items"].append({k: item[k] for k in ("date", "published", "title", "url", "publisher")}
+            data["items"].append({k: item[k] for k in ("date", "published", "title", "url", "publisher", "cves")}
                                  | {"category": r["category"], "summary": r["summary"], "relevance": r["relevance"],
-                                    "added": now().isoformat(timespec="seconds")})  # drives "new since last visit"
+                                    "added": now().isoformat(timespec="seconds")}  # drives "new since last visit"
+                                 | ({"exploited": item["exploited"]} if item["exploited"] else {}))
 
     keep = (today - timedelta(days=KEEP_DAYS)).isoformat()
     data["items"] = cap_per_day([i for i in data["items"] if i["date"] >= keep], published)
@@ -779,6 +859,12 @@ def main():
 
     texts = {}
     reader_error = add_reading_times(data["items"], feed_minutes(fetched), full_text_feeds(fetched), texts)
+    for i in data["items"]:  # the whole article names CVEs a 600-character excerpt cuts off
+        i.setdefault("cves", cves(f"{i['title']} {i.get('summary', '')}"))  # stories from before the flag
+        if i["url"] in texts:
+            i["cves"] = sorted(set(i.get("cves", [])) | set(cves(texts[i["url"]])))
+    if kev:
+        tag_kev(data["items"], kev)
     print(f"TL;DRs written: {add_tldrs(data['items'], texts)}")
     data["generated_at"] = now().isoformat(timespec="seconds")
     SITE.mkdir(exist_ok=True)
