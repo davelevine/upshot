@@ -36,9 +36,9 @@ const exists = f => (f === 'essentials' ? picks.size > 0 : f === 'exploited' ? i
 const inList = (i, f) => f === 'all' || (f === 'essentials' ? picks.has(i.url) : f === 'exploited' ? listed(i) : cat(i.category) === f);
 const plural = (n, one, many) => (n === 1 ? one : many);
 // Exploited, in red text, then a pill for the vendor's fix: "No patch" (red), which becomes "Patch available" (the accent)
-// once one is out. Nothing when the story doesn't say. The Exploited list shows just the pill: its name says the rest.
+// once one is out; no pill when the story doesn't say. The same in every list, the Exploited list included.
 const FIX_PILL = { none: '<span class="pill no-patch">No patch</span>', available: '<span class="pill patch-out">Patch available</span>' };
-const exploitedLabel = x => `<span class="exploited">${filter === 'exploited' ? '' : '<span class="x-word">Exploited</span>'}${FIX_PILL[x.fix] || ''}</span>`;
+const exploitedLabel = x => `<span class="exploited"><span class="x-word">Exploited</span>${FIX_PILL[x.fix] || ''}</span>`;
 // One label per row, in one quiet style: Exploited (whether to act), else Essential. Unread needs none (its title is bold),
 // and no list repeats its own name on every row.
 const label1 = (i, ess) => (i.exploited ? exploitedLabel(i.exploited) : ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : '');

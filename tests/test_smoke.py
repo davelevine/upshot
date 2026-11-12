@@ -1404,7 +1404,8 @@ def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, sc
     assert entry.locator(".f-count").count() == 0  # in place of the unread count, while a flaw has no fix
     entry.click()
     assert sorted(pg.evaluate("shown.map(i => i.url)")) == sorted([sec, infra]) and by_age()  # the last week's, newest first
-    assert pg.locator("a.card .x-word").count() == 0 and pg.locator("a.card .pill").count() == 2  # the fix's pill alone
+    for u in (sec, infra):  # the same label as in every other list
+        assert card(u).locator(".x-word").count() == 1 and card(u).locator(".pill").count() == 1
     assert pg.inner_text("#end-msg") == "That\u2019s all 2 exploited flaws from the last 7 days."
     pg.click("#filters [data-f='all']")
     tags = {"runOnly": {"type": "tag", "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]}}
