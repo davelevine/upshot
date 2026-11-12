@@ -530,6 +530,31 @@ def test_question_mark_lists_the_shortcuts(browser):
     pg.keyboard.press("Escape")
     assert not pg.locator("#keys").is_visible()
     assert not pg.evaluate("document.body.classList.contains('reading')")
+    pg.keyboard.press("?")
+    pg.keyboard.press("?")  # the same key hides it again
+    assert not pg.locator("#keys").is_visible()
+
+
+def test_page_shortcuts_work_from_inside_an_open_article(browser):
+    # Keys pressed in the article's frame reach the page only if its relay forwards them: ?, / and Shift+A as well as j/k/m/Esc.
+    pg = open_site(browser, viewport={"width": 1300, "height": 900})
+    pg.locator("a.card").first.click()
+    frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+    frame.locator("main p").first.click()  # focus in the article
+    pg.keyboard.press("?")
+    pg.locator("#keys").wait_for()
+    pg.keyboard.press("?")
+    pg.locator("#keys").wait_for(state="hidden")
+    frame.locator("main p").first.click()
+    pg.keyboard.press("/")  # search from a story too, as ⌘K does
+    pg.locator("#palette").wait_for()
+    pg.keyboard.press("Escape")
+    pg.locator("#palette").wait_for(state="hidden")
+    frame.locator("main p").first.click()
+    pg.keyboard.press("Shift+A")
+    pg.locator("#confirm-read").wait_for()
+    pg.keyboard.press("Escape")
+    assert reading(pg) and pg.problems == []
 
 
 def test_share_copies_the_publishers_url_on_desktop(browser):

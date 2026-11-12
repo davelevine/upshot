@@ -434,8 +434,8 @@ addEventListener('message', e => {  // the page's theme toggle
   if (e.source === parent && e.data && e.data.tw === 'size') document.documentElement.dataset.size = e.data.size;
 });
 addEventListener('keydown', e => {  // keys pressed while the article has focus never reach the page
-  const k = e.key.toLowerCase();
-  if (!e.altKey && ['escape', 'j', 'k', 'm', 'arrowleft', 'arrowright'].includes(k)) { e.preventDefault(); parent.postMessage({ tw: 'key', key: k, mod: e.metaKey || e.ctrlKey }, '*'); }
+  const k = e.key.toLowerCase(), mod = e.metaKey || e.ctrlKey;
+  if (!e.altKey && (['escape', 'j', 'k', 'm', 'arrowleft', 'arrowright', '?', '/'].includes(k) || (k === 'a' && e.shiftKey && !mod))) { e.preventDefault(); parent.postMessage({ tw: 'key', key: k, mod: mod, shift: e.shiftKey }, '*'); }
 });`;
 
 // The article frame's fonts: Public Sans for its headings, Literata for the article. A sandboxed frame has an opaque origin,
@@ -748,7 +748,7 @@ addEventListener('message', e => {
   if (e.data.tw === 'start') dragStart(e.data.x);
   else if (e.data.tw === 'move') dragMove(e.data.x);
   else if (e.data.tw === 'end') dragEnd();
-  else if (e.data.tw === 'key') { lastInput = 'key'; onKey(e.data.key, !!e.data.mod); }  // a key in the article: the keyboard's in use
+  else if (e.data.tw === 'key') { lastInput = 'key'; onKey(e.data.key, !!e.data.mod, { shiftKey: !!e.data.shift, preventDefault() {} }); }  // a key in the article: the keyboard's in use
   else if (e.data.tw === 'themed') frameThemed?.();
 });
 
@@ -812,6 +812,7 @@ function step(dir) {
 }
 function onKey(key, mod, e) {
   const reading = document.body.classList.contains('reading');
+  if ($('keys').open && key === '?') { e?.preventDefault(); return $('keys').close(); }  // ? shows the list and hides it again
   if ($('keys').open || $('confirm-read').open) return;  // the dialogs handle their own Esc
   if ($('palette').open) {  // so does this one; j/k and Esc mustn't reach the reader behind it
     if (key === 'k' && mod) { e?.preventDefault(); openPalette(); }
@@ -824,7 +825,7 @@ function onKey(key, mod, e) {
   if (key === 'k' && mod) { e?.preventDefault(); return openPalette(); }
   if (mod || e?.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;
   if (key === '?') { e?.preventDefault(); $('keys').showModal(); }
-  else if (key === '/' && !reading) { e?.preventDefault(); openPalette(); }
+  else if (key === '/') { e?.preventDefault(); openPalette(); }
   else if (key === 'm' && reading) { e?.preventDefault(); toggleRead(); }
   else if (key === 'a' && e?.shiftKey) { e.preventDefault(); confirmReadAll(); }  // Feedbin's: the list's Read button
   else if (key === 'j' || key === 'arrowright') { e?.preventDefault(); step(1); }
