@@ -37,7 +37,7 @@ const inList = (i, f) => f === 'all' || (f === 'essentials' ? picks.has(i.url) :
 const plural = (n, one, many) => (n === 1 ? one : many);
 // Exploited, in red text, then a pill for the vendor's fix: "No patch" (red), which becomes "Patch available" (the accent)
 // once one is out; no pill when the story doesn't say. The same in every list, the Exploited list included.
-const FIX_PILL = { none: '<span class="pill no-patch">No patch</span>', available: '<span class="pill patch-out">Patch available</span>' };
+const FIX_PILL = { none: '<span class="fix-pill no-patch">No patch</span>', available: '<span class="fix-pill patch-out">Patch available</span>' };
 const exploitedLabel = x => `<span class="exploited"><span class="x-word">Exploited</span>${FIX_PILL[x.fix] || ''}</span>`;
 // One label per row, in one quiet style: Exploited (whether to act), else Essential. Unread needs none (its title is bold),
 // and no list repeats its own name on every row.
@@ -472,7 +472,7 @@ function frameVars(theme) {
   probe.dataset.theme = theme;
   document.body.append(probe);
   const cs = getComputedStyle(probe);
-  const out = `color-scheme: ${theme}; ` + ["--accent", "--bg", "--bg-card", "--border", "--border-strong", "--text", "--text-muted", "--exploited", "--exploited-text", "--exploited-ink"].map(v => `${v}: ${cs.getPropertyValue(v).trim()};`).join(' ');
+  const out = `color-scheme: ${theme}; ` + ["--accent", "--bg", "--bg-card", "--border", "--border-strong", "--text", "--text-muted", "--exploited", "--exploited-text", "--exploited-ink", "--accent-contrast"].map(v => `${v}: ${cs.getPropertyValue(v).trim()};`).join(' ');
   probe.remove();
   return out;
 }
@@ -492,8 +492,7 @@ function storyMeta(i, byline, minutes) {
   // Bylines sometimes carry their own date: "Posted on November 8, 2026 by audra", "By Ada | Tuesday, October 27, 2026".
   let by = (byline || '').replace(/\s+/g, ' ').replace(/\s*\|.*$/, '').replace(/^(posted|published|updated)\b.*?\bby\s+/i, '').replace(/^by\s+/i, '').trim();
   if (/\b\d{4}\b/.test(by) && !Number.isNaN(Date.parse(by))) by = '';  // nothing left but a date
-  const x = i.exploited, notes = x ? [{ none: 'no patch yet', available: 'patch available' }[x.fix], x.kev?.length && 'confirmed by CISA'].filter(Boolean) : [];
-  const exploited = x ? `<span class="exploited">Actively exploited</span>${notes.map(n => ` · ${n}`).join('')}` : '';
+  const x = i.exploited, exploited = x ? `${exploitedLabel(x)}${x.kev?.length ? ' · confirmed by CISA' : ''}` : '';  // the list's label, as is
   return `<div class="meta">${exploited ? `<p class="flag">${exploited}</p>` : ''}${esc(when)}${by ? ` by ${esc(by)}` : ''}${minutes ? ` · ${minutes} min read` : ''}</div>`;
 }
 // The upshot (written and checked by the build) with, for weekly essentials, the hand-picked "What to do" as its last line.
@@ -532,7 +531,8 @@ pre { overflow-x: auto; padding: 12px 14px; border-radius: 8px; background: var(
 pre code { padding: 0; background: none; font: inherit; }
 table { display: block; overflow-x: auto; border-collapse: collapse; font-size: .875rem; } th, td { padding: 4px 8px; border: 1px solid var(--border); } th { font-weight: 700; }
 hr { border: 0; border-top: 1px solid var(--border); }
-.flag { margin: 0 0 .35em; } .exploited { color: var(--exploited-ink); font-weight: 600; }
+.flag { margin: 0 0 .35em; } .exploited { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; } .x-word { color: var(--exploited-ink); }
+.fix-pill { padding: 1px 8px; border-radius: 999px; font-size: .9em; font-weight: 700; line-height: 1.35; }  /* a chip, as in the list; not .pill, the "Read it on" button's */ .no-patch { background: var(--exploited); color: var(--exploited-text); } .patch-out { background: var(--accent); color: var(--accent-contrast); }
 .late { animation: late .2s ease .4s both; } @keyframes late { from { opacity: 0; } }
 .status { color: var(--text-muted); font: 370 .9375rem/1.5 "Public Sans", system-ui, sans-serif; }
 .pill { display: inline-block; padding: 10px 18px; border: 1px solid var(--accent); border-radius: 999px; font: 600 .9375rem/1.4 "Public Sans", system-ui, sans-serif; text-decoration: none; }

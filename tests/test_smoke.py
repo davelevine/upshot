@@ -1396,7 +1396,7 @@ def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, sc
     by_age = lambda: pg.evaluate("shown.every((i, n, a) => !n || ageMins(a[n - 1]) <= ageMins(i))")
     card = lambda u: pg.locator(f'a.card[href="{u}"]')
     assert by_age()  # tagged where they fall: nothing jumps the order
-    label = lambda u: (card(u).locator(".x-word").count(), card(u).locator(".pill").text_content())
+    label = lambda u: (card(u).locator(".x-word").count(), card(u).locator(".fix-pill").text_content())
     assert label(sec) == (1, "Patch available") and label(infra) == (1, "No patch")  # Exploited, then whether the vendor's fix is out
     assert pg.evaluate("u => items.find(i => i.url === u).exploited && !listed(items.find(i => i.url === u))", old)  # tagged, but too old to list
     entry = pg.locator("#filters [data-f='exploited']")
@@ -1405,14 +1405,15 @@ def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, sc
     entry.click()
     assert sorted(pg.evaluate("shown.map(i => i.url)")) == sorted([sec, infra]) and by_age()  # the last week's, newest first
     for u in (sec, infra):  # the same label as in every other list
-        assert card(u).locator(".x-word").count() == 1 and card(u).locator(".pill").count() == 1
+        assert card(u).locator(".x-word").count() == 1 and card(u).locator(".fix-pill").count() == 1
     assert pg.inner_text("#end-msg") == "That\u2019s all 2 exploited flaws from the last 7 days."
     pg.click("#filters [data-f='all']")
     tags = {"runOnly": {"type": "tag", "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]}}
     assert [(v["id"], v["nodes"][0]["html"][:80]) for v in Axe().run(pg, options=tags).response["violations"]] == []
     card(sec).click()
     flag = pg.frame_locator("#reader-body iframe:not(.loading)").locator(".meta .flag")
-    assert " ".join(flag.inner_text().split()).lower() == "actively exploited · patch available · confirmed by cisa"
+    assert " ".join(flag.inner_text().split()).lower() == "exploited patch available · confirmed by cisa"  # the list's label, as is
+    assert flag.locator(".patch-out").evaluate("e => getComputedStyle(e).backgroundColor") != "rgba(0, 0, 0, 0)"  # a filled pill, not grey text
     assert pg.problems == []
 
 
