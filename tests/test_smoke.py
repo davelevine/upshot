@@ -255,9 +255,8 @@ def test_late_bar_appears_once_a_build_is_late_and_can_check_again(browser):
 def test_late_bar_is_a_bottom_bar_on_a_phone(browser):
     pg = stale_site(browser, 6, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
     assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
-    bar, tools = pg.locator("#stale").bounding_box(), pg.locator("#list-bar").bounding_box()
-    assert bar["x"] == 0 and bar["width"] == 320 and bar["y"] + bar["height"] == tools["y"]  # on top of the list's toolbar
-    assert tools["width"] == 320 and tools["y"] + tools["height"] == 700
+    bar = pg.locator("#stale").bounding_box()
+    assert bar["x"] == 0 and bar["width"] == 320 and bar["y"] + bar["height"] == 700
     assert pg.locator("#stale-check").bounding_box()["height"] >= 44
 
 
@@ -1242,7 +1241,8 @@ def test_the_reader_marks_a_story_unread_and_read_again(browser):
 
 
 def test_read_marks_the_list_read_once_confirmed(browser):
-    # Feedbin's Read button, at the sidebar's foot: it asks first, and marks only the list that's showing.
+    # Where feed readers keep it (FreshRSS, NewsBlur, Miniflux): atop the list, in line with the reader's bar. It asks first,
+    # and marks only the list that's showing.
     pg = open_site(browser, viewport={"width": 1440, "height": 900})
     count = lambda f: pg.locator(f"#filters .filter-btn[data-f='{f}'] .f-count")
     opened = pg.evaluate("items.find(i => cat(i.category) !== 'security').title")
@@ -1250,8 +1250,9 @@ def test_read_marks_the_list_read_once_confirmed(browser):
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
     pg.click("#filters [data-f='security']")
     wait_until_closed(pg)
-    bar, side = pg.locator("#list-bar").bounding_box(), pg.locator(".side").bounding_box()
-    assert bar["x"] == 0 and bar["width"] == side["width"] and bar["y"] + bar["height"] == 900  # the sidebar's foot
+    head, col, bar = (pg.locator(s).bounding_box() for s in ("#list-head", "#col", ".reader-bar"))
+    assert head["x"] == col["x"] and head["y"] == bar["y"] == 0 and head["height"] == bar["height"]  # one row with the reader's bar
+    assert pg.inner_text("#list-title") == "Security" and pg.locator("#read-all-phone").is_hidden()
     n, others = pg.evaluate("shown.length"), count("all").text_content()
     pg.click("#read-all")
     assert pg.locator("#confirm-read").is_visible() and pg.inner_text("#confirm-msg") == f"Mark {n} unread stories in Security as read?"
@@ -1308,12 +1309,15 @@ def test_mark_above_and_below_as_read(browser):
     assert pg.problems == []
 
 
-def test_phones_get_a_read_bar_and_keep_the_closed_story_selected(browser):
+def test_phones_mark_all_read_from_the_lists_top_bar_and_keep_the_closed_story_selected(browser):
+    # A double-check beside search in the list's top bar, as Android feed readers have it (Read You, NewsBlur).
     pg = open_site(browser, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
-    bar, btn = pg.locator("#list-bar").bounding_box(), pg.locator("#read-all").bounding_box()
-    assert bar["x"] == 0 and bar["width"] == 320 and bar["y"] + bar["height"] == 700 and btn["height"] >= 44
-    assert btn["x"] + btn["width"] > 250  # on the right, as Feedbin's
-    assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    btn, search, name = (pg.locator(s).bounding_box() for s in ("#read-all-phone", "#search-btn", "#list-name"))
+    assert btn["y"] < 52 and btn["height"] >= 44 and btn["x"] + btn["width"] <= search["x"] and name["x"] + name["width"] <= btn["x"]
+    assert pg.locator("#list-head").is_hidden() and pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    pg.tap("#read-all-phone")
+    assert pg.locator("#confirm-read").is_visible()
+    pg.tap("#confirm-read button[value='cancel']")
     pg.locator("a.card").nth(1).tap()
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
     pg.click("#reader-close")
@@ -1324,8 +1328,8 @@ def test_phones_get_a_read_bar_and_keep_the_closed_story_selected(browser):
     pg.click("#read-above")
     assert pg.evaluate("isRead(shown[0].url) && !isRead(shown[2].url)")
     pg.click("#list-back")
-    pg.wait_for_function("() => getComputedStyle(document.getElementById('list-bar')).opacity === '0'")
-    assert pg.evaluate("document.getElementById('read-all').inert")  # on the topics: gone, and out of reach
+    pg.wait_for_function("() => getComputedStyle(document.getElementById('read-all-phone')).opacity === '0'")
+    assert pg.evaluate("document.getElementById('read-all-phone').inert")  # on the topics: gone, and out of reach
     assert pg.problems == []
 
 
