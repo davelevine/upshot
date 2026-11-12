@@ -1429,13 +1429,25 @@ def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, sc
     assert pg.problems == []
 
 
-def test_a_rows_labels_never_squeeze_its_source_on_a_phone(browser):
-    pg = open_site(browser, patch=flag_some, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
+def test_a_row_shows_one_label_the_one_that_matters_most(browser):
+    # Several at once is noise: Exploited, then Essential, then New.
+    def everything(data):
+        flag_some(data)
+        sec = data["flagged"][0]
+        data["weekly"]["items"][0]["url"] = sec  # exploited and essential
+        for i in data["items"]:
+            i["added"] = "2099-01-01T00:00:00+00:00"  # and new, as every story is
+    pg = open_site(browser, patch=everything, viewport={"width": 390, "height": 800}, has_touch=True, is_mobile=True)
+    pg.add_init_script("localStorage.setItem('seenUntil', '2000-01-01T00:00:00Z')")
+    pg.reload()
+    enter_list(pg)
     sec = pg.evaluate("fetch('/data.json').then(r => r.json()).then(d => d.flagged[0])")
+    meta = lambda u: pg.locator(f'a.card[href="{u}"] .card-meta > :not(.card-src)')
+    assert meta(sec).count() == 1 and meta(sec).first.get_attribute("class") == "exploited"
+    ess = pg.evaluate("[...picks.keys()].find(u => !items.find(i => i.url === u).exploited)")
+    assert meta(ess).count() == 1 and meta(ess).first.text_content() == "Essential"  # over New (text_content: offscreen rows aren't rendered)
     card = pg.locator(f'a.card[href="{sec}"]')
-    card.scroll_into_view_if_needed()
-    assert card.locator(".card-meta > .labels").count() == 1  # the labels wrap as one group
-    assert card.locator(".card-src").evaluate("e => e.scrollWidth <= e.clientWidth")  # the source stays whole
+    assert card.locator(".card-src").evaluate("e => e.scrollWidth <= e.clientWidth")  # the source stays whole on a phone
     assert pg.problems == []
 
 

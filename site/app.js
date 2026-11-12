@@ -37,9 +37,10 @@ const inList = (i, f) => f === 'all' || (f === 'essentials' ? picks.has(i.url) :
 const plural = (n, one, many) => (n === 1 ? one : many);
 const FIX = { none: 'No patch', available: 'Patched' };
 const exploitedPill = (x, first = 'Exploited') => `<span class="exploited"><span>${first}</span>${FIX[x.fix] ? `<span class="fix ${x.fix}"> ${FIX[x.fix]}</span>` : ''}</span>`;
-// A row's labels, kept together: beside the source while they fit, all on the next line when they don't.
-const labels = (i, ess) => { const l = (i.exploited ? exploitedPill(i.exploited) : '') + (ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : '') + (isNew(i) ? '<span class="new">New</span>' : '');
-  return l && `<span class="labels">${l}</span>`; };
+// One label per row, the one that matters most: several at once is noise. Exploited (whether to act), then Essential, then
+// New; the others aren't lost: an unread title is bold, and Exploited and Essentials have lists of their own.
+const label1 = (i, ess) => (i.exploited ? exploitedPill(i.exploited) : ess && filter !== 'essentials' ? '<span class="ess">Essential</span>'
+  : isNew(i) ? '<span class="new">New</span>' : '');
 const unpatched = () => items.filter(i => listed(i) && i.exploited.fix === 'none').length;
 
 // Today in the site's time zone (data.json's tz), not the device's: some browsers report UTC for privacy, which
@@ -118,7 +119,7 @@ function renderPage() {
       ${iconHtml(i.publisher)}
       <div class="card-body">
         <div class="card-title">${highlight(i.title, q)}</div>
-        <div class="card-meta"><span class="card-src">${esc(source(i))}</span>${labels(i, ess)}</div>
+        <div class="card-meta"><span class="card-src">${esc(source(i))}</span>${label1(i, ess)}</div>
         ${preview ? `<div class="card-sum${why ? ' full' : ''}">${why ? '<b>What to do: </b>' : ''}${highlight(preview, q)}</div>` : ''}
         ${ageHtml(i)}
       </div>
