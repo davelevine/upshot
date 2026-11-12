@@ -45,6 +45,7 @@ SILENT_AFTER_DAYS = 45  # a feed that loads but hasn't posted in this long gets 
 BATCH = 20            # stories per repeat check
 # Urgent security news: an exploited flaw is flagged, published whatever its score, and pinned on the site for a while.
 KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"  # CISA: CVEs exploited in the wild
+NOT_EXPLOITED = ROOT / "not-exploited.txt"  # URLs never to flag: the way to retract a wrong one (docs/setup.md)
 CVE = re.compile(r"\bCVE-\d{4}-\d{4,}\b", re.I)
 # A flaw's remedy, as CISA's catalog separates them: a vendor patch or update, else only a mitigation or workaround, else
 # nothing yet. Ranked: later news only ever raises it.
@@ -313,10 +314,19 @@ def verified_fix(r, item):
     return status if status in FIX_TERMS and in_story(r.get("fix_evidence"), item, FIX_TERMS[status]) else None
 
 
+def retracted():
+    """The URLs in not-exploited.txt, one a line; # starts a comment."""
+    if not NOT_EXPLOITED.exists():
+        return set()
+    return {normalize_url(l.split("#")[0].strip()) for l in NOT_EXPLOITED.read_text().splitlines() if l.split("#")[0].strip()}
+
+
 def exploited(item, r, kev):
     """The flag for a story, or None: one of its CVEs is in CISA's catalog, or it's a security story whose claim checks out.
     `kind`: "flaw", with its remedy in `fix`, or "compromise" (a supply-chain attack: GitHub and OSV call these malware,
     not vulnerabilities, and there's no patch to wait for, only steps to take)."""
+    if item.get("url") in retracted():
+        return None
     hits = [c for c in item.get("cves", []) if c in kev]
     quote = verified_claim(r, item) if r.get("category") == "security" else None
     if not hits and not quote:
@@ -342,12 +352,16 @@ def passes(r, flag):
     return r["relevance"] >= bar or (zero_day and r["relevance"] >= bar - 1)
 
 
-def carry_flag(items, title, flag):
-    """A flagged repeat hands its flag to the copy on the site, so removing repeats never drops the signal."""
-    if not flag:
+def carry_flag(items, title, flag, cve_ids=()):
+    """A repeat hands its CVEs and any flag to the copy on the site, so removing repeats never drops the signal: a CVE only
+    the repeat named can still be listed by CISA later."""
+    if not flag and not cve_ids:
         return
     for i in items:
         if norm(i["title"]) == norm(title):
+            i["cves"] = sorted(set(i.get("cves", [])) | set(cve_ids))
+            if not flag:
+                return
             old = i.get("exploited") or {}
             fix = best_fix(old.get("fix"), flag.get("fix"))
             i["exploited"] = (flag | old) | {"kev": sorted(set(old.get("kev", [])) | set(flag["kev"]))} | ({"fix": fix} if fix else {})
@@ -373,6 +387,28 @@ def mark_fixed(items, cve_ids, status):
         x = i.get("exploited")
         if x and x.get("kind", "flaw") == "flaw" and set(i.get("cves", [])) & set(cve_ids):
             x["fix"] = best_fix(x.get("fix"), status)
+
+
+def backfill_claims(items, kev, days=7):
+    """Once, when the flag shipped: the claim check for the last week's security stories, which were scored before it
+    existed. Their best record is the stored summary and upshot, which the quote is checked against. Returns how many
+    were checked."""
+    since = (now().astimezone(SITE_TZ).date() - timedelta(days=days)).isoformat()
+    todo = [i for i in items if i["date"] >= since and i.get("category") == "security" and not i.get("exploited")]
+
+    def one(i):
+        item = {"url": i["url"], "title": i["title"], "publisher": i["publisher"], "cves": i.get("cves", []),
+                "excerpt": f"{i.get('summary', '')} {' '.join(i.get('tldr', []))}"}
+        try:
+            return i, exploited(item, classify(item), kev)
+        except Exception as e:
+            print(f"::warning::claim backfill failed for {i['url']}: {e}")
+            return i, None
+    with ThreadPoolExecutor(SCORE_WORKERS) as ex:
+        for i, flag in ex.map(one, todo):
+            if flag:
+                i["exploited"] = flag
+    return len(todo)
 
 
 def find_repeats(batch, recent):
@@ -585,11 +621,21 @@ def published(item):
     return when if when.tzinfo else when.replace(tzinfo=timezone.utc)
 
 
+def rss_label(i):
+    """The site's label, as a title prefix: feed readers show no badges."""
+    x = i.get("exploited")
+    if not x:
+        return ""
+    if x.get("kind") == "compromise":
+        return "Compromised: "
+    return "Exploited, no patch yet: " if x.get("fix") == "none" else "Exploited: "
+
+
 def rss(items):
     def esc(s):
         return html.escape(s, quote=False)
     entries = "".join(
-        f"<item><title>{esc(i['title'])}</title><link>{esc(i['url'])}</link><guid>{esc(i['url'])}</guid>"
+        f"<item><title>{esc(rss_label(i) + i['title'])}</title><link>{esc(i['url'])}</link><guid>{esc(i['url'])}</guid>"
         f"<description>{esc(i['summary'])}</description><category>{i['category']}</category>"
         f"<pubDate>{format_datetime(published(i))}</pubDate></item>"
         for i in items[:50]
@@ -721,6 +767,51 @@ TLDR_FIX_SCHEMA = {
     "properties": TLDR_SCHEMA["properties"] | {"fix": {"type": "string", "enum": ["patch", "mitigation", "none", "unknown"]}, "fix_evidence": {"type": "string"}},
     "required": ["bullets", "fix", "fix_evidence"], "additionalProperties": False,
 }
+
+
+# A flaw flagged after it was published (CISA listed it later, or it predates the flag) never went through the checks that
+# read its remedy: those run when a story is scored and summarised. Its upshot, written and checked from the whole article,
+# usually says: read it there, once.
+UPSHOT_FIX_PROMPT = """You read the summary of a news story about an exploited security flaw. Say what it says is out for the
+flaw: fix is "patch" (a vendor patch, update or fixed version), "mitigation" (only a mitigation or workaround, no patch
+yet), "none" (it says there is no patch or fix yet), else "unknown"; fix_evidence is the words from the summary that say
+so, copied exactly, else ""."""
+UPSHOT_FIX_SCHEMA = {
+    "type": "object",
+    "properties": {"fix": TLDR_FIX_SCHEMA["properties"]["fix"], "fix_evidence": {"type": "string"}},
+    "required": ["fix", "fix_evidence"], "additionalProperties": False,
+}
+LATE_FIX_LIMIT = 20  # upshots read per build: the first build after this shipped has a backlog; later ones, a stray listing
+
+
+def add_late_fixes(items, limit=LATE_FIX_LIMIT):
+    """Reads the remedy of flagged flaws that have none from their upshot, checked against it like every other claim, and
+    marks each read (`fix_read`) so it's asked once. A failed call leaves it for the next build."""
+    todo = [i for i in items if (x := i.get("exploited")) and x.get("kind", "flaw") == "flaw" and "fix" not in x
+            and not x.get("fix_read") and i.get("tldr")][:limit]
+
+    def one(item):
+        text = " ".join(item["tldr"])
+        try:
+            res = llm(UPSHOT_FIX_PROMPT, json.dumps({"title": item["title"], "summary": text}), UPSHOT_FIX_SCHEMA, whole=True)
+        except Exception as e:
+            print(f"::warning::reading the remedy failed for {item['url']}: {e}")
+            return item, None, False
+        return item, verified_fix(res, {"title": item["title"], "excerpt": text}), True
+
+    with ThreadPoolExecutor(SCORE_WORKERS) as ex:
+        for item, fix, ok in ex.map(one, todo):
+            if not ok:
+                continue
+            x = item["exploited"]
+            x["fix_read"] = True
+            if fix and x.get("kev"):
+                fix = kev_fix(fix)  # listed: never "no patch yet"
+            if fix:
+                x["fix"] = fix
+            if fix in ("patch", "mitigation"):
+                mark_fixed(items, item.get("cves", []), fix)  # the same CVE's other stories: one upshot may say what another doesn't
+    return len(todo)
 
 
 def verify_tldr(bullets, text):
@@ -871,11 +962,11 @@ def add_chunk(data, chunk, dups, recent, kept, repeated):
             if upgrade_source(data["items"], target, item, r, data.get("weekly")):
                 kept.append((item, r))
                 recent.append(item["title"])
-                carry_flag(data["items"], item["title"], item["exploited"])
+                carry_flag(data["items"], item["title"], item["exploited"], item["cves"])
             else:
                 headline[n] = target
                 repeated.append(item)
-                carry_flag(data["items"], target, item["exploited"])
+                carry_flag(data["items"], target, item["exploited"], item["cves"])
             continue
         kept.append((item, r))
         recent.append(item["title"])
@@ -961,12 +1052,21 @@ def main():
     texts = {}
     reader_error = add_reading_times(data["items"], feed_minutes(fetched), full_text_feeds(fetched), texts)
     for i in data["items"]:  # the whole article names CVEs a 600-character excerpt cuts off
-        i.setdefault("cves", cves(f"{i['title']} {i.get('summary', '')}"))  # stories from before the flag
         if i["url"] in texts:
             i["cves"] = sorted(set(i.get("cves", [])) | set(cves(texts[i["url"]])))
+    print(f"TL;DRs written: {add_tldrs(data['items'], texts)}")
+    for i in data["items"]:  # and so does the upshot, written from it: for stories from before the flag, the only record of it
+        i["cves"] = sorted(set(i.get("cves", [])) | set(cves(f"{i['title']} {i.get('summary', '')} {' '.join(i.get('tldr', []))}")))
     if kev:
         tag_kev(data["items"], kev)
-    print(f"TL;DRs written: {add_tldrs(data['items'], texts)}")
+    if not state.get("claims_backfilled"):  # once: the week before the flag shipped
+        print(f"Claim check backfilled: {backfill_claims(data['items'], kev)}")
+        state["claims_backfilled"] = True
+    gone = retracted()
+    for i in data["items"]:
+        if i["url"] in gone:
+            i.pop("exploited", None)  # retracted by hand: not-exploited.txt
+    print(f"Remedies read from upshots: {add_late_fixes(data['items'])}")  # flaws flagged after they were published
     data["generated_at"] = now().isoformat(timespec="seconds")
     SITE.mkdir(exist_ok=True)
     data["tz"] = SITE_TZ.key
