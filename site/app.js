@@ -35,17 +35,19 @@ const listed = i => !!i.exploited && ageMins(i) < EXPLOITED_DAYS * 1440;
 const exists = f => (f === 'essentials' ? picks.size > 0 : f === 'exploited' ? items.some(listed) : true);  // the two lists come and go
 const inList = (i, f) => f === 'all' || (f === 'essentials' ? picks.has(i.url) : f === 'exploited' ? listed(i) : cat(i.category) === f);
 const plural = (n, one, many) => (n === 1 ? one : many);
-// Exploited, then the fix. Red only while there's no fix: "Exploited" and a filled "No fix yet" pill, the one alarm on a
-// row (nothing to apply yet: watch it). Otherwise quiet, as Essential is: "Exploited · Fix available" once there's a patch,
-// a mitigation or steps to take (a supply-chain attack has no patch, but rotating its secrets is a fix), or just
-// "Exploited" when the story doesn't say. A fifth of rows can be flagged in a busy week: red on all of them would be
-// noise. The same in every list, and the reader.
-const FIX_PILL = { none: '<span class="fix-pill no-fix">No fix yet</span>', available: '<span class="fix-pill fix-out">Fix available</span>' };
-const exploitedLabel = x => `<span class="exploited"><span class="x-word">Exploited</span>${FIX_PILL[x.fix] || ''}</span>`;
+// An exploited flaw and its remedy, in CISA's terms: "Patch available" (the accent), "Mitigation only" (quiet), or "No patch
+// yet", the one alarm on a row, red with "Exploited" (nothing to apply: watch it); nothing when the story doesn't say. A
+// supply-chain attack says "Compromised" instead, as GitHub and OSV keep malware apart from vulnerabilities, with no patch
+// to report: its steps are in the upshot. A fifth of rows can be flagged in a busy week, so only the alarm is red. The same
+// in every list, and the reader.
+const FIX_LABEL = { none: '<span class="fix-pill no-patch">No patch yet</span>', mitigation: '<span class="fix-pill mitigation">Mitigation only</span>',
+  patch: '<span class="fix-pill patch-out">Patch available</span>' };
+const exploitedLabel = x => (x.kind === 'compromise' ? '<span class="exploited"><span class="x-word">Compromised</span></span>'
+  : `<span class="exploited"><span class="x-word">Exploited</span>${FIX_LABEL[x.fix] || ''}</span>`);
 // One label per row, in one quiet style: Exploited (whether to act), else Essential. Unread needs none (its title is bold),
 // and no list repeats its own name on every row.
 const label1 = (i, ess) => (i.exploited ? exploitedLabel(i.exploited) : ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : '');
-const unfixed = () => items.filter(i => listed(i) && i.exploited.fix === 'none').length;
+const unpatched = () => items.filter(i => listed(i) && i.exploited.kind !== 'compromise' && i.exploited.fix === 'none').length;
 
 // Today in the site's time zone (data.json's tz), not the device's: some browsers report UTC for privacy, which
 // turned the evening's stories into a day old.
@@ -94,11 +96,11 @@ function renderFilters() {
   const unreadPicks = items.filter(i => picks.has(i.url) && isUnread(i)).length;
   const btn = (f, n, mark, note = '') => `<button class="filter-btn${filter === f ? ' active' : ''}" data-f="${f}" aria-pressed="${filter === f}">` +
     `<span class="f-mark" aria-hidden="true">${mark}</span><span class="f-name">${label(f)}</span>${note || (n ? `<span class="f-count">${n}<span class="sr-only"> unread</span></span>` : '')}</button>`;
-  const open = unfixed();  // exploited flaws with no fix yet: in place of the unread count while there are any
+  const open = unpatched();  // exploited flaws with no fix yet: in place of the unread count while there are any
   $('filters').innerHTML = btn('all', unreadAll, '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>') +
     (picks.size ? btn('essentials', unreadPicks, '<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>') : '') +
     (exists('exploited') ? btn('exploited', items.filter(i => listed(i) && isUnread(i)).length, '<svg viewBox="0 0 24 24"><path d="M12 4 2.5 20h19z"/><path d="M12 10v4M12 17h.01"/></svg>',
-      open ? `<span class="f-open">${open} unfixed</span>` : '') : '') +
+      open ? `<span class="f-open">${open} unpatched</span>` : '') : '') +
     '<h2 class="f-head">Topics</h2>' + ORDER.filter(c => counts[c] || filter === c).map(c => btn(c, unread[c] || 0, `<span class="dot" style="--c:var(--cat-${c})"></span>`)).join('');
   $('list-name').textContent = label(filter);  // phones: the list's name above it, so a filter never makes stories look missing
   syncReadAll();
@@ -534,8 +536,9 @@ pre { overflow-x: auto; padding: 12px 14px; border-radius: 8px; background: var(
 pre code { padding: 0; background: none; font: inherit; }
 table { display: block; overflow-x: auto; border-collapse: collapse; font-size: .875rem; } th, td { padding: 4px 8px; border: 1px solid var(--border); } th { font-weight: 700; }
 hr { border: 0; border-top: 1px solid var(--border); }
-.flag { margin: 0 0 .35em; } .exploited { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; } .x-word { color: var(--text); } .exploited:has(.no-fix) .x-word { color: var(--exploited-ink); }
-.fix-pill { padding: 1px 8px; border-radius: 999px; font-size: .9em; font-weight: 700; line-height: 1.35; }  /* a chip, as in the list; not .pill, the "Read it on" button's */ .no-fix { background: var(--exploited); color: var(--exploited-text); } .fix-out { padding: 0; color: var(--accent); font-size: 1em; font-weight: 600; line-height: inherit; } .fix-out::before { content: "· "; color: var(--text-muted); }
+.flag { margin: 0 0 .35em; } .exploited { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; } .x-word { color: var(--text); } .exploited:has(.no-patch) .x-word { color: var(--exploited-ink); }
+.fix-pill { padding: 1px 8px; border-radius: 999px; font-size: .9em; font-weight: 700; line-height: 1.35; }  /* a chip, as in the list; not .pill, the "Read it on" button's */ .no-patch { background: var(--exploited); color: var(--exploited-text); } .patch-out, .mitigation { padding: 0; color: var(--accent); font-size: 1em; font-weight: 600; line-height: inherit; }
+.mitigation { color: var(--text-muted); font-weight: 500; } .patch-out::before, .mitigation::before { content: "· "; color: var(--text-muted); }
 .late { animation: late .2s ease .4s both; } @keyframes late { from { opacity: 0; } }
 .status { color: var(--text-muted); font: 370 .9375rem/1.5 "Public Sans", system-ui, sans-serif; }
 .pill { display: inline-block; padding: 10px 18px; border: 1px solid var(--accent); border-radius: 999px; font: 600 .9375rem/1.4 "Public Sans", system-ui, sans-serif; text-decoration: none; }

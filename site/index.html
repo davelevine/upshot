@@ -223,16 +223,17 @@
   .card.read .card-title { color: var(--text-muted); font-weight: 500; }
   .card.read .card-meta { color: var(--text-muted); }
   /* An actively exploited flaw (build.py: in CISA's catalog, or a checked claim). */
-  /* The row's label, in the same quiet type as Essential: Exploited in red, then a pill for the vendor's fix, the only filled
-     mark on a row, and only while there's nothing to apply: "No fix yet". Once there's a patch, a mitigation or steps to take,
-     "Fix available" in quiet accent text, as Essential is: the routine case shouldn't shout. */
+  /* The row's label, in the same quiet type as Essential: Exploited, then its remedy in CISA's terms. "No patch yet" is the
+     one filled mark on a row, red with Exploited, only while there's nothing to apply; "Patch available" in the accent;
+     "Mitigation only" with no colour. A supply-chain attack says "Compromised", with no patch to report. */
   .exploited { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; font-size: .75rem; font-weight: 600; white-space: nowrap; }
   .exploited .x-word { color: var(--text); }  /* leads, in the row's own ink: no colour, but never fainter than what qualifies it */
-  .exploited:has(.no-fix) .x-word { color: var(--exploited-ink); }  /* red only while there's nothing to apply: rare, and worth it */
+  .exploited:has(.no-patch) .x-word { color: var(--exploited-ink); }  /* red only while there's nothing to apply: rare, and worth it */
   .exploited .fix-pill { padding: 0 7px; border-radius: 999px; font-weight: 700; }
-  .exploited .no-fix { background: var(--exploited); color: var(--exploited-text); }
-  .exploited .fix-out { padding: 0; color: var(--accent); font-weight: 600; }  /* the good news, in the accent, as Essential is */
-  .exploited .fix-out::before { content: "· "; color: var(--text-muted); }
+  .exploited .no-patch { background: var(--exploited); color: var(--exploited-text); }
+  .exploited .patch-out { padding: 0; color: var(--accent); font-weight: 600; }  /* the good news, in the accent, as Essential is */
+  .exploited .mitigation { padding: 0; color: var(--text-muted); font-weight: 500; }  /* a workaround only: no colour, no alarm */
+  .exploited :is(.patch-out, .mitigation)::before { content: "· "; color: var(--text-muted); }
   .f-open { flex: none; color: var(--exploited-ink); font-size: .75rem; font-weight: 600; }  /* exploited flaws with no fix yet */
   .skeleton { pointer-events: none; }
   .skeleton .bone { display: block; height: .8em; border-radius: 6px; background: var(--border); animation: pulse 1.4s ease-in-out infinite; }

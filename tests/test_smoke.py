@@ -1384,7 +1384,7 @@ def flag_some(data):
     newest = lambda c: max((i for i in data["items"] if i["category"] == c), key=lambda i: i.get("published") or i["date"])
     old = min(data["items"], key=lambda i: i["date"])
     for i, kev in ((newest("security"), ["CVE-2026-1"]), (newest("infrastructure"), []), (old, ["CVE-2025-9"])):
-        i["exploited"] = {"kev": kev, "at": i.get("added") or i["date"]} | ({"fix": "available"} if kev else {"quote": "is being exploited in the wild", "fix": "none"})
+        i["exploited"] = {"kev": kev, "at": i.get("added") or i["date"], "kind": "flaw"} | ({"fix": "patch"} if kev else {"quote": "is being exploited in the wild", "fix": "none"})
     data["flagged"] = [newest("security")["url"], newest("infrastructure")["url"], old["url"]]  # for the test; the site ignores it
 
 
@@ -1397,12 +1397,12 @@ def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, sc
     card = lambda u: pg.locator(f'a.card[href="{u}"]')
     assert by_age()  # tagged where they fall: nothing jumps the order
     label = lambda u: (card(u).locator(".x-word").count(), card(u).locator(".fix-pill").text_content())
-    assert label(sec) == (1, "Fix available") and label(infra) == (1, "No fix yet")  # Exploited, then whether there's a fix
+    assert label(sec) == (1, "Patch available") and label(infra) == (1, "No patch yet")  # Exploited, then its remedy
     word = lambda u: card(u).locator(".x-word").evaluate("e => getComputedStyle(e).color")
     assert word(sec) != word(infra)  # red only while there's no fix: the usual case is quiet
     assert pg.evaluate("u => items.find(i => i.url === u).exploited && !listed(items.find(i => i.url === u))", old)  # tagged, but too old to list
     entry = pg.locator("#filters [data-f='exploited']")
-    assert entry.locator(".f-name").inner_text() == "Exploited" and entry.locator(".f-open").inner_text() == "1 unfixed"
+    assert entry.locator(".f-name").inner_text() == "Exploited" and entry.locator(".f-open").inner_text() == "1 unpatched"
     assert entry.locator(".f-count").count() == 0  # in place of the unread count, while a flaw has no fix
     entry.click()
     assert sorted(pg.evaluate("shown.map(i => i.url)")) == sorted([sec, infra]) and by_age()  # the last week's, newest first
@@ -1414,8 +1414,8 @@ def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, sc
     assert [(v["id"], v["nodes"][0]["html"][:80]) for v in Axe().run(pg, options=tags).response["violations"]] == []
     card(sec).click()
     flag = pg.frame_locator("#reader-body iframe:not(.loading)").locator(".meta .flag")
-    assert " ".join(flag.inner_text().split()).lower() == "exploited fix available · confirmed by cisa"  # the list's label, as is
-    assert flag.locator(".fix-out").evaluate("e => getComputedStyle(e).backgroundColor") == "rgba(0, 0, 0, 0)"  # quiet text: only "No fix yet" is filled
+    assert " ".join(flag.inner_text().split()).lower() == "exploited patch available · confirmed by cisa"  # the list's label, as is
+    assert flag.locator(".patch-out").evaluate("e => getComputedStyle(e).backgroundColor") == "rgba(0, 0, 0, 0)"  # quiet text: only "No patch yet" is filled
     assert pg.problems == []
 
 
@@ -1432,6 +1432,22 @@ def test_a_row_shows_one_label_the_one_that_matters_most(browser):
     assert meta(ess).count() == 1 and meta(ess).first.text_content() == "Essential"  # text_content: offscreen rows aren't rendered
     assert pg.locator("a.card .new").count() == 0
     assert pg.locator(f'a.card[href="{sec}"] .card-src').evaluate("e => e.scrollWidth <= e.clientWidth")  # the source stays whole
+    assert pg.problems == []
+
+
+def test_a_supply_chain_attack_says_compromised_and_a_workaround_says_mitigation_only(browser):
+    def two(data):
+        unflag(data)
+        sec = [i for i in data["items"] if i["category"] == "security"]
+        sec[0]["exploited"] = {"kev": [], "at": "t", "kind": "compromise"}
+        sec[1]["exploited"] = {"kev": [], "at": "t", "kind": "flaw", "fix": "mitigation"}
+        data["flagged"] = [sec[0]["url"], sec[1]["url"]]
+    pg = open_site(browser, patch=two, viewport={"width": 1440, "height": 900})
+    worm, flaw = pg.evaluate("fetch('/data.json').then(r => r.json()).then(d => d.flagged)")
+    part = lambda u, sel: pg.locator(f'a.card[href="{u}"] .exploited {sel}')
+    assert part(worm, ".x-word").text_content() == "Compromised" and part(worm, ".fix-pill").count() == 0  # steps, not a patch
+    assert part(flaw, ".x-word").text_content() == "Exploited" and part(flaw, ".mitigation").text_content() == "Mitigation only"
+    assert pg.locator("#filters [data-f='exploited'] .f-open").count() == 0  # nothing unpatched: neither has "no patch yet"
     assert pg.problems == []
 
 

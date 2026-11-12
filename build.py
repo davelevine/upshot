@@ -46,8 +46,12 @@ BATCH = 20            # stories per repeat check
 # Urgent security news: an exploited flaw is flagged, published whatever its score, and pinned on the site for a while.
 KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"  # CISA: CVEs exploited in the wild
 CVE = re.compile(r"\bCVE-\d{4}-\d{4,}\b", re.I)
+# A flaw's remedy, as CISA's catalog separates them: a vendor patch or update, else only a mitigation or workaround, else
+# nothing yet. Ranked: later news only ever raises it.
+FIX_RANK = {"none": 0, "mitigation": 1, "patch": 2}
 FIX_TERMS = {  # what a quote must say for the model's claim about a fix to count
-    "available": re.compile(r"patch|update|fix|version|upgrade|release|mitigat|workaround|rotat|revok|remov|uninstall|disabl", re.I),
+    "patch": re.compile(r"patch|update|fix|version|upgrade|release", re.I),
+    "mitigation": re.compile(r"mitigat|workaround|disabl|block|restrict|rotat|revok|remov|uninstall|turn off|limit", re.I),
     "none": re.compile(r"\b(no|without an?|yet to|not yet|unpatched|hasn't|has not|hasn’t)\b.*\b(patch|fix|update|patched|fixed)|unpatched", re.I),
 }
 EXPLOIT_TERMS = re.compile(r"exploit|zero[- ]?day|0[- ]?day|in the wild|attack|breach|compromis|hijack|abus|backdoor|malicious|"
@@ -193,13 +197,15 @@ For each item return:
   emergency or out-of-band patch; or that software people run is compromised in an active supply-chain attack
   (malicious package versions, a hijacked update channel, compromised accounts pushing code). Not for a flaw that
   could be exploited, a proof of concept, a routine patch, a breach of one company's own data, or a trend piece.
+- kind: "compromise" for a supply-chain compromise (malicious package versions, a hijacked update channel,
+  compromised accounts pushing code), else "flaw".
 - evidence: when exploited is true, the words from the title or excerpt that say it's being exploited or attacked,
   copied exactly (the title, if it says so); else "".
-- fix: for a security flaw or attack, whether the item says there's a fix: "available" (a patch, update, fixed version,
-  mitigation, or steps to take such as rotating credentials or removing a package), "none" (it says there is no patch
-  or fix yet), else "unknown".
+- fix: for an exploited flaw, what the item says is out: "patch" (a vendor patch, update or fixed version),
+  "mitigation" (only a mitigation or workaround, no patch yet), "none" (it says there is no patch or fix yet),
+  else "unknown". For a compromise, "unknown".
 - fix_evidence: when fix isn't "unknown", the words from the title or excerpt that say so, copied exactly; else "".
-Return JSON: {{"items": [{{"id", "category", "relevance", "summary", "exploited", "evidence", "fix", "fix_evidence"}}, ...]}} covering every input id."""
+Return JSON: {{"items": [{{"id", "category", "relevance", "summary", "exploited", "kind", "evidence", "fix", "fix_evidence"}}, ...]}} covering every input id."""
 
 # A separate call, so the recent headlines can't skew relevance: shown alongside scoring, the model
 # graded new items against the week's biggest stories and scored borderline ones a point low.
@@ -221,11 +227,12 @@ CLASSIFY_SCHEMA = {
             "relevance": {"type": "integer"},
             "summary": {"type": "string"},
             "exploited": {"type": "boolean"},
+            "kind": {"type": "string", "enum": ["flaw", "compromise"]},
             "evidence": {"type": "string"},
-            "fix": {"type": "string", "enum": ["available", "none", "unknown"]},
+            "fix": {"type": "string", "enum": ["patch", "mitigation", "none", "unknown"]},
             "fix_evidence": {"type": "string"},
         },
-        "required": ["id", "category", "relevance", "summary", "exploited", "evidence", "fix", "fix_evidence"], "additionalProperties": False,
+        "required": ["id", "category", "relevance", "summary", "exploited", "kind", "evidence", "fix", "fix_evidence"], "additionalProperties": False,
     }}},
     "required": ["items"], "additionalProperties": False,
 }
@@ -242,7 +249,7 @@ REPEATS_SCHEMA = {
 
 
 def classify(item):
-    """The model's {category, relevance, summary, exploited, evidence, fix, fix_evidence} for one story."""
+    """The model's {category, relevance, summary, exploited, kind, evidence, fix, fix_evidence} for one story."""
     payload = [{"id": 0, "title": item["title"], "publisher": item["publisher"], "excerpt": item["excerpt"]}]
     return llm(CLASSIFY_PROMPT, json.dumps(payload), CLASSIFY_SCHEMA)[0]
 
@@ -292,30 +299,47 @@ def in_story(quote, item, terms, least=10):
     return quote if len(quote) >= least and quote.lower() in source and terms.search(quote) else None
 
 
+def best_fix(*statuses):
+    """The furthest remedy among these ("patch" over "mitigation" over "none"), or None if none is known."""
+    known = [s for s in statuses if s in FIX_RANK]
+    return max(known, key=FIX_RANK.get) if known else None
+
+
 def verified_fix(r, item):
-    """"available" or "none" if the model's claim about a fix checks out, else None. A story CISA lists has a fix:
-    the catalog only takes flaws with clear remediation, which tag_kev and exploited() apply."""
+    """"patch", "mitigation" or "none" if the model's claim about a flaw's remedy checks out, else None. A flaw CISA lists
+    has some remedy (the catalog only takes flaws with a clear remediation) but which, its boilerplate doesn't say: so a
+    listing rules out "none" (see kev_fix) and claims nothing else."""
     status = r.get("fix")
     return status if status in FIX_TERMS and in_story(r.get("fix_evidence"), item, FIX_TERMS[status]) else None
 
 
 def exploited(item, r, kev):
-    """The flag for a story, or None: one of its CVEs is in CISA's catalog, or it's a security story whose claim to an
-    exploited flaw checks out."""
+    """The flag for a story, or None: one of its CVEs is in CISA's catalog, or it's a security story whose claim checks out.
+    `kind`: "flaw", with its remedy in `fix`, or "compromise" (a supply-chain attack: GitHub and OSV call these malware,
+    not vulnerabilities, and there's no patch to wait for, only steps to take)."""
     hits = [c for c in item.get("cves", []) if c in kev]
     quote = verified_claim(r, item) if r.get("category") == "security" else None
     if not hits and not quote:
         return None
-    fix = "available" if hits else verified_fix(r, item)
-    return ({"kev": hits, "at": now().isoformat(timespec="seconds")} | ({"quote": quote} if quote else {})
+    kind = "compromise" if r.get("kind") == "compromise" and not hits else "flaw"  # a catalogued CVE is a flaw
+    claimed = verified_fix(r, item) if kind == "flaw" else None
+    fix = kev_fix(claimed) if hits else claimed
+    return ({"kev": hits, "at": now().isoformat(timespec="seconds"), "kind": kind} | ({"quote": quote} if quote else {})
             | ({"fix": fix} if fix else {}))
 
 
+def kev_fix(fix):
+    """A listed flaw's remedy: whatever the story says, except "none", which CISA's listing contradicts."""
+    return None if fix == "none" else fix
+
+
 def passes(r, flag):
-    """The one rule: a story clears its category's bar, or it's an exploited flaw a point short of it. An exploited flaw is
-    worth knowing about, but not in a product too niche to score near the bar: that would be noise, not news."""
+    """The one rule: a story clears its category's bar, or it's an exploited flaw with no patch yet a point short of it (a
+    zero-day, in Qualys's sense). Only that case bends the bar: patched flaws and campaigns a point under it were mostly
+    near-duplicates, and a flaw in a product too niche to score near the bar is noise, not news."""
     bar = MIN_RELEVANCE[r["category"]]
-    return r["relevance"] >= bar or (bool(flag) and r["relevance"] >= bar - 1)
+    zero_day = bool(flag) and flag.get("kind") == "flaw" and flag.get("fix") == "none"
+    return r["relevance"] >= bar or (zero_day and r["relevance"] >= bar - 1)
 
 
 def carry_flag(items, title, flag):
@@ -325,7 +349,7 @@ def carry_flag(items, title, flag):
     for i in items:
         if norm(i["title"]) == norm(title):
             old = i.get("exploited") or {}
-            fix = "available" if "available" in (old.get("fix"), flag.get("fix")) else old.get("fix") or flag.get("fix")
+            fix = best_fix(old.get("fix"), flag.get("fix"))
             i["exploited"] = (flag | old) | {"kev": sorted(set(old.get("kev", [])) | set(flag["kev"]))} | ({"fix": fix} if fix else {})
             return
 
@@ -337,15 +361,18 @@ def tag_kev(items, kev):
         hits = [c for c in i.get("cves", []) if c in kev]
         old = i.get("exploited")
         if hits and (not old or set(hits) - set(old["kev"])):
-            i["exploited"] = (old or {"at": now().isoformat(timespec="seconds")}) | {"kev": sorted(set((old or {}).get("kev", [])) | set(hits)), "fix": "available"}
+            new = (old or {"at": now().isoformat(timespec="seconds")}) | {"kind": "flaw", "kev": sorted(set((old or {}).get("kev", [])) | set(hits))}
+            new.pop("fix", None)
+            i["exploited"] = new | ({"fix": f} if (f := kev_fix((old or {}).get("fix"))) else {})  # listed: never "no patch yet"
 
 
-def mark_fixed(items, cve_ids):
-    """A later story says a fix is out for these CVEs: exploited stories on the site that name any of them are patched.
-    Matched on CVE IDs, not by the model, so it can't touch an unrelated story."""
+def mark_fixed(items, cve_ids, status):
+    """A later story says a patch or mitigation is out for these CVEs: exploited flaws on the site that name any of them
+    move up to it. Matched on CVE IDs, not by the model, so it can't touch an unrelated story."""
     for i in items:
-        if i.get("exploited") and i["exploited"].get("fix") != "available" and set(i.get("cves", [])) & set(cve_ids):
-            i["exploited"]["fix"] = "available"
+        x = i.get("exploited")
+        if x and x.get("kind", "flaw") == "flaw" and set(i.get("cves", [])) & set(cve_ids):
+            x["fix"] = best_fix(x.get("fix"), status)
 
 
 def find_repeats(batch, recent):
@@ -686,12 +713,12 @@ TLDR_SCHEMA = {
 }
 # For an exploited flaw, the same call says whether its fix is out: the whole article knows what a feed's excerpt may not.
 TLDR_FIX = """
-Also say whether the article says there's a fix for the exploited flaw or attack: fix is "available" (a patch, update,
-fixed version, mitigation, or steps to take such as rotating credentials or removing a package), "none" (it says there
-is no patch or fix yet), else "unknown"; fix_evidence is the words from the article that say so, copied exactly, else ""."""
+Also say what the article says is out for the exploited flaw: fix is "patch" (a vendor patch, update or fixed version),
+"mitigation" (only a mitigation or workaround, no patch yet), "none" (it says there is no patch or fix yet), else
+"unknown"; fix_evidence is the words from the article that say so, copied exactly, else ""."""
 TLDR_FIX_SCHEMA = {
     "type": "object",
-    "properties": TLDR_SCHEMA["properties"] | {"fix": {"type": "string", "enum": ["available", "none", "unknown"]}, "fix_evidence": {"type": "string"}},
+    "properties": TLDR_SCHEMA["properties"] | {"fix": {"type": "string", "enum": ["patch", "mitigation", "none", "unknown"]}, "fix_evidence": {"type": "string"}},
     "required": ["bullets", "fix", "fix_evidence"], "additionalProperties": False,
 }
 
@@ -713,7 +740,8 @@ def add_tldrs(items, texts, limit=TLDR_LIMIT):
     todo = [i for i in items if "tldr" not in i and texts.get(i["url"])][:limit]
 
     def one(item):
-        text, flagged = texts[item["url"]], bool(item.get("exploited"))
+        x = item.get("exploited") or {}
+        text, flagged = texts[item["url"]], bool(x) and x.get("kind", "flaw") == "flaw"  # a compromise has steps, not a patch
         payload = json.dumps({"title": item["title"], "article": text})
         try:
             if flagged:
@@ -730,10 +758,11 @@ def add_tldrs(items, texts, limit=TLDR_LIMIT):
         for item, tldr, fix in ex.map(one, todo):
             if tldr is not None:
                 item["tldr"] = tldr
-            if fix and item["exploited"].get("fix") != "available":  # the article's word over the excerpt's; a fix out stays out
-                item["exploited"]["fix"] = fix
-            if fix == "available":
-                mark_fixed(items, item.get("cves", []))
+            if fix:  # the whole article over the excerpt, but a remedy once out stays out
+                x = item["exploited"]
+                x["fix"] = best_fix(x.get("fix"), fix) if fix != "none" else x.get("fix") or "none"
+            if fix in ("patch", "mitigation"):
+                mark_fixed(items, item.get("cves", []), fix)
     return len(todo)
 
 
@@ -867,8 +896,8 @@ def main():
             continue
         seen[item["url"]] = item["date"]
         item["cves"] = cves(f"{item['title']} {item['excerpt']}")
-        if item["cves"] and verified_fix(r, item) == "available":  # even one that isn't published: the news is the fix
-            mark_fixed(data["items"], item["cves"])
+        if item["cves"] and (out := verified_fix(r, item)) in ("patch", "mitigation"):  # even one that isn't published
+            mark_fixed(data["items"], item["cves"], out)
         flag = exploited(item, r, kev)
         if passes(r, flag):
             passing.append((item | {"summary": r["summary"], "exploited": flag}, r))
