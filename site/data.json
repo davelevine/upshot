@@ -1,6 +1,23 @@
 {
  "items": [
   {
+   "date": "2026-11-12",
+   "published": "2026-11-12T05:12:26+00:00",
+   "title": "Critical Apache HTTP/2 Flaw Could Let Unauthenticated Attackers Execute Code Remotely",
+   "url": "https://thehackernews.com/2026/11/critical-apache-http2-flaw-could-let.html",
+   "publisher": "The Hacker News",
+   "category": "security",
+   "summary": "A critical unauthenticated remote code execution flaw (CVE-2026-119618) in Apache HTTP Server's mod_http2 affects 2.4.55–2.4.70 and is fixed in 2.4.71; only HTTP/2-enabled servers are affected.",
+   "relevance": 9,
+   "added": "2026-11-12T08:18:12+00:00",
+   "minutes": 3,
+   "tldr": [
+    "Apache HTTP Server flaw CVE-2026-119618 in mod_http2 lets unauthenticated remote attackers run code on affected servers; Red Hat rates it 9.8 CVSS.",
+    "Affects Apache 2.4.55 through 2.4.70 with HTTP/2 enabled; standalone mod_h2 2.0.8 through 2.0.42 is also affected, with no fixed release.",
+    "Upgrade to Apache HTTP Server 2.4.71; if you cannot, Wiz advises removing h2 and h2c from the Protocols directive."
+   ]
+  },
+  {
    "date": "2026-11-11",
    "published": "2026-11-12T01:45:00+00:00",
    "title": "Compromised GitHub accounts push CI secret stealer to tens of thousands of repositories",
@@ -2507,32 +2524,32 @@
   }
  ],
  "weekly": {
-  "window_start": "2026-11-05",
-  "window_end": "2026-11-11",
+  "window_start": "2026-11-06",
+  "window_end": "2026-11-12",
   "items": [
    {
-    "url": "https://www.securityweek.com/chrome-update-patches-exploited-xml-zero-day-eighth-this-year/",
-    "why": "Update Chrome immediately; this exploited flaw is already being used in attacks."
+    "url": "https://thehackernews.com/2026/11/critical-apache-http2-flaw-could-let.html",
+    "why": "Upgrade to 2.4.71 now if any Apache server has HTTP/2 enabled."
    },
    {
     "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-november-2026-patch-tuesday-fixes-1-235-flaws-outlook-zero-day/",
-    "why": "Patch the Outlook zero-day first, then work through the 1,235-fix batch by exposure."
+    "why": "Prioritize the actively exploited Outlook zero-day; this batch is unusually large."
    },
    {
-    "url": "https://www.bleepingcomputer.com/news/security/hackers-exploit-barracuda-email-security-gateway-flaws-to-get-root-access/",
-    "why": "If you run Email Security Gateway, check for compromise; root-level exploitation is live."
+    "url": "https://www.aikido.dev/blog/compromised-github-accounts-push-ci-secret-stealer-to-tens-of-thousands-of-repositories",
+    "why": "Audit GitHub Actions secrets and rotate any CI credentials exposed in affected repos."
    },
    {
-    "url": "https://thehackernews.com/2026/11/chainalysis-breach-exposes-all-users.html",
-    "why": "Rotate credentials and revoke tokens if you ever used Chainalysis Reactor or Data Solutions."
+    "url": "https://www.bleepingcomputer.com/news/security/critical-xen-orchestra-auth-bypass-flaw-exploited-to-hijack-vm-servers/",
+    "why": "Patch Xen Orchestra immediately; treat exposed instances as possibly compromised, check for admin accounts."
    },
    {
-    "url": "https://socket.dev/blog/github-to-block-pull-request-target",
-    "why": "Audit pull_request_target workflows now; blocking becomes default on December 2."
+    "url": "https://www.securityweek.com/openai-model-wrote-its-own-network-code-to-get-around-sandbox-restrictions/",
+    "why": "Don't rely on proxy-only egress controls for agent sandboxes; enforce network isolation."
    }
   ]
  },
- "generated_at": "2026-11-12T04:18:30+00:00",
+ "generated_at": "2026-11-12T08:18:32+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",

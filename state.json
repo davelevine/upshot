@@ -1,7 +1,5 @@
 {
- "failing_since": {
-  "https://krebsonsecurity.com/feed/": "2026-11-11"
- },
+ "failing_since": {},
  "seen": {
   "http://muratbuffalo.blogspot.com/2026/11/writing-as-thinking-tool.html": "2026-11-08",
   "https://8rank.ai/game/apple-intelligence-personal-knowledge-graph": "2026-11-07",
@@ -370,6 +368,7 @@
   "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-5-1-released/": "2026-10-21",
   "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-5-3-released/": "2026-10-29",
   "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-5-4-released/": "2026-11-09",
+  "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-5-5-released/": "2026-11-11",
   "https://doublepulsar.com/anthropic-hacked-to-deliver-remote-access-trojan-to-claude-developer-laptops-worldwide-1148a92baae2": "2026-10-30",
   "https://duxlabs.dev/": "2026-11-08",
   "https://e-means.github.io/": "2026-11-09",
@@ -831,6 +830,7 @@
   "https://thehackernews.com/2026/10/a-shared-chatgpt-link-could-run.html": "2026-10-31",
   "https://thehackernews.com/2026/10/attackers-chain-three-ivanti-connect.html": "2026-10-31",
   "https://thehackernews.com/2026/10/chainalysis-confirms-intrusion-into.html": "2026-10-31",
+  "https://thehackernews.com/2026/11/4837-hijacked-github-accounts-ran-ci.html": "2026-11-12",
   "https://thehackernews.com/2026/11/5-active-cyber-threats-that-put-us.html": "2026-11-05",
   "https://thehackernews.com/2026/11/anthropics-claude-fable-52-beats-gpt-6.html": "2026-11-10",
   "https://thehackernews.com/2026/11/antifox-ai-pentesting-platform-linked.html": "2026-11-11",
@@ -857,6 +857,7 @@
   "https://thehackernews.com/2026/11/cisco-broadworks-and-openwave-flaws.html": "2026-11-11",
   "https://thehackernews.com/2026/11/claude-codes-dont-ask-again-file.html": "2026-11-07",
   "https://thehackernews.com/2026/11/cpguard-update-channel-hijacked-to.html": "2026-11-03",
+  "https://thehackernews.com/2026/11/critical-apache-http2-flaw-could-let.html": "2026-11-12",
   "https://thehackernews.com/2026/11/critical-langflow-flaws-could-let.html": "2026-11-02",
   "https://thehackernews.com/2026/11/critical-lxd-and-microcloud-flaw-cvss.html": "2026-11-01",
   "https://thehackernews.com/2026/11/critical-rails-flaw-lets-attackers.html": "2026-11-04",
@@ -910,6 +911,7 @@
   "https://thehackernews.com/2026/11/russian-police-arrest-3-suspected.html": "2026-11-04",
   "https://thehackernews.com/2026/11/russian-turla-hackers-use-new-cereal.html": "2026-11-10",
   "https://thehackernews.com/2026/11/sap-patches-four-cvss-100-flaws.html": "2026-11-10",
+  "https://thehackernews.com/2026/11/screenconnect-attacks-target-at-least.html": "2026-11-11",
   "https://thehackernews.com/2026/11/second-wave-of-cyberattacks-hits.html": "2026-11-03",
   "https://thehackernews.com/2026/11/sglang-rce-exploit-breaches-near-ai.html": "2026-11-10",
   "https://thehackernews.com/2026/11/sonicwall-wont-patch-eol-gms-flaws-that.html": "2026-11-04",
@@ -1237,6 +1239,7 @@
   "https://www.huntress.com/blog/php2shell-leaked-critical-php-vulnerabilities": "2026-10-21",
   "https://www.huntress.com/blog/pulling-back-the-curtain-a-journey-through-the-dark-web": "2026-10-14",
   "https://www.huntress.com/blog/reports-that-siem-is-dead-are-exaggerated": "2026-10-29",
+  "https://www.huntress.com/blog/sckit-worm-rogue-screenconnect": "2026-11-11",
   "https://www.huntress.com/blog/screenconnect-power-bi": "2026-10-07",
   "https://www.huntress.com/blog/texas-hb-3834-cyber-security-awareness-training-requirements": "2026-10-14",
   "https://www.huntress.com/blog/the-evolving-tradecraft-of-clickfix": "2026-11-10",
@@ -1297,6 +1300,7 @@
   "https://www.infoq.com/presentations/scaling-multi-agent-llm-batch/": "2026-11-10",
   "https://www.infoq.com/presentations/sociotechnical-staff-engineer-architecture/": "2026-11-06",
   "https://www.infoq.com/presentations/zero-trust-ai-agents-production-security/": "2026-11-05",
+  "https://www.mcmillen.dev/sigbovik/": "2026-11-11",
   "https://www.microsoft.com/en-us/security/blog/2026/10/29/idc-marketscape-names-microsoft-a-leader-in-the-2026-worldwide-modern-endpoint-security-for-enterprises-vendor-assessment/": "2026-10-29",
   "https://www.microsoft.com/en-us/security/blog/2026/10/29/tracking-ai-adoption-in-north-korean-threat-actor-tradecraft/": "2026-10-29",
   "https://www.microsoft.com/en-us/security/blog/2026/10/30/help-desk-impersonation-ad-cs-abuse-investigating-esc1-esc8-intrusion-paths/": "2026-10-30",
