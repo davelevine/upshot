@@ -38,7 +38,14 @@
     "Update on-premises N-central deployments as soon as possible to 2026.4 HF2, which includes the necessary patches.",
     "Remaining flaws need an authenticated account, often with elevated privileges, and will be fixed in later hotfixes."
    ],
-   "cves": []
+   "cves": [],
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-12T23:18:32+00:00",
+    "kind": "flaw",
+    "quote": "Hackers Target N-central Zero-Days",
+    "fix": "patch"
+   }
   },
   {
    "date": "2026-11-12",
@@ -74,7 +81,14 @@
     "Huntback reports at least 21 compromised N-central servers, including 19 running 2026.4.1.26, the latest Hotfix 2 release issued on November 10.",
     "Ensure Legacy API access is disabled, which is already the default, and investigate suspicious requests to /dms/services/ServerUI referencing jline.internal.TerminalLineSettings."
    ],
-   "cves": []
+   "cves": [],
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-12T23:18:32+00:00",
+    "kind": "flaw",
+    "quote": "Attackers are actively exploiting a newly disclosed N-able N-central zero-day",
+    "fix": "mitigation"
+   }
   },
   {
    "date": "2026-11-12",
@@ -116,6 +130,19 @@
   },
   {
    "date": "2026-11-12",
+   "published": "2026-11-12T20:15:16+00:00",
+   "title": "Service degradation on Microsoft 365",
+   "url": "https://status.cloud.microsoft/",
+   "publisher": "Hacker News 300+",
+   "category": "infrastructure",
+   "summary": "Microsoft 365 suffered a service degradation widely reported by users and news outlets, drawing heavy discussion on Hacker News.",
+   "relevance": 7,
+   "added": "2026-11-12T20:18:33+00:00",
+   "cves": [],
+   "minutes": 0
+  },
+  {
+   "date": "2026-11-12",
    "published": "2026-11-12T12:11:11+00:00",
    "title": "Microsoft: Recent Windows updates cause SQL Server performance issues",
    "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-recent-windows-updates-cause-sql-server-performance-issues/",
@@ -129,24 +156,6 @@
     "Microsoft confirmed Windows updates released since the October 2026 Patch Tuesday cause SQL Server performance and stability issues.",
     "Cause: linked server queries using OLE DB providers leave connections to external databases open after completion, such as Oracle and PostgreSQL, and they accumulate.",
     "Affects Windows 10, Windows 11, and Windows Server 2012 and later. Microsoft says an out-of-band Windows update will fix it within days; IT admins can contact Microsoft Support for Business for an interim mitigation."
-   ],
-   "cves": []
-  },
-  {
-   "date": "2026-11-12",
-   "published": "2026-11-12T20:15:16+00:00",
-   "title": "Massive Microsoft 365 outage disrupts Outlook, Teams, Copilot worldwide",
-   "url": "https://www.bleepingcomputer.com/news/microsoft/massive-microsoft-365-outage-disrupts-outlook-teams-copilot-worldwide/",
-   "publisher": "BleepingComputer",
-   "category": "infrastructure",
-   "summary": "Microsoft is investigating a widespread outage affecting Outlook, Microsoft Teams, and Copilot across multiple Microsoft 365 services worldwide.",
-   "relevance": 7,
-   "added": "2026-11-12T20:18:33+00:00",
-   "minutes": 2,
-   "tldr": [
-    "Microsoft is investigating a widespread Microsoft 365 outage, tracked as MO1550821, that began Thursday at 1:26 PM ET.",
-    "Customers may be unable to connect to Exchange Online, Microsoft Teams, SharePoint Online, Microsoft 365 Copilot, and Microsoft Defender XDR.",
-    "Microsoft says servers unexpectedly becoming unavailable are straining infrastructure. It has paused all deployments and is restarting affected servers."
    ],
    "cves": []
   },
@@ -223,7 +232,13 @@
     "If the payload ran, assume every secret and cloud role available to its workflows is compromised.",
     "Treat machines that installed or opened Packagist digitalelvis/neuronai-studio 3.14.3 as compromised; remove Go github.com/onuragtas/docker-env v1.0.278 and v1.0.280."
    ],
-   "cves": []
+   "cves": [],
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-12T23:18:21+00:00",
+    "kind": "compromise",
+    "quote": "threat actors used 4,837 compromised accounts to probe 61,764 repositories, open pull requests, and push secrets-stealing malware"
+   }
   },
   {
    "date": "2026-11-11",
@@ -242,7 +257,13 @@
     "ConnectWise advises partners to avoid interactive sessions with suspected compromised devices, revoke active sessions, and reset credentials from a trusted device.",
     "Huntress recommends checking Run Command history on ScreenConnect even without alerts, since other MSPs may have been compromised earlier."
    ],
-   "cves": []
+   "cves": [],
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-12T23:18:31+00:00",
+    "kind": "compromise",
+    "quote": "Active ScreenConnect attacks breach MSPs"
+   }
   },
   {
    "date": "2026-11-11",
@@ -442,7 +463,18 @@
     "It is the eighth Chrome zero-day exploited this year, and CISA has yet to add it to its KEV catalog.",
     "Chrome users are affected; the fix is Chrome 157 versions 157.0.8103.50/.51 for Windows and Mac, and 157.0.8103.50 for Linux."
    ],
-   "cves": []
+   "cves": [
+    "CVE-2026-125350"
+   ],
+   "exploited": {
+    "at": "2026-11-12T23:18:26+00:00",
+    "kind": "flaw",
+    "kev": [
+     "CVE-2026-125350"
+    ],
+    "fix_read": true,
+    "fix": "patch"
+   }
   },
   {
    "date": "2026-11-10",
@@ -459,7 +491,18 @@
     "The OpenSSH flaw CVE-2026-123158 (SSHole) can allow authentication bypass on Linux, and in one case attackers deployed the TAC Agent C2 agent.",
     "Federal Civilian Executive Branch agencies are recommended to apply the fixes by November 12, 2026."
    ],
-   "cves": []
+   "cves": [
+    "CVE-2026-123158"
+   ],
+   "exploited": {
+    "at": "2026-11-12T23:18:26+00:00",
+    "kind": "flaw",
+    "kev": [
+     "CVE-2026-123158"
+    ],
+    "fix_read": true,
+    "fix": "patch"
+   }
   },
   {
    "date": "2026-11-10",
@@ -477,7 +520,20 @@
     "Apply the patch as soon as possible: BNSF-40425 for 9.4.017+, or BNSF-40430 for versions below 9.4.017.",
     "Restrict Admin UI access to trusted internal networks and use network access controls to limit exposure."
    ],
-   "cves": []
+   "cves": [
+    "CVE-2026-111560",
+    "CVE-2026-116606"
+   ],
+   "exploited": {
+    "at": "2026-11-12T23:18:26+00:00",
+    "kind": "flaw",
+    "kev": [
+     "CVE-2026-111560",
+     "CVE-2026-116606"
+    ],
+    "fix_read": true,
+    "fix": "patch"
+   }
   },
   {
    "date": "2026-11-10",
@@ -495,7 +551,14 @@
     "Install Xen Orchestra 6.9.1 or 6.10.0, which include patched xo-server 5.211.2 and 5.213.1.",
     "If compromised, rotate passwords and secrets, and check for connections to 91.211.251.112:8001 and a VM named pivot2."
    ],
-   "cves": []
+   "cves": [],
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-12T23:18:30+00:00",
+    "kind": "flaw",
+    "quote": "Critical Xen Orchestra authentication bypass VSA-2026-062 is being actively exploited",
+    "fix": "patch"
+   }
   },
   {
    "date": "2026-11-10",
@@ -529,7 +592,14 @@
     "The Outlook spoofing flaw lets attackers steal NTLM hashes when a user opens a specially crafted message file. Exploitation requires network connectivity and user interaction.",
     "Microsoft has patched the Outlook zero-day in the November 2026 updates, so apply them."
    ],
-   "cves": []
+   "cves": [],
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-12T23:18:35+00:00",
+    "kind": "flaw",
+    "quote": "including one actively exploited Microsoft Outlook zero-day",
+    "fix": "patch"
+   }
   },
   {
    "date": "2026-11-10",
@@ -546,7 +616,14 @@
     "The attacker reached a deprecated Private Chat system, exposing account details for about 100 users, and 18 agents on an older NEAR AI Agents deployment outside the TEE.",
     "NEAR AI has deployed a fix for the SGLang flaw on all inference servers, revoked sessions and credentials, and contacted affected users at security@near.ai."
    ],
-   "cves": []
+   "cves": [],
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-12T23:18:35+00:00",
+    "kind": "flaw",
+    "quote": "Attackers exploited a remote code execution flaw in the open-source SGLang inference engine",
+    "fix": "patch"
+   }
   },
   {
    "date": "2026-11-10",
@@ -689,7 +766,13 @@
     "Pin bee-js to 13.2.0, purge cached 13.3.0 copies, and treat scripted installs from 00:09:50 to 01:24:58 UTC on November 9 as compromised.",
     "Uninstall Swarm Desktop 0.56.2 and install 0.56.3, which was not yet published as of 10:30 UTC; assume the node password and key were stolen."
    ],
-   "cves": []
+   "cves": [],
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-12T23:18:36+00:00",
+    "kind": "compromise",
+    "quote": "Compromised maintainer accounts published malicious @ethersphere/bee-js 13.3.0"
+   }
   },
   {
    "date": "2026-11-09",
@@ -707,7 +790,13 @@
     "Hunt CloudTrail from October 1, 2026 for AssumeRole events from account 805246085872 with non-AWS source IPs.",
     "Remove trust for unused integrations, narrow trusted principals, add aws:SourceIp conditions, and rotate secrets the roles could read."
    ],
-   "cves": []
+   "cves": [],
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-12T23:18:36+00:00",
+    "kind": "compromise",
+    "quote": "Qubole Cross-Account Access Abused in the Wild"
+   }
   },
   {
    "date": "2026-11-09",
@@ -745,7 +834,9 @@
     "kind": "flaw",
     "kev": [
      "CVE-2026-123158"
-    ]
+    ],
+    "fix": "patch",
+    "fix_read": true
    }
   },
   {
@@ -1073,7 +1164,18 @@
     "Affected: SonicOS Gen7 7.3.3-7015 and earlier, Gen8 8.2.2-8015 and earlier. Upgrade to 7.3.4-7013 or 8.2.3-8015; no workarounds exist.",
     "CISA added the flaw to its KEV catalog, ordering federal agencies to secure systems by November 20, 2026."
    ],
-   "cves": []
+   "cves": [
+    "CVE-2026-19868"
+   ],
+   "exploited": {
+    "at": "2026-11-12T23:18:26+00:00",
+    "kind": "flaw",
+    "kev": [
+     "CVE-2026-19868"
+    ],
+    "fix_read": true,
+    "fix": "patch"
+   }
   },
   {
    "date": "2026-11-07",
@@ -1155,7 +1257,13 @@
     "Treat any host that installed strutil-core 1.0.1 as compromised. Isolate it, remove net-health-checker and pkg-runtime, then revoke the GitHub token.",
     "Uninstalling does not undo infection, so rotate credentials reachable from affected machines, and flag any gem whose extconf.rb hashes to c5264f3b9cf2f95c83a70b7dd7430aab8abc262b853dbbcd5386c3a8a9c74769."
    ],
-   "cves": []
+   "cves": [],
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-12T23:18:39+00:00",
+    "kind": "compromise",
+    "quote": "Malicious RubyGems package strutil-core 1.0.1 runs a credential-stealing worm during gem install"
+   }
   },
   {
    "date": "2026-11-06",
@@ -1241,7 +1349,14 @@
     "Stolen application credentials were used to access Entra ID tenants, Azure Key Vaults, and Storage Accounts.",
     "Treat publicly exposed secrets as compromised: remove them from code and immediately rotate or revoke them, since removal alone does not remediate."
    ],
-   "cves": []
+   "cves": [],
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-12T23:18:40+00:00",
+    "kind": "flaw",
+    "quote": "Microsoft observed threat actors using the agentic AI framework ARTEX to scan public GitHub repositories for exposed secrets and abuse them.",
+    "fix": "mitigation"
+   }
   },
   {
    "date": "2026-11-05",
@@ -1344,7 +1459,19 @@
     "The flaw, CVE-2026-107441, lets unauthenticated attackers run OS commands via the web management interface of ten GS1900 models. It was initially mistaken for CVE-2026-7273.",
     "Administrators should install Zyxel's latest firmware, released October 22, which limits parameter sizes and validates parameter counts."
    ],
-   "cves": []
+   "cves": [
+    "CVE-2026-107441",
+    "CVE-2026-7273"
+   ],
+   "exploited": {
+    "at": "2026-11-12T23:18:26+00:00",
+    "kind": "flaw",
+    "kev": [
+     "CVE-2026-7273"
+    ],
+    "fix_read": true,
+    "fix": "patch"
+   }
   },
   {
    "date": "2026-11-04",
@@ -1518,7 +1645,9 @@
     "Treat any unauthorized enablement of LLM services as a critical security event and monitor for modifications to LLM accounts and services.",
     "Rotate and centrally manage credentials, enforce least privilege, and patch LiteLLM gateways against CVE-2026-40217."
    ],
-   "cves": []
+   "cves": [
+    "CVE-2026-40217"
+   ]
   },
   {
    "date": "2026-11-02",
@@ -1611,7 +1740,22 @@
     "Patches are available in ICS 25.1.1.3 for 25.1.1.2 and prior, and 22.8R2.6 for 22.8R2.5 and prior. The latest release addresses all chained vulnerabilities.",
     "Federal Civilian Executive Branch agencies must apply the CVE-2026-111357 fix by November 2, 2026, and the CVE-2026-118527 fix by November 13, 2026."
    ],
-   "cves": []
+   "cves": [
+    "CVE-2026-104935",
+    "CVE-2026-111357",
+    "CVE-2026-118527"
+   ],
+   "exploited": {
+    "at": "2026-11-12T23:18:26+00:00",
+    "kind": "flaw",
+    "kev": [
+     "CVE-2026-104935",
+     "CVE-2026-111357",
+     "CVE-2026-118527"
+    ],
+    "fix_read": true,
+    "fix": "patch"
+   }
   },
   {
    "date": "2026-10-30",
@@ -1634,7 +1778,9 @@
     "kind": "flaw",
     "kev": [
      "CVE-2026-102764"
-    ]
+    ],
+    "fix_read": true,
+    "fix": "patch"
    }
   },
   {
@@ -1684,7 +1830,18 @@
     "Verify that your site runs WordPress 7.1.4 or the patched release for its branch under Dashboard > Updates, and confirm Wordfence Extended Protection is enabled.",
     "Wordfence Premium, Care, and Response customers received the firewall rule on October 28, 2026; Wordfence Free users receive it on November 27, 2026."
    ],
-   "cves": []
+   "cves": [
+    "CVE-2026-119977"
+   ],
+   "exploited": {
+    "at": "2026-11-12T23:18:26+00:00",
+    "kind": "flaw",
+    "kev": [
+     "CVE-2026-119977"
+    ],
+    "fix_read": true,
+    "fix": "patch"
+   }
   },
   {
    "date": "2026-10-29",
@@ -1853,7 +2010,9 @@
     "Patches exist: 62 Chrome CVEs fixed as of Chrome 156, a Safari fix is available, and Linux CVE-2026-98432 is backported to stable branches.",
     "The authors recommend scanning code at PR time, and they have publicly released a Claude Code security plugin."
    ],
-   "cves": []
+   "cves": [
+    "CVE-2026-98432"
+   ]
   },
   {
    "date": "2026-10-27",
@@ -1978,7 +2137,18 @@
     "Update Node.js to 22.23.4, 24.22.1, or 26.12.1, Python Brotli to 1.2.1, brotlicffi to 1.2.1.0, Bun to 1.4.4, then rebuild, redeploy, and restart.",
     "Node.js says there is no workaround. As a stopgap, Aikido suggests rejecting Content-Encoding:br requests at your proxy, which does not cover fetched responses."
    ],
-   "cves": []
+   "cves": [
+    "CVE-2026-111497"
+   ],
+   "exploited": {
+    "at": "2026-11-12T23:18:26+00:00",
+    "kind": "flaw",
+    "kev": [
+     "CVE-2026-111497"
+    ],
+    "fix_read": true,
+    "fix": "patch"
+   }
   },
   {
    "date": "2026-10-26",
@@ -2070,7 +2240,9 @@
     "kind": "flaw",
     "kev": [
      "CVE-2026-111497"
-    ]
+    ],
+    "fix": "patch",
+    "fix_read": true
    }
   },
   {
@@ -2117,7 +2289,20 @@
     "Update to PHP 8.5.12, 8.4.27, 8.3.36, or 8.2.35, then restart every PHP worker; PHP says updating is the only complete fix.",
     "AWS reports PHP2Shell is broadly exploited in the wild; review activity from at least 17 October 2026 for web shells and unexpected child processes."
    ],
-   "cves": []
+   "cves": [
+    "CVE-2026-109618",
+    "CVE-2026-109619"
+   ],
+   "exploited": {
+    "at": "2026-11-12T23:18:26+00:00",
+    "kind": "flaw",
+    "kev": [
+     "CVE-2026-109618",
+     "CVE-2026-109619"
+    ],
+    "fix_read": true,
+    "fix": "patch"
+   }
   },
   {
    "date": "2026-10-22",
@@ -2220,7 +2405,8 @@
     "kev": [
      "CVE-2026-109618",
      "CVE-2026-109619"
-    ]
+    ],
+    "fix": "patch"
    }
   },
   {
@@ -2248,7 +2434,9 @@
     "kev": [
      "CVE-2026-109618",
      "CVE-2026-109619"
-    ]
+    ],
+    "fix": "patch",
+    "fix_read": true
    }
   },
   {
@@ -2332,7 +2520,9 @@
     "kind": "flaw",
     "kev": [
      "CVE-2026-0257"
-    ]
+    ],
+    "fix_read": true,
+    "fix": "patch"
    }
   },
   {
@@ -2445,7 +2635,9 @@
     "kev": [
      "CVE-2026-88771",
      "CVE-2026-88779"
-    ]
+    ],
+    "fix_read": true,
+    "fix": "patch"
    }
   },
   {
@@ -2532,7 +2724,9 @@
     "kind": "flaw",
     "kev": [
      "CVE-2026-97229"
-    ]
+    ],
+    "fix_read": true,
+    "fix": "patch"
    }
   },
   {
@@ -2637,7 +2831,9 @@
     "kind": "flaw",
     "kev": [
      "CVE-2026-102764"
-    ]
+    ],
+    "fix_read": true,
+    "fix": "patch"
    }
   },
   {
@@ -2722,14 +2918,17 @@
     "Treat the credentials and certificates held by the management platform as compromised and rotate them, since the exposed trust material remains valid until rotated."
    ],
    "cves": [
-    "CVE-2024-47575"
+    "CVE-2024-47575",
+    "CVE-2025-61624"
    ],
    "exploited": {
     "at": "2026-11-12T21:35:25+00:00",
     "kind": "flaw",
     "kev": [
-     "CVE-2024-47575"
-    ]
+     "CVE-2024-47575",
+     "CVE-2025-61624"
+    ],
+    "fix_read": true
    }
   },
   {
@@ -2812,7 +3011,18 @@
     "At least 78 flaws are rated critical, and most of those allow attackers to execute code on affected systems.",
     "Prioritize the 26 Microsoft vulnerabilities listed in CISA's KEV catalog this year, per Fortra's Tyler Reguly."
    ],
-   "cves": []
+   "cves": [
+    "CVE-2026-96951"
+   ],
+   "exploited": {
+    "at": "2026-11-12T23:18:26+00:00",
+    "kind": "flaw",
+    "kev": [
+     "CVE-2026-96951"
+    ],
+    "fix_read": true,
+    "fix": "patch"
+   }
   },
   {
    "date": "2026-10-13",
@@ -2830,7 +3040,20 @@
     "Upgrade to the newest version. Patches cover CVE-2026-104935, released October 13, 2026, and CVE-2026-111357.",
     "Forensically investigate devices showing compromise signs, such as lateral movement from the VPN; Ivanti's Integrity Checker may miss it."
    ],
-   "cves": []
+   "cves": [
+    "CVE-2026-104935",
+    "CVE-2026-111357"
+   ],
+   "exploited": {
+    "at": "2026-11-12T23:18:26+00:00",
+    "kind": "flaw",
+    "kev": [
+     "CVE-2026-104935",
+     "CVE-2026-111357"
+    ],
+    "fix": "patch",
+    "fix_read": true
+   }
   },
   {
    "date": "2026-10-13",
@@ -3040,7 +3263,7 @@
    }
   ]
  },
- "generated_at": "2026-11-12T21:35:34+00:00",
+ "generated_at": "2026-11-12T23:18:52+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
