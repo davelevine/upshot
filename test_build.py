@@ -590,3 +590,28 @@ def test_a_repeat_of_a_repeat_hands_its_flag_to_the_copy_on_the_site():
     build.add_chunk(data, chunk, {"u0": "Big flaw exploited", "u1": "0"}, ["Big flaw exploited"], kept, repeated)
     assert len(repeated) == 2 and data["items"] == [on_site]
     assert on_site["exploited"]["quote"] == "q"      # item 1 pointed at item 0, itself a repeat: the flag still lands
+
+
+def test_a_flaw_flagged_after_publication_reads_its_remedy_from_its_upshot_once(monkeypatch):
+    calls = []
+    def fake(system, user, schema, whole=False):
+        calls.append(json.loads(user)["title"])
+        return {"fix": "patch", "fix_evidence": "Update OpenSSH to version 10.6p2"} if "SSHole" in user else {"fix": "none", "fix_evidence": "no patch is available yet"}
+    monkeypatch.setattr(build, "llm", fake)
+    late = {"title": "SSHole", "url": "a", "tldr": ["Hackers exploit it.", "Update OpenSSH to version 10.6p2 as soon as possible."],
+            "exploited": {"kev": ["CVE-2026-1"], "at": "t", "kind": "flaw"}}
+    listed_unpatched = {"title": "Other", "url": "b", "tldr": ["Attackers exploit it; no patch is available yet."],
+                        "exploited": {"kev": ["CVE-2026-2"], "at": "t", "kind": "flaw"}}
+    known = {"title": "Known", "url": "c", "tldr": ["x"], "exploited": {"kev": [], "at": "t", "kind": "flaw", "fix": "patch"}}
+    worm = {"title": "Worm", "url": "d", "tldr": ["x"], "exploited": {"kev": [], "at": "t", "kind": "compromise"}}
+    bare = {"title": "No upshot", "url": "e", "exploited": {"kev": ["CVE-2026-3"], "at": "t", "kind": "flaw"}}
+    assert build.add_late_fixes([late, listed_unpatched, known, worm, bare]) == 2  # only flaws with no remedy and an upshot
+    assert late["exploited"]["fix"] == "patch"
+    assert "fix" not in listed_unpatched["exploited"]  # CISA's listing contradicts "no patch yet"
+    assert build.add_late_fixes([late, listed_unpatched]) == 0 and sorted(calls) == ["Other", "SSHole"]  # read once
+    same_cve = {"title": "Analysis", "url": "f", "cves": ["CVE-2026-9"], "tldr": ["Deep dive; nothing on fixes."],
+                "exploited": {"kev": ["CVE-2026-9"], "at": "t", "kind": "flaw"}}
+    told = {"title": "SSHole again", "url": "g", "cves": ["CVE-2026-9"], "tldr": ["Update OpenSSH to version 10.6p2 now."],
+            "exploited": {"kev": ["CVE-2026-9"], "at": "t", "kind": "flaw"}}
+    build.add_late_fixes([same_cve, told])
+    assert same_cve["exploited"]["fix"] == "patch"  # learned from the other story naming its CVE

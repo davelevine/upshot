@@ -723,6 +723,51 @@ TLDR_FIX_SCHEMA = {
 }
 
 
+# A flaw flagged after it was published (CISA listed it later, or it predates the flag) never went through the checks that
+# read its remedy: those run when a story is scored and summarised. Its upshot, written and checked from the whole article,
+# usually says: read it there, once.
+UPSHOT_FIX_PROMPT = """You read the summary of a news story about an exploited security flaw. Say what it says is out for the
+flaw: fix is "patch" (a vendor patch, update or fixed version), "mitigation" (only a mitigation or workaround, no patch
+yet), "none" (it says there is no patch or fix yet), else "unknown"; fix_evidence is the words from the summary that say
+so, copied exactly, else ""."""
+UPSHOT_FIX_SCHEMA = {
+    "type": "object",
+    "properties": {"fix": TLDR_FIX_SCHEMA["properties"]["fix"], "fix_evidence": {"type": "string"}},
+    "required": ["fix", "fix_evidence"], "additionalProperties": False,
+}
+LATE_FIX_LIMIT = 20  # upshots read per build: the first build after this shipped has a backlog; later ones, a stray listing
+
+
+def add_late_fixes(items, limit=LATE_FIX_LIMIT):
+    """Reads the remedy of flagged flaws that have none from their upshot, checked against it like every other claim, and
+    marks each read (`fix_read`) so it's asked once. A failed call leaves it for the next build."""
+    todo = [i for i in items if (x := i.get("exploited")) and x.get("kind", "flaw") == "flaw" and "fix" not in x
+            and not x.get("fix_read") and i.get("tldr")][:limit]
+
+    def one(item):
+        text = " ".join(item["tldr"])
+        try:
+            res = llm(UPSHOT_FIX_PROMPT, json.dumps({"title": item["title"], "summary": text}), UPSHOT_FIX_SCHEMA, whole=True)
+        except Exception as e:
+            print(f"::warning::reading the remedy failed for {item['url']}: {e}")
+            return item, None, False
+        return item, verified_fix(res, {"title": item["title"], "excerpt": text}), True
+
+    with ThreadPoolExecutor(SCORE_WORKERS) as ex:
+        for item, fix, ok in ex.map(one, todo):
+            if not ok:
+                continue
+            x = item["exploited"]
+            x["fix_read"] = True
+            if fix and x.get("kev"):
+                fix = kev_fix(fix)  # listed: never "no patch yet"
+            if fix:
+                x["fix"] = fix
+            if fix in ("patch", "mitigation"):
+                mark_fixed(items, item.get("cves", []), fix)  # the same CVE's other stories: one upshot may say what another doesn't
+    return len(todo)
+
+
 def verify_tldr(bullets, text):
     """Keeps the bullets whose every figure (anything with a digit: CVE IDs, versions, counts, dates, amounts) appears
     word for word in the article. A wrong number in an "act now" summary is worse than no summary. [] under two left."""
@@ -967,6 +1012,7 @@ def main():
     if kev:
         tag_kev(data["items"], kev)
     print(f"TL;DRs written: {add_tldrs(data['items'], texts)}")
+    print(f"Remedies read from upshots: {add_late_fixes(data['items'])}")  # flaws flagged after they were published
     data["generated_at"] = now().isoformat(timespec="seconds")
     SITE.mkdir(exist_ok=True)
     data["tz"] = SITE_TZ.key
