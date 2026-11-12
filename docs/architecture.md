@@ -4,7 +4,7 @@ How a story gets from a publisher's feed to the page, and what the reader does w
 
 ## The pipeline
 
-Every four hours the Build workflow runs [`build.py`](../build.py):
+Every hour the Build workflow runs [`build.py`](../build.py):
 
 1. **Fetch:** reads every feed in [`feeds.opml`](../feeds.opml). A broken feed is skipped, never fatal.
 2. **Filter:** keeps dated entries from the last few days that haven't been seen before, capped per feed.
@@ -33,7 +33,7 @@ The essentials are an entry in the topics, not a separate section, so no story i
 
 Lists run newest first, by the age each row shows; stories of the same age keep the build's order, most relevant first. The sidebar counts unread stories, as a feed reader does. A first visit starts with the last day's stories unread, or the newest five after a quiet stretch, and older ones show as read; after that, anything added since counts. The week's essentials count as unread until opened, however old. An older story marked unread by hand stays unread. A toolbar after Feedbin's holds two buttons, each centred in half of it: at the sidebar's foot from 1024px (the pane's below that), **Shortcuts** and **Read**; on a phone, a list's bottom bar with **Top** (back to the top, dimmed when there) and **Read**. Read marks the list that's showing read once confirmed (`Shift A` too), and the `…` on the selected story (the one open, or on a phone the one just closed) marks the stories above or below it. Bulk marks go in at the oldest end of the read list, so the search panel's "Recently read" still starts with what was opened.
 
-Each time Upshot opens, or comes back after 15 minutes away (but not on a refresh or a new tab within 15 minutes of the last pass), the wordmark shows for a moment, then its spot runs once through the date, when the news last updated and when the next build is due (from the build's schedule, `17 */4 * * *` UTC, and left out when a build is late), then settles back on the wordmark, after Kagi News. The pass takes under five seconds, so it needs no pause control under WCAG 2.2.2, and a tap ends it. [`site/_headers`](../site/_headers) sets the Content-Security-Policy. [`worker.js`](../worker.js) serves the static files and answers `/api/read` for the reader, and on a cron trigger starts the Build workflow, since GitHub's scheduler runs late or skips slots; [`wrangler.jsonc`](../wrangler.jsonc) configures the Worker.
+Each time Upshot opens, or comes back after 15 minutes away (but not on a refresh or a new tab within 15 minutes of the last pass), the wordmark shows for a moment, then its spot runs once through the date, when the news last updated and when the next build is due (from the build's schedule, `17 * * * *` UTC, and left out when a build is late), then settles back on the wordmark, after Kagi News. The pass takes under five seconds, so it needs no pause control under WCAG 2.2.2, and a tap ends it. [`site/_headers`](../site/_headers) sets the Content-Security-Policy. [`worker.js`](../worker.js) serves the static files and answers `/api/read` for the reader, and on a cron trigger starts the Build workflow, since GitHub's scheduler runs late or skips slots; [`wrangler.jsonc`](../wrangler.jsonc) configures the Worker.
 
 ## The reader, and what it does with your data
 
@@ -61,4 +61,4 @@ Cloudflare Workers Builds deploys every push to `main` with `npx wrangler deploy
 - A feed that has failed for two weeks, gone quiet or moved lands in a single "Feed health" issue that closes itself once it's fixed. For failing and quiet feeds it suggests any feeds the publisher's homepage advertises.
 - A run where every LLM call fails exits with an error, so GitHub emails you.
 - If Cloudflare KV is down, the stories are still published (the reader shows a fallback until a later build stores their text) and the run is marked failed after committing, so you hear about it without losing the build.
-- When the data is more than 5 hours old (a build due every 4 hours is running at least 45 minutes late), a bar at the foot of the list says when it last updated, with a "Check again" button that fetches the data at once. Failed runs already email the repo's owner, so the bar is for readers and doesn't link to the build.
+- When the data is more than 105 minutes old (a build due every hour is running at least 45 minutes late), a bar at the foot of the list says when it last updated, with a "Check again" button that fetches the data at once. Failed runs already email the repo's owner, so the bar is for readers and doesn't link to the build.

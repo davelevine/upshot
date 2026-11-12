@@ -4,10 +4,11 @@
 # CF_KV_NAMESPACE_ID for the reader's articles.
 name: Build
 
-# The Worker's cron (wrangler.jsonc) dispatches this on time; GitHub's own schedule, often late, is the fallback.
+# Every hour. The Worker's cron (wrangler.jsonc) dispatches this on time; GitHub's own schedule, often late, is the
+# fallback, and skips a slot the Worker already started (the gate job), so the site builds once an hour, not twice.
 on:
   schedule:
-    - cron: "17 */4 * * *"
+    - cron: "17 * * * *"
   workflow_dispatch:
     inputs:
       backfill_days:
@@ -27,7 +28,29 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Scheduled runs only: skip when the Worker's dispatch already started this hour's build. A fork without the
+  # Worker's token never dispatches, so its schedule always builds.
+  gate:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+    steps:
+      - id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          since=$(date -u -d '-50 minutes' +%Y-%m-%dT%H:%M:%SZ)
+          n=$(gh run list -R "$GITHUB_REPOSITORY" --workflow build.yml --event workflow_dispatch --created ">=$since" --json databaseId --jq length)
+          echo "dispatched builds since $since: $n"
+          echo "skip=$([ "$n" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: gate
+    if: ${{ !cancelled() && needs.gate.outputs.skip != 'true' }}  # runs when the gate was skipped (not a scheduled run)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:

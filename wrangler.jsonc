@@ -23,7 +23,7 @@
   "observability": { "enabled": true },
   // Starts the Build workflow on time (worker.js); site/app.js counts down to the same slots. Only the deployed Worker
   // runs it, never a Preview. Needs the GITHUB_DISPATCH_TOKEN secret (docs/setup.md).
-  "triggers": { "crons": ["17 */4 * * *"] },
+  "triggers": { "crons": ["17 * * * *"] },
   "vars": { "BUILD_REPO": "davelevine/upshot" },
   "previews": {
     "kv_namespaces": [{ "binding": "ARTICLES", "id": "1bba8ed2e55040b1b00a7f32be0ea5d3" }]
