@@ -81,6 +81,7 @@ function renderFilters() {
     (picks.size ? btn('essentials', unreadPicks, '<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>') : '') +
     '<h2 class="f-head">Topics</h2>' + ORDER.filter(c => counts[c] || filter === c).map(c => btn(c, unread[c] || 0, `<span class="dot" style="--c:var(--cat-${c})"></span>`)).join('');
   $('list-name').textContent = label(filter);  // phones: the list's name above it, so a filter never makes stories look missing
+  syncReadAll();
   document.title = filter === 'all' ? 'Upshot \u00b7 The week\u2019s tech news, minus the noise' : `${label(filter)} \u00b7 Upshot`;
 }
 
@@ -99,7 +100,7 @@ function renderPage() {
   // No headings or counts: the list starts at the top, each story says how old it is, and the sidebar says which list it is.
   $('items').innerHTML = shown.length ? `
     ${shown.slice(0, limit).map(i => { const ess = picks.has(i.url), why = filter === 'essentials' && picks.get(i.url), preview = why || i.summary; return `
-    <a class="card${isRead(i.url) ? ' read' : ''}${ess ? ' essential' : ''}" href="${esc(i.url)}" target="_blank" rel="noopener"${i.url === readerFor ? ' aria-current="true"' : ''}>
+    <a class="card${isRead(i.url) ? ' read' : ''}${ess ? ' essential' : ''}" href="${esc(i.url)}" target="_blank" rel="noopener"${i.url === currentUrl() ? ' aria-current="true"' : ''}>
       ${iconHtml(i.publisher)}
       <div class="card-body">
         <div class="card-title">${highlight(i.title, q)}</div>
@@ -110,6 +111,7 @@ function renderPage() {
     </a>`; }).join('')}`
     : '<p class="empty">No articles match your search.</p>';
   $('items').removeAttribute('aria-busy');
+  syncReadAll(); placeMore();
   if (generatedAt) showUpdated();  // the feed was just redrawn, and its "Updated" with it
   io.unobserve($('sentinel'));
   io.observe($('sentinel'));
@@ -189,7 +191,7 @@ function syncHome() {
   setPd(null);  // a swipe that brought it here hands over to the state's own position
   $('col').inert = phone.matches && home;  // the page that's aside can't be reached
   $('filters').inert = phone.matches && !home;
-  $('list-back').inert = $('search-btn').inert = phone.matches && home;  // faded out: out of reach too
+  $('list-back').inert = $('search-btn').inert = $('read-all').inert = $('bar-top').inert = phone.matches && home;  // faded out: out of reach too
   document.querySelector('.logo-h').inert = phone.matches && !home;
   syncTicker();
   if (st?.f && st.f !== filter && (st.f !== 'essentials' || picks.size)) { filter = st.f; renderFilters(); renderItems(); }
@@ -210,8 +212,9 @@ $('list-back').onclick = leaveList;
 // The search bar opens the palette, the same search as ⌘K, rather than filtering the feed in place.
 $('search').addEventListener('focus', () => { $('search').blur(); openPalette(); });
 $('search-btn').onclick = () => openPalette();  // phones: the header's own
-addEventListener('scroll', () => { $('top').hidden = scroller().scrollTop < 800; }, { passive: true, capture: true });  // capture: the list's own scrolling doesn't bubble
-$('top').onclick = () => scroller().scrollTo({ top: 0, behavior: 'smooth' });
+// The phone's toolbar has Back to top, dimmed at the top as Feedbin dims Edit; elsewhere it floats once you're well down.
+addEventListener('scroll', () => { const y = scroller().scrollTop; $('top').hidden = y < 800; $('bar-top').disabled = y < 1; }, { passive: true, capture: true });  // capture: the list's own scrolling doesn't bubble
+$('top').onclick = $('bar-top').onclick = () => scroller().scrollTo({ top: 0, behavior: 'smooth' });
 
 // Read and "new since last visit" state lives only in this browser.
 let weekly = null;
@@ -245,6 +248,65 @@ function markRead(url) {
   card?.classList.add('read');
   card?.querySelector('.new')?.remove();
 }
+// Feedbin's Read button and its "Mark above/below as read". These go in at the oldest end of the read list, so the search
+// panel's "Recently read" still starts with what was actually opened.
+function markAllRead(list) {
+  const urls = list.filter(isUnread).map(i => i.url);
+  if (!urls.length) return;
+  const rest = [...readSet];
+  readSet.clear();
+  for (const u of [...urls, ...rest]) readSet.add(u);
+  for (const u of urls) kept.delete(u);
+  saveRead(); saveKept();
+  renderFilters();
+  renderItems(true);
+  $('status').textContent = `Marked ${urls.length} ${urls.length === 1 ? 'story' : 'stories'} as read`;
+}
+const syncReadAll = () => { $('read-all').disabled = !shown.some(isUnread); };
+function confirmReadAll() {
+  const n = shown.filter(isUnread).length;
+  if (!n) return;
+  const what = filter === 'essentials' ? `essential${n === 1 ? '' : 's'}`
+    : `${n === 1 ? 'story' : 'stories'}${filter === 'all' ? '' : ` in ${label(filter)}`}`;
+  $('confirm-msg').textContent = `Mark ${n === 1 ? 'the' : n} unread ${what} as read?`;
+  closeMenus();
+  $('confirm-read').returnValue = '';
+  $('confirm-read').showModal();
+  $('confirm-read').querySelector('.primary').focus();
+}
+$('read-all').onclick = confirmReadAll;
+$('bar-keys').onclick = () => $('keys').showModal();
+$('confirm-read').addEventListener('close', () => { if ($('confirm-read').returnValue === 'ok') markAllRead(shown); });
+$('confirm-read').addEventListener('click', e => { if (e.target === $('confirm-read')) $('confirm-read').close(); });  // the backdrop
+// The "…" on the selected story: the one open, or the one just closed, as Feedbin keeps its row selected. It's one element,
+// moved after that row; a redraw of the list detaches it, so it's held here and put back.
+const more = $('card-more'), morePop = $('more-pop'), moreBtn = $('card-more-btn');  // getElementById can't find them while detached
+const selectedUrl = () => readerFor ?? lastClosed;
+function placeMore() {
+  const card = selectedUrl() && cardFor(selectedUrl());
+  if (!card) { closeMore(); more.hidden = true; return; }
+  if (card.nextElementSibling !== more) { closeMore(); card.after(more); }
+  more.hidden = false;
+}
+const closeMore = () => { morePop.hidden = true; moreBtn.setAttribute('aria-expanded', 'false'); };
+moreBtn.onclick = e => {
+  e.stopPropagation();
+  const open = morePop.hidden;
+  closeMenus();
+  morePop.hidden = !open;
+  moreBtn.setAttribute('aria-expanded', String(open));
+  if (open) $('read-above').focus({ preventScroll: true });
+};
+morePop.onclick = e => {
+  e.stopPropagation();
+  const id = e.target.closest('button')?.id, at = shown.findIndex(i => i.url === selectedUrl());
+  if (!id || at < 0) return;
+  closeMore();
+  markAllRead(id === 'read-above' ? shown.slice(0, at) : shown.slice(at + 1));
+  moreBtn.focus({ preventScroll: true });
+};
+document.addEventListener('click', closeMore);
+addEventListener('blur', closeMore);
 function markUnread(url) {
   readSet.delete(url); saveRead();
   if (older(url)) { kept.add(url); saveKept(); }
@@ -339,9 +401,14 @@ docked.addEventListener('change', () => {
   document.body.classList.add('dragging');
   requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('dragging')));
 });
-const markCurrent = url => document.querySelectorAll('a.card').forEach(a => {
-  if (url && a.getAttribute('href') === url) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
-});
+// The row that's selected: the story open, or on a phone the one just closed, still highlighted as Feedbin's is.
+const currentUrl = () => readerFor ?? (phone.matches ? lastClosed : null);
+const markCurrent = url => {
+  document.querySelectorAll('a.card').forEach(a => {
+    if (url && a.getAttribute('href') === url) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+  });
+  placeMore();
+};
 
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 // Inside the article frame, the only script allowed is this one. It must pass two policies: the frame's own (by nonce)
@@ -605,7 +672,7 @@ function closeReader() {
   document.body.classList.remove('reading');
   $('reader').setAttribute('aria-hidden', 'true');
   setInert();
-  markCurrent(null);
+  markCurrent(currentUrl());
   syncTicker();
   const card = url && cardFor(url);  // back to where you were, even after j/k through several articles
   if (card) {
@@ -691,7 +758,7 @@ addEventListener('message', e => {
 let pan = null;
 addEventListener('touchstart', e => {
   const t = e.touches[0];
-  pan = phone.matches && !document.body.classList.contains('reading') && !$('palette').open
+  pan = phone.matches && !document.body.classList.contains('reading') && !$('palette').open && !$('confirm-read').open
     ? { x: t.screenX, y: t.screenY, lx: t.screenX, lt: performance.now(), v: 0, mode: null } : null;
 }, { passive: true });
 addEventListener('touchmove', e => {
@@ -745,19 +812,21 @@ function step(dir) {
 }
 function onKey(key, mod, e) {
   const reading = document.body.classList.contains('reading');
-  if ($('keys').open) return;  // the dialog handles its own Esc
+  if ($('keys').open || $('confirm-read').open) return;  // the dialogs handle their own Esc
   if ($('palette').open) {  // so does this one; j/k and Esc mustn't reach the reader behind it
     if (key === 'k' && mod) { e?.preventDefault(); openPalette(); }
     return;
   }
   if (key === 'escape' && !$('size-pop').hidden) { closeSize(); return $('reader-size').focus(); }
   if (key === 'escape' && !$('send-pop').hidden) { closeShare(); return $('reader-send').focus(); }
+  if (key === 'escape' && !morePop.hidden) { closeMore(); return moreBtn.focus(); }
   if (key === 'escape' && reading) return dismiss();
   if (key === 'k' && mod) { e?.preventDefault(); return openPalette(); }
   if (mod || e?.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;
   if (key === '?') { e?.preventDefault(); $('keys').showModal(); }
   else if (key === '/' && !reading) { e?.preventDefault(); openPalette(); }
   else if (key === 'm' && reading) { e?.preventDefault(); toggleRead(); }
+  else if (key === 'a' && e?.shiftKey) { e.preventDefault(); confirmReadAll(); }  // Feedbin's: the list's Read button
   else if (key === 'j' || key === 'arrowright') { e?.preventDefault(); step(1); }
   else if (key === 'k' || key === 'arrowleft') { e?.preventDefault(); step(-1); }
 }
@@ -789,7 +858,7 @@ $('reader-send').onclick = async e => {
   $('reader-send').setAttribute('aria-expanded', 'true');
   $('send-copy').focus({ preventScroll: true });
 };
-function closeMenus() { closeSize(); closeShare(); }
+function closeMenus() { closeSize(); closeShare(); closeMore(); }
 let sendTo = {};
 // Opened on click, not as links: ad blockers hide links whose address is a share page.
 $('send-pop').onclick = e => {

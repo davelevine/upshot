@@ -120,6 +120,27 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   body:has(#stale:not([hidden])) .col { padding-bottom: 56px; }  /* the list's end stays clear of it */
   body:has(#stale:not([hidden])) .back-to-top { bottom: 68px; }
+  /* Feedbin's "…" on the selected story: a sibling of its row (a button can't sit inside a link), drawn over the row's corner. */
+  /* The toolbar, after Feedbin's: two buttons, each centred in half the bar, icon over label. At the sidebar's foot from 1024px,
+     the pane's below that, and a phone list's bottom bar, where Back to top takes the left half (dimmed at the top, as
+     Feedbin dims Edit) and Shortcuts, which needs a keyboard, steps aside. */
+  .list-bar { position: fixed; left: 0; bottom: 0; z-index: 90; display: grid; grid-template-columns: 1fr 1fr; place-items: center; width: var(--side-w); height: 60px;
+    border-top: 1px solid var(--border); background: var(--bg); }
+  .bar-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 72px; min-height: 52px; padding: 0 8px; border: 0;
+    border-radius: var(--radius-sm); background: none; color: var(--text); font-size: .8125rem; font-weight: 500; cursor: pointer; }
+  .bar-btn svg { width: 22px; height: 22px; }
+  .bar-btn:disabled { opacity: .4; cursor: default; }
+  @media (hover: hover) { .bar-btn:not(:disabled):hover { background: var(--bg-card-hover); color: var(--accent); } }
+  #bar-top { display: none; }
+  /* Named "Scroll to the top", not "Back to top": Fanboy's Annoyance list, which Brave and uBlock offer, hides any
+     [aria-label="Back to top"], which took the phone's Top button (and the floating one) away. */
+  .more-wrap { position: relative; z-index: 2; align-self: flex-end; margin: -39px 6px 3px 0; }  /* centred on the row's age line, taking no room */
+  .more-wrap > .icon-btn[aria-expanded="true"] { background: var(--bg-card-hover); color: var(--text); }
+  .popover.more-pop { white-space: nowrap; }
+  .confirm h2 { margin-bottom: 18px; font-weight: 600; line-height: 1.4; }
+  .confirm-btns { display: flex; justify-content: flex-end; gap: 8px; }
+  .confirm-btns button { min-height: 40px; padding: 0 16px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: none; color: var(--text); font-weight: 500; cursor: pointer; }
+  .confirm-btns .primary { border-color: var(--accent); background: var(--accent); color: var(--accent-contrast); }
   @media (max-width: 359px) { #updated span { display: none; } }  /* "1h ago" on the narrowest phones, where the day row is full */
   .search-row { display: flex; gap: 8px; margin-bottom: 12px; }
   .search-wrap { position: relative; flex: 1; min-width: 0; }
@@ -249,6 +270,17 @@
     .shell { display: block; }
     .subheader { display: contents; }
     .stale { left: 0; height: calc(56px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); }  /* a phone's bottom bar */
+    /* A list's toolbar, as in Feedbin's app. It fades with the list's header as the pages slide, and the late bar sits on it. */
+    .list-bar { right: 0; width: auto; height: calc(60px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);
+      opacity: calc(1 - var(--pd, 0)); transition: opacity var(--slide-in) var(--ease-in); }
+    body.home .list-bar { opacity: calc(1 - var(--pd, 1)); }
+    body.paging .list-bar { transition: none; }
+    .bar-btn svg { width: 22px; height: 22px; }
+    #bar-top { display: flex; } #bar-keys, #top { display: none !important; }  /* Back to top lives in the bar here */
+    body:not(.home) .stale { bottom: calc(60px + env(safe-area-inset-bottom)); height: 44px; padding-bottom: 0; }
+    body:not(.home) .col { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
+    body:not(.home):has(#stale:not([hidden])) .col { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
+    .more-wrap { margin-top: -44px; margin-bottom: 0; }
     .search-row { display: none; }  /* the header has its own search button here */
     .search-btn { display: inline-grid; }
     /* Phones open on the topics, as Feedbin does; picking one slides its list in over them, with a back chevron and its name above. */
@@ -351,14 +383,20 @@
     #resize-list { display: block; left: var(--left-w); }
     header { width: var(--side-w); }
     .stale { left: var(--side-w); width: var(--list-w); }  /* the list's foot */
-    .side { top: 0; height: 100dvh; padding-top: 66px; }
+    .side { top: 0; height: 100dvh; padding-top: 66px; padding-bottom: 60px; }  /* clear of the toolbar at its foot */
+    .stale { height: 60px; }  /* level with the toolbar beside it */
+    body:has(#stale:not([hidden])) .col { padding-bottom: 72px; }
+    body:has(#stale:not([hidden])) .back-to-top { bottom: 84px; }
   }
   /* A small window, or a zoomed-in one: the reader stays docked, and the topics and the list are two pages of one left pane,
      scrolled sideways, as in Feedbin. The pane narrows at the low end so the article keeps at least 360px. */
   @media (min-width: 641px) and (max-width: 1023px) {
     :root { --pane-w: clamp(280px, 100vw - 360px, 360px); --left-w: var(--pane-w); }
-    header, .stale { width: var(--pane-w); }
-    .stale { left: 0; }
+    header, .stale, .list-bar { width: var(--pane-w); }
+    .stale { left: 0; bottom: 60px; }  /* on the toolbar, which spans the pane's foot whichever page shows */
+    .side, .col { padding-bottom: 60px; }
+    body:has(#stale:not([hidden])) .col { padding-bottom: 104px; }
+    .back-to-top { bottom: 84px; } body:has(#stale:not([hidden])) .back-to-top { bottom: 128px; }
     .ticker { max-width: calc(var(--pane-w) - 30px); }
     .shell { width: var(--pane-w); height: calc(100dvh - 52px); margin-top: 52px; grid-template-columns: var(--pane-w) var(--pane-w);
       overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; }
@@ -436,6 +474,7 @@
   </div>
 </header>
 <div class="stale feed" id="stale" hidden><span id="stale-msg"></span><button class="icon-btn" id="stale-check" type="button" aria-label="Check again" title="Check again"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button></div>
+<div class="list-bar feed" id="list-bar"><button class="bar-btn" id="bar-top" type="button" aria-label="Scroll to the top" title="Scroll to the top" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button><button class="bar-btn" id="bar-keys" type="button" aria-haspopup="dialog" aria-label="Keyboard shortcuts" title="Keyboard shortcuts"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>Shortcuts</button><button class="bar-btn" id="read-all" type="button" aria-label="Mark all as read" title="Mark all as read"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.7 2.7L16 9.8"/></svg>Read</button></div>
 <div class="shell">
 <aside class="subheader side feed">
   <div class="search-row" role="search">
@@ -452,6 +491,13 @@
 <div class="sr-only" id="status" role="status"></div>
 <main class="items feed" id="items" aria-busy="true"><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div></main>
 <div id="sentinel"></div>
+<span class="more-wrap" id="card-more" hidden>
+  <button class="icon-btn" id="card-more-btn" type="button" aria-label="More actions" title="More actions" aria-expanded="false" aria-controls="more-pop"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/></svg></button>
+  <span class="popover send-pop more-pop" id="more-pop" role="menu" aria-label="More actions" hidden>
+    <button type="button" role="menuitem" id="read-above"><svg class="send-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 16V8M8.5 11.5 12 8l3.5 3.5"/></svg>Mark above as read</button>
+    <button type="button" role="menuitem" id="read-below"><svg class="send-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8.5 12.5 12 16l3.5-3.5"/></svg>Mark below as read</button>
+  </span>
+</span>
 <footer class="site-foot feed" id="end" hidden><span id="end-msg"></span></footer>
 </div>
 </div>
@@ -509,12 +555,19 @@
     <dt><kbd>k</kbd> / <kbd>←</kbd></dt><dd>Previous article</dd>
     <dt><kbd>Enter</kbd></dt><dd>Open the focused article</dd>
     <dt><kbd>m</kbd></dt><dd>Mark the open article read or unread</dd>
+    <dt><kbd>Shift A</kbd></dt><dd>Mark every article in the list as read</dd>
     <dt><kbd>⌘K</kbd> / <kbd>Ctrl K</kbd> / <kbd>/</kbd></dt><dd>Search every article</dd>
     <dt><kbd>Esc</kbd></dt><dd>Close the reader, search or this list</dd>
     <dt><kbd>?</kbd></dt><dd>Show this list</dd>
   </dl>
 </dialog>
-<button class="back-to-top" id="top" type="button" aria-label="Back to top" hidden><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+<dialog class="keys confirm" id="confirm-read" aria-labelledby="confirm-msg">
+  <form method="dialog">
+    <h2 id="confirm-msg"></h2>
+    <div class="confirm-btns"><button value="cancel">Cancel</button><button value="ok" class="primary">Mark as read</button></div>
+  </form>
+</dialog>
+<button class="back-to-top" id="top" type="button" aria-label="Scroll to the top" title="Scroll to the top" hidden><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <script src="/app.js"></script>
 </body>
 </html>
