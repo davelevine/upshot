@@ -715,8 +715,9 @@ function dismiss() {
 // still open, and are rewritten to the short form.
 function syncFromUrl() {
   const path = location.pathname.match(/^\/read\/([^/]+)/);
-  const url = path ? slugs.get(decodeURIComponent(path[1]))
-    : location.hash.startsWith('#read=') ? decodeURIComponent(location.hash.slice(6)) : null;
+  const decode = s => { try { return decodeURIComponent(s); } catch { return null; } };  // a mangled link (%E0) is just not a story
+  const url = path ? slugs.get(decode(path[1]))
+    : location.hash.startsWith('#read=') ? decode(location.hash.slice(6)) : null;
   const i = url && items.find(x => x.url === url);
   if (i && readerFor !== url) openReader(i, { fromHash: true });
   else if (!i && document.body.classList.contains('reading')) closeReader();
@@ -764,7 +765,8 @@ $('reader').addEventListener('touchend', () => { if (touch?.ax === 'x') dragEnd(
 $('reader').addEventListener('touchcancel', () => { if (touch?.ax === 'x') dragEnd(); touch = null; });
 // Swipes inside the article frame arrive as messages from the swipe reporter.
 addEventListener('message', e => {
-  const ours = [...$('reader-body').querySelectorAll('iframe')].some(f => e.source === f.contentWindow);  // the loading one too
+  // The loading one too, but only article frames: a framed original page is the publisher's code, not the relay.
+  const ours = [...$('reader-body').querySelectorAll('iframe[srcdoc]')].some(f => e.source === f.contentWindow);
   if (!ours || typeof e.data?.tw !== 'string') return;
   if (e.data.tw === 'start') dragStart(e.data.x);
   else if (e.data.tw === 'move') dragMove(e.data.x);

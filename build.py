@@ -436,8 +436,8 @@ def wrap(text, font, width, max_lines):
     lines.append(line)
     if len(lines) > max_lines:
         last = lines[max_lines - 1]
-        while font.getlength(last + "…") > width:
-            last = last.rsplit(" ", 1)[0]
+        while last and font.getlength(last + "…") > width:  # one overlong word: cut letters, or this never ends
+            last = last.rsplit(" ", 1)[0] if " " in last else last[:-1]
         lines = lines[:max_lines - 1] + [last.rstrip(",;:") + "…"]
     return lines
 
@@ -758,8 +758,10 @@ def add_tldrs(items, texts, limit=TLDR_LIMIT):
         for item, tldr, fix in ex.map(one, todo):
             if tldr is not None:
                 item["tldr"] = tldr
+            x = item.get("exploited") or {}
+            if fix == "none" and x.get("kev"):
+                fix = None  # CISA lists it, so it has a remedy (kev_fix)
             if fix:  # the whole article over the excerpt, but a remedy once out stays out
-                x = item["exploited"]
                 x["fix"] = best_fix(x.get("fix"), fix) if fix != "none" else x.get("fix") or "none"
             if fix in ("patch", "mitigation"):
                 mark_fixed(items, item.get("cves", []), fix)
@@ -854,6 +856,35 @@ def feed_health_report(names, dead, silent, moved, suggestions):
     return "Fix these in `feeds.opml`. This issue updates every build and closes itself once all feeds are healthy.\n\n" + "\n".join(out)
 
 
+def add_chunk(data, chunk, dups, recent, kept, repeated):
+    """Puts one repeat-checked batch on the site: new stories are added, repeats hand their flag (or, from the original
+    source, their URL) to the copy already there. Appends to `kept`, `repeated` and `recent`."""
+    recent_titles, covered = {norm(t) for t in recent}, set()
+    headline = {}  # batch index -> the headline its story has on the site, so a repeat of a repeat finds it
+    for n, (item, r) in enumerate(chunk):
+        dup_of = dups.get(item["url"])
+        repeat = repeats(dup_of, n, covered, recent_titles)
+        covered.add(n)
+        headline[n] = item["title"]
+        if repeat:
+            target = headline[int(dup_of)] if str(dup_of).strip().isdigit() else dup_of
+            if upgrade_source(data["items"], target, item, r, data.get("weekly")):
+                kept.append((item, r))
+                recent.append(item["title"])
+                carry_flag(data["items"], item["title"], item["exploited"])
+            else:
+                headline[n] = target
+                repeated.append(item)
+                carry_flag(data["items"], target, item["exploited"])
+            continue
+        kept.append((item, r))
+        recent.append(item["title"])
+        data["items"].append({k: item[k] for k in ("date", "published", "title", "url", "publisher", "cves")}
+                             | {"category": r["category"], "summary": r["summary"], "relevance": r["relevance"],
+                                "added": now().isoformat(timespec="seconds")}  # drives "new since last visit"
+                             | ({"exploited": item["exploited"]} if item["exploited"] else {}))
+
+
 def main():
     today = now().astimezone(SITE_TZ).date()
     state = json.loads(STATE.read_text()) if STATE.exists() else {"seen": {}, "failing_since": {}}
@@ -912,27 +943,7 @@ def main():
             for item, _ in chunk:
                 seen.pop(item["url"], None)
             continue
-        recent_titles, covered = {norm(t) for t in recent}, set()
-        for n, (item, r) in enumerate(chunk):
-            dup_of = dups.get(item["url"])
-            repeat = repeats(dup_of, n, covered, recent_titles)
-            covered.add(n)
-            if repeat:
-                target = chunk[int(dup_of)][0]["title"] if str(dup_of).strip().isdigit() else dup_of
-                if upgrade_source(data["items"], target, item, r, data.get("weekly")):
-                    kept.append((item, r))
-                    recent.append(item["title"])
-                    carry_flag(data["items"], item["title"], item["exploited"])
-                else:
-                    repeated.append(item)
-                    carry_flag(data["items"], target, item["exploited"])
-                continue
-            kept.append((item, r))
-            recent.append(item["title"])
-            data["items"].append({k: item[k] for k in ("date", "published", "title", "url", "publisher", "cves")}
-                                 | {"category": r["category"], "summary": r["summary"], "relevance": r["relevance"],
-                                    "added": now().isoformat(timespec="seconds")}  # drives "new since last visit"
-                                 | ({"exploited": item["exploited"]} if item["exploited"] else {}))
+        add_chunk(data, chunk, dups, recent, kept, repeated)
 
     keep = (today - timedelta(days=KEEP_DAYS)).isoformat()
     data["items"] = cap_per_day([i for i in data["items"] if i["date"] >= keep], published)

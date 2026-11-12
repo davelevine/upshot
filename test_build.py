@@ -560,3 +560,33 @@ def test_an_exploited_flaws_summary_also_reads_its_remedy_from_the_whole_article
     assert sorted(calls) == [(False, False), (False, False), (True, True)]  # only the flaw's summary asks about its remedy
     assert flaw["exploited"]["fix"] == "patch" and sibling["exploited"]["fix"] == "patch"  # its excerpt said none
     assert "fix" not in worm["exploited"]
+
+
+def test_wrap_ends_on_an_overlong_word():
+    font = build.og_font(52, 700)
+    lines = build.wrap("@scope/" + "x" * 60 + " compromised in npm attack", font, 1056, 1)  # used to loop forever
+    assert len(lines) == 1 and lines[0].endswith("…") and font.getlength(lines[0]) <= 1056
+
+
+def test_a_tldr_never_says_no_patch_for_a_flaw_cisa_lists(monkeypatch):
+    text = "There is no patch yet for CVE-2026-7 and attackers are using it."
+    monkeypatch.setattr(build, "llm", lambda *a, **k: {"bullets": ["Attackers use CVE-2026-7.", "No patch yet for CVE-2026-7."],
+                                                      "fix": "none", "fix_evidence": "no patch yet"})
+    listed = {"url": "a", "title": "T", "cves": ["CVE-2026-7"], "exploited": {"kev": ["CVE-2026-7"], "at": "t", "kind": "flaw"}}
+    unlisted = {"url": "b", "title": "T", "cves": [], "exploited": {"kev": [], "at": "t", "kind": "flaw", "quote": "q"}}
+    build.add_tldrs([listed, unlisted], {"a": text, "b": text})
+    assert "fix" not in listed["exploited"]          # CISA's listing rules out "none"
+    assert unlisted["exploited"]["fix"] == "none"    # the article's word stands when CISA hasn't listed it
+
+
+def test_a_repeat_of_a_repeat_hands_its_flag_to_the_copy_on_the_site():
+    on_site = {"title": "Big flaw exploited", "url": "a", "publisher": "P", "date": "2026-11-12", "cves": []}
+    data = {"items": [on_site], "weekly": None}
+    flag = {"kev": [], "at": "t", "kind": "flaw", "quote": "q"}
+    item = lambda n, title, f=None: ({"url": f"u{n}", "title": title, "publisher": "The Record", "date": "2026-11-12",
+                                      "published": "p", "cves": [], "exploited": f}, {"category": "security", "relevance": 9, "summary": "s"})
+    chunk = [item(0, "Big flaw exploited, again"), item(1, "Same flaw, flagged", flag)]
+    kept, repeated = [], []
+    build.add_chunk(data, chunk, {"u0": "Big flaw exploited", "u1": "0"}, ["Big flaw exploited"], kept, repeated)
+    assert len(repeated) == 2 and data["items"] == [on_site]
+    assert on_site["exploited"]["quote"] == "q"      # item 1 pointed at item 0, itself a repeat: the flag still lands
