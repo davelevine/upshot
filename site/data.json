@@ -2,6 +2,24 @@
  "items": [
   {
    "date": "2026-11-11",
+   "published": "2026-11-12T01:45:00+00:00",
+   "title": "Compromised GitHub accounts push CI secret stealer to tens of thousands of repositories",
+   "url": "https://www.aikido.dev/blog/compromised-github-accounts-push-ci-secret-stealer-to-tens-of-thousands-of-repositories",
+   "publisher": "Aikido",
+   "category": "security",
+   "summary": "Compromised GitHub accounts are pushing a CI secret-stealing payload to tens of thousands of repositories, according to Aikido, which lists affected-check and credential-rotation guidance.",
+   "relevance": 8,
+   "added": "2026-11-12T04:18:18+00:00",
+   "minutes": 9,
+   "tldr": [
+    "Stolen GitHub credentials were used from November 10 to push a secret-stealing CI payload into tens of thousands of repositories.",
+    "Affected if a wfx-docs branch or \"docs: dependency audit notes\" PR appeared in a writable repository on or after November 10.",
+    "If the payload ran, assume every secret and cloud role available to its workflows is compromised.",
+    "Treat machines that installed or opened Packagist digitalelvis/neuronai-studio 3.14.3 as compromised; remove Go github.com/onuragtas/docker-env v1.0.278 and v1.0.280."
+   ]
+  },
+  {
+   "date": "2026-11-11",
    "published": "2026-11-11T22:56:21+00:00",
    "title": "Active ScreenConnect attacks breach MSPs, impact dozens of organizations",
    "url": "https://www.bleepingcomputer.com/news/security/active-screenconnect-attacks-breach-msps-impact-dozens-of-organizations/",
@@ -2514,7 +2532,7 @@
    }
   ]
  },
- "generated_at": "2026-11-12T01:56:36+00:00",
+ "generated_at": "2026-11-12T04:18:30+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",

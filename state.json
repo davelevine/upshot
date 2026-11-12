@@ -1,5 +1,7 @@
 {
- "failing_since": {},
+ "failing_since": {
+  "https://krebsonsecurity.com/feed/": "2026-11-11"
+ },
  "seen": {
   "http://muratbuffalo.blogspot.com/2026/11/writing-as-thinking-tool.html": "2026-11-08",
   "https://8rank.ai/game/apple-intelligence-personal-knowledge-graph": "2026-11-07",
@@ -973,6 +975,7 @@
   "https://www.aikido.dev/blog/best-email-security-software-platforms": "2026-10-20",
   "https://www.aikido.dev/blog/best-phishing-simulation-tools": "2026-10-20",
   "https://www.aikido.dev/blog/binance-hack-developer-laptop": "2026-10-30",
+  "https://www.aikido.dev/blog/compromised-github-accounts-push-ci-secret-stealer-to-tens-of-thousands-of-repositories": "2026-11-11",
   "https://www.aikido.dev/blog/critical-vulnerabilities-in-php-php2shell": "2026-10-21",
   "https://www.aikido.dev/blog/cve-reachable-vs-exploitable": "2026-10-17",
   "https://www.aikido.dev/blog/cybersecurity-surviving-vulnerabilities-malware-best-practices": "2026-11-04",
