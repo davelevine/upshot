@@ -18,6 +18,77 @@
    ]
   },
   {
+   "date": "2026-11-12",
+   "published": "2026-11-12T09:39:55+00:00",
+   "title": "Hackers Target N-central Zero-Days as N-able Rushes Patches",
+   "url": "https://www.securityweek.com/hackers-target-n-central-zero-days-as-n-able-rushes-patches/",
+   "publisher": "SecurityWeek",
+   "category": "security",
+   "summary": "Attackers began targeting N-able N-central zero-days shortly after a researcher disclosed over 30 flaws; N-able has patched the unauthenticated ones.",
+   "relevance": 8,
+   "added": "2026-11-12T12:18:20+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Researcher Sean Bales published proof-of-concept code for more than 30 N-central vulnerabilities, which he calls Able2Shell.",
+    "Attackers are already probing exposed N-central instances, while N-able reports no compromise of its hosted servers.",
+    "Update on-premises N-central deployments as soon as possible to 2026.4 HF2, which includes the necessary patches.",
+    "Remaining flaws need an authenticated account, often with elevated privileges, and will be fixed in later hotfixes."
+   ]
+  },
+  {
+   "date": "2026-11-12",
+   "published": "2026-11-12T12:11:11+00:00",
+   "title": "Microsoft: Recent Windows updates cause SQL Server performance issues",
+   "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-recent-windows-updates-cause-sql-server-performance-issues/",
+   "publisher": "BleepingComputer",
+   "category": "infrastructure",
+   "summary": "Microsoft confirmed that Windows updates released since the October 2026 Patch Tuesday cause SQL Server performance and stability problems.",
+   "relevance": 7,
+   "added": "2026-11-12T12:18:20+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Microsoft confirmed Windows updates released since the October 2026 Patch Tuesday cause SQL Server performance and stability issues.",
+    "Cause: linked server queries using OLE DB providers leave connections to external databases open after completion, such as Oracle and PostgreSQL, and they accumulate.",
+    "Affects Windows 10, Windows 11, and Windows Server 2012 and later. Microsoft says an out-of-band Windows update will fix it within days; IT admins can contact Microsoft Support for Business for an interim mitigation."
+   ]
+  },
+  {
+   "date": "2026-11-12",
+   "published": "2026-11-12T12:00:00+00:00",
+   "title": "Gang scheduling and topology-aware placement for AI training in Kubernetes",
+   "url": "https://www.cncf.io/blog/2026/11/12/gang-scheduling-and-topology-aware-placement-for-ai-training-in-kubernetes/",
+   "publisher": "CNCF",
+   "category": "infrastructure",
+   "summary": "CNCF article explains why Kubernetes' pod-by-pod scheduler falls short for distributed AI training and needs gang scheduling and topology-aware placement.",
+   "relevance": 6,
+   "added": "2026-11-12T12:18:20+00:00",
+   "minutes": 12,
+   "tldr": [
+    "Kubernetes' default scheduler places pods individually, so distributed AI training pods can land on poorly connected hardware or start partially, leaving GPUs allocated but idle.",
+    "Kueue provides topology-aware placement and the Coscheduling plugin provides gang scheduling, which together address both requirements for AI training jobs.",
+    "Native Kubernetes gang and topology scheduling are still alpha or off by default, so Kueue and Coscheduling remain the production path.",
+    "Check the Workload's status.admission.podSetAssignments[].topologyAssignment and the PodGroup status.phase to validate placement and gang assembly."
+   ]
+  },
+  {
+   "date": "2026-11-12",
+   "published": "2026-11-12T09:00:00+00:00",
+   "title": "LinkedIn Replaces Argo CD with a Custom GitOps Engine for Kubernetes Deployments",
+   "url": "https://www.infoq.com/news/2026/11/kubernetes-argocd-linkedin/",
+   "publisher": "InfoQ",
+   "category": "infrastructure",
+   "summary": "LinkedIn replaced Argo CD with its own GitOps engine, deploying over 4,000 services across 250+ Kubernetes clusters with more than 100,000 deployments weekly.",
+   "relevance": 6,
+   "added": "2026-11-12T12:18:20+00:00",
+   "minutes": 4,
+   "tldr": [
+    "LinkedIn replaced Argo CD with an internal GitOps engine serving over 4,000 services across more than 250 Kubernetes clusters.",
+    "Deployment infrastructure failures fell from 925 to 63 despite a 3.7x increase in deployment volume, and median time to detect and conclude a failed deployment dropped from 16.1 to 2.45 minutes.",
+    "Argo CD's shared watch per resource type let one app's etcd churn slow syncs for all apps; managedFields truncation could leave orphaned containers.",
+    "Argo CD users at scale can check field manager counts on long-lived objects and whether sync latency tracks total pod count."
+   ]
+  },
+  {
    "date": "2026-11-11",
    "published": "2026-11-12T01:45:00+00:00",
    "title": "Compromised GitHub accounts push CI secret stealer to tens of thousands of repositories",
@@ -2549,7 +2620,7 @@
    }
   ]
  },
- "generated_at": "2026-11-12T08:18:32+00:00",
+ "generated_at": "2026-11-12T12:18:34+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
