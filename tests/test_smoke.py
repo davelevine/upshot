@@ -1387,41 +1387,50 @@ def test_phones_get_feedbins_toolbar_and_keep_the_closed_story_selected(browser)
     assert pg.problems == []
 
 
+def unflag(data):
+    for i in data["items"]:
+        i.pop("exploited", None)
+
+
 def flag_some(data):
-    """Two exploited stories added an hour ago (one security, one not) and a security one added three days ago."""
-    at = lambda h: (datetime.now(timezone.utc) - timedelta(hours=h)).isoformat(timespec="seconds")
-    sec = [i for i in data["items"] if i["category"] == "security"]
-    other = next(i for i in data["items"] if i["category"] == "infrastructure")
-    for i, h, kev in ((sec[5], 1, ["CVE-2026-1"]), (other, 1, ["CVE-2026-2"]), (sec[1], 72, [])):
-        i["added"] = at(h)
-        i["exploited"] = {"kev": kev, "at": at(h)} | ({} if kev else {"quote": "is being exploited in the wild"})
-    data["flagged"] = [sec[5]["url"], other["url"], sec[1]["url"]]  # for the test to find them; the site ignores it
+    """Flags the newest security story, the newest infrastructure one, and one from more than a week ago, and nothing else."""
+    unflag(data)
+    newest = lambda c: max((i for i in data["items"] if i["category"] == c), key=lambda i: i.get("published") or i["date"])
+    old = min(data["items"], key=lambda i: i["date"])
+    for i, kev in ((newest("security"), ["CVE-2026-1"]), (newest("infrastructure"), []), (old, ["CVE-2025-9"])):
+        i["exploited"] = {"kev": kev, "at": i.get("added") or i["date"]} | ({} if kev else {"quote": "is being exploited in the wild"})
+    data["flagged"] = [newest("security")["url"], newest("infrastructure")["url"], old["url"]]  # for the test; the site ignores it
 
 
 @pytest.mark.parametrize("scheme", ["light", "dark"])
-def test_exploited_stories_are_tagged_and_lead_all_and_security_for_two_days(browser, scheme):
+def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, scheme):
     from axe_playwright_python.sync_playwright import Axe
     pg = open_site(browser, patch=flag_some, viewport={"width": 1440, "height": 900}, color_scheme=scheme)
-    fresh_sec, fresh_other, old_sec = pg.evaluate("fetch('/data.json').then(r => r.json()).then(d => d.flagged)")  # patched too
-    by_age = lambda list: pg.evaluate(f"{list}.every((i, n, a) => !n || ageMins(a[n - 1]) <= ageMins(i))")
-    urls = lambda: pg.evaluate("shown.map(i => i.url)")
-    assert set(urls()[:2]) == {fresh_sec, fresh_other} and by_age("shown.slice(2)")  # pinned for two days; then by age
+    sec, infra, old = pg.evaluate("fetch('/data.json').then(r => r.json()).then(d => d.flagged)")  # patched too
+    by_age = lambda: pg.evaluate("shown.every((i, n, a) => !n || ageMins(a[n - 1]) <= ageMins(i))")
     card = lambda u: pg.locator(f'a.card[href="{u}"]')
-    for u in (fresh_sec, fresh_other, old_sec):
-        assert card(u).locator(".exploited").inner_text().lower() == "exploited"  # the tag stays after the pin
-    assert pg.locator("a.card .exploited").count() == 3
-    pg.click("#filters [data-f='security']")
-    assert urls()[0] == fresh_sec and fresh_other not in urls()
-    assert by_age("shown.slice(1)")
-    pg.click("#filters [data-f='infrastructure']")
-    assert fresh_other in urls() and by_age("shown")  # other topics: no pin
+    assert by_age()  # tagged where they fall: nothing jumps the order
+    for u in (sec, infra):
+        assert card(u).locator(".exploited").inner_text().lower() == "exploited"
+    assert pg.evaluate("u => items.find(i => i.url === u).exploited && !listed(items.find(i => i.url === u))", old)  # tagged, but too old to list
+    entry = pg.locator("#filters [data-f='exploited']")
+    assert entry.locator(".f-name").inner_text() == "Exploited" and entry.locator(".f-count").inner_text().startswith("2")
+    entry.click()
+    assert sorted(pg.evaluate("shown.map(i => i.url)")) == sorted([sec, infra]) and by_age()  # the last week's, newest first
+    assert pg.locator("a.card .exploited").count() == 0  # the list's name says it
+    assert pg.inner_text("#end-msg") == "That\u2019s all 2 exploited flaws from the last 7 days."
     pg.click("#filters [data-f='all']")
     tags = {"runOnly": {"type": "tag", "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]}}
     assert [(v["id"], v["nodes"][0]["html"][:80]) for v in Axe().run(pg, options=tags).response["violations"]] == []
-    card(fresh_sec).click()
+    card(sec).click()
     flag = pg.frame_locator("#reader-body iframe:not(.loading)").locator(".meta .flag")
     assert flag.inner_text().replace("\n", " ").lower() == "actively exploited · confirmed by cisa"
     assert pg.problems == []
+
+
+def test_the_exploited_list_is_only_there_when_it_has_stories(browser):
+    pg = open_site(browser, patch=unflag, viewport={"width": 1440, "height": 900})
+    assert pg.locator("#filters [data-f='exploited']").count() == 0
 
 
 def test_picking_a_topic_closes_the_open_story(browser):

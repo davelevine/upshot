@@ -28,7 +28,13 @@ function watchEnd() {
 watchEnd();
 docked.addEventListener('change', watchEnd);
 let tz, iconArt = {}, icons = new Set(), items = [], filter = 'all', shown = [], limit = PAGE, generatedAt = null, picks = new Map();  // picks: url -> what to do
-const label = f => (f === 'all' ? 'All' : f === 'essentials' ? 'Essentials' : CATS[f]);
+const label = f => (f === 'all' ? 'All' : f === 'essentials' ? 'Essentials' : f === 'exploited' ? 'Exploited' : CATS[f]);
+// Exploited flaws (build.py flags them): marked where they fall in the feed, and listed under the essentials for a week.
+const EXPLOITED_DAYS = 7;
+const listed = i => !!i.exploited && ageMins(i) < EXPLOITED_DAYS * 1440;
+const exists = f => (f === 'essentials' ? picks.size > 0 : f === 'exploited' ? items.some(listed) : true);  // the two lists come and go
+const inList = (i, f) => f === 'all' || (f === 'essentials' ? picks.has(i.url) : f === 'exploited' ? listed(i) : cat(i.category) === f);
+const plural = (n, one, many) => (n === 1 ? one : many);
 
 // Today in the site's time zone (data.json's tz), not the device's: some browsers report UTC for privacy, which
 // turned the evening's stories into a day old.
@@ -79,20 +85,16 @@ function renderFilters() {
     `<span class="f-mark" aria-hidden="true">${mark}</span><span class="f-name">${label(f)}</span>${n ? `<span class="f-count">${n}<span class="sr-only"> unread</span></span>` : ''}</button>`;
   $('filters').innerHTML = btn('all', unreadAll, '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>') +
     (picks.size ? btn('essentials', unreadPicks, '<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>') : '') +
+    (exists('exploited') ? btn('exploited', items.filter(i => listed(i) && isUnread(i)).length, '<svg viewBox="0 0 24 24"><path d="M12 4 2.5 20h19z"/><path d="M12 10v4M12 17h.01"/></svg>') : '') +
     '<h2 class="f-head">Topics</h2>' + ORDER.filter(c => counts[c] || filter === c).map(c => btn(c, unread[c] || 0, `<span class="dot" style="--c:var(--cat-${c})"></span>`)).join('');
   $('list-name').textContent = label(filter);  // phones: the list's name above it, so a filter never makes stories look missing
   syncReadAll();
   document.title = filter === 'all' ? 'Upshot \u00b7 The week\u2019s tech news, minus the noise' : `${label(filter)} \u00b7 Upshot`;
 }
 
-const PIN_MS = 48 * 36e5;
-const pinned = i => !!i.exploited && Date.now() - Date.parse(i.added || i.published || i.date) < PIN_MS;
 function renderItems(keepLimit) {
   const ql = $('search').value.trim().toLowerCase();
-  shown = items.filter(i => (filter === 'all' || (filter === 'essentials' ? picks.has(i.url) : cat(i.category) === filter)) &&
-    (!ql || `${i.title} ${i.summary} ${i.publisher} ${domain(i.url)}`.toLowerCase().includes(ql)));
-  // An exploited flaw leads All and Security for its first two days on the site, then takes its place by age (keeping its tag).
-  if (!ql && (filter === 'all' || filter === 'security')) shown = [...shown.filter(pinned), ...shown.filter(i => !pinned(i))];
+  shown = items.filter(i => inList(i, filter) && (!ql || `${i.title} ${i.summary} ${i.publisher} ${domain(i.url)}`.toLowerCase().includes(ql)));
   $('status').textContent = ql ? `${shown.length} articles found` : '';
   if (!keepLimit) limit = PAGE;
   renderPage();
@@ -108,7 +110,7 @@ function renderPage() {
       ${iconHtml(i.publisher)}
       <div class="card-body">
         <div class="card-title">${highlight(i.title, q)}</div>
-        <div class="card-meta"><span class="card-src">${esc(source(i))}</span>${i.exploited ? '<span class="exploited">Exploited</span>' : ''}${ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : ''}${isNew(i) ? '<span class="new">New</span>' : ''}</div>
+        <div class="card-meta"><span class="card-src">${esc(source(i))}</span>${i.exploited && filter !== 'exploited' ? '<span class="exploited">Exploited</span>' : ''}${ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : ''}${isNew(i) ? '<span class="new">New</span>' : ''}</div>
         ${preview ? `<div class="card-sum${why ? ' full' : ''}">${why ? '<b>What to do: </b>' : ''}${highlight(preview, q)}</div>` : ''}
         ${ageHtml(i)}
       </div>
@@ -123,11 +125,11 @@ function renderPage() {
   $('end').hidden = !ended;
   if (ended) {
     // A topic is where the stories are ("3 stories in Other"), not a word about them ("3 Other stories").
-    const n = shown.length, what = filter === 'essentials' ? `essential${n === 1 ? '' : 's'}`
+    const n = shown.length, what = filter === 'essentials' ? `essential${n === 1 ? '' : 's'}` : filter === 'exploited' ? plural(n, 'exploited flaw', 'exploited flaws')
       : `stor${n === 1 ? 'y' : 'ies'}${filter === 'all' ? '' : ` in ${label(filter)}`}`;
     const days = Math.min(KEEP_DAYS, Math.ceil((Date.now() - Date.parse(items.reduce((o, i) => (i.date < o ? i.date : o), items[0].date))) / 864e5));
     const scope = q ? ` matching \u201c${q}\u201d` : filter === 'all' ? ` from the last ${days} days`
-      : filter === 'essentials' && weekly?.window_start ? ` from ${weekRange(weekly)}` : '';  // the real span: a young site hasn't reached KEEP_DAYS
+      : filter === 'essentials' && weekly?.window_start ? ` from ${weekRange(weekly)}` : filter === 'exploited' ? ` from the last ${EXPLOITED_DAYS} days` : '';  // the real span: a young site hasn't reached KEEP_DAYS
     $('end-msg').textContent = `That\u2019s ${n === 1 ? 'the only' : `all ${n}`} ${what}${scope}.`;
   }
 }
@@ -142,7 +144,7 @@ function weekRange(w) {
 function setPicks(weekly) {
   const urls = new Set(items.map(i => i.url));
   picks = new Map((weekly?.items || []).filter(p => urls.has(p.url)).map(p => [p.url, p.why]));
-  if (filter === 'essentials' && !picks.size) filter = 'all';
+  if (!exists(filter)) filter = 'all';  // a list that's emptied since: back to All
 }
 
 const syncThemeColor = () => {
@@ -198,7 +200,7 @@ function syncHome() {
   $('list-back').inert = $('search-btn').inert = $('read-all').inert = $('bar-top').inert = phone.matches && home;  // faded out: out of reach too
   document.querySelector('.logo-h').inert = phone.matches && !home;
   syncTicker();
-  if (st?.f && st.f !== filter && (st.f !== 'essentials' || picks.size)) { filter = st.f; renderFilters(); renderItems(); }
+  if (st?.f && st.f !== filter && exists(st.f)) { filter = st.f; renderFilters(); renderItems(); }
 }
 let lastList = null;  // the list a swipe left on the topics goes back into (the filter is still set to it)
 const setPd = v => (v == null ? document.documentElement.style.removeProperty('--pd') : document.documentElement.style.setProperty('--pd', v));
@@ -270,7 +272,7 @@ const syncReadAll = () => { $('read-all').disabled = !shown.some(isUnread); };
 function confirmReadAll() {
   const n = shown.filter(isUnread).length;
   if (!n) return;
-  const what = filter === 'essentials' ? `essential${n === 1 ? '' : 's'}`
+  const what = filter === 'essentials' ? `essential${n === 1 ? '' : 's'}` : filter === 'exploited' ? plural(n, 'exploited flaw', 'exploited flaws')
     : `${n === 1 ? 'story' : 'stories'}${filter === 'all' ? '' : ` in ${label(filter)}`}`;
   $('confirm-msg').textContent = `Mark ${n === 1 ? 'the' : n} unread ${what} as read?`;
   closeMenus();
@@ -774,7 +776,7 @@ addEventListener('touchmove', e => {
     if (Math.hypot(dx, dy) < 10) return;
     if (Math.abs(dy) > Math.abs(dx)) { pan = null; return; }  // a scroll
     const story = lastClosed && items.find(x => x.url === lastClosed);
-    pan.mode = home ? (dx < 0 && lastList !== null && (lastList !== 'essentials' || picks.size) ? 'list' : 'none')
+    pan.mode = home ? (dx < 0 && lastList !== null && exists(lastList) ? 'list' : 'none')
       : dx > 0 ? 'topics' : story ? 'story' : 'none';
     if (pan.mode === 'none') { pan = null; return; }
     if (pan.mode === 'story') { document.body.classList.add('dragging'); setDrag(1); openReader(story); }  // in from the right, under the finger
