@@ -3,18 +3,19 @@
   {
    "date": "2026-11-12",
    "published": "2026-11-12T05:12:26+00:00",
-   "title": "Critical Apache HTTP/2 Flaw Could Let Unauthenticated Attackers Execute Code Remotely",
-   "url": "https://thehackernews.com/2026/11/critical-apache-http2-flaw-could-let.html",
-   "publisher": "The Hacker News",
+   "title": "PSA: Critical Apache HTTP/2 Vulnerability: What WordPress Site Owners Should Know",
+   "url": "https://www.wordfence.com/blog/2026/11/cve-2026-119618-apache-http2/",
+   "publisher": "Wordfence",
    "category": "security",
-   "summary": "A critical unauthenticated remote code execution flaw (CVE-2026-119618) in Apache HTTP Server's mod_http2 affects 2.4.55–2.4.70 and is fixed in 2.4.71; only HTTP/2-enabled servers are affected.",
+   "summary": "Apache released a fix for CVE-2026-119618, a critical HTTP/2 module vulnerability in Apache HTTP Server that can lead to remote code execution.",
    "relevance": 9,
    "added": "2026-11-12T08:18:12+00:00",
-   "minutes": 3,
+   "minutes": 4,
    "tldr": [
-    "Apache HTTP Server flaw CVE-2026-119618 in mod_http2 lets unauthenticated remote attackers run code on affected servers; Red Hat rates it 9.8 CVSS.",
-    "Affects Apache 2.4.55 through 2.4.70 with HTTP/2 enabled; standalone mod_h2 2.0.8 through 2.0.42 is also affected, with no fixed release.",
-    "Upgrade to Apache HTTP Server 2.4.71; if you cannot, Wiz advises removing h2 and h2c from the Protocols directive."
+    "Apache fixed critical CVE-2026-119618 in its mod_http2 module, which can lead to remote code execution on affected servers; the fix is in 2.4.71.",
+    "Affected are Apache 2.4.55 through 2.4.70 and standalone mod_h2 2.0.8 through 2.0.42, but only servers offering h2 or h2c through the module are exposed.",
+    "WordPress, plugin, theme, and Wordfence updates will not patch Apache; ask your host whether the fix is installed and whether Apache accepts h2 or h2c.",
+    "If no fix is available, have the server administrator remove h2 and h2c from the affected Apache configuration and restart Apache."
    ]
   },
   {
@@ -33,6 +34,41 @@
     "Attackers are already probing exposed N-central instances, while N-able reports no compromise of its hosted servers.",
     "Update on-premises N-central deployments as soon as possible to 2026.4 HF2, which includes the necessary patches.",
     "Remaining flaws need an authenticated account, often with elevated privileges, and will be fixed in later hotfixes."
+   ]
+  },
+  {
+   "date": "2026-11-12",
+   "published": "2026-11-12T13:00:00+00:00",
+   "title": "Kazakhstan-linked hackers used AI agent to spy on Central Asian governments",
+   "url": "https://therecord.media/kazakhstan-hackers-central-asia",
+   "publisher": "The Record",
+   "category": "security",
+   "summary": "Suspected Kazakhstan-linked hackers reportedly used an AI agent to spy on Central Asian governments, steal documents, and infiltrate critical infrastructure networks, per new research.",
+   "relevance": 8,
+   "added": "2026-11-12T16:18:33+00:00",
+   "minutes": 3,
+   "tldr": [
+    "Suspected Kazakhstan-linked hacking group Silent Lynx used Hermes, an open-source AI agent, to spy on Central Asian governments and steal documents.",
+    "Hackers maintained access to Tajikistan's national railway network from at least mid-August through early October, and reached a government document platform.",
+    "The AI agent was configured to run certain potentially destructive commands without additional approval, and was controlled remotely through a Telegram bot."
+   ]
+  },
+  {
+   "date": "2026-11-12",
+   "published": "2026-11-12T13:52:29+00:00",
+   "title": "NVIDIA Announces CEO Transition",
+   "url": "https://nvidianews.nvidia.com/news/nvidia-announces-ceo-transition",
+   "publisher": "Hacker News 300+",
+   "category": "other",
+   "summary": "NVIDIA announced a CEO transition, drawing over 1,000 Hacker News points; the linked Reuters live coverage describes a board meeting on the CEO's fate.",
+   "relevance": 7,
+   "added": "2026-11-12T16:18:33+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Jensen Huang resigned as NVIDIA President, CEO, and Board member, effective immediately; CFO Colette Kress is interim CEO.",
+    "Kress remains CFO while interim CEO; the Board is searching for a permanent CEO, considering internal and external candidates.",
+    "Harvey C. Jones was appointed the Board's first-ever Chair; NVIDIA expects operations, customer commitments and product roadmap to continue without interruption.",
+    "NVIDIA will report third-quarter fiscal 2027 financial results on Tuesday, November 17, at approximately 1:20 p.m. PT."
    ]
   },
   {
@@ -2599,7 +2635,7 @@
   "window_end": "2026-11-12",
   "items": [
    {
-    "url": "https://thehackernews.com/2026/11/critical-apache-http2-flaw-could-let.html",
+    "url": "https://www.wordfence.com/blog/2026/11/cve-2026-119618-apache-http2/",
     "why": "Upgrade to 2.4.71 now if any Apache server has HTTP/2 enabled."
    },
    {
@@ -2620,7 +2656,7 @@
    }
   ]
  },
- "generated_at": "2026-11-12T12:53:09+00:00",
+ "generated_at": "2026-11-12T16:18:45+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
