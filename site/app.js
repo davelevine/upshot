@@ -534,7 +534,7 @@ pre { overflow-x: auto; padding: 12px 14px; border-radius: 8px; background: var(
 pre code { padding: 0; background: none; font: inherit; }
 table { display: block; overflow-x: auto; border-collapse: collapse; font-size: .875rem; } th, td { padding: 4px 8px; border: 1px solid var(--border); } th { font-weight: 700; }
 hr { border: 0; border-top: 1px solid var(--border); }
-.flag { margin: 0 0 .35em; } .exploited { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; } .x-word { color: var(--text-muted); } .exploited:has(.no-fix) .x-word { color: var(--exploited-ink); }
+.flag { margin: 0 0 .35em; } .exploited { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; } .x-word { color: var(--text); } .exploited:has(.no-fix) .x-word { color: var(--exploited-ink); }
 .fix-pill { padding: 1px 8px; border-radius: 999px; font-size: .9em; font-weight: 700; line-height: 1.35; }  /* a chip, as in the list; not .pill, the "Read it on" button's */ .no-fix { background: var(--exploited); color: var(--exploited-text); } .fix-out { padding: 0; color: var(--accent); font-size: 1em; font-weight: 600; line-height: inherit; } .fix-out::before { content: "· "; color: var(--text-muted); }
 .late { animation: late .2s ease .4s both; } @keyframes late { from { opacity: 0; } }
 .status { color: var(--text-muted); font: 370 .9375rem/1.5 "Public Sans", system-ui, sans-serif; }

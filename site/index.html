@@ -227,11 +227,11 @@
      mark on a row, and only while there's nothing to apply: "No fix yet". Once there's a patch, a mitigation or steps to take,
      "Fix available" in quiet accent text, as Essential is: the routine case shouldn't shout. */
   .exploited { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; font-size: .75rem; font-weight: 600; white-space: nowrap; }
-  .exploited .x-word { color: var(--text-muted); }  /* quiet, as Essential is, in the usual case: there's a fix, go apply it */
+  .exploited .x-word { color: var(--text); }  /* leads, in the row's own ink: no colour, but never fainter than what qualifies it */
   .exploited:has(.no-fix) .x-word { color: var(--exploited-ink); }  /* red only while there's nothing to apply: rare, and worth it */
   .exploited .fix-pill { padding: 0 7px; border-radius: 999px; font-weight: 700; }
   .exploited .no-fix { background: var(--exploited); color: var(--exploited-text); }
-  .exploited .fix-out { padding: 0; color: var(--accent); font-weight: 600; }
+  .exploited .fix-out { padding: 0; color: var(--accent); font-weight: 600; }  /* the good news, in the accent, as Essential is */
   .exploited .fix-out::before { content: "· "; color: var(--text-muted); }
   .f-open { flex: none; color: var(--exploited-ink); font-size: .75rem; font-weight: 600; }  /* exploited flaws with no fix yet */
   .skeleton { pointer-events: none; }
