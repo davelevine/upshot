@@ -255,8 +255,9 @@ def test_late_bar_appears_once_a_build_is_late_and_can_check_again(browser):
 def test_late_bar_is_a_bottom_bar_on_a_phone(browser):
     pg = stale_site(browser, 6, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
     assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
-    bar = pg.locator("#stale").bounding_box()
-    assert bar["x"] == 0 and bar["width"] == 320 and bar["y"] + bar["height"] == 700
+    bar, tools = pg.locator("#stale").bounding_box(), pg.locator("#list-bar").bounding_box()
+    assert bar["x"] == 0 and bar["width"] == 320 and bar["y"] + bar["height"] == tools["y"]  # on top of the list's toolbar
+    assert tools["width"] == 320 and tools["y"] + tools["height"] == 700
     assert pg.locator("#stale-check").bounding_box()["height"] >= 44
 
 
@@ -1237,6 +1238,94 @@ def test_the_reader_marks_a_story_unread_and_read_again(browser):
     assert "read" in card.get_attribute("class").split() and pg.evaluate("u => readSet.has(u)", url)
     # Docked under the header, the reader doesn't repeat the theme switch in the header's menu.
     assert pg.locator("#reader-theme").is_hidden() and pg.locator("#menu-btn").is_visible()
+    assert pg.problems == []
+
+
+def test_read_marks_the_list_read_once_confirmed(browser):
+    # Feedbin's Read button, at the sidebar's foot: it asks first, and marks only the list that's showing.
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    count = lambda f: pg.locator(f"#filters .filter-btn[data-f='{f}'] .f-count")
+    opened = pg.evaluate("items.find(i => cat(i.category) !== 'security').title")
+    pg.evaluate("openReader(items.find(i => cat(i.category) !== 'security'))")  # read by hand: "Recently read" keeps it first
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.click("#filters [data-f='security']")
+    wait_until_closed(pg)
+    bar, side = pg.locator("#list-bar").bounding_box(), pg.locator(".side").bounding_box()
+    assert bar["x"] == 0 and bar["width"] == side["width"] and bar["y"] + bar["height"] == 900  # the sidebar's foot
+    n, others = pg.evaluate("shown.length"), count("all").text_content()
+    pg.click("#read-all")
+    assert pg.locator("#confirm-read").is_visible() and pg.inner_text("#confirm-msg") == f"Mark {n} unread stories in Security as read?"
+    pg.click("#confirm-read button[value='cancel']")
+    assert pg.locator("a.card.read").count() == 0 and pg.locator("#confirm-read").is_hidden()
+    pg.click("#read-all")
+    pg.click("#confirm-read .primary")
+    pg.locator("a.card:not(.read)").first.wait_for(state="detached")  # the dialog's close event comes a moment after
+    assert pg.locator("a.card:not(.read)").count() == 0 and count("security").count() == 0
+    assert int(count("all").text_content().split()[0]) == int(others.split()[0]) - n  # other topics untouched
+    assert pg.locator("#read-all").is_disabled() and pg.inner_text("#status") == f"Marked {n} stories as read"
+    assert pg.evaluate("shown.every(i => readSet.has(i.url))")
+    pg.keyboard.press("/")
+    pg.locator("#palette").wait_for()
+    assert pg.locator("#palette-list .p-title").first.inner_text() == opened  # "Recently read" still starts with what was opened
+    pg.keyboard.press("Escape")
+    pg.reload()  # kept in the browser
+    pg.wait_for_selector("a.card")
+    assert pg.evaluate("items.filter(i => cat(i.category) === 'security').every(i => isRead(i.url))")
+    assert pg.problems == []
+
+
+def test_shift_a_asks_to_mark_the_list_read_and_escape_cancels(browser):
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    pg.keyboard.press("Shift+A")
+    assert pg.locator("#confirm-read").is_visible() and "Mark" in pg.inner_text("#confirm-msg")
+    pg.keyboard.press("j")  # page keys stay out of it
+    pg.keyboard.press("Escape")
+    assert pg.locator("#confirm-read").is_hidden() and pg.evaluate("readSet.size") == 0 and not reading(pg)
+    assert pg.problems == []
+
+
+def test_mark_above_and_below_as_read(browser):
+    # Feedbin's "…" on the selected story: above is newer, below older, including stories not loaded yet.
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    assert pg.locator("#card-more").is_hidden()
+    pg.locator("a.card").nth(2).click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    url = pg.evaluate("readerFor")
+    assert pg.evaluate("document.getElementById('card-more').previousElementSibling.getAttribute('href')") == url
+    btn = pg.locator("#card-more-btn")
+    btn.click()
+    assert btn.get_attribute("aria-expanded") == "true"
+    pg.click("#read-above")
+    assert pg.evaluate("shown.slice(0, 3).every(i => isRead(i.url)) && !shown.slice(3).some(i => isRead(i.url))")
+    assert pg.locator("#more-pop").is_hidden() and pg.evaluate("document.activeElement.id") == "card-more-btn"
+    btn.click()
+    pg.keyboard.press("Escape")  # closes the menu, not the story
+    assert pg.locator("#more-pop").is_hidden() and reading(pg)
+    btn.click()
+    pg.click("#read-below")
+    assert pg.evaluate("shown.length > limit && shown.every(i => isRead(i.url))")  # beyond the loaded page too
+    assert pg.evaluate("[...readSet].at(-1)") == url  # still the one read last
+    assert pg.problems == []
+
+
+def test_phones_get_a_read_bar_and_keep_the_closed_story_selected(browser):
+    pg = open_site(browser, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
+    bar, btn = pg.locator("#list-bar").bounding_box(), pg.locator("#read-all").bounding_box()
+    assert bar["x"] == 0 and bar["width"] == 320 and bar["y"] + bar["height"] == 700 and btn["height"] >= 44
+    assert btn["x"] + btn["width"] > 250  # on the right, as Feedbin's
+    assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    pg.locator("a.card").nth(1).tap()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.click("#reader-close")
+    wait_until_closed(pg)
+    card = pg.locator("a.card").nth(1)
+    assert card.get_attribute("aria-current") == "true" and pg.locator("#card-more").is_visible()  # still selected, as in Feedbin
+    pg.click("#card-more-btn")
+    pg.click("#read-above")
+    assert pg.evaluate("isRead(shown[0].url) && !isRead(shown[2].url)")
+    pg.click("#list-back")
+    pg.wait_for_function("() => getComputedStyle(document.getElementById('list-bar')).opacity === '0'")
+    assert pg.evaluate("document.getElementById('read-all').inert")  # on the topics: gone, and out of reach
     assert pg.problems == []
 
 
