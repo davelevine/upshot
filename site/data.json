@@ -55,6 +55,23 @@
   },
   {
    "date": "2026-11-12",
+   "published": "2026-11-12T19:51:16+00:00",
+   "title": "New N-able \"4EverAble2Shell\" zero-day exploited hours after PoC released",
+   "url": "https://www.bleepingcomputer.com/news/security/new-n-able-4everable2shell-zero-day-exploited-hours-after-poc-released/",
+   "publisher": "BleepingComputer",
+   "category": "security",
+   "summary": "Attackers are actively exploiting a newly disclosed N-able N-central zero-day, \"4EverAble2Shell\", within hours of public proof-of-concept release, deploying cryptocurrency miners on at least 21 systems.",
+   "relevance": 8,
+   "added": "2026-11-12T20:18:33+00:00",
+   "minutes": 4,
+   "tldr": [
+    "Attackers are actively exploiting the N-able N-central zero-day \"4EverAble2Shell\" shortly after a public proof-of-concept was released, deploying cryptocurrency miners.",
+    "Huntback reports at least 21 compromised N-central servers, including 19 running 2026.4.1.26, the latest Hotfix 2 release issued on November 10.",
+    "Ensure Legacy API access is disabled, which is already the default, and investigate suspicious requests to /dms/services/ServerUI referencing jline.internal.TerminalLineSettings."
+   ]
+  },
+  {
+   "date": "2026-11-12",
    "published": "2026-11-12T13:52:29+00:00",
    "title": "NVIDIA Announces CEO Transition",
    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-ceo-transition",
@@ -73,6 +90,24 @@
   },
   {
    "date": "2026-11-12",
+   "published": "2026-11-12T18:00:00+00:00",
+   "title": "Gemini 4 Hydrogen: everyday coding and agentic workflows for developers",
+   "url": "https://blog.google/innovation-and-ai/technology/developers-tools/build-with-gemini-4-hydrogen/",
+   "publisher": "Google Blog",
+   "category": "ai",
+   "summary": "Google announced Gemini 4 Hydrogen, a cost-efficient model aimed at agentic coding and debugging, available to start building in Google AI Studio.",
+   "relevance": 7,
+   "added": "2026-11-12T20:18:33+00:00",
+   "minutes": 1,
+   "tldr": [
+    "Google has released Gemini 4 Hydrogen, a model for everyday coding and agentic workflows, aimed at developers.",
+    "It handles repository coding, debugging, interactive web development and multimodal workflows, with four configurable thinking levels.",
+    "Available via Gemini API in Google AI Studio and Android Studio, Gemini for business, and Google Antigravity for paid AI Pro or Ultra subscribers.",
+    "Check the Gemini API What's New Guide for model details, setup instructions and thinking-level controls."
+   ]
+  },
+  {
+   "date": "2026-11-12",
    "published": "2026-11-12T12:11:11+00:00",
    "title": "Microsoft: Recent Windows updates cause SQL Server performance issues",
    "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-recent-windows-updates-cause-sql-server-performance-issues/",
@@ -86,6 +121,23 @@
     "Microsoft confirmed Windows updates released since the October 2026 Patch Tuesday cause SQL Server performance and stability issues.",
     "Cause: linked server queries using OLE DB providers leave connections to external databases open after completion, such as Oracle and PostgreSQL, and they accumulate.",
     "Affects Windows 10, Windows 11, and Windows Server 2012 and later. Microsoft says an out-of-band Windows update will fix it within days; IT admins can contact Microsoft Support for Business for an interim mitigation."
+   ]
+  },
+  {
+   "date": "2026-11-12",
+   "published": "2026-11-12T20:15:16+00:00",
+   "title": "Massive Microsoft 365 outage disrupts Outlook, Teams, Copilot worldwide",
+   "url": "https://www.bleepingcomputer.com/news/microsoft/massive-microsoft-365-outage-disrupts-outlook-teams-copilot-worldwide/",
+   "publisher": "BleepingComputer",
+   "category": "infrastructure",
+   "summary": "Microsoft is investigating a widespread outage affecting Outlook, Microsoft Teams, and Copilot across multiple Microsoft 365 services worldwide.",
+   "relevance": 7,
+   "added": "2026-11-12T20:18:33+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Microsoft is investigating a widespread Microsoft 365 outage, tracked as MO1550821, that began Thursday at 1:26 PM ET.",
+    "Customers may be unable to connect to Exchange Online, Microsoft Teams, SharePoint Online, Microsoft 365 Copilot, and Microsoft Defender XDR.",
+    "Microsoft says servers unexpectedly becoming unavailable are straining infrastructure. It has paused all deployments and is restarting affected servers."
    ]
   },
   {
@@ -2656,7 +2708,7 @@
    }
   ]
  },
- "generated_at": "2026-11-12T16:18:45+00:00",
+ "generated_at": "2026-11-12T20:18:43+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
