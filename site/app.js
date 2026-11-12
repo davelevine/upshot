@@ -35,9 +35,11 @@ const listed = i => !!i.exploited && ageMins(i) < EXPLOITED_DAYS * 1440;
 const exists = f => (f === 'essentials' ? picks.size > 0 : f === 'exploited' ? items.some(listed) : true);  // the two lists come and go
 const inList = (i, f) => f === 'all' || (f === 'essentials' ? picks.has(i.url) : f === 'exploited' ? listed(i) : cat(i.category) === f);
 const plural = (n, one, many) => (n === 1 ? one : many);
-// Exploited, in red text, then the fix: a red "No fix yet" pill, the one filled mark (nothing to apply yet: watch it), which
-// becomes quiet "Fix available" text once there's a patch, a mitigation or steps to take (a supply-chain attack has no
-// patch, but rotating its secrets is a fix); nothing when the story doesn't say. The same in every list, and the reader.
+// Exploited, then the fix. Red only while there's no fix: "Exploited" and a filled "No fix yet" pill, the one alarm on a
+// row (nothing to apply yet: watch it). Otherwise quiet, as Essential is: "Exploited · Fix available" once there's a patch,
+// a mitigation or steps to take (a supply-chain attack has no patch, but rotating its secrets is a fix), or just
+// "Exploited" when the story doesn't say. A fifth of rows can be flagged in a busy week: red on all of them would be
+// noise. The same in every list, and the reader.
 const FIX_PILL = { none: '<span class="fix-pill no-fix">No fix yet</span>', available: '<span class="fix-pill fix-out">Fix available</span>' };
 const exploitedLabel = x => `<span class="exploited"><span class="x-word">Exploited</span>${FIX_PILL[x.fix] || ''}</span>`;
 // One label per row, in one quiet style: Exploited (whether to act), else Essential. Unread needs none (its title is bold),
@@ -532,7 +534,7 @@ pre { overflow-x: auto; padding: 12px 14px; border-radius: 8px; background: var(
 pre code { padding: 0; background: none; font: inherit; }
 table { display: block; overflow-x: auto; border-collapse: collapse; font-size: .875rem; } th, td { padding: 4px 8px; border: 1px solid var(--border); } th { font-weight: 700; }
 hr { border: 0; border-top: 1px solid var(--border); }
-.flag { margin: 0 0 .35em; } .exploited { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; } .x-word { color: var(--exploited-ink); }
+.flag { margin: 0 0 .35em; } .exploited { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; } .x-word { color: var(--text-muted); } .exploited:has(.no-fix) .x-word { color: var(--exploited-ink); }
 .fix-pill { padding: 1px 8px; border-radius: 999px; font-size: .9em; font-weight: 700; line-height: 1.35; }  /* a chip, as in the list; not .pill, the "Read it on" button's */ .no-fix { background: var(--exploited); color: var(--exploited-text); } .fix-out { padding: 0; color: var(--accent); font-size: 1em; font-weight: 600; line-height: inherit; } .fix-out::before { content: "· "; color: var(--text-muted); }
 .late { animation: late .2s ease .4s both; } @keyframes late { from { opacity: 0; } }
 .status { color: var(--text-muted); font: 370 .9375rem/1.5 "Public Sans", system-ui, sans-serif; }

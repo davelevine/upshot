@@ -1398,6 +1398,8 @@ def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, sc
     assert by_age()  # tagged where they fall: nothing jumps the order
     label = lambda u: (card(u).locator(".x-word").count(), card(u).locator(".fix-pill").text_content())
     assert label(sec) == (1, "Fix available") and label(infra) == (1, "No fix yet")  # Exploited, then whether there's a fix
+    word = lambda u: card(u).locator(".x-word").evaluate("e => getComputedStyle(e).color")
+    assert word(sec) != word(infra)  # red only while there's no fix: the usual case is quiet
     assert pg.evaluate("u => items.find(i => i.url === u).exploited && !listed(items.find(i => i.url === u))", old)  # tagged, but too old to list
     entry = pg.locator("#filters [data-f='exploited']")
     assert entry.locator(".f-name").inner_text() == "Exploited" and entry.locator(".f-open").inner_text() == "1 unfixed"
