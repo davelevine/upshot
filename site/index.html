@@ -383,9 +383,9 @@
     #resize-list { display: block; left: var(--left-w); }
     header { width: var(--side-w); }
     .stale { left: var(--side-w); width: var(--list-w); }  /* the list's foot */
-    .side { top: 0; height: 100dvh; padding-top: 66px; padding-bottom: 60px; }  /* clear of the toolbar at its foot */
+    .side { top: 0; height: 100dvh; padding-top: 66px; padding-bottom: 65px; }  /* clear of the toolbar at its foot */
     .stale { height: 60px; }  /* level with the toolbar beside it */
-    .list-bar { border-top: 0; border-right: 1px solid var(--border); }  /* part of the sidebar, as Feedbin's: no rule above it, and its edge runs on down */
+    .list-bar { height: 65px; padding-bottom: 13px; border-top: 0; border-right: 1px solid var(--border); }  /* part of the sidebar, as Feedbin's: no rule above it, its edge runs on down, and its buttons sit as high off the bottom as Feedbin's */
     body:has(#stale:not([hidden])) .col { padding-bottom: 72px; }
     body:has(#stale:not([hidden])) .back-to-top { bottom: 84px; }
   }
@@ -556,10 +556,10 @@
     <dt><kbd>k</kbd> / <kbd>←</kbd></dt><dd>Previous article</dd>
     <dt><kbd>Enter</kbd></dt><dd>Open the focused article</dd>
     <dt><kbd>m</kbd></dt><dd>Mark the open article read or unread</dd>
-    <dt><kbd>Shift A</kbd></dt><dd>Mark every article in the list as read</dd>
+    <dt><kbd>Shift A</kbd></dt><dd>Mark every article in the list as read, after asking</dd>
     <dt><kbd>⌘K</kbd> / <kbd>Ctrl K</kbd> / <kbd>/</kbd></dt><dd>Search every article</dd>
     <dt><kbd>Esc</kbd></dt><dd>Close the reader, search or this list</dd>
-    <dt><kbd>?</kbd></dt><dd>Show this list</dd>
+    <dt><kbd>?</kbd></dt><dd>Show or hide this list</dd>
   </dl>
 </dialog>
 <dialog class="keys confirm" id="confirm-read" aria-labelledby="confirm-msg">
