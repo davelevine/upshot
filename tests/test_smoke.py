@@ -213,7 +213,8 @@ def test_essentials_have_their_own_entry_and_show_once(browser):
         sel = f'a.card[href="{p["url"]}"]'
         assert pg.locator(f"{sel} .card-sum").inner_text() == f"What to do: {p['why']}"
         assert pg.locator(f"{sel} .card-sum").evaluate("e => e.scrollHeight <= e.clientHeight")  # never cut short
-        assert pg.locator(f"{sel} .ess").count() == 0  # the view says it already
+        exploited = pg.evaluate("u => !!items.find(i => i.url === u).exploited", p["url"])
+        assert pg.locator(f"{sel} .ess").count() == (0 if exploited else 1)  # marked as everywhere; an exploited one shows that instead
     assert pg.problems == []
 
 

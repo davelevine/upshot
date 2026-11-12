@@ -38,8 +38,9 @@ const plural = (n, one, many) => (n === 1 ? one : many);
 const FIX = { none: 'No patch', available: 'Patched' };
 const exploitedPill = (x, first = 'Exploited') => `<span class="exploited"><span>${first}</span>${FIX[x.fix] ? `<span class="fix ${x.fix}"> ${FIX[x.fix]}</span>` : ''}</span>`;
 // One label per row, the one that matters most: several at once is noise. Exploited (whether to act), then Essential, then
-// New; the others aren't lost: an unread title is bold, and Exploited and Essentials have lists of their own.
-const label1 = (i, ess) => (i.exploited ? exploitedPill(i.exploited) : ess && filter !== 'essentials' ? '<span class="ess">Essential</span>'
+// New; the others aren't lost: an unread title is bold, and Exploited and Essentials have lists of their own. The same in
+// every list, their own included, so a row never looks unmarked beside one that is.
+const label1 = (i, ess) => (i.exploited ? exploitedPill(i.exploited) : ess ? '<span class="ess">Essential</span>'
   : isNew(i) ? '<span class="new">New</span>' : '');
 const unpatched = () => items.filter(i => listed(i) && i.exploited.fix === 'none').length;
 
