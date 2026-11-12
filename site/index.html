@@ -224,12 +224,12 @@
   .card.read .card-meta { color: var(--text-muted); }
   /* An actively exploited flaw (build.py: in CISA's catalog, or a checked claim). */
   /* The row's label, in the same quiet type as Essential: Exploited in red, then a pill for the vendor's fix, the only filled
-     mark on a row: "No patch" in red, "Patch available" in the accent once one is out. */
+     mark on a row: "No fix yet" in red, "Fix available" in the accent once there's a patch, a mitigation or steps to take. */
   .exploited { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; font-size: .75rem; font-weight: 600; white-space: nowrap; }
   .exploited .x-word { color: var(--exploited-ink); }
   .exploited .fix-pill { padding: 0 7px; border-radius: 999px; font-weight: 700; }
-  .exploited .no-patch { background: var(--exploited); color: var(--exploited-text); }
-  .exploited .patch-out { background: var(--accent); color: var(--accent-contrast); }
+  .exploited .no-fix { background: var(--exploited); color: var(--exploited-text); }
+  .exploited .fix-out { background: var(--accent); color: var(--accent-contrast); }
   .f-open { flex: none; color: var(--exploited-ink); font-size: .75rem; font-weight: 600; }  /* exploited flaws with no fix yet */
   .skeleton { pointer-events: none; }
   .skeleton .bone { display: block; height: .8em; border-radius: 6px; background: var(--border); animation: pulse 1.4s ease-in-out infinite; }

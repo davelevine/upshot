@@ -47,7 +47,7 @@ BATCH = 20            # stories per repeat check
 KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"  # CISA: CVEs exploited in the wild
 CVE = re.compile(r"\bCVE-\d{4}-\d{4,}\b", re.I)
 FIX_TERMS = {  # what a quote must say for the model's claim about a fix to count
-    "available": re.compile(r"patch|update|fix|version|upgrade|release|mitigat", re.I),
+    "available": re.compile(r"patch|update|fix|version|upgrade|release|mitigat|workaround|rotat|revok|remov|uninstall|disabl", re.I),
     "none": re.compile(r"\b(no|without an?|yet to|not yet|unpatched|hasn't|has not|hasn’t)\b.*\b(patch|fix|update|patched|fixed)|unpatched", re.I),
 }
 EXPLOIT_TERMS = re.compile(r"exploit|zero[- ]?day|0[- ]?day|in the wild|under attack|emergency (patch|update|fix)|out[- ]of[- ]band", re.I)
@@ -191,8 +191,9 @@ For each item return:
 - exploited: true only if the item says a security flaw is being exploited in the wild, is a zero-day, or gets an
   emergency or out-of-band patch. Not for a flaw that could be exploited, a proof of concept, or a routine patch.
 - evidence: when exploited is true, the words from the title or excerpt that say so, copied exactly; else "".
-- fix: for a security flaw, whether the item says a fix exists: "available" (a patch, update, fixed version or
-  mitigation is out), "none" (it says there is no patch or fix yet), else "unknown".
+- fix: for a security flaw or attack, whether the item says there's a fix: "available" (a patch, update, fixed version,
+  mitigation, or steps to take such as rotating credentials or removing a package), "none" (it says there is no patch
+  or fix yet), else "unknown".
 - fix_evidence: when fix isn't "unknown", the words from the title or excerpt that say so, copied exactly; else "".
 Return JSON: {{"items": [{{"id", "category", "relevance", "summary", "exploited", "evidence", "fix", "fix_evidence"}}, ...]}} covering every input id."""
 
@@ -679,9 +680,9 @@ TLDR_SCHEMA = {
 }
 # For an exploited flaw, the same call says whether its fix is out: the whole article knows what a feed's excerpt may not.
 TLDR_FIX = """
-Also say whether the article says a fix exists for the exploited flaw: fix is "available" (a patch, update, fixed
-version or mitigation is out), "none" (it says there is no patch or fix yet), else "unknown"; fix_evidence is the
-words from the article that say so, copied exactly, else ""."""
+Also say whether the article says there's a fix for the exploited flaw or attack: fix is "available" (a patch, update,
+fixed version, mitigation, or steps to take such as rotating credentials or removing a package), "none" (it says there
+is no patch or fix yet), else "unknown"; fix_evidence is the words from the article that say so, copied exactly, else ""."""
 TLDR_FIX_SCHEMA = {
     "type": "object",
     "properties": TLDR_SCHEMA["properties"] | {"fix": {"type": "string", "enum": ["available", "none", "unknown"]}, "fix_evidence": {"type": "string"}},

@@ -1397,10 +1397,10 @@ def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, sc
     card = lambda u: pg.locator(f'a.card[href="{u}"]')
     assert by_age()  # tagged where they fall: nothing jumps the order
     label = lambda u: (card(u).locator(".x-word").count(), card(u).locator(".fix-pill").text_content())
-    assert label(sec) == (1, "Patch available") and label(infra) == (1, "No patch")  # Exploited, then whether the vendor's fix is out
+    assert label(sec) == (1, "Fix available") and label(infra) == (1, "No fix yet")  # Exploited, then whether there's a fix
     assert pg.evaluate("u => items.find(i => i.url === u).exploited && !listed(items.find(i => i.url === u))", old)  # tagged, but too old to list
     entry = pg.locator("#filters [data-f='exploited']")
-    assert entry.locator(".f-name").inner_text() == "Exploited" and entry.locator(".f-open").inner_text() == "1 unpatched"
+    assert entry.locator(".f-name").inner_text() == "Exploited" and entry.locator(".f-open").inner_text() == "1 unfixed"
     assert entry.locator(".f-count").count() == 0  # in place of the unread count, while a flaw has no fix
     entry.click()
     assert sorted(pg.evaluate("shown.map(i => i.url)")) == sorted([sec, infra]) and by_age()  # the last week's, newest first
@@ -1412,8 +1412,8 @@ def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, sc
     assert [(v["id"], v["nodes"][0]["html"][:80]) for v in Axe().run(pg, options=tags).response["violations"]] == []
     card(sec).click()
     flag = pg.frame_locator("#reader-body iframe:not(.loading)").locator(".meta .flag")
-    assert " ".join(flag.inner_text().split()).lower() == "exploited patch available · confirmed by cisa"  # the list's label, as is
-    assert flag.locator(".patch-out").evaluate("e => getComputedStyle(e).backgroundColor") != "rgba(0, 0, 0, 0)"  # a filled pill, not grey text
+    assert " ".join(flag.inner_text().split()).lower() == "exploited fix available · confirmed by cisa"  # the list's label, as is
+    assert flag.locator(".fix-out").evaluate("e => getComputedStyle(e).backgroundColor") != "rgba(0, 0, 0, 0)"  # a filled pill, not grey text
     assert pg.problems == []
 
 

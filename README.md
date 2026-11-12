@@ -39,7 +39,7 @@ There's no server or database to look after. A scheduled GitHub Actions job comm
 ## What you get
 
 - **A calm feed.** A handful of stories on a big day and none on a slow one. Each shows its source's icon, a one-line summary and how long ago it was published, with topics in a sidebar and search.
-- **Exploited flaws first.** A story about a flaw under active attack, confirmed by CISA's catalog or by the article itself, is tagged **Exploited** where it falls in the feed, with whether a patch is out, and the last week's are listed under the essentials.
+- **Exploited flaws first.** A story about a flaw under active attack, confirmed by CISA's catalog or by the article itself, is tagged **Exploited** where it falls in the feed, with whether there's a fix, and the last week's are listed under the essentials.
 - **The week's essentials.** Five picks from the last seven days, each with what to do about it, under their own entry beside the topics and marked where they appear in the feed.
 - **A built-in reader.** Articles open in a clean pane that starts with the upshot: a few bullets on what happened, who's affected and what to do. On wide screens the pane sits beside the list, as in a desktop feed reader.
 - **It remembers where you were.** Unread stories stand out, read ones are dimmed, and none of that leaves your browser. As in Feedbin, a toolbar's **Read** marks a whole list read (after asking), and the selected story's `…` marks everything above or below it.

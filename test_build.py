@@ -514,3 +514,8 @@ def test_an_exploited_storys_summary_also_reads_its_fix_from_the_whole_article(m
     assert sorted(calls) == [(False, False), (True, True)]  # one call each: the fix rides on the flagged one's summary
     assert flagged["exploited"]["fix"] == "available" and sibling["exploited"]["fix"] == "available"  # its excerpt said none
     assert flagged["tldr"] and "exploited" not in plain
+
+
+def test_steps_to_take_count_as_a_fix_where_theres_no_patch():
+    item = {"title": "Compromised GitHub accounts push a CI secret stealer", "excerpt": "Aikido says to rotate any CI credentials exposed in affected repos."}
+    assert build.verified_fix({"fix": "available", "fix_evidence": "rotate any CI credentials exposed"}, item) == "available"
