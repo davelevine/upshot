@@ -35,6 +35,9 @@ const listed = i => !!i.exploited && ageMins(i) < EXPLOITED_DAYS * 1440;
 const exists = f => (f === 'essentials' ? picks.size > 0 : f === 'exploited' ? items.some(listed) : true);  // the two lists come and go
 const inList = (i, f) => f === 'all' || (f === 'essentials' ? picks.has(i.url) : f === 'exploited' ? listed(i) : cat(i.category) === f);
 const plural = (n, one, many) => (n === 1 ? one : many);
+const FIX = { none: 'No patch', available: 'Patched' };
+const exploitedPill = (x, first = 'Exploited') => `<span class="exploited"><span>${first}</span>${FIX[x.fix] ? `<span class="fix ${x.fix}"> ${FIX[x.fix]}</span>` : ''}</span>`;
+const unpatched = () => items.filter(i => listed(i) && i.exploited.fix === 'none').length;
 
 // Today in the site's time zone (data.json's tz), not the device's: some browsers report UTC for privacy, which
 // turned the evening's stories into a day old.
@@ -81,11 +84,13 @@ function renderFilters() {
     if (isUnread(i)) unread[cat(i.category)] = (unread[cat(i.category)] || 0) + 1;
   }
   const unreadPicks = items.filter(i => picks.has(i.url) && isUnread(i)).length;
-  const btn = (f, n, mark) => `<button class="filter-btn${filter === f ? ' active' : ''}" data-f="${f}" aria-pressed="${filter === f}">` +
-    `<span class="f-mark" aria-hidden="true">${mark}</span><span class="f-name">${label(f)}</span>${n ? `<span class="f-count">${n}<span class="sr-only"> unread</span></span>` : ''}</button>`;
+  const btn = (f, n, mark, note = '') => `<button class="filter-btn${filter === f ? ' active' : ''}" data-f="${f}" aria-pressed="${filter === f}">` +
+    `<span class="f-mark" aria-hidden="true">${mark}</span><span class="f-name">${label(f)}</span>${note}${n ? `<span class="f-count">${n}<span class="sr-only"> unread</span></span>` : ''}</button>`;
+  const open = unpatched();  // exploited flaws with no fix yet: there only while there are any
   $('filters').innerHTML = btn('all', unreadAll, '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>') +
     (picks.size ? btn('essentials', unreadPicks, '<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>') : '') +
-    (exists('exploited') ? btn('exploited', items.filter(i => listed(i) && isUnread(i)).length, '<svg viewBox="0 0 24 24"><path d="M12 4 2.5 20h19z"/><path d="M12 10v4M12 17h.01"/></svg>') : '') +
+    (exists('exploited') ? btn('exploited', items.filter(i => listed(i) && isUnread(i)).length, '<svg viewBox="0 0 24 24"><path d="M12 4 2.5 20h19z"/><path d="M12 10v4M12 17h.01"/></svg>',
+      open ? `<span class="f-open">${open} unpatched</span>` : '') : '') +
     '<h2 class="f-head">Topics</h2>' + ORDER.filter(c => counts[c] || filter === c).map(c => btn(c, unread[c] || 0, `<span class="dot" style="--c:var(--cat-${c})"></span>`)).join('');
   $('list-name').textContent = label(filter);  // phones: the list's name above it, so a filter never makes stories look missing
   syncReadAll();
@@ -110,7 +115,7 @@ function renderPage() {
       ${iconHtml(i.publisher)}
       <div class="card-body">
         <div class="card-title">${highlight(i.title, q)}</div>
-        <div class="card-meta"><span class="card-src">${esc(source(i))}</span>${i.exploited && filter !== 'exploited' ? '<span class="exploited">Exploited</span>' : ''}${ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : ''}${isNew(i) ? '<span class="new">New</span>' : ''}</div>
+        <div class="card-meta"><span class="card-src">${esc(source(i))}</span>${i.exploited ? exploitedPill(i.exploited) : ''}${ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : ''}${isNew(i) ? '<span class="new">New</span>' : ''}</div>
         ${preview ? `<div class="card-sum${why ? ' full' : ''}">${why ? '<b>What to do: </b>' : ''}${highlight(preview, q)}</div>` : ''}
         ${ageHtml(i)}
       </div>
@@ -488,7 +493,8 @@ function storyMeta(i, byline, minutes) {
   // Bylines sometimes carry their own date: "Posted on November 8, 2026 by audra", "By Ada | Tuesday, October 27, 2026".
   let by = (byline || '').replace(/\s+/g, ' ').replace(/\s*\|.*$/, '').replace(/^(posted|published|updated)\b.*?\bby\s+/i, '').replace(/^by\s+/i, '').trim();
   if (/\b\d{4}\b/.test(by) && !Number.isNaN(Date.parse(by))) by = '';  // nothing left but a date
-  const exploited = i.exploited ? `<span class="exploited">Actively exploited</span>${i.exploited.kev?.length ? ' · confirmed by CISA' : ''}` : '';
+  const x = i.exploited, notes = x ? [{ none: 'no patch yet', available: 'patch available' }[x.fix], x.kev?.length && 'confirmed by CISA'].filter(Boolean) : [];
+  const exploited = x ? `${exploitedPill({}, 'Actively exploited')}${notes.map(n => ` · ${n}`).join('')}` : '';
   return `<div class="meta">${exploited ? `<p class="flag">${exploited}</p>` : ''}${esc(when)}${by ? ` by ${esc(by)}` : ''}${minutes ? ` · ${minutes} min read` : ''}</div>`;
 }
 // The upshot (written and checked by the build) with, for weekly essentials, the hand-picked "What to do" as its last line.
@@ -527,7 +533,8 @@ pre { overflow-x: auto; padding: 12px 14px; border-radius: 8px; background: var(
 pre code { padding: 0; background: none; font: inherit; }
 table { display: block; overflow-x: auto; border-collapse: collapse; font-size: .875rem; } th, td { padding: 4px 8px; border: 1px solid var(--border); } th { font-weight: 700; }
 hr { border: 0; border-top: 1px solid var(--border); }
-.flag { margin: 0 0 .35em; } .exploited { display: inline-block; margin-right: 6px; padding: 1px 8px; border-radius: 999px; background: var(--exploited); color: var(--exploited-text); font-size: .78em; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.flag { margin: 0 0 .35em; } .exploited { display: inline-flex; margin-right: 6px; font-size: .78em; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.exploited > span { padding: 1px 8px; border-radius: 999px; background: var(--exploited); color: var(--exploited-text); }
 .late { animation: late .2s ease .4s both; } @keyframes late { from { opacity: 0; } }
 .status { color: var(--text-muted); font: 370 .9375rem/1.5 "Public Sans", system-ui, sans-serif; }
 .pill { display: inline-block; padding: 10px 18px; border: 1px solid var(--accent); border-radius: 999px; font: 600 .9375rem/1.4 "Public Sans", system-ui, sans-serif; text-decoration: none; }

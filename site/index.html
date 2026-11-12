@@ -33,7 +33,7 @@
     --bg: #e3e6ec; --bg-card: #ffffff; --bg-card-hover: #eceff3; --border: #dde1e8; --border-strong: #b6bdc9;
     --text: #1c1f27; --urgent: #d9485a; --text-muted: #586172; --accent: #0d6b66; --accent-soft: #d7e7e5; --accent-contrast: #fff;
     --header-bg: rgba(227, 230, 236, .88); --tag-text: #0a5652;
-    --exploited: #b3261e; --exploited-text: #fff;  /* the Exploited pill: a true red, darker and less pink than the wordmark's dot */
+    --exploited: #b3261e; --exploited-text: #fff; --exploited-ink: #b3261e;  /* the Exploited pill: a true red, darker and less pink than the wordmark's dot */
     /* Category dots: one lightness and chroma per theme, hues spread to stay apart with red-green colour blindness. Dots need 3:1, not text contrast. */
     --cat-security: #ce5978; --cat-ai: #ad65be; --cat-infrastructure: #168dd9; --cat-engineering: #409d48; --cat-regulation: #c9690c; --cat-other: #5d646f;
     --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --read: 860px;
@@ -43,7 +43,7 @@
     --bg: #15161e; --bg-card: #1e1f27; --bg-card-hover: #262830; --border: #2c2e36; --border-strong: #40414c;  /* all in the background's blue-violet */
     --text: #eceff4; --urgent: #d9485a; --text-muted: #a3abbb; --accent: #4fcdbb; --accent-soft: #1d3b3e; --accent-contrast: #15161e;
     --header-bg: rgba(21, 22, 30, .88); --tag-text: #9ae6da;
-    --exploited: #ff8f80; --exploited-text: #15161e;
+    --exploited: #ff8f80; --exploited-text: #15161e; --exploited-ink: #ff8f80;
     --cat-security: #f57595; --cat-ai: #d080e2; --cat-infrastructure: #19affe; --cat-engineering: #69bc57; --cat-regulation: #e98a13; --cat-other: #afb6c1;
   }
   * { box-sizing: border-box; margin: 0; }
@@ -223,8 +223,14 @@
   .card.read .card-title { color: var(--text-muted); font-weight: 500; }
   .card.read .card-meta { color: var(--text-muted); }
   /* An actively exploited flaw (build.py: in CISA's catalog, or a checked claim). */
-  .exploited { flex: 0 0 auto; padding: 1px 7px; border-radius: 999px; background: var(--exploited); color: var(--exploited-text); font-size: .6875rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
-  .card-meta > .exploited { color: var(--exploited-text); }  /* not muted with the rest of the row's extras */
+  /* Two halves: Exploited, then whether the vendor's fix is out: still red with no patch, the calm accent once there is one. */
+  .exploited { flex: 0 0 auto; display: inline-flex; font-size: .6875rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+  .exploited > span { padding: 1px 7px; border-radius: 999px; background: var(--exploited); color: var(--exploited-text); }
+  .exploited > span:first-child:not(:last-child) { padding-right: 6px; border-radius: 999px 0 0 999px; }
+  .exploited > .fix { padding-left: 6px; border-radius: 0 999px 999px 0; }
+  .exploited > .fix.none { box-shadow: inset 1px 0 0 color-mix(in srgb, var(--exploited-text) 45%, transparent); }
+  .exploited > .fix.available { background: var(--accent-soft); color: var(--tag-text); }
+  .f-open { flex: none; color: var(--exploited-ink); font-size: .75rem; font-weight: 600; }  /* exploited flaws with no fix yet */
   .new { flex: 0 0 auto; padding: 1px 7px; border-radius: 999px; background: var(--accent); color: var(--accent-contrast); font-size: .6875rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
   .skeleton { pointer-events: none; }
   .skeleton .bone { display: block; height: .8em; border-radius: 6px; background: var(--border); animation: pulse 1.4s ease-in-out infinite; }

@@ -1398,7 +1398,7 @@ def flag_some(data):
     newest = lambda c: max((i for i in data["items"] if i["category"] == c), key=lambda i: i.get("published") or i["date"])
     old = min(data["items"], key=lambda i: i["date"])
     for i, kev in ((newest("security"), ["CVE-2026-1"]), (newest("infrastructure"), []), (old, ["CVE-2025-9"])):
-        i["exploited"] = {"kev": kev, "at": i.get("added") or i["date"]} | ({} if kev else {"quote": "is being exploited in the wild"})
+        i["exploited"] = {"kev": kev, "at": i.get("added") or i["date"]} | ({"fix": "available"} if kev else {"quote": "is being exploited in the wild", "fix": "none"})
     data["flagged"] = [newest("security")["url"], newest("infrastructure")["url"], old["url"]]  # for the test; the site ignores it
 
 
@@ -1410,21 +1410,22 @@ def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, sc
     by_age = lambda: pg.evaluate("shown.every((i, n, a) => !n || ageMins(a[n - 1]) <= ageMins(i))")
     card = lambda u: pg.locator(f'a.card[href="{u}"]')
     assert by_age()  # tagged where they fall: nothing jumps the order
-    for u in (sec, infra):
-        assert card(u).locator(".exploited").inner_text().lower() == "exploited"
+    pill = lambda u: " ".join(card(u).locator(".exploited > span").all_inner_texts()).lower()
+    assert pill(sec) == "exploited patched" and pill(infra) == "exploited no patch"  # whether the vendor's fix is out
     assert pg.evaluate("u => items.find(i => i.url === u).exploited && !listed(items.find(i => i.url === u))", old)  # tagged, but too old to list
     entry = pg.locator("#filters [data-f='exploited']")
     assert entry.locator(".f-name").inner_text() == "Exploited" and entry.locator(".f-count").inner_text().startswith("2")
+    assert entry.locator(".f-open").inner_text() == "1 unpatched"  # there only while a flaw has no fix
     entry.click()
     assert sorted(pg.evaluate("shown.map(i => i.url)")) == sorted([sec, infra]) and by_age()  # the last week's, newest first
-    assert pg.locator("a.card .exploited").count() == 0  # the list's name says it
+    assert pg.locator("a.card .exploited").count() == 2  # marked in every list, this one too
     assert pg.inner_text("#end-msg") == "That\u2019s all 2 exploited flaws from the last 7 days."
     pg.click("#filters [data-f='all']")
     tags = {"runOnly": {"type": "tag", "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]}}
     assert [(v["id"], v["nodes"][0]["html"][:80]) for v in Axe().run(pg, options=tags).response["violations"]] == []
     card(sec).click()
     flag = pg.frame_locator("#reader-body iframe:not(.loading)").locator(".meta .flag")
-    assert flag.inner_text().replace("\n", " ").lower() == "actively exploited · confirmed by cisa"
+    assert " ".join(flag.inner_text().split()).lower() == "actively exploited · patch available · confirmed by cisa"
     assert pg.problems == []
 
 
