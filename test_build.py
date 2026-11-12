@@ -284,9 +284,11 @@ def test_run_summary_counts_and_near_misses():
               new[1]["url"]: {"category": "security", "relevance": 7, "summary": "s"},   # one under the Security bar
               new[2]["url"]: {"category": "regulation", "relevance": 5, "summary": "s"},
               new[3]["url"]: None}                                                        # scoring failed
-    out = build.run_summary(45, 1, new, scores, [(new[0], scores[new[0]["url"]])], [], [])
+    flagged = {**new[1], "exploited": {"kev": [], "at": "t"}}
+    out = build.run_summary(45, 1, new, scores, [(new[0], scores[new[0]["url"]]), (flagged, scores[new[1]["url"]])], [], [])
+    assert "**Exploited:** 1 (1 below the bar)" in out  # how often the flag fires, and how often it bends the bar
     assert "45 fetched, 1 failed" in out and "**New stories:** 4" in out and "**Scored:** 3 (1 failed" in out
-    assert "**Kept:** 1" in out and "[T0](https://x.test/0)" in out
+    assert "**Kept:** 2" in out and "[T0](https://x.test/0)" in out
     near = out.split("One point under the bar")[1]
     assert "T1" in near and "T2" not in near
 
@@ -413,6 +415,7 @@ def test_a_flagged_story_publishes_below_its_bar():
     r = {"category": "security", "relevance": build.MIN_RELEVANCE["security"] - 1}
     assert not build.passes(r, None) and build.passes(r, {"kev": ["CVE-2026-1"], "at": "t"})
     assert build.passes({**r, "relevance": build.MIN_RELEVANCE["security"]}, None)
+    assert not build.passes({**r, "relevance": build.MIN_RELEVANCE["security"] - 2}, {"kev": ["CVE-2026-1"], "at": "t"})  # too niche: noise
 
 
 def test_the_catalog_failing_leaves_the_build_running(monkeypatch, capsys):

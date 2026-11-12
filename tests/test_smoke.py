@@ -1413,7 +1413,7 @@ def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, sc
     card(sec).click()
     flag = pg.frame_locator("#reader-body iframe:not(.loading)").locator(".meta .flag")
     assert " ".join(flag.inner_text().split()).lower() == "exploited fix available · confirmed by cisa"  # the list's label, as is
-    assert flag.locator(".fix-out").evaluate("e => getComputedStyle(e).backgroundColor") != "rgba(0, 0, 0, 0)"  # a filled pill, not grey text
+    assert flag.locator(".fix-out").evaluate("e => getComputedStyle(e).backgroundColor") == "rgba(0, 0, 0, 0)"  # quiet text: only "No fix yet" is filled
     assert pg.problems == []
 
 

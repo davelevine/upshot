@@ -308,8 +308,10 @@ def exploited(item, r, kev):
 
 
 def passes(r, flag):
-    """The one rule: a story clears its category's bar, or it's an exploited flaw, worth knowing about whatever its score."""
-    return r["relevance"] >= MIN_RELEVANCE[r["category"]] or bool(flag)
+    """The one rule: a story clears its category's bar, or it's an exploited flaw a point short of it. An exploited flaw is
+    worth knowing about, but not in a product too niche to score near the bar: that would be noise, not news."""
+    bar = MIN_RELEVANCE[r["category"]]
+    return r["relevance"] >= bar or (bool(flag) and r["relevance"] >= bar - 1)
 
 
 def carry_flag(items, title, flag):
@@ -741,7 +743,9 @@ def run_summary(feeds, feeds_failed, new, scores, kept, repeated, health):
     lines = [
         "## Upshot build", "",
         f"**Feeds:** {feeds} fetched, {feeds_failed} failed · **New stories:** {len(new)} · **Scored:** {len(scored)}"
-        f" ({len(new) - len(scored)} failed, retried next run) · **Kept:** {len(kept)} · **Dropped as repeats:** {len(repeated)}", "",
+        f" ({len(new) - len(scored)} failed, retried next run) · **Kept:** {len(kept)} · **Dropped as repeats:** {len(repeated)}"
+        f" · **Exploited:** {sum(1 for i, _ in kept if i.get('exploited'))}"  # how often the flag fires: is the feed still calm?
+        f" ({sum(1 for i, r in kept if i.get('exploited') and r['relevance'] < MIN_RELEVANCE[r['category']])} below the bar)", "",
     ]
     if kept:
         lines += ["### Kept", "", "| Category | Score | Source | Story |", "|---|---|---|---|", *(row(r, i) for i, r in kept), ""]
