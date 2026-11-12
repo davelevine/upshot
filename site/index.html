@@ -121,14 +121,17 @@
   body:has(#stale:not([hidden])) .col { padding-bottom: 56px; }  /* the list's end stays clear of it */
   body:has(#stale:not([hidden])) .back-to-top { bottom: 68px; }
   /* Feedbin's "…" on the selected story: a sibling of its row (a button can't sit inside a link), drawn over the row's corner. */
-  /* Mark all as read where feed readers keep it: atop the list it acts on, from 641px (FreshRSS, NewsBlur, Miniflux, Inoreader),
-     in line with the reader's bar; on a phone, a double-check in the list's top bar, beside search (Read You, NewsBlur). */
-  .list-head, .read-btn { display: none; }
-  .list-read { flex: none; display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 10px; border: 0; border-radius: var(--radius-sm);  /* borderless, as the reader bar's controls beside it */
-    background: none; color: var(--text-muted); font-size: .8125rem; font-weight: 500; cursor: pointer; }
-  .list-read svg { width: 16px; height: 16px; }
-  .list-read:disabled, .read-btn:disabled { opacity: .4; cursor: default; }
-  @media (hover: hover) { .list-read:not(:disabled):hover { background: var(--bg-card-hover); color: var(--accent); } }  /* as .icon-btn */
+  /* The toolbar, after Feedbin's: two buttons, each centred in half the bar, icon over label. At the sidebar's foot from 1024px,
+     the pane's below that, and a phone list's bottom bar, where Back to top takes the left half (dimmed at the top, as
+     Feedbin dims Edit) and Shortcuts, which needs a keyboard, steps aside. */
+  .list-bar { position: fixed; left: 0; bottom: 0; z-index: 90; display: grid; grid-template-columns: 1fr 1fr; place-items: center; width: var(--side-w); height: 60px;
+    border-top: 1px solid var(--border); background: var(--bg); }
+  .bar-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 72px; min-height: 52px; padding: 0 8px; border: 0;
+    border-radius: var(--radius-sm); background: none; color: var(--text); font-size: .8125rem; font-weight: 500; cursor: pointer; }
+  .bar-btn svg { width: 22px; height: 22px; }
+  .bar-btn:disabled { opacity: .4; cursor: default; }
+  @media (hover: hover) { .bar-btn:not(:disabled):hover { background: var(--bg-card-hover); color: var(--accent); } }
+  #bar-top { display: none; }
   .more-wrap { position: relative; z-index: 2; align-self: flex-end; margin: -39px 6px 3px 0; }  /* centred on the row's age line, taking no room */
   .more-wrap > .icon-btn[aria-expanded="true"] { background: var(--bg-card-hover); color: var(--text); }
   .popover.more-pop { white-space: nowrap; }
@@ -265,6 +268,16 @@
     .shell { display: block; }
     .subheader { display: contents; }
     .stale { left: 0; height: calc(56px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); }  /* a phone's bottom bar */
+    /* A list's toolbar, as in Feedbin's app. It fades with the list's header as the pages slide, and the late bar sits on it. */
+    .list-bar { right: 0; width: auto; height: calc(60px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);
+      opacity: calc(1 - var(--pd, 0)); transition: opacity var(--slide-in) var(--ease-in); }
+    body.home .list-bar { opacity: calc(1 - var(--pd, 1)); }
+    body.paging .list-bar { transition: none; }
+    .bar-btn svg { width: 22px; height: 22px; }
+    #bar-top { display: flex; } #bar-keys, #top { display: none !important; }  /* Back to top lives in the bar here */
+    body:not(.home) .stale { bottom: calc(60px + env(safe-area-inset-bottom)); height: 44px; padding-bottom: 0; }
+    body:not(.home) .col { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
+    body:not(.home):has(#stale:not([hidden])) .col { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
     .more-wrap { margin-top: -44px; margin-bottom: 0; }
     .search-row { display: none; }  /* the header has its own search button here */
     .search-btn { display: inline-grid; }
@@ -274,19 +287,17 @@
     .ticker { max-width: calc(100vw - 100px); }
     /* The header crossfades with the pages, on the same --pd as their slide: the list's chevron and name fade out drifting right
        with it, and the wordmark fades in from the left with the topics; on a swipe, under the finger. */
-    .logo-h, .list-back, .list-name, .search-btn, .read-btn { transition: opacity var(--slide-in) var(--ease-in), transform var(--slide-in) var(--ease-in); }
-    .search-btn, .read-btn { opacity: calc(1 - var(--pd, 0)); }  /* search is for lists, as in Feedbin: the topics are for choosing one */
-    body.home :is(.search-btn, .read-btn) { opacity: calc(1 - var(--pd, 1)); }
-    .read-btn { display: inline-grid; }
-    body.home .read-btn:disabled { opacity: calc(.4 * (1 - var(--pd, 1))); }
+    .logo-h, .list-back, .list-name, .search-btn { transition: opacity var(--slide-in) var(--ease-in), transform var(--slide-in) var(--ease-in); }
+    .search-btn { opacity: calc(1 - var(--pd, 0)); }  /* search is for lists, as in Feedbin: the topics are for choosing one */
+    body.home .search-btn { opacity: calc(1 - var(--pd, 1)); }
     .logo-h { opacity: var(--pd, 0); transform: translateX(calc(-24px * (1 - var(--pd, 0)))); }
     body.home .logo-h { opacity: var(--pd, 1); transform: translateX(calc(-24px * (1 - var(--pd, 1)))); }
     .list-back { display: inline-grid; position: absolute; top: 3.5px; left: 4px; opacity: calc(1 - var(--pd, 0)); }
     body.home .list-back { opacity: calc(1 - var(--pd, 1)); }
-    .list-name { display: block; position: absolute; top: 0; left: 52px; max-width: calc(100% - 214px); line-height: 52px; opacity: calc(1 - var(--pd, 0)); transform: translateX(calc(48px * var(--pd, 0)));
+    .list-name { display: block; position: absolute; top: 0; left: 50%; max-width: calc(100% - 220px); line-height: 52px; opacity: calc(1 - var(--pd, 0)); transform: translateX(calc(-50% + 48px * var(--pd, 0)));
       overflow: hidden; font-size: 1.0625rem; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
-    body.home .list-name { opacity: calc(1 - var(--pd, 1)); transform: translateX(calc(48px * var(--pd, 1))); }
-    body.paging :is(.logo-h, .list-back, .list-name, .search-btn, .read-btn) { transition: none; }
+    body.home .list-name { opacity: calc(1 - var(--pd, 1)); transform: translateX(calc(-50% + 48px * var(--pd, 1))); }
+    body.paging :is(.logo-h, .list-back, .list-name, .search-btn) { transition: none; }
     .filter-btn { min-height: 44px; font-size: 1rem; }
     .filters .f-head { margin-top: 12px; }
     .icon-btn { width: 44px; height: 44px; }
@@ -344,10 +355,7 @@
     /* One bar across the top, as in Feedbin: the header shrinks to the sidebar's top (logo, then search), the reader runs to the
        top of the window, and the menu button sits at the end of the reader bar, with the story's controls beside it. */
     html { overflow: hidden; scrollbar-gutter: auto; }  /* the list scrolls itself, so its scrollbar sits beside it, not at the window's edge */
-    .col { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; scroll-padding-top: 64px; }
-    .list-head { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: 8px; height: 52px; margin-bottom: 8px; padding: 0 12px 0 22px;
-      border-bottom: 1px solid var(--border); background: var(--bg); }
-    .list-title { flex: 1; min-width: 0; overflow: hidden; font-size: .9375rem; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+    .col { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; scroll-padding-top: 12px; }
     header { position: fixed; inset: 0 auto auto 0; border-bottom: 0; border-right: 1px solid var(--border); background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
     .controls { position: fixed; top: 8px; right: 12px; z-index: 101; }  /* fixed to the window: the header no longer reaches here */
     .reader .reader-bar { padding-right: 64px; }  /* room for the menu button */
@@ -373,14 +381,20 @@
     #resize-list { display: block; left: var(--left-w); }
     header { width: var(--side-w); }
     .stale { left: var(--side-w); width: var(--list-w); }  /* the list's foot */
-    .side { top: 0; height: 100dvh; padding-top: 66px; }
+    .side { top: 0; height: 100dvh; padding-top: 66px; padding-bottom: 60px; }  /* clear of the toolbar at its foot */
+    .stale { height: 60px; }  /* level with the toolbar beside it */
+    body:has(#stale:not([hidden])) .col { padding-bottom: 72px; }
+    body:has(#stale:not([hidden])) .back-to-top { bottom: 84px; }
   }
   /* A small window, or a zoomed-in one: the reader stays docked, and the topics and the list are two pages of one left pane,
      scrolled sideways, as in Feedbin. The pane narrows at the low end so the article keeps at least 360px. */
   @media (min-width: 641px) and (max-width: 1023px) {
     :root { --pane-w: clamp(280px, 100vw - 360px, 360px); --left-w: var(--pane-w); }
-    header, .stale { width: var(--pane-w); }
-    .stale { left: 0; }
+    header, .stale, .list-bar { width: var(--pane-w); }
+    .stale { left: 0; bottom: 60px; }  /* on the toolbar, which spans the pane's foot whichever page shows */
+    .side, .col { padding-bottom: 60px; }
+    body:has(#stale:not([hidden])) .col { padding-bottom: 104px; }
+    .back-to-top { bottom: 84px; } body:has(#stale:not([hidden])) .back-to-top { bottom: 128px; }
     .ticker { max-width: calc(var(--pane-w) - 30px); }
     .shell { width: var(--pane-w); height: calc(100dvh - 52px); margin-top: 52px; grid-template-columns: var(--pane-w) var(--pane-w);
       overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; }
@@ -436,7 +450,6 @@
   <span class="list-name" id="list-name" aria-hidden="true">All</span>
   <h1 class="logo-h"><span class="ticker" id="ticker" aria-hidden="true"></span><a class="logo" href="/"><svg viewBox="-4.00 -77.24 354.79 100.29" role="img" aria-label="Upshot"><path class="fg" d="M23.681640625 1.26953125Q17.578125 1.26953125 13.6474609375 -1.513671875Q9.716796875 -4.296875 7.8125 -9.228515625Q5.908203125 -14.16015625 5.908203125 -20.60546875V-52.734375H20.458984375V-22.314453125Q20.458984375 -15.91796875 22.65625 -12.8173828125Q24.853515625 -9.716796875 29.4921875 -9.716796875Q32.2265625 -9.716796875 34.6923828125 -11.1572265625Q37.158203125 -12.59765625 38.720703125 -15.966796875Q40.283203125 -19.3359375 40.283203125 -25.146484375V-52.734375H54.833984375V0.0H40.771484375V-12.353515625L41.11328125 -10.205078125Q38.76953125 -4.833984375 34.3505859375 -1.7822265625Q29.931640625 1.26953125 23.681640625 1.26953125Z M65.310546875 19.04296875V-52.734375H79.080078125V-42.138671875L78.93359375 -42.919921875Q81.66796875 -48.681640625 86.2333984375 -51.3427734375Q90.798828125 -54.00390625 96.462890625 -54.00390625Q103.103515625 -54.00390625 107.9619140625 -50.7080078125Q112.8203125 -47.412109375 115.45703125 -41.1865234375Q118.09375 -34.9609375 118.09375 -26.26953125Q118.09375 -17.578125 115.4326171875 -11.4013671875Q112.771484375 -5.224609375 107.8642578125 -1.9775390625Q102.95703125 1.26953125 96.21875 1.26953125Q90.359375 1.26953125 85.7939453125 -1.4404296875Q81.228515625 -4.150390625 78.396484375 -10.25390625L79.763671875 -10.3515625V19.04296875ZM91.04296875 -9.716796875Q96.365234375 -9.716796875 99.5390625 -14.1845703125Q102.712890625 -18.65234375 102.712890625 -26.5625Q102.712890625 -34.375 99.6123046875 -38.6962890625Q96.51171875 -43.017578125 91.140625 -43.017578125Q87.771484375 -43.017578125 85.0615234375 -41.2109375Q82.3515625 -39.404296875 80.7646484375 -35.7177734375Q79.177734375 -32.03125 79.177734375 -26.46484375Q79.177734375 -18.115234375 82.595703125 -13.916015625Q86.013671875 -9.716796875 91.04296875 -9.716796875Z M146.5390625 1.26953125Q140.58203125 1.26953125 135.30859375 -0.4638671875Q130.03515625 -2.197265625 126.421875 -5.859375Q122.80859375 -9.521484375 121.83203125 -15.380859375L135.11328125 -18.017578125Q135.552734375 -13.57421875 138.2626953125 -11.3037109375Q140.97265625 -9.033203125 146.001953125 -9.033203125Q150.8359375 -9.033203125 153.1796875 -10.9619140625Q155.5234375 -12.890625 155.5234375 -15.478515625Q155.5234375 -17.7734375 153.6923828125 -19.43359375Q151.861328125 -21.09375 147.369140625 -21.77734375L142.583984375 -22.55859375Q139.751953125 -22.998046875 136.5537109375 -23.7548828125Q133.35546875 -24.51171875 130.5234375 -26.0498046875Q127.69140625 -27.587890625 125.884765625 -30.322265625Q124.078125 -33.056640625 124.078125 -37.353515625Q124.078125 -42.578125 126.8857421875 -46.3134765625Q129.693359375 -50.048828125 134.673828125 -52.0263671875Q139.654296875 -54.00390625 146.05078125 -54.00390625Q151.958984375 -54.00390625 156.841796875 -52.2705078125Q161.724609375 -50.537109375 165.0205078125 -47.1923828125Q168.31640625 -43.84765625 169.29296875 -38.916015625L156.01171875 -36.181640625Q155.669921875 -38.18359375 154.7177734375 -39.94140625Q153.765625 -41.69921875 151.8125 -42.7978515625Q149.859375 -43.896484375 146.5390625 -43.896484375Q142.779296875 -43.896484375 140.5576171875 -42.431640625Q138.3359375 -40.966796875 138.3359375 -38.427734375Q138.3359375 -36.572265625 139.5810546875 -35.400390625Q140.826171875 -34.228515625 142.9990234375 -33.5205078125Q145.171875 -32.8125 147.90625 -32.32421875L153.375 -31.396484375Q157.57421875 -30.712890625 161.3583984375 -29.0283203125Q165.142578125 -27.34375 167.53515625 -24.21875Q169.927734375 -21.09375 169.927734375 -16.015625Q169.927734375 -10.400390625 166.8759765625 -6.54296875Q163.82421875 -2.685546875 158.5263671875 -0.7080078125Q153.228515625 1.26953125 146.5390625 1.26953125Z M177.279296875 0.0V-73.2421875H191.830078125V-40.380859375L191.0 -42.529296875Q193.34375 -47.94921875 197.7626953125 -50.9765625Q202.181640625 -54.00390625 208.431640625 -54.00390625Q214.583984375 -54.00390625 218.490234375 -51.220703125Q222.396484375 -48.4375 224.30078125 -43.505859375Q226.205078125 -38.57421875 226.205078125 -32.12890625V0.0H211.654296875V-30.419921875Q211.654296875 -36.9140625 209.9453125 -39.9658203125Q208.236328125 -43.017578125 203.5 -43.017578125Q197.787109375 -43.017578125 194.80859375 -38.671875Q191.830078125 -34.326171875 191.830078125 -25.634765625V0.0Z M259.630859375 1.26953125Q251.671875 1.26953125 245.5927734375 -2.24609375Q239.513671875 -5.76171875 236.095703125 -11.9873046875Q232.677734375 -18.212890625 232.677734375 -26.3671875Q232.677734375 -34.5703125 236.095703125 -40.7958984375Q239.513671875 -47.021484375 245.5927734375 -50.5126953125Q251.671875 -54.00390625 259.630859375 -54.00390625Q267.638671875 -54.00390625 273.7177734375 -50.5126953125Q279.796875 -47.021484375 283.21484375 -40.7958984375Q286.6328125 -34.5703125 286.6328125 -26.3671875Q286.6328125 -18.1640625 283.21484375 -11.9384765625Q279.796875 -5.712890625 273.693359375 -2.2216796875Q267.58984375 1.26953125 259.630859375 1.26953125ZM259.6796875 -9.423828125Q265.099609375 -9.423828125 268.2490234375 -13.9892578125Q271.3984375 -18.5546875 271.3984375 -26.3671875Q271.3984375 -34.228515625 268.2490234375 -38.76953125Q265.099609375 -43.310546875 259.630859375 -43.310546875Q254.2109375 -43.310546875 251.0615234375 -38.76953125Q247.912109375 -34.228515625 247.912109375 -26.3671875Q247.912109375 -18.505859375 251.0615234375 -13.96484375Q254.2109375 -9.423828125 259.6796875 -9.423828125Z M308.4375 0.0Q302.578125 0.0 299.4287109375 -2.8564453125Q296.279296875 -5.712890625 296.279296875 -11.083984375V-42.08984375H288.759765625V-52.734375H296.279296875V-63.0859375L310.830078125 -66.6015625V-52.734375H320.595703125V-42.08984375H310.830078125V-13.37890625Q310.830078125 -11.767578125 311.2939453125 -11.2060546875Q311.7578125 -10.64453125 313.271484375 -10.64453125H321.328125V0.0Z"/><path class="dot" d="M336.78515625 1.26953125Q332.29296875 1.26953125 329.509765625 -1.513671875Q326.7265625 -4.296875 326.7265625 -8.7890625Q326.7265625 -13.28125 329.509765625 -16.0400390625Q332.29296875 -18.798828125 336.78515625 -18.798828125Q341.27734375 -18.798828125 344.0361328125 -16.0400390625Q346.794921875 -13.28125 346.794921875 -8.7890625Q346.794921875 -4.296875 344.0361328125 -1.513671875Q341.27734375 1.26953125 336.78515625 1.26953125Z"/></svg></a></h1>
   <div class="controls">
-    <button class="icon-btn read-btn" id="read-all-phone" type="button" aria-label="Mark all as read" title="Mark all as read"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/></svg></button>
     <button class="icon-btn search-btn" id="search-btn" type="button" aria-label="Search articles" aria-haspopup="dialog" title="Search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
     <button class="icon-btn menu-btn" id="menu-btn" type="button" popovertarget="menu" aria-label="Menu" title="Menu">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="8" cy="12" r=".6" fill="currentColor"/><circle cx="12" cy="12" r=".6" fill="currentColor"/><circle cx="16" cy="12" r=".6" fill="currentColor"/></svg>
@@ -459,6 +472,7 @@
   </div>
 </header>
 <div class="stale feed" id="stale" hidden><span id="stale-msg"></span><button class="icon-btn" id="stale-check" type="button" aria-label="Check again" title="Check again"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button></div>
+<div class="list-bar feed" id="list-bar"><button class="bar-btn" id="bar-top" type="button" aria-label="Back to top" title="Back to top" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button><button class="bar-btn" id="bar-keys" type="button" aria-haspopup="dialog" aria-label="Keyboard shortcuts" title="Keyboard shortcuts"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>Shortcuts</button><button class="bar-btn" id="read-all" type="button" aria-label="Mark all as read" title="Mark all as read"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.7 2.7L16 9.8"/></svg>Read</button></div>
 <div class="shell">
 <aside class="subheader side feed">
   <div class="search-row" role="search">
@@ -472,7 +486,6 @@
   <p class="side-foot"><time id="updated"></time></p>
 </aside>
 <div class="col" id="col">
-<div class="list-head" id="list-head"><h2 class="list-title" id="list-title">All</h2><button class="list-read" id="read-all" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/></svg>Mark all as read</button></div>
 <div class="sr-only" id="status" role="status"></div>
 <main class="items feed" id="items" aria-busy="true"><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div><div class="card skeleton" aria-hidden="true"><span class="src-icon bone"></span><div class="card-body"><span class="bone title" style="width:70%"></span><span class="bone" style="width:30%;margin-top:.5em"></span><span class="bone" style="width:95%;margin-top:.6em"></span><span class="bone" style="width:60%;margin-top:.5em"></span></div></div></main>
 <div id="sentinel"></div>

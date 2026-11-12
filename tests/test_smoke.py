@@ -255,8 +255,9 @@ def test_late_bar_appears_once_a_build_is_late_and_can_check_again(browser):
 def test_late_bar_is_a_bottom_bar_on_a_phone(browser):
     pg = stale_site(browser, 6, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
     assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
-    bar = pg.locator("#stale").bounding_box()
-    assert bar["x"] == 0 and bar["width"] == 320 and bar["y"] + bar["height"] == 700
+    bar, tools = pg.locator("#stale").bounding_box(), pg.locator("#list-bar").bounding_box()
+    assert bar["x"] == 0 and bar["width"] == 320 and bar["y"] + bar["height"] == tools["y"]  # on top of the list's toolbar
+    assert tools["width"] == 320 and tools["y"] + tools["height"] == 700
     assert pg.locator("#stale-check").bounding_box()["height"] >= 44
 
 
@@ -321,7 +322,7 @@ def test_end_of_feed_message(browser):
     assert pg.problems == []
 
 
-def test_back_to_top_never_covers_the_end_message(browser):
+def test_the_phone_toolbar_never_covers_the_end_message(browser):
     pg = open_site(browser, viewport={"width": 412, "height": 520}, has_touch=True, is_mobile=True)
     for _ in range(300):  # until the feed runs out, not a fixed count: a busy machine loads pages more slowly
         pg.evaluate("window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'instant'})")
@@ -329,11 +330,10 @@ def test_back_to_top_never_covers_the_end_message(browser):
             break
         pg.wait_for_timeout(50)
     pg.evaluate("window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'instant'})")
-    pg.locator("#top").wait_for()
-    overlap = """() => { const t = document.getElementById('top').getBoundingClientRect();
-        const r = document.getElementById('end-msg').getBoundingClientRect();
-        return r.left < t.right && r.right > t.left && r.top < t.bottom && r.bottom > t.top; }"""
-    assert pg.evaluate("!document.getElementById('end').hidden") and not pg.evaluate(overlap)
+    pg.wait_for_timeout(100)
+    msg, bar = pg.locator("#end-msg").bounding_box(), pg.locator("#list-bar").bounding_box()
+    assert pg.evaluate("!document.getElementById('end').hidden") and msg["y"] + msg["height"] <= bar["y"]
+    assert pg.locator("#top").is_hidden()  # no floating button here: it's in the toolbar
 
 
 def test_back_to_top_reacts_to_hover(browser):
@@ -1241,8 +1241,8 @@ def test_the_reader_marks_a_story_unread_and_read_again(browser):
 
 
 def test_read_marks_the_list_read_once_confirmed(browser):
-    # Where feed readers keep it (FreshRSS, NewsBlur, Miniflux): atop the list, in line with the reader's bar. It asks first,
-    # and marks only the list that's showing.
+    # Feedbin's toolbar at the sidebar's foot, Shortcuts and Read each centred in half of it. Read asks first, and marks only
+    # the list that's showing.
     pg = open_site(browser, viewport={"width": 1440, "height": 900})
     count = lambda f: pg.locator(f"#filters .filter-btn[data-f='{f}'] .f-count")
     opened = pg.evaluate("items.find(i => cat(i.category) !== 'security').title")
@@ -1250,9 +1250,16 @@ def test_read_marks_the_list_read_once_confirmed(browser):
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
     pg.click("#filters [data-f='security']")
     wait_until_closed(pg)
-    head, col, bar = (pg.locator(s).bounding_box() for s in ("#list-head", "#col", ".reader-bar"))
-    assert head["x"] == col["x"] and head["y"] == bar["y"] == 0 and head["height"] == bar["height"]  # one row with the reader's bar
-    assert pg.inner_text("#list-title") == "Security" and pg.locator("#read-all-phone").is_hidden()
+    bar, side, col = (pg.locator(s).bounding_box() for s in ("#list-bar", ".side", "#col"))
+    assert bar["x"] == 0 and bar["width"] == side["width"] and bar["y"] + bar["height"] == 900  # the sidebar's foot
+    assert pg.locator("a.card").first.bounding_box()["y"] < 20 and col["y"] == 0  # the list runs to the top
+    keys, read = pg.locator("#bar-keys").bounding_box(), pg.locator("#read-all").bounding_box()
+    centre = lambda b: b["x"] + b["width"] / 2
+    assert abs(centre(keys) - bar["width"] / 4) <= 1 and abs(centre(read) - bar["width"] * 3 / 4) <= 1  # balanced halves
+    assert pg.locator("#bar-top").is_hidden()
+    pg.click("#bar-keys")
+    assert pg.locator("#keys").is_visible()
+    pg.keyboard.press("Escape")
     n, others = pg.evaluate("shown.length"), count("all").text_content()
     pg.click("#read-all")
     assert pg.locator("#confirm-read").is_visible() and pg.inner_text("#confirm-msg") == f"Mark {n} unread stories in Security as read?"
@@ -1309,13 +1316,20 @@ def test_mark_above_and_below_as_read(browser):
     assert pg.problems == []
 
 
-def test_phones_mark_all_read_from_the_lists_top_bar_and_keep_the_closed_story_selected(browser):
-    # A double-check beside search in the list's top bar, as Android feed readers have it (Read You, NewsBlur).
+def test_phones_get_feedbins_toolbar_and_keep_the_closed_story_selected(browser):
+    # As in Feedbin's app: a bottom bar, two buttons each centred in half of it. Back to top takes the left, dimmed at the top
+    # as Feedbin dims Edit; Read the right.
     pg = open_site(browser, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
-    btn, search, name = (pg.locator(s).bounding_box() for s in ("#read-all-phone", "#search-btn", "#list-name"))
-    assert btn["y"] < 52 and btn["height"] >= 44 and btn["x"] + btn["width"] <= search["x"] and name["x"] + name["width"] <= btn["x"]
-    assert pg.locator("#list-head").is_hidden() and pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
-    pg.tap("#read-all-phone")
+    bar, top, read = (pg.locator(s).bounding_box() for s in ("#list-bar", "#bar-top", "#read-all"))
+    assert bar["x"] == 0 and bar["width"] == 320 and bar["y"] + bar["height"] == 700
+    assert abs(top["x"] + top["width"] / 2 - 80) <= 1 and abs(read["x"] + read["width"] / 2 - 240) <= 1 and read["height"] >= 44
+    assert pg.locator("#bar-keys").is_hidden() and pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
+    assert pg.locator("#bar-top").is_disabled()
+    pg.evaluate("scrollTo(0, 1500)")
+    pg.wait_for_function("() => !document.getElementById('bar-top').disabled")
+    pg.tap("#bar-top")
+    pg.wait_for_function("() => scrollY === 0 && document.getElementById('bar-top').disabled")
+    pg.tap("#read-all")
     assert pg.locator("#confirm-read").is_visible()
     pg.tap("#confirm-read button[value='cancel']")
     pg.locator("a.card").nth(1).tap()
@@ -1328,8 +1342,8 @@ def test_phones_mark_all_read_from_the_lists_top_bar_and_keep_the_closed_story_s
     pg.click("#read-above")
     assert pg.evaluate("isRead(shown[0].url) && !isRead(shown[2].url)")
     pg.click("#list-back")
-    pg.wait_for_function("() => getComputedStyle(document.getElementById('read-all-phone')).opacity === '0'")
-    assert pg.evaluate("document.getElementById('read-all-phone').inert")  # on the topics: gone, and out of reach
+    pg.wait_for_function("() => getComputedStyle(document.getElementById('list-bar')).opacity === '0'")
+    assert pg.evaluate("document.getElementById('read-all').inert")  # on the topics: gone, and out of reach
     assert pg.problems == []
 
 

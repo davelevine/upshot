@@ -80,7 +80,7 @@ function renderFilters() {
   $('filters').innerHTML = btn('all', unreadAll, '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>') +
     (picks.size ? btn('essentials', unreadPicks, '<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>') : '') +
     '<h2 class="f-head">Topics</h2>' + ORDER.filter(c => counts[c] || filter === c).map(c => btn(c, unread[c] || 0, `<span class="dot" style="--c:var(--cat-${c})"></span>`)).join('');
-  $('list-name').textContent = $('list-title').textContent = label(filter);  // phones: the list's name above it, so a filter never makes stories look missing
+  $('list-name').textContent = label(filter);  // phones: the list's name above it, so a filter never makes stories look missing
   syncReadAll();
   document.title = filter === 'all' ? 'Upshot \u00b7 The week\u2019s tech news, minus the noise' : `${label(filter)} \u00b7 Upshot`;
 }
@@ -191,7 +191,7 @@ function syncHome() {
   setPd(null);  // a swipe that brought it here hands over to the state's own position
   $('col').inert = phone.matches && home;  // the page that's aside can't be reached
   $('filters').inert = phone.matches && !home;
-  $('list-back').inert = $('search-btn').inert = $('read-all-phone').inert = phone.matches && home;  // faded out: out of reach too
+  $('list-back').inert = $('search-btn').inert = $('read-all').inert = $('bar-top').inert = phone.matches && home;  // faded out: out of reach too
   document.querySelector('.logo-h').inert = phone.matches && !home;
   syncTicker();
   if (st?.f && st.f !== filter && (st.f !== 'essentials' || picks.size)) { filter = st.f; renderFilters(); renderItems(); }
@@ -212,8 +212,9 @@ $('list-back').onclick = leaveList;
 // The search bar opens the palette, the same search as ⌘K, rather than filtering the feed in place.
 $('search').addEventListener('focus', () => { $('search').blur(); openPalette(); });
 $('search-btn').onclick = () => openPalette();  // phones: the header's own
-addEventListener('scroll', () => { $('top').hidden = scroller().scrollTop < 800; }, { passive: true, capture: true });  // capture: the list's own scrolling doesn't bubble
-$('top').onclick = () => scroller().scrollTo({ top: 0, behavior: 'smooth' });
+// The phone's toolbar has Back to top, dimmed at the top as Feedbin dims Edit; elsewhere it floats once you're well down.
+addEventListener('scroll', () => { const y = scroller().scrollTop; $('top').hidden = y < 800; $('bar-top').disabled = y < 1; }, { passive: true, capture: true });  // capture: the list's own scrolling doesn't bubble
+$('top').onclick = $('bar-top').onclick = () => scroller().scrollTo({ top: 0, behavior: 'smooth' });
 
 // Read and "new since last visit" state lives only in this browser.
 let weekly = null;
@@ -261,7 +262,7 @@ function markAllRead(list) {
   renderItems(true);
   $('status').textContent = `Marked ${urls.length} ${urls.length === 1 ? 'story' : 'stories'} as read`;
 }
-const syncReadAll = () => { $('read-all').disabled = $('read-all-phone').disabled = !shown.some(isUnread); };
+const syncReadAll = () => { $('read-all').disabled = !shown.some(isUnread); };
 function confirmReadAll() {
   const n = shown.filter(isUnread).length;
   if (!n) return;
@@ -273,7 +274,8 @@ function confirmReadAll() {
   $('confirm-read').showModal();
   $('confirm-read').querySelector('.primary').focus();
 }
-$('read-all').onclick = $('read-all-phone').onclick = confirmReadAll;
+$('read-all').onclick = confirmReadAll;
+$('bar-keys').onclick = () => $('keys').showModal();
 $('confirm-read').addEventListener('close', () => { if ($('confirm-read').returnValue === 'ok') markAllRead(shown); });
 $('confirm-read').addEventListener('click', e => { if (e.target === $('confirm-read')) $('confirm-read').close(); });  // the backdrop
 // The "…" on the selected story: the one open, or the one just closed, as Feedbin keeps its row selected. It's one element,
