@@ -44,3 +44,11 @@
 - Run `git diff --cached --stat` before every commit and check that every file is meant to be there; `site/data.json`, `state.json` and `site/rss.xml` belong to the build, never to a feature commit.
 - Keep preview-only data outside the repo (serve a patched copy, or route it in the browser) rather than editing tracked files.
 - Start `wrangler dev` only with `run_in_background`, never `&`.
+
+## 2026-11-12 — A new rule must not quietly override a preference the user already stated
+
+**Mistake:** The user asked for the Exploited label to look the same in every section. Later, a general "no list repeats its own name" rule (which the user approved) was applied to the Exploited list too, dropping the word there, so the same story read differently in All and in Exploited. The user had to point out the inconsistency again.
+
+**Rules:**
+- Before applying a new general rule, check it against preferences the user stated earlier in the work. Where they conflict, name the conflict and ask; don't let the newer rule win silently.
+- After a UI change, compare the same item across every view it appears in (All, each topic, each special list), not just the view being changed.
