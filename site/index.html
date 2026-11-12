@@ -170,6 +170,8 @@
   .palette-list .dot { margin-top: 6px; }
   .p-title { font-size: .9rem; font-weight: 600; line-height: 1.35; }
   .p-meta { margin-top: 2px; color: var(--text-muted); font-size: .75rem; }
+  .p-meta :is(.exploited, .ess) { margin-left: 4px; font-size: inherit; }  /* a story's label, as in the lists */
+  .p-meta .ess { color: var(--accent); font-weight: 600; }
   .palette-list .palette-head { display: block; min-height: 0; padding: 6px 10px 4px; color: var(--text-muted); font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; cursor: default; }
   .palette-list .palette-empty { justify-content: center; padding: 22px; color: var(--text-muted); font-size: .875rem; cursor: default; }
   .palette-foot { display: flex; gap: 16px; padding: 8px 14px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: .72rem; }

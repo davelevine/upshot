@@ -47,6 +47,8 @@ const exploitedLabel = x => (x.kind === 'compromise' ? '<span class="exploited">
 // One label per row, in one quiet style: Exploited (whether to act), else Essential. Unread needs none (its title is bold),
 // and no list repeats its own name on every row.
 const label1 = (i, ess) => (i.exploited ? exploitedLabel(i.exploited) : ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : '');
+// Search results carry a story's label too, as every list does: whatever list is open behind the search.
+const searchLabel = i => { const l = i.exploited ? exploitedLabel(i.exploited) : picks.has(i.url) ? '<span class="ess">Essential</span>' : ''; return l && ` ${l}`; };
 const unpatched = () => items.filter(i => listed(i) && i.exploited.kind !== 'compromise' && i.exploited.fix === 'none').length;
 
 // Today in the site's time zone (data.json's tz), not the device's: some browsers report UTC for privacy, which
@@ -948,7 +950,7 @@ function renderPalette() {
   $('palette-list').innerHTML = head + (pal.results.length ? pal.results.map((i, n) => { const c = cat(i.category); return `
     <li role="option" id="p-${n}" data-n="${n}" aria-selected="${n === 0}">
       <span class="dot" style="--c:var(--cat-${c})"></span>
-      <div><div class="p-title">${highlight(i.title, q)}</div><div class="p-meta">${esc(source(i))} · ${CATS[c]} · ${age(i)}</div></div>
+      <div><div class="p-title">${highlight(i.title, q)}</div><div class="p-meta">${esc(source(i))} · ${CATS[c]} · ${age(i)}${searchLabel(i)}</div></div>
     </li>`; }).join('') : `<li class="palette-empty">No articles match “${esc(q)}”.</li>`);
   $('palette-q').setAttribute('aria-activedescendant', pal.results.length ? 'p-0' : '');
 }

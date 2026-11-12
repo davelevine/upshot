@@ -1410,6 +1410,12 @@ def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, sc
         assert card(u).locator(".x-word").count() == 1 and card(u).locator(".fix-pill").count() == 1
     assert pg.inner_text("#end-msg") == "That\u2019s all 2 exploited flaws from the last 7 days."
     pg.click("#filters [data-f='all']")
+    title = pg.evaluate("u => items.find(i => i.url === u).title", infra)
+    pg.keyboard.press("/")
+    pg.locator("#palette-q").fill(title[:30])
+    hit = pg.locator("#palette-list li[data-n]", has_text=title[:30]).first
+    assert hit.locator(".x-word").text_content() == "Exploited" and hit.locator(".no-patch").count() == 1  # search carries the label too
+    pg.keyboard.press("Escape")
     tags = {"runOnly": {"type": "tag", "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]}}
     assert [(v["id"], v["nodes"][0]["html"][:80]) for v in Axe().run(pg, options=tags).response["violations"]] == []
     card(sec).click()
