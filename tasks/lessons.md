@@ -34,3 +34,13 @@
 - Before measuring against a reference screenshot, check it runs to the window's edges (look for the edge or border row); if it's cropped, say so and ask for a full one.
 - Only compare like with like: two of the user's captures with each other, or two of mine. Don't mix a user capture with a local render.
 - When the user sends a screenshot of their own testing, don't guess its source; ask if it isn't stated.
+
+## 2026-11-12 — Stage exact paths, never a directory, when local data is modified
+
+**Mistake:** For the Tailscale preview, `site/data.json` was edited locally to simulate flagged stories. A later `git add site` swept that file into a feature commit, which was pushed. The safe fix (a commit restoring the file) left the fake data in the branch's history. Separately, test servers were twice started with `&` instead of as tracked background tasks, which the memory notes already forbid.
+
+**Rules:**
+- Stage files by exact path (`git add site/app.js site/index.html`), never a directory, whenever anything is modified for a preview or experiment.
+- Run `git diff --cached --stat` before every commit and check that every file is meant to be there; `site/data.json`, `state.json` and `site/rss.xml` belong to the build, never to a feature commit.
+- Keep preview-only data outside the repo (serve a patched copy, or route it in the browser) rather than editing tracked files.
+- Start `wrangler dev` only with `run_in_background`, never `&`.
