@@ -82,7 +82,7 @@ GitHub's own scheduler often starts the workflow late and sometimes skips a slot
 2. Set `BUILD_REPO` in `wrangler.jsonc` to `<you>/upshot`.
 3. Store the token as a Worker secret: `npx wrangler secret put GITHUB_DISPATCH_TOKEN`.
 
-Without the secret the cron does nothing. A failed dispatch shows as an error in Workers Logs. The built-in GitHub schedule stays in place as a fallback; a duplicate run finds nothing new. If you change the schedule, change it in all three places: `build.yml`, `wrangler.jsonc` and `BUILD_EVERY_HOURS`/`BUILD_AT_MINUTE` in [`site/app.js`](../site/app.js).
+Without the secret the cron does nothing. A failed dispatch shows as an error in Workers Logs. The built-in GitHub schedule stays in place as a fallback, and skips an hour the Worker already started (the `gate` job in `build.yml`), so the site builds once an hour, and a fork without the token still builds on GitHub's schedule. If you change the schedule, change it in all three places: `build.yml`, `wrangler.jsonc` and `BUILD_EVERY_HOURS`/`BUILD_AT_MINUTE` in [`site/app.js`](../site/app.js), along with `STALE_MINUTES` there, which marks a build as late.
 
 ## Optional: Renovate
 

@@ -7,7 +7,7 @@ const domain = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } 
 // Who wrote it: an aggregator's links name the site they point to, not the aggregator.
 const source = i => (/^Hacker News\b/.test(i.publisher) && domain(i.url)) || i.publisher;
 const PAGE = 40;
-const STALE_MINUTES = 5 * 60;  // builds land every 4h, give or take GitHub's scheduling: this is one running 45+ minutes late
+const STALE_MINUTES = 105;  // builds land every hour (the Worker's cron starts them on time): this is one running 45+ minutes late
 const KEEP_DAYS = 90;  // build.py prunes older stories
 // Past phone widths the reader is docked beside the list, as Feedbin does, and the list scrolls on its own; on phones the window scrolls it.
 const docked = matchMedia('(min-width: 641px)');
@@ -1009,7 +1009,7 @@ addEventListener('resize', () => { for (const k in COLS) if (localStorage.getIte
 
 // The wordmark's spot, once each time Upshot opens: the date, when it updated and when it's next due, then the wordmark
 // again (after Kagi News). Under five seconds, so it never needs a pause control (WCAG 2.2.2); a tap ends it at once.
-const BUILD_EVERY_HOURS = 4, BUILD_AT_MINUTE = 17;  // cron "17 */4 * * *" UTC, in wrangler.jsonc (which starts the build) and build.yml
+const BUILD_EVERY_HOURS = 1, BUILD_AT_MINUTE = 17;  // cron "17 * * * *" UTC, in wrangler.jsonc (which starts the build) and build.yml
 const HOLD_MS = 1200, TICK_MS = 1500, FADE_MS = 300, REOPEN_MINUTES = 15;  // the wordmark first, long enough to be seen
 let tickTimers = [], tickOnShow = false, tickPending = false, hiddenAt = Date.now();
 // An opening, not a refresh: the pass plays only if the last one seen was a while ago, so reloading (or a new tab,
@@ -1061,7 +1061,7 @@ document.querySelector('.logo-h').addEventListener('click', e => { if (document.
 
 syncThemeColor();
 load().catch(() => { $('items').innerHTML = '<p class="empty">Couldn’t load the news. Try again in a bit.</p>'; });
-// Builds land every ~4h: check every 15 min while visible, and when the tab comes back into view.
+// Builds land every hour: check every 15 min while visible, and when the tab comes back into view.
 const check = () => { if (!document.hidden) return load().catch(() => {}); };
 setInterval(check, 15 * 60e3);
 setInterval(() => { if (generatedAt && !document.hidden) { showUpdated(); refreshAges(); } }, 60e3);

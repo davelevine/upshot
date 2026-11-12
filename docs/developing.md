@@ -39,7 +39,7 @@ It loads the site in Chromium under its real CSP and checks the feed, reader, se
 
 | Workflow | Function | PR | Manual | Scheduled | Details |
 | -------- | -------- | :-: | :----: | :-------: | ------- |
-| [Build](../.github/workflows/build.yml) | Fetch, score, publish | ✓ | ✓ | ✓ | Every 4 hours at :17 UTC. On PRs it runs the Python and JavaScript tests only. Manual runs take an optional `backfill_days`. |
+| [Build](../.github/workflows/build.yml) | Fetch, score, publish | ✓ | ✓ | ✓ | Every hour at :17 UTC, started by the Worker's cron; GitHub's own schedule is the fallback and skips an hour the Worker already started. On PRs it runs the Python and JavaScript tests only. Manual runs take an optional `backfill_days`. |
 | [Build › smoke](../.github/workflows/build.yml) | Browser smoke test | ✓ | | | The test above, against `wrangler dev` in the workflow. |
 
 Cloudflare Workers Builds deploys every push to `main` with `npx wrangler deploy`, including the bot's data commits, and builds a Preview for every other branch with its URL posted on the PR.

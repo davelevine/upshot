@@ -46,7 +46,7 @@ There's no server or database to look after. A scheduled GitHub Actions job comm
 
 ## How it works
 
-Every four hours, [`build.py`](build.py) fetches the feeds in [`feeds.opml`](feeds.opml) and sends each new story to Claude Haiku on its own, which gives it a category, a relevance score and a one-sentence summary. Stories that clear their category's bar and aren't repeats are published; once a day the model picks the week's five essentials. The build also extracts each article's text with Mozilla's Readability and stores it in Cloudflare KV, so the reader never fetches from publishers and nothing runs from the source page.
+Every hour, [`build.py`](build.py) fetches the feeds in [`feeds.opml`](feeds.opml) and sends each new story to Claude Haiku on its own, which gives it a category, a relevance score and a one-sentence summary. Stories that clear their category's bar and aren't repeats are published; once a day the model picks the week's five essentials. The build also extracts each article's text with Mozilla's Readability and stores it in Cloudflare KV, so the reader never fetches from publishers and nothing runs from the source page.
 
 The front end is [`site/index.html`](site/index.html) and [`site/app.js`](site/app.js): no framework, no build step. A Cloudflare Worker serves it and answers the reader's requests.
 
