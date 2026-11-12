@@ -35,13 +35,13 @@ const listed = i => !!i.exploited && ageMins(i) < EXPLOITED_DAYS * 1440;
 const exists = f => (f === 'essentials' ? picks.size > 0 : f === 'exploited' ? items.some(listed) : true);  // the two lists come and go
 const inList = (i, f) => f === 'all' || (f === 'essentials' ? picks.has(i.url) : f === 'exploited' ? listed(i) : cat(i.category) === f);
 const plural = (n, one, many) => (n === 1 ? one : many);
-const FIX = { none: 'No patch', available: 'Patched' };
-const exploitedPill = (x, first = 'Exploited') => `<span class="exploited"><span>${first}</span>${FIX[x.fix] ? `<span class="fix ${x.fix}"> ${FIX[x.fix]}</span>` : ''}</span>`;
-// One label per row, the one that matters most: several at once is noise. Exploited (whether to act), then Essential, then
-// New; the others aren't lost: an unread title is bold, and Exploited and Essentials have lists of their own. The same in
-// every list, their own included, so a row never looks unmarked beside one that is.
-const label1 = (i, ess) => (i.exploited ? exploitedPill(i.exploited) : ess ? '<span class="ess">Essential</span>'
-  : isNew(i) ? '<span class="new">New</span>' : '');
+// Exploited, in red text, then a pill for the vendor's fix: "No patch" (red), which becomes "Patch available" (the accent)
+// once one is out. Nothing when the story doesn't say. The Exploited list shows just the pill: its name says the rest.
+const FIX_PILL = { none: '<span class="pill no-patch">No patch</span>', available: '<span class="pill patch-out">Patch available</span>' };
+const exploitedLabel = x => `<span class="exploited">${filter === 'exploited' ? '' : '<span class="x-word">Exploited</span>'}${FIX_PILL[x.fix] || ''}</span>`;
+// One label per row, in one quiet style: Exploited (whether to act), else Essential. Unread needs none (its title is bold),
+// and no list repeats its own name on every row.
+const label1 = (i, ess) => (i.exploited ? exploitedLabel(i.exploited) : ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : '');
 const unpatched = () => items.filter(i => listed(i) && i.exploited.fix === 'none').length;
 
 // Today in the site's time zone (data.json's tz), not the device's: some browsers report UTC for privacy, which
@@ -235,7 +235,6 @@ $('top').onclick = $('bar-top').onclick = () => scroller().scrollTo({ top: 0, be
 // Read and "new since last visit" state lives only in this browser.
 let weekly = null;
 const readSet = new Set(JSON.parse(localStorage.getItem('read') || '[]'));
-const seenUntil = localStorage.getItem('seenUntil');  // the build you'd seen by the end of your last visit
 // A first visit starts with only the last day unread, as a feed reader does with a new subscription: older stories count as
 // read. After that, anything added since counts. The week's essentials always count. `kept`: older stories marked unread by hand, which the cutoff would hide.
 const FRESH_MS = 864e5, FRESH_MIN = 5;  // the last day, or the newest five after a quiet stretch
@@ -246,7 +245,6 @@ const saveKept = () => localStorage.setItem('kept', JSON.stringify([...kept]));
 const older = url => { const i = items.find(x => x.url === url); return !i || arrived(i) <= Date.parse(since); };
 const isRead = url => readSet.has(url) || (older(url) && !kept.has(url) && !picks.has(url));  // essentials stay unread until opened
 const isUnread = i => !isRead(i.url);
-const isNew = i => !!(seenUntil && i.added && i.added > seenUntil && !readSet.has(i.url));
 const saveRead = () => localStorage.setItem('read', JSON.stringify([...readSet]));
 function pruneRead() {
   const urls = new Set(items.map(i => i.url));
@@ -262,7 +260,6 @@ function markRead(url) {
   if (!was) renderFilters();
   const card = cardFor(url);
   card?.classList.add('read');
-  card?.querySelector('.new')?.remove();
 }
 // Feedbin's Read button and its "Mark above/below as read". These go in at the oldest end of the read list, so the search
 // panel's "Recently read" still starts with what was actually opened.
@@ -343,9 +340,6 @@ function toggleRead() {
   $('status').textContent = isRead(readerFor) ? 'Marked as read' : 'Marked as unread';
 }
 $('reader-unread').onclick = toggleRead;
-const rememberSeen = () => { if (generatedAt) localStorage.setItem('seenUntil', generatedAt); };
-addEventListener('pagehide', rememberSeen);
-document.addEventListener('visibilitychange', () => { if (document.hidden) rememberSeen(); });
 
 // "Updated 2h ago" at the top of the feed; a number that keeps growing means builds have stopped.
 const agoText = mins => (mins < 1 ? 'just now' : mins < 60 ? `${Math.floor(mins)}m ago`
@@ -478,7 +472,7 @@ function frameVars(theme) {
   probe.dataset.theme = theme;
   document.body.append(probe);
   const cs = getComputedStyle(probe);
-  const out = `color-scheme: ${theme}; ` + ["--accent", "--bg", "--bg-card", "--border", "--border-strong", "--text", "--text-muted", "--exploited", "--exploited-text"].map(v => `${v}: ${cs.getPropertyValue(v).trim()};`).join(' ');
+  const out = `color-scheme: ${theme}; ` + ["--accent", "--bg", "--bg-card", "--border", "--border-strong", "--text", "--text-muted", "--exploited", "--exploited-text", "--exploited-ink"].map(v => `${v}: ${cs.getPropertyValue(v).trim()};`).join(' ');
   probe.remove();
   return out;
 }
@@ -499,7 +493,7 @@ function storyMeta(i, byline, minutes) {
   let by = (byline || '').replace(/\s+/g, ' ').replace(/\s*\|.*$/, '').replace(/^(posted|published|updated)\b.*?\bby\s+/i, '').replace(/^by\s+/i, '').trim();
   if (/\b\d{4}\b/.test(by) && !Number.isNaN(Date.parse(by))) by = '';  // nothing left but a date
   const x = i.exploited, notes = x ? [{ none: 'no patch yet', available: 'patch available' }[x.fix], x.kev?.length && 'confirmed by CISA'].filter(Boolean) : [];
-  const exploited = x ? `${exploitedPill({}, 'Actively exploited')}${notes.map(n => ` · ${n}`).join('')}` : '';
+  const exploited = x ? `<span class="exploited">Actively exploited</span>${notes.map(n => ` · ${n}`).join('')}` : '';
   return `<div class="meta">${exploited ? `<p class="flag">${exploited}</p>` : ''}${esc(when)}${by ? ` by ${esc(by)}` : ''}${minutes ? ` · ${minutes} min read` : ''}</div>`;
 }
 // The upshot (written and checked by the build) with, for weekly essentials, the hand-picked "What to do" as its last line.
@@ -538,8 +532,7 @@ pre { overflow-x: auto; padding: 12px 14px; border-radius: 8px; background: var(
 pre code { padding: 0; background: none; font: inherit; }
 table { display: block; overflow-x: auto; border-collapse: collapse; font-size: .875rem; } th, td { padding: 4px 8px; border: 1px solid var(--border); } th { font-weight: 700; }
 hr { border: 0; border-top: 1px solid var(--border); }
-.flag { margin: 0 0 .35em; } .exploited { display: inline-flex; margin-right: 6px; font-size: .78em; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
-.exploited > span { padding: 1px 8px; border-radius: 999px; background: var(--exploited); color: var(--exploited-text); }
+.flag { margin: 0 0 .35em; } .exploited { color: var(--exploited-ink); font-weight: 600; }
 .late { animation: late .2s ease .4s both; } @keyframes late { from { opacity: 0; } }
 .status { color: var(--text-muted); font: 370 .9375rem/1.5 "Public Sans", system-ui, sans-serif; }
 .pill { display: inline-block; padding: 10px 18px; border: 1px solid var(--accent); border-radius: 999px; font: 600 .9375rem/1.4 "Public Sans", system-ui, sans-serif; text-decoration: none; }

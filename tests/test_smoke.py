@@ -213,8 +213,7 @@ def test_essentials_have_their_own_entry_and_show_once(browser):
         sel = f'a.card[href="{p["url"]}"]'
         assert pg.locator(f"{sel} .card-sum").inner_text() == f"What to do: {p['why']}"
         assert pg.locator(f"{sel} .card-sum").evaluate("e => e.scrollHeight <= e.clientHeight")  # never cut short
-        exploited = pg.evaluate("u => !!items.find(i => i.url === u).exploited", p["url"])
-        assert pg.locator(f"{sel} .ess").count() == (0 if exploited else 1)  # marked as everywhere; an exploited one shows that instead
+        assert pg.locator(f"{sel} .ess").count() == 0  # the list's name says it
     assert pg.problems == []
 
 
@@ -511,20 +510,6 @@ def test_escape_returns_focus_to_the_row_for_the_keyboard(browser):
     wait_until_closed(pg)
     assert pg.evaluate("document.activeElement === document.querySelectorAll('a.card')[1]")  # back where the keyboard was
     assert pg.problems == []
-
-
-@pytest.mark.parametrize("scheme", ["dark", "light"])
-def test_new_stories_are_marked_legibly(browser, scheme):
-    from axe_playwright_python.sync_playwright import Axe
-    ctx = browser.new_context(viewport={"width": 1300, "height": 900}, color_scheme=scheme)
-    ctx.add_init_script("localStorage.setItem('seenUntil', '2000-01-01T00:00:00+00:00')")  # a long-ago visit: everything since is new
-    pg = ctx.new_page()
-    pg.goto(URL)
-    pg.wait_for_selector("a.card .new")
-    pill = pg.locator("a.card .new").first
-    assert pill.inner_text().upper() == "NEW"
-    contrast = Axe().run(pg, options={"runOnly": {"type": "rule", "values": ["color-contrast"]}}).response["violations"]
-    assert [n["html"] for v in contrast for n in v["nodes"] if "new" in n["html"]] == []
 
 
 def test_question_mark_lists_the_shortcuts(browser):
@@ -1411,15 +1396,15 @@ def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, sc
     by_age = lambda: pg.evaluate("shown.every((i, n, a) => !n || ageMins(a[n - 1]) <= ageMins(i))")
     card = lambda u: pg.locator(f'a.card[href="{u}"]')
     assert by_age()  # tagged where they fall: nothing jumps the order
-    pill = lambda u: " ".join(card(u).locator(".exploited > span").all_inner_texts()).lower()
-    assert pill(sec) == "exploited patched" and pill(infra) == "exploited no patch"  # whether the vendor's fix is out
+    label = lambda u: (card(u).locator(".x-word").count(), card(u).locator(".pill").text_content())
+    assert label(sec) == (1, "Patch available") and label(infra) == (1, "No patch")  # Exploited, then whether the vendor's fix is out
     assert pg.evaluate("u => items.find(i => i.url === u).exploited && !listed(items.find(i => i.url === u))", old)  # tagged, but too old to list
     entry = pg.locator("#filters [data-f='exploited']")
     assert entry.locator(".f-name").inner_text() == "Exploited" and entry.locator(".f-open").inner_text() == "1 unpatched"
     assert entry.locator(".f-count").count() == 0  # in place of the unread count, while a flaw has no fix
     entry.click()
     assert sorted(pg.evaluate("shown.map(i => i.url)")) == sorted([sec, infra]) and by_age()  # the last week's, newest first
-    assert pg.locator("a.card .exploited").count() == 2  # marked in every list, this one too
+    assert pg.locator("a.card .x-word").count() == 0 and pg.locator("a.card .pill").count() == 2  # the fix's pill alone
     assert pg.inner_text("#end-msg") == "That\u2019s all 2 exploited flaws from the last 7 days."
     pg.click("#filters [data-f='all']")
     tags = {"runOnly": {"type": "tag", "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]}}
@@ -1431,24 +1416,18 @@ def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, sc
 
 
 def test_a_row_shows_one_label_the_one_that_matters_most(browser):
-    # Several at once is noise: Exploited, then Essential, then New.
-    def everything(data):
+    # Several at once is noise: an exploited essential says Exploited, an essential says Essential, and nothing says New.
+    def both(data):
         flag_some(data)
-        sec = data["flagged"][0]
-        data["weekly"]["items"][0]["url"] = sec  # exploited and essential
-        for i in data["items"]:
-            i["added"] = "2099-01-01T00:00:00+00:00"  # and new, as every story is
-    pg = open_site(browser, patch=everything, viewport={"width": 390, "height": 800}, has_touch=True, is_mobile=True)
-    pg.add_init_script("localStorage.setItem('seenUntil', '2000-01-01T00:00:00Z')")
-    pg.reload()
-    enter_list(pg)
+        data["weekly"]["items"][0]["url"] = data["flagged"][0]  # exploited and essential
+    pg = open_site(browser, patch=both, viewport={"width": 390, "height": 800}, has_touch=True, is_mobile=True)
     sec = pg.evaluate("fetch('/data.json').then(r => r.json()).then(d => d.flagged[0])")
     meta = lambda u: pg.locator(f'a.card[href="{u}"] .card-meta > :not(.card-src)')
     assert meta(sec).count() == 1 and meta(sec).first.get_attribute("class") == "exploited"
     ess = pg.evaluate("[...picks.keys()].find(u => !items.find(i => i.url === u).exploited)")
-    assert meta(ess).count() == 1 and meta(ess).first.text_content() == "Essential"  # over New (text_content: offscreen rows aren't rendered)
-    card = pg.locator(f'a.card[href="{sec}"]')
-    assert card.locator(".card-src").evaluate("e => e.scrollWidth <= e.clientWidth")  # the source stays whole on a phone
+    assert meta(ess).count() == 1 and meta(ess).first.text_content() == "Essential"  # text_content: offscreen rows aren't rendered
+    assert pg.locator("a.card .new").count() == 0
+    assert pg.locator(f'a.card[href="{sec}"] .card-src').evaluate("e => e.scrollWidth <= e.clientWidth")  # the source stays whole
     assert pg.problems == []
 
 

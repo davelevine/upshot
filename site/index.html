@@ -205,7 +205,7 @@
   .card-title { font-size: 1rem; font-weight: 600; line-height: 1.35; }
   .card-meta { display: flex; align-items: center; gap: 6px; min-width: 0; margin-top: 3px; color: var(--text); font-size: .875rem; }
   .card-src { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .card-meta > :not(.card-src, .new, .exploited) { flex: none; color: var(--text-muted); }  /* not the pills: they keep their own colours */
+  .card-meta > :not(.card-src, .exploited) { flex: none; color: var(--text-muted); }  /* the Exploited label sets its own colours */
   .card-sum { margin-top: 4px; color: var(--text-muted); font-size: .875rem; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .card-sum.full { display: block; }  /* what to do: the whole point, never cut short */
   .card-sum b { color: var(--accent); font-weight: 600; }
@@ -223,15 +223,14 @@
   .card.read .card-title { color: var(--text-muted); font-weight: 500; }
   .card.read .card-meta { color: var(--text-muted); }
   /* An actively exploited flaw (build.py: in CISA's catalog, or a checked claim). */
-  /* Two halves: Exploited, then whether the vendor's fix is out: still red with no patch, the calm accent once there is one. */
-  .exploited { flex: 0 0 auto; display: inline-flex; font-size: .6875rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
-  .exploited > span { padding: 1px 7px; border-radius: 999px; background: var(--exploited); color: var(--exploited-text); }
-  .exploited > span:first-child:not(:last-child) { padding-right: 6px; border-radius: 999px 0 0 999px; }
-  .exploited > .fix { padding-left: 6px; border-radius: 0 999px 999px 0; }
-  .exploited > .fix.none { box-shadow: inset 1px 0 0 color-mix(in srgb, var(--exploited-text) 45%, transparent); }
-  .exploited > .fix.available { background: var(--accent-soft); color: var(--tag-text); }
+  /* The row's label, in the same quiet type as Essential: Exploited in red, then a pill for the vendor's fix, the only filled
+     mark on a row: "No patch" in red, "Patch available" in the accent once one is out. */
+  .exploited { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; font-size: .75rem; font-weight: 600; white-space: nowrap; }
+  .exploited .x-word { color: var(--exploited-ink); }
+  .exploited .pill { padding: 0 7px; border-radius: 999px; font-weight: 700; }
+  .exploited .no-patch { background: var(--exploited); color: var(--exploited-text); }
+  .exploited .patch-out { background: var(--accent); color: var(--accent-contrast); }
   .f-open { flex: none; color: var(--exploited-ink); font-size: .75rem; font-weight: 600; }  /* exploited flaws with no fix yet */
-  .new { flex: 0 0 auto; padding: 1px 7px; border-radius: 999px; background: var(--accent); color: var(--accent-contrast); font-size: .6875rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
   .skeleton { pointer-events: none; }
   .skeleton .bone { display: block; height: .8em; border-radius: 6px; background: var(--border); animation: pulse 1.4s ease-in-out infinite; }
   .skeleton .src-icon.bone { height: 20px; }
