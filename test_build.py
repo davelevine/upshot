@@ -621,3 +621,37 @@ def test_a_repeat_hands_over_its_cves_even_unflagged():
     on_site = {"title": "Big Flaw", "url": "a", "cves": ["CVE-2026-1"]}
     build.carry_flag([on_site], "big flaw", None, ["CVE-2026-2"])
     assert on_site["cves"] == ["CVE-2026-1", "CVE-2026-2"] and "exploited" not in on_site  # CISA may list the other one later
+
+
+def test_a_retracted_story_is_never_flagged(monkeypatch, tmp_path):
+    f = tmp_path / "not-exploited.txt"
+    f.write_text("# wrong flags\nhttps://x.test/trend  # a trend piece\n")
+    monkeypatch.setattr(build, "NOT_EXPLOITED", f)
+    claim = {"category": "security", "exploited": True, "kind": "flaw", "evidence": "abuse exposed secrets in the wild", "fix": "unknown", "fix_evidence": ""}
+    item = {"url": "https://x.test/trend", "title": "Threat actors abuse exposed secrets in the wild", "excerpt": "", "cves": []}
+    assert build.exploited(item, claim, {}) is None and build.exploited({**item, "url": "https://x.test/other"}, claim, {})
+
+
+def test_the_claim_backfill_checks_the_last_weeks_unflagged_security_stories(monkeypatch):
+    seen = []
+    def fake(item):
+        seen.append(item["title"])
+        return {"category": "security", "relevance": 8, "summary": "s", "exploited": True, "kind": "compromise",
+                "evidence": item["title"], "fix": "unknown", "fix_evidence": ""}
+    monkeypatch.setattr(build, "classify", fake)
+    today = build.now().astimezone(build.SITE_TZ).date()
+    day = lambda n: (today - build.timedelta(days=n)).isoformat()
+    items = [{"url": "a", "title": "Malicious npm release steals tokens", "publisher": "P", "date": day(1), "category": "security", "summary": "s"},
+             {"url": "b", "title": "Old malicious release", "publisher": "P", "date": day(30), "category": "security", "summary": "s"},
+             {"url": "c", "title": "Malicious AI thing", "publisher": "P", "date": day(1), "category": "ai", "summary": "s"},
+             {"url": "d", "title": "Already flagged", "publisher": "P", "date": day(1), "category": "security", "summary": "s", "exploited": {"kev": [], "at": "t", "kind": "flaw"}}]
+    assert build.backfill_claims(items, {}) == 1 and seen == ["Malicious npm release steals tokens"]
+    assert items[0]["exploited"]["kind"] == "compromise" and "exploited" not in items[1]
+
+
+def test_rss_titles_carry_the_label():
+    base = {"url": "u", "summary": "s", "category": "security", "date": "2026-11-12", "title": "T"}
+    out = build.rss([{**base, "url": "a", "exploited": {"kind": "flaw", "fix": "patch"}}, {**base, "url": "b", "exploited": {"kind": "flaw", "fix": "none"}},
+                     {**base, "url": "c", "exploited": {"kind": "compromise"}}, {**base, "url": "d"}])
+    titles = [t.text for t in ET.fromstring(out).iter("title")][1:]
+    assert titles == ["Exploited: T", "Exploited, no patch yet: T", "Compromised: T", "T"]
