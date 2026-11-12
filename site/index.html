@@ -385,7 +385,7 @@
     .stale { left: var(--side-w); width: var(--list-w); }  /* the list's foot */
     .side { top: 0; height: 100dvh; padding-top: 66px; padding-bottom: 60px; }  /* clear of the toolbar at its foot */
     .stale { height: 60px; }  /* level with the toolbar beside it */
-    .list-bar { border-top: 0; border-right: 1px solid var(--border); }  /* part of the sidebar, as Feedbin's: no rule above it, and its edge runs on down */
+    .list-bar { padding-bottom: 8px; border-top: 0; border-right: 1px solid var(--border); }  /* part of the sidebar, as Feedbin's: no rule above it, its edge runs on down, and its labels sit ~16px off the bottom */
     body:has(#stale:not([hidden])) .col { padding-bottom: 72px; }
     body:has(#stale:not([hidden])) .back-to-top { bottom: 84px; }
   }
