@@ -342,12 +342,16 @@ def passes(r, flag):
     return r["relevance"] >= bar or (zero_day and r["relevance"] >= bar - 1)
 
 
-def carry_flag(items, title, flag):
-    """A flagged repeat hands its flag to the copy on the site, so removing repeats never drops the signal."""
-    if not flag:
+def carry_flag(items, title, flag, cve_ids=()):
+    """A repeat hands its CVEs and any flag to the copy on the site, so removing repeats never drops the signal: a CVE only
+    the repeat named can still be listed by CISA later."""
+    if not flag and not cve_ids:
         return
     for i in items:
         if norm(i["title"]) == norm(title):
+            i["cves"] = sorted(set(i.get("cves", [])) | set(cve_ids))
+            if not flag:
+                return
             old = i.get("exploited") or {}
             fix = best_fix(old.get("fix"), flag.get("fix"))
             i["exploited"] = (flag | old) | {"kev": sorted(set(old.get("kev", [])) | set(flag["kev"]))} | ({"fix": fix} if fix else {})
@@ -916,11 +920,11 @@ def add_chunk(data, chunk, dups, recent, kept, repeated):
             if upgrade_source(data["items"], target, item, r, data.get("weekly")):
                 kept.append((item, r))
                 recent.append(item["title"])
-                carry_flag(data["items"], item["title"], item["exploited"])
+                carry_flag(data["items"], item["title"], item["exploited"], item["cves"])
             else:
                 headline[n] = target
                 repeated.append(item)
-                carry_flag(data["items"], target, item["exploited"])
+                carry_flag(data["items"], target, item["exploited"], item["cves"])
             continue
         kept.append((item, r))
         recent.append(item["title"])
@@ -1006,12 +1010,13 @@ def main():
     texts = {}
     reader_error = add_reading_times(data["items"], feed_minutes(fetched), full_text_feeds(fetched), texts)
     for i in data["items"]:  # the whole article names CVEs a 600-character excerpt cuts off
-        i.setdefault("cves", cves(f"{i['title']} {i.get('summary', '')}"))  # stories from before the flag
         if i["url"] in texts:
             i["cves"] = sorted(set(i.get("cves", [])) | set(cves(texts[i["url"]])))
+    print(f"TL;DRs written: {add_tldrs(data['items'], texts)}")
+    for i in data["items"]:  # and so does the upshot, written from it: for stories from before the flag, the only record of it
+        i["cves"] = sorted(set(i.get("cves", [])) | set(cves(f"{i['title']} {i.get('summary', '')} {' '.join(i.get('tldr', []))}")))
     if kev:
         tag_kev(data["items"], kev)
-    print(f"TL;DRs written: {add_tldrs(data['items'], texts)}")
     print(f"Remedies read from upshots: {add_late_fixes(data['items'])}")  # flaws flagged after they were published
     data["generated_at"] = now().isoformat(timespec="seconds")
     SITE.mkdir(exist_ok=True)

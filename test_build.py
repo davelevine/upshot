@@ -615,3 +615,9 @@ def test_a_flaw_flagged_after_publication_reads_its_remedy_from_its_upshot_once(
             "exploited": {"kev": ["CVE-2026-9"], "at": "t", "kind": "flaw"}}
     build.add_late_fixes([same_cve, told])
     assert same_cve["exploited"]["fix"] == "patch"  # learned from the other story naming its CVE
+
+
+def test_a_repeat_hands_over_its_cves_even_unflagged():
+    on_site = {"title": "Big Flaw", "url": "a", "cves": ["CVE-2026-1"]}
+    build.carry_flag([on_site], "big flaw", None, ["CVE-2026-2"])
+    assert on_site["cves"] == ["CVE-2026-1", "CVE-2026-2"] and "exploited" not in on_site  # CISA may list the other one later
