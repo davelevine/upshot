@@ -200,8 +200,8 @@
 
   /* The feed, after Feedbin: rows with no box around them, the publisher's icon, then title, source and the summary. */
   .items { max-width: var(--read); margin: 0 auto; padding: 8px 24px 48px; display: flex; flex-direction: column; }
-  /* How fresh the list is, at the sidebar's foot: centred in a band as tall as the late bar, so when that shows they share a line. */
-  .side-foot { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }  /* for screen readers: the pass in the wordmark's spot shows it */
+  /* How fresh the list is, at the sidebar's foot, just above the toolbar. The wordmark's pass says it once on opening; this stays. */
+  .side-foot { display: flex; flex: none; align-items: center; height: 44px; margin: auto 0 0; padding: 0 10px; color: var(--text-muted); font-size: .8125rem; }
   .card-age { display: block; margin-top: 4px; color: var(--text-muted); font-size: .8125rem; font-variant-numeric: tabular-nums; }
   .card { content-visibility: auto; contain-intrinsic-block-size: auto 6rem; display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: var(--radius-md); transition: background-color .15s ease; }
   .card[aria-current="true"] { background: var(--bg-card); }
@@ -362,8 +362,9 @@
     .shell { overflow-x: clip; }
     .subheader.side { display: flex; flex-direction: column; position: fixed; inset: 52px 0 0; z-index: 1; height: auto; align-self: stretch;  /* desktop's start would shrink it to its content */ padding: 0; border: 0; overflow-y: auto; }
     body.reading .side { transform: none; }  /* its search sits in the header; the list moving aside under a story is enough */
-    .side > nav { transform: translateX(calc(-25% * (1 - var(--pd, 0)))); transition: transform var(--slide-in) var(--ease-in); }
-    body.home .side > nav { transform: translateX(calc(-25% * (1 - var(--pd, 1)))); }
+    .side-foot { height: calc(56px + env(safe-area-inset-bottom)); padding: 0 18px env(safe-area-inset-bottom); }  /* in the phone's bottom-bar band, where the late bar shows */
+    .side > nav, .side > .side-foot { transform: translateX(calc(-25% * (1 - var(--pd, 0)))); transition: transform var(--slide-in) var(--ease-in); }
+    body.home .side > nav, body.home .side > .side-foot { transform: translateX(calc(-25% * (1 - var(--pd, 1)))); }
     .col { position: relative; z-index: 2; min-height: calc(100dvh - 52px); background: var(--bg); box-shadow: -12px 0 24px rgba(0, 0, 0, .18);
       transform: translateX(calc(var(--pd, 0) * 100%)); transition: transform var(--slide-in) var(--ease-in); }
     body.home .col { transform: translateX(calc(var(--pd, 1) * 100%)); }

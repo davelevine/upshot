@@ -1126,6 +1126,8 @@ def test_essentials_say_which_days_and_updated_sits_on_the_feed(browser):
     assert pg.locator(".side-foot #updated").count() == 1
     pg.locator(".filter-btn", has_text="Security").click()  # a redraw keeps it filled in
     assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".side-foot #updated"))
+    foot, bar = pg.locator(".side-foot").bounding_box(), pg.locator("#list-bar").bounding_box()
+    assert foot["width"] > 100 and abs(foot["y"] + foot["height"] - bar["y"]) < 2  # shown, right above the toolbar
     assert pg.problems == []
 
 
