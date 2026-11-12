@@ -1446,6 +1446,8 @@ def test_a_supply_chain_attack_says_compromised_and_a_workaround_says_mitigation
     worm, flaw = pg.evaluate("fetch('/data.json').then(r => r.json()).then(d => d.flagged)")
     part = lambda u, sel: pg.locator(f'a.card[href="{u}"] .exploited {sel}')
     assert part(worm, ".x-word").text_content() == "Compromised" and part(worm, ".fix-pill").count() == 0  # steps, not a patch
+    ink = lambda u: part(u, ".x-word").evaluate("e => getComputedStyle(e).color")
+    assert ink(worm) != ink(flaw)  # a warning's yellow, not the ink an exploited flaw with a remedy leads in
     assert part(flaw, ".x-word").text_content() == "Exploited" and part(flaw, ".mitigation").text_content() == "Mitigation only"
     assert pg.locator("#filters [data-f='exploited'] .f-open").count() == 0  # nothing unpatched: neither has "no patch yet"
     assert pg.problems == []

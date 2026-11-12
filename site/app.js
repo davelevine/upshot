@@ -37,12 +37,12 @@ const inList = (i, f) => f === 'all' || (f === 'essentials' ? picks.has(i.url) :
 const plural = (n, one, many) => (n === 1 ? one : many);
 // An exploited flaw and its remedy, in CISA's terms: "Patch available" (the accent), "Mitigation only" (quiet), or "No patch
 // yet", the one alarm on a row, red with "Exploited" (nothing to apply: watch it); nothing when the story doesn't say. A
-// supply-chain attack says "Compromised" instead, as GitHub and OSV keep malware apart from vulnerabilities, with no patch
-// to report: its steps are in the upshot. A fifth of rows can be flagged in a busy week, so only the alarm is red. The same
+// supply-chain attack says "Compromised" instead, as GitHub and OSV keep malware apart from vulnerabilities, in yellow, Carbon's
+// "regular warning" (check whether you're affected; there are steps to take), with no patch to report: its steps are in the upshot. A fifth of rows can be flagged in a busy week, so only the alarm is red. The same
 // in every list, and the reader.
 const FIX_LABEL = { none: '<span class="fix-pill no-patch">No patch yet</span>', mitigation: '<span class="fix-pill mitigation">Mitigation only</span>',
   patch: '<span class="fix-pill patch-out">Patch available</span>' };
-const exploitedLabel = x => (x.kind === 'compromise' ? '<span class="exploited"><span class="x-word">Compromised</span></span>'
+const exploitedLabel = x => (x.kind === 'compromise' ? '<span class="exploited"><span class="x-word compromised">Compromised</span></span>'
   : `<span class="exploited"><span class="x-word">Exploited</span>${FIX_LABEL[x.fix] || ''}</span>`);
 // One label per row, in one quiet style: Exploited (whether to act), else Essential. Unread needs none (its title is bold),
 // and no list repeats its own name on every row.
@@ -477,7 +477,7 @@ function frameVars(theme) {
   probe.dataset.theme = theme;
   document.body.append(probe);
   const cs = getComputedStyle(probe);
-  const out = `color-scheme: ${theme}; ` + ["--accent", "--bg", "--bg-card", "--border", "--border-strong", "--text", "--text-muted", "--exploited", "--exploited-text", "--exploited-ink", "--accent-contrast"].map(v => `${v}: ${cs.getPropertyValue(v).trim()};`).join(' ');
+  const out = `color-scheme: ${theme}; ` + ["--accent", "--bg", "--bg-card", "--border", "--border-strong", "--text", "--text-muted", "--exploited", "--exploited-text", "--exploited-ink", "--accent-contrast", "--caution-ink"].map(v => `${v}: ${cs.getPropertyValue(v).trim()};`).join(' ');
   probe.remove();
   return out;
 }
@@ -536,7 +536,7 @@ pre { overflow-x: auto; padding: 12px 14px; border-radius: 8px; background: var(
 pre code { padding: 0; background: none; font: inherit; }
 table { display: block; overflow-x: auto; border-collapse: collapse; font-size: .875rem; } th, td { padding: 4px 8px; border: 1px solid var(--border); } th { font-weight: 700; }
 hr { border: 0; border-top: 1px solid var(--border); }
-.flag { margin: 0 0 .35em; } .exploited { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; } .x-word { color: var(--text); } .exploited:has(.no-patch) .x-word { color: var(--exploited-ink); }
+.flag { margin: 0 0 .35em; } .exploited { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; } .x-word { color: var(--text); } .exploited:has(.no-patch) .x-word { color: var(--exploited-ink); } .x-word.compromised { color: var(--caution-ink); }
 .fix-pill { padding: 1px 8px; border-radius: 999px; font-size: .9em; font-weight: 700; line-height: 1.35; }  /* a chip, as in the list; not .pill, the "Read it on" button's */ .no-patch { background: var(--exploited); color: var(--exploited-text); } .patch-out, .mitigation { padding: 0; color: var(--accent); font-size: 1em; font-weight: 600; line-height: inherit; }
 .mitigation { color: var(--text-muted); font-weight: 500; } .patch-out::before, .mitigation::before { content: "· "; color: var(--text-muted); }
 .late { animation: late .2s ease .4s both; } @keyframes late { from { opacity: 0; } }
