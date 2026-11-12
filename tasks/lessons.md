@@ -52,3 +52,11 @@
 **Rules:**
 - Before applying a new general rule, check it against preferences the user stated earlier in the work. Where they conflict, name the conflict and ask; don't let the newer rule win silently.
 - After a UI change, compare the same item across every view it appears in (All, each topic, each special list), not just the view being changed.
+
+## 2026-11-12 — Evaluate every path a record can take, not just the new-arrival one
+
+**Mistake:** The Exploited flag's remedy was evaluated only for stories as they arrive (scored, then summarised). Stories flagged later, by a CISA listing after publication, which was every flag on the first live build, never went through either check, so they showed no remedy even when their own upshot named the patch. The user caught it on the live site.
+
+**Rules:**
+- For any per-record state, list every way a record can reach it (on arrival, on a later build, by a backfill, via another record) and check that each path fills every field, before calling the evaluation done.
+- After a feature ships, look at its first real output on the live site, not only at the dry runs.
