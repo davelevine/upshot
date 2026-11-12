@@ -522,3 +522,22 @@ def test_an_exploited_storys_summary_also_reads_its_fix_from_the_whole_article(m
 def test_steps_to_take_count_as_a_fix_where_theres_no_patch():
     item = {"title": "Compromised GitHub accounts push a CI secret stealer", "excerpt": "Aikido says to rotate any CI credentials exposed in affected repos."}
     assert build.verified_fix({"fix": "available", "fix_evidence": "rotate any CI credentials exposed"}, item) == "available"
+
+
+def test_llm_sends_the_prompt_on_stdin_so_a_long_article_fits(monkeypatch):
+    import types
+    seen = {}
+    def run(cmd, **k):
+        seen.update(cmd=cmd, input=k.get("input"))
+        return types.SimpleNamespace(stdout=json.dumps({"structured_output": {"items": []}, "modelUsage": {build.MODEL: {}}}), stderr="", returncode=0)
+    monkeypatch.setattr(build.subprocess, "run", run)
+    article = "word " * 60000  # 300 KB: past the 128 KB a single argument may hold
+    build.llm("system", article, {})
+    assert seen["input"] == article and article not in seen["cmd"]
+
+
+def test_a_claim_counts_in_the_words_reporters_use():
+    for title in ("Attackers Chain Three Ivanti Connect Secure Flaws to Gain Unauthenticated Root Access",
+                  "Active ScreenConnect attacks breach MSPs", "cPGuard Update Channel Hijacked to Backdoor Linux Servers",
+                  "Malicious bee-js npm Release Delivers SleepyDuck"):
+        assert build.verified_claim({"exploited": True, "evidence": title}, {"title": title, "excerpt": ""}) == title

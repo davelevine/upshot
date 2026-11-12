@@ -50,7 +50,8 @@ FIX_TERMS = {  # what a quote must say for the model's claim about a fix to coun
     "available": re.compile(r"patch|update|fix|version|upgrade|release|mitigat|workaround|rotat|revok|remov|uninstall|disabl", re.I),
     "none": re.compile(r"\b(no|without an?|yet to|not yet|unpatched|hasn't|has not|hasn’t)\b.*\b(patch|fix|update|patched|fixed)|unpatched", re.I),
 }
-EXPLOIT_TERMS = re.compile(r"exploit|zero[- ]?day|0[- ]?day|in the wild|under attack|emergency (patch|update|fix)|out[- ]of[- ]band", re.I)
+EXPLOIT_TERMS = re.compile(r"exploit|zero[- ]?day|0[- ]?day|in the wild|attack|breach|compromis|hijack|abus|backdoor|malicious|"
+                           r"emergency (patch|update|fix)|out[- ]of[- ]band", re.I)  # how reporters say it: "attackers chain", "hijacked"
 SCORE_WORKERS = 6     # parallel scoring calls (each is a CLI process)
 UA = "upshot/1.0 (+https://github.com/davelevine/upshot)"
 WORDS_PER_MINUTE = 230
@@ -152,8 +153,8 @@ def llm(system, user, schema, whole=False):
     the prompt. Returns the list of result objects, or with `whole`, the object holding it and its siblings."""
     r = subprocess.run(
         [CLAUDE, "-p", "--model", MODEL, "--system-prompt", system, "--tools", "", "--no-session-persistence",
-         "--setting-sources", "", "--strict-mcp-config", "--output-format", "json", "--json-schema", json.dumps(schema), user],
-        capture_output=True, text=True, timeout=300, cwd=tempfile.gettempdir())
+         "--setting-sources", "", "--strict-mcp-config", "--output-format", "json", "--json-schema", json.dumps(schema)],
+        input=user, capture_output=True, text=True, timeout=300, cwd=tempfile.gettempdir())  # stdin: an argument is capped at 128 KB, a long article isn't
     try:
         out = json.loads(r.stdout)
     except json.JSONDecodeError:
@@ -189,8 +190,11 @@ For each item return:
   Most items are 4-7; reserve 8+ for roughly the top tenth of a day's news.
 - summary: one plain factual sentence (max 30 words) saying what happened. No hype, no "this article".
 - exploited: true only if the item says a security flaw is being exploited in the wild, is a zero-day, or gets an
-  emergency or out-of-band patch. Not for a flaw that could be exploited, a proof of concept, or a routine patch.
-- evidence: when exploited is true, the words from the title or excerpt that say so, copied exactly; else "".
+  emergency or out-of-band patch; or that software people run is compromised in an active supply-chain attack
+  (malicious package versions, a hijacked update channel, compromised accounts pushing code). Not for a flaw that
+  could be exploited, a proof of concept, a routine patch, a breach of one company's own data, or a trend piece.
+- evidence: when exploited is true, the words from the title or excerpt that say it's being exploited or attacked,
+  copied exactly (the title, if it says so); else "".
 - fix: for a security flaw or attack, whether the item says there's a fix: "available" (a patch, update, fixed version,
   mitigation, or steps to take such as rotating credentials or removing a package), "none" (it says there is no patch
   or fix yet), else "unknown".
