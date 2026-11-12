@@ -43,6 +43,19 @@ DAILY_MAX = 20        # anomaly guard (a broken feed, a scoring bug), set above 
 DEAD_AFTER_DAYS = 14  # a feed failing this long gets reported
 SILENT_AFTER_DAYS = 45  # a feed that loads but hasn't posted in this long gets reported
 BATCH = 20            # stories per repeat check
+# Urgent security news: an exploited flaw is flagged, published whatever its score, and pinned on the site for a while.
+KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"  # CISA: CVEs exploited in the wild
+CVE = re.compile(r"\bCVE-\d{4}-\d{4,}\b", re.I)
+# A flaw's remedy, as CISA's catalog separates them: a vendor patch or update, else only a mitigation or workaround, else
+# nothing yet. Ranked: later news only ever raises it.
+FIX_RANK = {"none": 0, "mitigation": 1, "patch": 2}
+FIX_TERMS = {  # what a quote must say for the model's claim about a fix to count
+    "patch": re.compile(r"patch|update|fix|version|upgrade|release", re.I),
+    "mitigation": re.compile(r"mitigat|workaround|disabl|block|restrict|rotat|revok|remov|uninstall|turn off|limit", re.I),
+    "none": re.compile(r"\b(no|without an?|yet to|not yet|unpatched|hasn't|has not|hasn’t)\b.*\b(patch|fix|update|patched|fixed)|unpatched", re.I),
+}
+EXPLOIT_TERMS = re.compile(r"exploit|zero[- ]?day|0[- ]?day|in the wild|attack|breach|compromis|hijack|abus|backdoor|malicious|"
+                           r"emergency (patch|update|fix)|out[- ]of[- ]band", re.I)  # how reporters say it: "attackers chain", "hijacked"
 SCORE_WORKERS = 6     # parallel scoring calls (each is a CLI process)
 UA = "upshot/1.0 (+https://github.com/davelevine/upshot)"
 WORDS_PER_MINUTE = 230
@@ -138,14 +151,14 @@ def candidates(publisher, entries, seen, cutoff):
     return sorted(out, key=lambda i: i["date"], reverse=True)[:PER_FEED]
 
 
-def llm(system, user, schema):
+def llm(system, user, schema, whole=False):
     """One structured call to Claude through the Claude Code CLI, which runs on the subscription
     (CLAUDE_CODE_OAUTH_TOKEN in CI). Tools, settings, MCP and sessions are off, so a call carries only
-    the prompt. Returns the list of result objects."""
+    the prompt. Returns the list of result objects, or with `whole`, the object holding it and its siblings."""
     r = subprocess.run(
         [CLAUDE, "-p", "--model", MODEL, "--system-prompt", system, "--tools", "", "--no-session-persistence",
-         "--setting-sources", "", "--strict-mcp-config", "--output-format", "json", "--json-schema", json.dumps(schema), user],
-        capture_output=True, text=True, timeout=300, cwd=tempfile.gettempdir())
+         "--setting-sources", "", "--strict-mcp-config", "--output-format", "json", "--json-schema", json.dumps(schema)],
+        input=user, capture_output=True, text=True, timeout=300, cwd=tempfile.gettempdir())  # stdin: an argument is capped at 128 KB, a long article isn't
     try:
         out = json.loads(r.stdout)
     except json.JSONDecodeError:
@@ -155,7 +168,7 @@ def llm(system, user, schema):
     # An unrecognized model name makes the CLI quietly answer with another model; scores would drift.
     if MODEL not in out.get("modelUsage", {}):
         raise RuntimeError(f"answered by {list(out.get('modelUsage', {}))}, not {MODEL}")
-    return next(iter(out["structured_output"].values()))  # every schema is an object holding one list
+    return out["structured_output"] if whole else next(iter(out["structured_output"].values()))  # an object holding one list
 
 
 CLASSIFY_PROMPT = f"""You curate a tech news digest for a senior infrastructure/platform engineer
@@ -180,7 +193,19 @@ For each item return:
   1-3 = marketing, hiring, events, webinars, customer stories, off-topic.
   Most items are 4-7; reserve 8+ for roughly the top tenth of a day's news.
 - summary: one plain factual sentence (max 30 words) saying what happened. No hype, no "this article".
-Return JSON: {{"items": [{{"id", "category", "relevance", "summary"}}, ...]}} covering every input id."""
+- exploited: true only if the item says a security flaw is being exploited in the wild, is a zero-day, or gets an
+  emergency or out-of-band patch; or that software people run is compromised in an active supply-chain attack
+  (malicious package versions, a hijacked update channel, compromised accounts pushing code). Not for a flaw that
+  could be exploited, a proof of concept, a routine patch, a breach of one company's own data, or a trend piece.
+- kind: "compromise" for a supply-chain compromise (malicious package versions, a hijacked update channel,
+  compromised accounts pushing code), else "flaw".
+- evidence: when exploited is true, the words from the title or excerpt that say it's being exploited or attacked,
+  copied exactly (the title, if it says so); else "".
+- fix: for an exploited flaw, what the item says is out: "patch" (a vendor patch, update or fixed version),
+  "mitigation" (only a mitigation or workaround, no patch yet), "none" (it says there is no patch or fix yet),
+  else "unknown". For a compromise, "unknown".
+- fix_evidence: when fix isn't "unknown", the words from the title or excerpt that say so, copied exactly; else "".
+Return JSON: {{"items": [{{"id", "category", "relevance", "summary", "exploited", "kind", "evidence", "fix", "fix_evidence"}}, ...]}} covering every input id."""
 
 # A separate call, so the recent headlines can't skew relevance: shown alongside scoring, the model
 # graded new items against the week's biggest stories and scored borderline ones a point low.
@@ -201,8 +226,13 @@ CLASSIFY_SCHEMA = {
             "category": {"type": "string", "enum": CATEGORIES},
             "relevance": {"type": "integer"},
             "summary": {"type": "string"},
+            "exploited": {"type": "boolean"},
+            "kind": {"type": "string", "enum": ["flaw", "compromise"]},
+            "evidence": {"type": "string"},
+            "fix": {"type": "string", "enum": ["patch", "mitigation", "none", "unknown"]},
+            "fix_evidence": {"type": "string"},
         },
-        "required": ["id", "category", "relevance", "summary"], "additionalProperties": False,
+        "required": ["id", "category", "relevance", "summary", "exploited", "kind", "evidence", "fix", "fix_evidence"], "additionalProperties": False,
     }}},
     "required": ["items"], "additionalProperties": False,
 }
@@ -219,7 +249,7 @@ REPEATS_SCHEMA = {
 
 
 def classify(item):
-    """The model's {category, relevance, summary} for one story."""
+    """The model's {category, relevance, summary, exploited, kind, evidence, fix, fix_evidence} for one story."""
     payload = [{"id": 0, "title": item["title"], "publisher": item["publisher"], "excerpt": item["excerpt"]}]
     return llm(CLASSIFY_PROMPT, json.dumps(payload), CLASSIFY_SCHEMA)[0]
 
@@ -237,6 +267,112 @@ def score_each(items):
         return item["url"], None
     with ThreadPoolExecutor(SCORE_WORKERS) as ex:
         return dict(ex.map(one, items))
+
+
+def cves(text):
+    """The CVE IDs a text mentions, upper-cased, sorted and unique."""
+    return sorted({c.upper() for c in CVE.findall(text or "")})
+
+
+def fetch_kev():
+    """CISA's Known Exploited Vulnerabilities: {cveID: dateAdded}. Empty if it can't be read, so the build carries on
+    with the model's checked claims alone."""
+    try:
+        req = urllib.request.Request(KEV_URL, headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return {v["cveID"].upper(): v["dateAdded"] for v in json.load(r)["vulnerabilities"]}
+    except Exception as e:
+        print(f"::warning::CISA's exploited-vulnerabilities catalog couldn't be read: {e}")
+        return {}
+
+
+def verified_claim(r, item):
+    """The model's "exploited" claim, if its evidence is really in the story and really about exploitation: the model
+    claims, the code checks, as with repeats. Returns the quote, or None."""
+    return in_story(r.get("evidence"), item, EXPLOIT_TERMS, least=15) if r.get("exploited") else None
+
+
+def in_story(quote, item, terms, least=10):
+    """The quote, if it's really in the story's title or excerpt and says what `terms` require; else None."""
+    quote = " ".join((quote or "").split())
+    source = " ".join(f"{item['title']} {item.get('excerpt', '')}".split()).lower()
+    return quote if len(quote) >= least and quote.lower() in source and terms.search(quote) else None
+
+
+def best_fix(*statuses):
+    """The furthest remedy among these ("patch" over "mitigation" over "none"), or None if none is known."""
+    known = [s for s in statuses if s in FIX_RANK]
+    return max(known, key=FIX_RANK.get) if known else None
+
+
+def verified_fix(r, item):
+    """"patch", "mitigation" or "none" if the model's claim about a flaw's remedy checks out, else None. A flaw CISA lists
+    has some remedy (the catalog only takes flaws with a clear remediation) but which, its boilerplate doesn't say: so a
+    listing rules out "none" (see kev_fix) and claims nothing else."""
+    status = r.get("fix")
+    return status if status in FIX_TERMS and in_story(r.get("fix_evidence"), item, FIX_TERMS[status]) else None
+
+
+def exploited(item, r, kev):
+    """The flag for a story, or None: one of its CVEs is in CISA's catalog, or it's a security story whose claim checks out.
+    `kind`: "flaw", with its remedy in `fix`, or "compromise" (a supply-chain attack: GitHub and OSV call these malware,
+    not vulnerabilities, and there's no patch to wait for, only steps to take)."""
+    hits = [c for c in item.get("cves", []) if c in kev]
+    quote = verified_claim(r, item) if r.get("category") == "security" else None
+    if not hits and not quote:
+        return None
+    kind = "compromise" if r.get("kind") == "compromise" and not hits else "flaw"  # a catalogued CVE is a flaw
+    claimed = verified_fix(r, item) if kind == "flaw" else None
+    fix = kev_fix(claimed) if hits else claimed
+    return ({"kev": hits, "at": now().isoformat(timespec="seconds"), "kind": kind} | ({"quote": quote} if quote else {})
+            | ({"fix": fix} if fix else {}))
+
+
+def kev_fix(fix):
+    """A listed flaw's remedy: whatever the story says, except "none", which CISA's listing contradicts."""
+    return None if fix == "none" else fix
+
+
+def passes(r, flag):
+    """The one rule: a story clears its category's bar, or it's an exploited flaw with no patch yet a point short of it (a
+    zero-day, in Qualys's sense). Only that case bends the bar: patched flaws and campaigns a point under it were mostly
+    near-duplicates, and a flaw in a product too niche to score near the bar is noise, not news."""
+    bar = MIN_RELEVANCE[r["category"]]
+    zero_day = bool(flag) and flag.get("kind") == "flaw" and flag.get("fix") == "none"
+    return r["relevance"] >= bar or (zero_day and r["relevance"] >= bar - 1)
+
+
+def carry_flag(items, title, flag):
+    """A flagged repeat hands its flag to the copy on the site, so removing repeats never drops the signal."""
+    if not flag:
+        return
+    for i in items:
+        if norm(i["title"]) == norm(title):
+            old = i.get("exploited") or {}
+            fix = best_fix(old.get("fix"), flag.get("fix"))
+            i["exploited"] = (flag | old) | {"kev": sorted(set(old.get("kev", [])) | set(flag["kev"]))} | ({"fix": fix} if fix else {})
+            return
+
+
+def tag_kev(items, kev):
+    """Flags stories on the site whose CVEs CISA has since listed. The pin still counts from when the story was added,
+    so a days-old story gets the tag without jumping to the top."""
+    for i in items:
+        hits = [c for c in i.get("cves", []) if c in kev]
+        old = i.get("exploited")
+        if hits and (not old or set(hits) - set(old["kev"])):
+            new = (old or {"at": now().isoformat(timespec="seconds")}) | {"kind": "flaw", "kev": sorted(set((old or {}).get("kev", [])) | set(hits))}
+            new.pop("fix", None)
+            i["exploited"] = new | ({"fix": f} if (f := kev_fix((old or {}).get("fix"))) else {})  # listed: never "no patch yet"
+
+
+def mark_fixed(items, cve_ids, status):
+    """A later story says a patch or mitigation is out for these CVEs: exploited flaws on the site that name any of them
+    move up to it. Matched on CVE IDs, not by the model, so it can't touch an unrelated story."""
+    for i in items:
+        x = i.get("exploited")
+        if x and x.get("kind", "flaw") == "flaw" and set(i.get("cves", [])) & set(cve_ids):
+            x["fix"] = best_fix(x.get("fix"), status)
 
 
 def find_repeats(batch, recent):
@@ -478,16 +614,17 @@ def repeats(dup_of, n, covered_ids, recent_titles):
 
 
 def cap_per_day(items, published=()):
-    """Newest day first. Each day keeps every story already on the site (`published`: ids of their dicts), then the
-    best new ones up to DAILY_MAX. Within a day: most relevant first, the original source ahead of a news outlet."""
+    """Newest day first. Each day keeps every story already on the site (`published`: ids of their dicts) and every
+    flagged one, then the best new ones up to DAILY_MAX. Within a day: most relevant first, the original source ahead of a news outlet."""
     rank = lambda i: (-i.get("relevance", 0), i.get("publisher") in NEWS_SOURCES)
     by_day = {}
     for i in items:
         by_day.setdefault(i["date"], []).append(i)
     out = []
     for day in sorted(by_day, reverse=True):
-        kept = [i for i in by_day[day] if id(i) in published]
-        fresh = sorted((i for i in by_day[day] if id(i) not in published), key=rank)[:max(0, DAILY_MAX - len(kept))]
+        keep = lambda i: id(i) in published or bool(i.get("exploited"))
+        kept = [i for i in by_day[day] if keep(i)]
+        fresh = sorted((i for i in by_day[day] if not keep(i)), key=rank)[:max(0, DAILY_MAX - len(kept))]
         out += sorted(kept + fresh, key=rank)
     return out
 
@@ -505,7 +642,8 @@ def upgrade_source(items, title, item, result, weekly=None):
             old.pop("minutes", None)
             old.pop("tldr", None)  # checked against the outlet's article: rewritten from the original's
             old.update({k: item[k] for k in ("title", "url", "publisher")},
-                       category=result["category"], summary=result["summary"], relevance=max(old.get("relevance", 0), result["relevance"]))
+                       category=result["category"], summary=result["summary"], relevance=max(old.get("relevance", 0), result["relevance"]),
+                       cves=sorted(set(old.get("cves", [])) | set(item.get("cves", []))))
             return True
     return False
 
@@ -573,6 +711,16 @@ TLDR_SCHEMA = {
     "properties": {"bullets": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 4}},
     "required": ["bullets"], "additionalProperties": False,
 }
+# For an exploited flaw, the same call says whether its fix is out: the whole article knows what a feed's excerpt may not.
+TLDR_FIX = """
+Also say what the article says is out for the exploited flaw: fix is "patch" (a vendor patch, update or fixed version),
+"mitigation" (only a mitigation or workaround, no patch yet), "none" (it says there is no patch or fix yet), else
+"unknown"; fix_evidence is the words from the article that say so, copied exactly, else ""."""
+TLDR_FIX_SCHEMA = {
+    "type": "object",
+    "properties": TLDR_SCHEMA["properties"] | {"fix": {"type": "string", "enum": ["patch", "mitigation", "none", "unknown"]}, "fix_evidence": {"type": "string"}},
+    "required": ["bullets", "fix", "fix_evidence"], "additionalProperties": False,
+}
 
 
 def verify_tldr(bullets, text):
@@ -592,17 +740,29 @@ def add_tldrs(items, texts, limit=TLDR_LIMIT):
     todo = [i for i in items if "tldr" not in i and texts.get(i["url"])][:limit]
 
     def one(item):
+        x = item.get("exploited") or {}
+        text, flagged = texts[item["url"]], bool(x) and x.get("kind", "flaw") == "flaw"  # a compromise has steps, not a patch
+        payload = json.dumps({"title": item["title"], "article": text})
         try:
-            bullets = llm(TLDR_PROMPT, json.dumps({"title": item["title"], "article": texts[item["url"]]}), TLDR_SCHEMA)
+            if flagged:
+                res = llm(TLDR_PROMPT + TLDR_FIX, payload, TLDR_FIX_SCHEMA, whole=True)
+                bullets, fix = res["bullets"], verified_fix(res, {"title": item["title"], "excerpt": text})
+            else:
+                bullets, fix = llm(TLDR_PROMPT, payload, TLDR_SCHEMA), None
         except Exception as e:
             print(f"::warning::TL;DR failed for {item['url']}: {e}")
-            return item, None
-        return item, verify_tldr(bullets, texts[item["url"]])
+            return item, None, None
+        return item, verify_tldr(bullets, text), fix
 
     with ThreadPoolExecutor(SCORE_WORKERS) as ex:
-        for item, tldr in ex.map(one, todo):
+        for item, tldr, fix in ex.map(one, todo):
             if tldr is not None:
                 item["tldr"] = tldr
+            if fix:  # the whole article over the excerpt, but a remedy once out stays out
+                x = item["exploited"]
+                x["fix"] = best_fix(x.get("fix"), fix) if fix != "none" else x.get("fix") or "none"
+            if fix in ("patch", "mitigation"):
+                mark_fixed(items, item.get("cves", []), fix)
     return len(todo)
 
 
@@ -616,7 +776,9 @@ def run_summary(feeds, feeds_failed, new, scores, kept, repeated, health):
     lines = [
         "## Upshot build", "",
         f"**Feeds:** {feeds} fetched, {feeds_failed} failed · **New stories:** {len(new)} · **Scored:** {len(scored)}"
-        f" ({len(new) - len(scored)} failed, retried next run) · **Kept:** {len(kept)} · **Dropped as repeats:** {len(repeated)}", "",
+        f" ({len(new) - len(scored)} failed, retried next run) · **Kept:** {len(kept)} · **Dropped as repeats:** {len(repeated)}"
+        f" · **Exploited:** {sum(1 for i, _ in kept if i.get('exploited'))}"  # how often the flag fires: is the feed still calm?
+        f" ({sum(1 for i, r in kept if i.get('exploited') and r['relevance'] < MIN_RELEVANCE[r['category']])} below the bar)", "",
     ]
     if kept:
         lines += ["### Kept", "", "| Category | Score | Source | Story |", "|---|---|---|---|", *(row(r, i) for i, r in kept), ""]
@@ -726,14 +888,19 @@ def main():
     recent = [i["title"] for i in data["items"] if i["date"] >= week_ago]
     scores = score_each(new)
     failed = sum(1 for r in scores.values() if r is None)
+    kev = fetch_kev()
     passing = []
     for item in new:
         r = scores.get(item["url"])
         if not r:  # left unseen, so the next run retries it
             continue
         seen[item["url"]] = item["date"]
-        if r["relevance"] >= MIN_RELEVANCE[r["category"]]:
-            passing.append((item | {"summary": r["summary"]}, r))
+        item["cves"] = cves(f"{item['title']} {item['excerpt']}")
+        if item["cves"] and (out := verified_fix(r, item)) in ("patch", "mitigation"):  # even one that isn't published
+            mark_fixed(data["items"], item["cves"], out)
+        flag = exploited(item, r, kev)
+        if passes(r, flag):
+            passing.append((item | {"summary": r["summary"], "exploited": flag}, r))
 
     kept, repeated = [], []
     for n0 in range(0, len(passing), BATCH):
@@ -755,14 +922,17 @@ def main():
                 if upgrade_source(data["items"], target, item, r, data.get("weekly")):
                     kept.append((item, r))
                     recent.append(item["title"])
+                    carry_flag(data["items"], item["title"], item["exploited"])
                 else:
                     repeated.append(item)
+                    carry_flag(data["items"], target, item["exploited"])
                 continue
             kept.append((item, r))
             recent.append(item["title"])
-            data["items"].append({k: item[k] for k in ("date", "published", "title", "url", "publisher")}
+            data["items"].append({k: item[k] for k in ("date", "published", "title", "url", "publisher", "cves")}
                                  | {"category": r["category"], "summary": r["summary"], "relevance": r["relevance"],
-                                    "added": now().isoformat(timespec="seconds")})  # drives "new since last visit"
+                                    "added": now().isoformat(timespec="seconds")}  # drives "new since last visit"
+                                 | ({"exploited": item["exploited"]} if item["exploited"] else {}))
 
     keep = (today - timedelta(days=KEEP_DAYS)).isoformat()
     data["items"] = cap_per_day([i for i in data["items"] if i["date"] >= keep], published)
@@ -779,6 +949,12 @@ def main():
 
     texts = {}
     reader_error = add_reading_times(data["items"], feed_minutes(fetched), full_text_feeds(fetched), texts)
+    for i in data["items"]:  # the whole article names CVEs a 600-character excerpt cuts off
+        i.setdefault("cves", cves(f"{i['title']} {i.get('summary', '')}"))  # stories from before the flag
+        if i["url"] in texts:
+            i["cves"] = sorted(set(i.get("cves", [])) | set(cves(texts[i["url"]])))
+    if kev:
+        tag_kev(data["items"], kev)
     print(f"TL;DRs written: {add_tldrs(data['items'], texts)}")
     data["generated_at"] = now().isoformat(timespec="seconds")
     SITE.mkdir(exist_ok=True)

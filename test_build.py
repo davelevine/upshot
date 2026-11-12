@@ -284,9 +284,11 @@ def test_run_summary_counts_and_near_misses():
               new[1]["url"]: {"category": "security", "relevance": 7, "summary": "s"},   # one under the Security bar
               new[2]["url"]: {"category": "regulation", "relevance": 5, "summary": "s"},
               new[3]["url"]: None}                                                        # scoring failed
-    out = build.run_summary(45, 1, new, scores, [(new[0], scores[new[0]["url"]])], [], [])
+    flagged = {**new[1], "exploited": {"kev": [], "at": "t"}}
+    out = build.run_summary(45, 1, new, scores, [(new[0], scores[new[0]["url"]]), (flagged, scores[new[1]["url"]])], [], [])
+    assert "**Exploited:** 1 (1 below the bar)" in out  # how often the flag fires, and how often it bends the bar
     assert "45 fetched, 1 failed" in out and "**New stories:** 4" in out and "**Scored:** 3 (1 failed" in out
-    assert "**Kept:** 1" in out and "[T0](https://x.test/0)" in out
+    assert "**Kept:** 2" in out and "[T0](https://x.test/0)" in out
     near = out.split("One point under the bar")[1]
     assert "T1" in near and "T2" not in near
 
@@ -380,3 +382,181 @@ def test_fetch_reports_only_permanent_redirects():
 def test_categories_are_defined():
     assert "architecture" not in build.CATEGORIES and "sdlc" not in build.CATEGORIES and "sdlc" not in build.CLASSIFY_PROMPT
     assert "infrastructure:" in build.CLASSIFY_PROMPT and "engineering:" in build.CLASSIFY_PROMPT  # each is defined
+
+
+def test_cves_are_found_once_each_upper_cased():
+    assert build.cves("Patch cve-2026-1234 and CVE-2026-123456, again CVE-2026-1234; not CVE-26-1") == ["CVE-2026-1234", "CVE-2026-123456"]
+    assert build.cves(None) == []
+
+
+def test_a_claim_counts_only_if_its_quote_is_in_the_story_and_about_exploitation():
+    item = {"title": "Ivanti patches VPN flaw", "excerpt": "Ivanti says the flaw  is being exploited in the wild against a small number of customers."}
+    claim = lambda evidence, exploited=True: build.verified_claim({"exploited": exploited, "evidence": evidence}, item)
+    assert claim("is being exploited in the wild") == "is being exploited in the wild"  # spacing and case don't matter
+    assert claim("being actively exploited by attackers") is None        # not in the story
+    assert claim("against a small number of customers") is None         # in the story, but says nothing of exploitation
+    assert claim("exploited") is None                                    # too short to check
+    assert claim("is being exploited in the wild", exploited=False) is None
+
+
+def test_a_story_is_flagged_by_cisas_catalog_or_a_checked_claim():
+    kev = {"CVE-2026-1111": "2026-11-10"}
+    item = {"title": "Router flaw", "excerpt": "CVE-2026-1111 is a zero-day under attack.", "cves": ["CVE-2026-1111"]}
+    r = {"category": "infrastructure", "exploited": False, "evidence": "", "relevance": 6}
+    flag = build.exploited(item, r, kev)
+    assert flag["kev"] == ["CVE-2026-1111"] and "quote" not in flag  # the catalog needs no claim, in any category
+    claim = {"category": "security", "exploited": True, "evidence": "is a zero-day under attack", "relevance": 7}
+    assert build.exploited({**item, "cves": []}, claim, {})["quote"] == "is a zero-day under attack"
+    assert build.exploited({**item, "cves": []}, {**claim, "category": "ai"}, {}) is None  # claims count for security only
+    assert build.exploited({**item, "cves": []}, {**r, "category": "security"}, kev) is None  # no match, no claim
+
+
+
+def test_the_catalog_failing_leaves_the_build_running(monkeypatch, capsys):
+    def boom(*a, **k):
+        raise OSError("timed out")
+    monkeypatch.setattr(build.urllib.request, "urlopen", boom)
+    assert build.fetch_kev() == {} and "catalog couldn't be read" in capsys.readouterr().out
+
+
+def test_the_catalog_is_read_as_cve_to_date(monkeypatch):
+    class Res:
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def read(self, *a): return json.dumps({"vulnerabilities": [{"cveID": "cve-2026-9", "dateAdded": "2026-11-01"}]}).encode()
+    monkeypatch.setattr(build.urllib.request, "urlopen", lambda req, timeout: Res())
+    assert build.fetch_kev() == {"CVE-2026-9": "2026-11-01"}
+
+
+def test_a_flagged_repeat_hands_its_flag_to_the_copy_on_the_site():
+    on_site = {"title": "Big Flaw Exploited", "url": "a", "cves": [], "exploited": {"kev": ["CVE-2026-1"], "at": "t0"}}
+    other = {"title": "Something else", "url": "b"}
+    build.carry_flag([other, on_site], "big flaw  exploited", {"kev": ["CVE-2026-2"], "at": "t1", "quote": "q"})
+    assert on_site["exploited"] == {"kev": ["CVE-2026-1", "CVE-2026-2"], "at": "t0", "quote": "q"}  # kept its first date
+    assert "exploited" not in other
+    build.carry_flag([other], "Something else", None)
+    assert "exploited" not in other
+
+
+def test_the_daily_cap_never_drops_a_flagged_story():
+    day = lambda rel, url, **k: {"date": "2026-11-08", "category": "security", "relevance": rel, "publisher": "P", "url": url, **k}
+    full = [day(9, f"p{n}") for n in range(build.DAILY_MAX)] + [day(5, "flagged", exploited={"kev": [], "at": "t", "quote": "q"})]
+    assert "flagged" in [i["url"] for i in build.cap_per_day(full)]
+
+
+def test_a_late_catalog_listing_tags_a_story_but_keeps_its_dates():
+    old = {"title": "T", "url": "a", "added": "2026-11-01T10:00:00+00:00", "cves": ["CVE-2026-5"]}
+    plain = {"title": "U", "url": "b", "cves": ["CVE-2026-6"]}
+    build.tag_kev([old, plain], {"CVE-2026-5": "2026-11-12"})
+    assert old["exploited"]["kev"] == ["CVE-2026-5"] and old["added"] == "2026-11-01T10:00:00+00:00"  # the pin counts from added
+    assert "exploited" not in plain
+    first = old["exploited"]["at"]
+    build.tag_kev([old], {"CVE-2026-5": "2026-11-12"})
+    assert old["exploited"]["at"] == first  # listed again: unchanged
+
+
+def test_upgrading_the_source_keeps_both_copies_cves():
+    r = {"category": "security", "summary": "s", "relevance": 8}
+    old = {"title": "Big Flaw", "url": "n", "publisher": "BleepingComputer", "relevance": 8, "date": "2026-01-01", "cves": ["CVE-2026-1"]}
+    assert build.upgrade_source([old], "big flaw", {"title": "Advisory", "url": "v", "publisher": "Rapid7", "cves": ["CVE-2026-2"]}, r)
+    assert old["cves"] == ["CVE-2026-1", "CVE-2026-2"]
+
+
+def test_scoring_asks_for_the_exploited_claim_in_the_same_call():
+    fields = build.CLASSIFY_SCHEMA["properties"]["items"]["items"]["required"]
+    assert {"exploited", "evidence"} <= set(fields) and "exploited" in build.CLASSIFY_PROMPT
+
+
+
+
+
+
+
+def test_llm_sends_the_prompt_on_stdin_so_a_long_article_fits(monkeypatch):
+    import types
+    seen = {}
+    def run(cmd, **k):
+        seen.update(cmd=cmd, input=k.get("input"))
+        return types.SimpleNamespace(stdout=json.dumps({"structured_output": {"items": []}, "modelUsage": {build.MODEL: {}}}), stderr="", returncode=0)
+    monkeypatch.setattr(build.subprocess, "run", run)
+    article = "word " * 60000  # 300 KB: past the 128 KB a single argument may hold
+    build.llm("system", article, {})
+    assert seen["input"] == article and article not in seen["cmd"]
+
+
+def test_a_claim_counts_in_the_words_reporters_use():
+    for title in ("Attackers Chain Three Ivanti Connect Secure Flaws to Gain Unauthenticated Root Access",
+                  "Active ScreenConnect attacks breach MSPs", "cPGuard Update Channel Hijacked to Backdoor Linux Servers",
+                  "Malicious bee-js npm Release Delivers SleepyDuck"):
+        assert build.verified_claim({"exploited": True, "evidence": title}, {"title": title, "excerpt": ""}) == title
+
+
+
+def test_only_a_zero_day_bends_the_bar():
+    bar = build.MIN_RELEVANCE["security"]
+    r = {"category": "security", "relevance": bar - 1}
+    flaw = lambda fix: {"kev": [], "at": "t", "kind": "flaw", "fix": fix}
+    assert build.passes(r, flaw("none"))                                    # exploited, no patch yet: a point under is enough
+    assert not build.passes(r, flaw("patch")) and not build.passes(r, flaw("mitigation"))
+    assert not build.passes(r, {"kev": [], "at": "t", "kind": "compromise"})
+    assert not build.passes({**r, "relevance": bar - 2}, flaw("none"))     # too niche: noise
+    assert build.passes({**r, "relevance": bar}, None)
+
+
+def test_a_remedy_claim_counts_only_if_its_quote_is_in_the_story_and_says_so():
+    item = {"title": "Fortinet zero-day exploited", "excerpt": "No patch is available yet; disable the SSL-VPN as a workaround. FortiOS 7.4.9 fixes it next week."}
+    fix = lambda status, evidence: build.verified_fix({"fix": status, "fix_evidence": evidence}, item)
+    assert fix("none", "No patch is available yet") == "none"
+    assert fix("mitigation", "disable the SSL-VPN as a workaround") == "mitigation"
+    assert fix("patch", "FortiOS 7.4.9 fixes it next week") == "patch"   # the code checks the quote, not the tense
+    assert fix("patch", "disable the SSL-VPN as a workaround") is None     # a workaround isn't a patch
+    assert fix("none", "Fortinet zero-day exploited") is None              # doesn't say there's no fix
+    assert fix("unknown", "") is None
+    assert build.best_fix("none", "mitigation", None) == "mitigation" and build.best_fix("patch", "none") == "patch" and build.best_fix(None) is None
+
+
+def test_a_catalog_match_has_at_least_a_mitigation_and_a_compromise_has_no_patch_status():
+    item = {"title": "T", "excerpt": "Attackers are exploiting it in the wild and no patch is available yet.", "cves": ["CVE-2026-1"]}
+    claim = {"category": "security", "exploited": True, "kind": "flaw", "evidence": "exploiting it in the wild", "fix": "none", "fix_evidence": "no patch is available yet"}
+    assert build.exploited(item, claim, {})["fix"] == "none"
+    assert "fix" not in build.exploited(item, claim, {"CVE-2026-1": "2026-11-12"})  # listed: a remedy exists, of a kind it doesn't say
+    assert build.exploited({**item, "excerpt": "Attackers are exploiting it in the wild; update to 2.0 now."},
+                           {**claim, "fix": "patch", "fix_evidence": "update to 2.0 now"}, {"CVE-2026-1": "d"})["fix"] == "patch"
+    worm = {"title": "Malicious npm release steals tokens", "excerpt": "Remove the malicious versions and rotate tokens.", "cves": []}
+    flag = build.exploited(worm, {"category": "security", "exploited": True, "kind": "compromise", "evidence": "Malicious npm release steals tokens",
+                                  "fix": "mitigation", "fix_evidence": "rotate tokens"}, {})
+    assert flag["kind"] == "compromise" and "fix" not in flag  # steps, not a patch: the upshot carries them
+
+
+def test_later_news_only_raises_a_flaws_remedy():
+    flaw = {"title": "Zero-day", "url": "a", "cves": ["CVE-2026-7"], "exploited": {"kev": [], "at": "t", "kind": "flaw", "fix": "none"}}
+    other = {"title": "Other", "url": "b", "cves": ["CVE-2026-8"], "exploited": {"kev": [], "at": "t", "kind": "flaw", "fix": "none"}}
+    worm = {"title": "Worm", "url": "c", "cves": ["CVE-2026-7"], "exploited": {"kev": [], "at": "t", "kind": "compromise"}}
+    build.mark_fixed([flaw, other, worm], ["CVE-2026-7"], "mitigation")
+    assert flaw["exploited"]["fix"] == "mitigation" and other["exploited"]["fix"] == "none" and "fix" not in worm["exploited"]
+    build.mark_fixed([flaw], ["CVE-2026-7"], "patch")
+    assert flaw["exploited"]["fix"] == "patch"
+    build.tag_kev([other], {"CVE-2026-8": "2026-11-12"})
+    assert "fix" not in other["exploited"]             # listed: no longer "no patch yet", but no claim of which remedy
+    build.tag_kev([flaw], {"CVE-2026-7": "2026-11-12"})
+    assert flaw["exploited"]["fix"] == "patch"         # never lowered
+    build.carry_flag([flaw], "Zero-day", {"kev": [], "at": "t1", "kind": "flaw", "fix": "none"})
+    assert flaw["exploited"]["fix"] == "patch"         # a repeat's older news never un-patches it
+
+
+def test_an_exploited_flaws_summary_also_reads_its_remedy_from_the_whole_article(monkeypatch):
+    article = "Attackers exploit the flaw. N-able released 2026.4 HF2, which includes the necessary patches."
+    calls = []
+    def fake(system, user, schema, whole=False):
+        calls.append((schema is build.TLDR_FIX_SCHEMA, whole))
+        bullets = ["Attackers exploit the flaw in N-central.", "Update to 2026.4 HF2."]
+        return {"bullets": bullets, "fix": "patch", "fix_evidence": "released 2026.4 HF2, which includes the necessary patches"} if whole else bullets
+    monkeypatch.setattr(build, "llm", fake)
+    flaw = {"title": "Zero-days", "url": "a", "cves": ["CVE-2026-3"], "exploited": {"kev": [], "at": "t", "kind": "flaw", "fix": "none"}}
+    sibling = {"title": "Same flaw elsewhere", "url": "c", "tldr": [], "cves": ["CVE-2026-3"], "exploited": {"kev": [], "at": "t", "kind": "flaw", "fix": "none"}}
+    worm = {"title": "Worm", "url": "w", "exploited": {"kev": [], "at": "t", "kind": "compromise"}}
+    plain = {"title": "Release notes", "url": "b"}
+    build.add_tldrs([flaw, sibling, worm, plain], {"a": article, "w": "A worm. Rotate tokens.", "b": "Release 2026.4 HF2."})
+    assert sorted(calls) == [(False, False), (False, False), (True, True)]  # only the flaw's summary asks about its remedy
+    assert flaw["exploited"]["fix"] == "patch" and sibling["exploited"]["fix"] == "patch"  # its excerpt said none
+    assert "fix" not in worm["exploited"]

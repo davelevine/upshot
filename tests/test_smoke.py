@@ -26,8 +26,15 @@ def browser():
         b.close()
 
 
-def open_site(browser, **context):
+def open_site(browser, patch=None, **context):
+    """The site in a fresh browser, on the All list. `patch` edits data.json on its way in."""
     ctx = browser.new_context(**context)
+    if patch:
+        def patched(route):
+            data = route.fetch().json()
+            patch(data)
+            route.fulfill(json=data)
+        ctx.route("**/data.json*", patched)
     # A reader from before the first story, so everything counts as unread. A first visit has its own test.
     ctx.add_init_script("try { localStorage.getItem('since') || localStorage.setItem('since', '1970-01-01T00:00:00Z'); } catch {}")  # not in the sandboxed article frame
     pg = ctx.new_page()
@@ -206,7 +213,7 @@ def test_essentials_have_their_own_entry_and_show_once(browser):
         sel = f'a.card[href="{p["url"]}"]'
         assert pg.locator(f"{sel} .card-sum").inner_text() == f"What to do: {p['why']}"
         assert pg.locator(f"{sel} .card-sum").evaluate("e => e.scrollHeight <= e.clientHeight")  # never cut short
-        assert pg.locator(f"{sel} .ess").count() == 0  # the view says it already
+        assert pg.locator(f"{sel} .ess").count() == 0  # the list's name says it
     assert pg.problems == []
 
 
@@ -503,20 +510,6 @@ def test_escape_returns_focus_to_the_row_for_the_keyboard(browser):
     wait_until_closed(pg)
     assert pg.evaluate("document.activeElement === document.querySelectorAll('a.card')[1]")  # back where the keyboard was
     assert pg.problems == []
-
-
-@pytest.mark.parametrize("scheme", ["dark", "light"])
-def test_new_stories_are_marked_legibly(browser, scheme):
-    from axe_playwright_python.sync_playwright import Axe
-    ctx = browser.new_context(viewport={"width": 1300, "height": 900}, color_scheme=scheme)
-    ctx.add_init_script("localStorage.setItem('seenUntil', '2000-01-01T00:00:00+00:00')")  # a long-ago visit: everything since is new
-    pg = ctx.new_page()
-    pg.goto(URL)
-    pg.wait_for_selector("a.card .new")
-    pill = pg.locator("a.card .new").first
-    assert pill.inner_text().upper() == "NEW"
-    contrast = Axe().run(pg, options={"runOnly": {"type": "rule", "values": ["color-contrast"]}}).response["violations"]
-    assert [n["html"] for v in contrast for n in v["nodes"] if "new" in n["html"]] == []
 
 
 def test_question_mark_lists_the_shortcuts(browser):
@@ -1378,6 +1371,97 @@ def test_phones_get_feedbins_toolbar_and_keep_the_closed_story_selected(browser)
     pg.wait_for_function("() => getComputedStyle(document.getElementById('list-bar')).opacity === '0'")
     assert pg.evaluate("document.getElementById('read-all').inert")  # on the topics: gone, and out of reach
     assert pg.problems == []
+
+
+def unflag(data):
+    for i in data["items"]:
+        i.pop("exploited", None)
+
+
+def flag_some(data):
+    """Flags the newest security story, the newest infrastructure one, and one from more than a week ago, and nothing else."""
+    unflag(data)
+    newest = lambda c: max((i for i in data["items"] if i["category"] == c), key=lambda i: i.get("published") or i["date"])
+    old = min(data["items"], key=lambda i: i["date"])
+    for i, kev in ((newest("security"), ["CVE-2026-1"]), (newest("infrastructure"), []), (old, ["CVE-2025-9"])):
+        i["exploited"] = {"kev": kev, "at": i.get("added") or i["date"], "kind": "flaw"} | ({"fix": "patch"} if kev else {"quote": "is being exploited in the wild", "fix": "none"})
+    data["flagged"] = [newest("security")["url"], newest("infrastructure")["url"], old["url"]]  # for the test; the site ignores it
+
+
+@pytest.mark.parametrize("scheme", ["light", "dark"])
+def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, scheme):
+    from axe_playwright_python.sync_playwright import Axe
+    pg = open_site(browser, patch=flag_some, viewport={"width": 1440, "height": 900}, color_scheme=scheme)
+    sec, infra, old = pg.evaluate("fetch('/data.json').then(r => r.json()).then(d => d.flagged)")  # patched too
+    by_age = lambda: pg.evaluate("shown.every((i, n, a) => !n || ageMins(a[n - 1]) <= ageMins(i))")
+    card = lambda u: pg.locator(f'a.card[href="{u}"]')
+    assert by_age()  # tagged where they fall: nothing jumps the order
+    label = lambda u: (card(u).locator(".x-word").count(), card(u).locator(".fix-pill").text_content())
+    assert label(sec) == (1, "Patch available") and label(infra) == (1, "No patch yet")  # Exploited, then its remedy
+    word = lambda u: card(u).locator(".x-word").evaluate("e => getComputedStyle(e).color")
+    assert word(sec) != word(infra)  # red only while there's no fix: the usual case is quiet
+    assert pg.evaluate("u => items.find(i => i.url === u).exploited && !listed(items.find(i => i.url === u))", old)  # tagged, but too old to list
+    entry = pg.locator("#filters [data-f='exploited']")
+    assert entry.locator(".f-name").inner_text() == "Exploited" and entry.locator(".f-open").inner_text() == "1 unpatched"
+    assert entry.locator(".f-count").count() == 0  # in place of the unread count, while a flaw has no fix
+    entry.click()
+    assert sorted(pg.evaluate("shown.map(i => i.url)")) == sorted([sec, infra]) and by_age()  # the last week's, newest first
+    for u in (sec, infra):  # the same label as in every other list
+        assert card(u).locator(".x-word").count() == 1 and card(u).locator(".fix-pill").count() == 1
+    assert pg.inner_text("#end-msg") == "That\u2019s all 2 exploited flaws from the last 7 days."
+    pg.click("#filters [data-f='all']")
+    title = pg.evaluate("u => items.find(i => i.url === u).title", infra)
+    pg.keyboard.press("/")
+    pg.locator("#palette-q").fill(title[:30])
+    hit = pg.locator("#palette-list li[data-n]", has_text=title[:30]).first
+    assert hit.locator(".x-word").text_content() == "Exploited" and hit.locator(".no-patch").count() == 1  # search carries the label too
+    pg.keyboard.press("Escape")
+    tags = {"runOnly": {"type": "tag", "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]}}
+    assert [(v["id"], v["nodes"][0]["html"][:80]) for v in Axe().run(pg, options=tags).response["violations"]] == []
+    card(sec).click()
+    flag = pg.frame_locator("#reader-body iframe:not(.loading)").locator(".meta .flag")
+    assert " ".join(flag.inner_text().split()).lower() == "exploited patch available · confirmed by cisa"  # the list's label, as is
+    assert flag.locator(".patch-out").evaluate("e => getComputedStyle(e).backgroundColor") == "rgba(0, 0, 0, 0)"  # quiet text: only "No patch yet" is filled
+    assert pg.problems == []
+
+
+def test_a_row_shows_one_label_the_one_that_matters_most(browser):
+    # Several at once is noise: an exploited essential says Exploited, an essential says Essential, and nothing says New.
+    def both(data):
+        flag_some(data)
+        data["weekly"]["items"][0]["url"] = data["flagged"][0]  # exploited and essential
+    pg = open_site(browser, patch=both, viewport={"width": 390, "height": 800}, has_touch=True, is_mobile=True)
+    sec = pg.evaluate("fetch('/data.json').then(r => r.json()).then(d => d.flagged[0])")
+    meta = lambda u: pg.locator(f'a.card[href="{u}"] .card-meta > :not(.card-src)')
+    assert meta(sec).count() == 1 and meta(sec).first.get_attribute("class") == "exploited"
+    ess = pg.evaluate("[...picks.keys()].find(u => !items.find(i => i.url === u).exploited)")
+    assert meta(ess).count() == 1 and meta(ess).first.text_content() == "Essential"  # text_content: offscreen rows aren't rendered
+    assert pg.locator("a.card .new").count() == 0
+    assert pg.locator(f'a.card[href="{sec}"] .card-src').evaluate("e => e.scrollWidth <= e.clientWidth")  # the source stays whole
+    assert pg.problems == []
+
+
+def test_a_supply_chain_attack_says_compromised_and_a_workaround_says_mitigation_only(browser):
+    def two(data):
+        unflag(data)
+        sec = [i for i in data["items"] if i["category"] == "security"]
+        sec[0]["exploited"] = {"kev": [], "at": "t", "kind": "compromise"}
+        sec[1]["exploited"] = {"kev": [], "at": "t", "kind": "flaw", "fix": "mitigation"}
+        data["flagged"] = [sec[0]["url"], sec[1]["url"]]
+    pg = open_site(browser, patch=two, viewport={"width": 1440, "height": 900})
+    worm, flaw = pg.evaluate("fetch('/data.json').then(r => r.json()).then(d => d.flagged)")
+    part = lambda u, sel: pg.locator(f'a.card[href="{u}"] .exploited {sel}')
+    assert part(worm, ".x-word").text_content() == "Compromised" and part(worm, ".fix-pill").count() == 0  # steps, not a patch
+    ink = lambda u: part(u, ".x-word").evaluate("e => getComputedStyle(e).color")
+    assert ink(worm) != ink(flaw)  # a warning's yellow, not the ink an exploited flaw with a remedy leads in
+    assert part(flaw, ".x-word").text_content() == "Exploited" and part(flaw, ".mitigation").text_content() == "Mitigation only"
+    assert pg.locator("#filters [data-f='exploited'] .f-open").count() == 0  # nothing unpatched: neither has "no patch yet"
+    assert pg.problems == []
+
+
+def test_the_exploited_list_is_only_there_when_it_has_stories(browser):
+    pg = open_site(browser, patch=unflag, viewport={"width": 1440, "height": 900})
+    assert pg.locator("#filters [data-f='exploited']").count() == 0
 
 
 def test_picking_a_topic_closes_the_open_story(browser):

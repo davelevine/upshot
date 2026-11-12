@@ -33,6 +33,8 @@
     --bg: #e3e6ec; --bg-card: #ffffff; --bg-card-hover: #eceff3; --border: #dde1e8; --border-strong: #b6bdc9;
     --text: #1c1f27; --urgent: #d9485a; --text-muted: #586172; --accent: #0d6b66; --accent-soft: #d7e7e5; --accent-contrast: #fff;
     --header-bg: rgba(227, 230, 236, .88); --tag-text: #0a5652;
+    --exploited: #b3261e; --exploited-text: #fff; --exploited-ink: #b3261e;
+    --caution-ink: #7a5c00;  /* Compromised: Carbon's "regular warning" yellow, darkened past its Yellow 60 to reach 4.5:1 here */  /* the Exploited pill: a true red, darker and less pink than the wordmark's dot */
     /* Category dots: one lightness and chroma per theme, hues spread to stay apart with red-green colour blindness. Dots need 3:1, not text contrast. */
     --cat-security: #ce5978; --cat-ai: #ad65be; --cat-infrastructure: #168dd9; --cat-engineering: #409d48; --cat-regulation: #c9690c; --cat-other: #5d646f;
     --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --read: 860px;
@@ -42,6 +44,8 @@
     --bg: #15161e; --bg-card: #1e1f27; --bg-card-hover: #262830; --border: #2c2e36; --border-strong: #40414c;  /* all in the background's blue-violet */
     --text: #eceff4; --urgent: #d9485a; --text-muted: #a3abbb; --accent: #4fcdbb; --accent-soft: #1d3b3e; --accent-contrast: #15161e;
     --header-bg: rgba(21, 22, 30, .88); --tag-text: #9ae6da;
+    --exploited: #ff8f80; --exploited-text: #15161e; --exploited-ink: #ff8f80;
+    --caution-ink: #f1c21b;  /* Carbon's Yellow 30 */
     --cat-security: #f57595; --cat-ai: #d080e2; --cat-infrastructure: #19affe; --cat-engineering: #69bc57; --cat-regulation: #e98a13; --cat-other: #afb6c1;
   }
   * { box-sizing: border-box; margin: 0; }
@@ -166,6 +170,8 @@
   .palette-list .dot { margin-top: 6px; }
   .p-title { font-size: .9rem; font-weight: 600; line-height: 1.35; }
   .p-meta { margin-top: 2px; color: var(--text-muted); font-size: .75rem; }
+  .p-meta :is(.exploited, .ess) { margin-left: 4px; font-size: inherit; }  /* a story's label, as in the lists */
+  .p-meta .ess { color: var(--accent); font-weight: 600; }
   .palette-list .palette-head { display: block; min-height: 0; padding: 6px 10px 4px; color: var(--text-muted); font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; cursor: default; }
   .palette-list .palette-empty { justify-content: center; padding: 22px; color: var(--text-muted); font-size: .875rem; cursor: default; }
   .palette-foot { display: flex; gap: 16px; padding: 8px 14px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: .72rem; }
@@ -203,7 +209,7 @@
   .card-title { font-size: 1rem; font-weight: 600; line-height: 1.35; }
   .card-meta { display: flex; align-items: center; gap: 6px; min-width: 0; margin-top: 3px; color: var(--text); font-size: .875rem; }
   .card-src { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .card-meta > :not(.card-src, .new) { flex: none; color: var(--text-muted); }  /* not the New pill: it keeps its own colours */
+  .card-meta > :not(.card-src, .exploited) { flex: none; color: var(--text-muted); }  /* the Exploited label sets its own colours */
   .card-sum { margin-top: 4px; color: var(--text-muted); font-size: .875rem; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .card-sum.full { display: block; }  /* what to do: the whole point, never cut short */
   .card-sum b { color: var(--accent); font-weight: 600; }
@@ -220,7 +226,20 @@
   @media (hover: hover) { .back-to-top:hover { background: var(--accent); color: var(--accent-contrast); } }  /* fills in, rather than moving */
   .card.read .card-title { color: var(--text-muted); font-weight: 500; }
   .card.read .card-meta { color: var(--text-muted); }
-  .new { flex: 0 0 auto; padding: 1px 7px; border-radius: 999px; background: var(--accent); color: var(--accent-contrast); font-size: .6875rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+  /* An actively exploited flaw (build.py: in CISA's catalog, or a checked claim). */
+  /* The row's label, in the same quiet type as Essential: Exploited, then its remedy in CISA's terms. "No patch yet" is the
+     one filled mark on a row, red with Exploited, only while there's nothing to apply; "Patch available" in the accent;
+     "Mitigation only" with no colour. A supply-chain attack says "Compromised", with no patch to report. */
+  .exploited { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; font-size: .75rem; font-weight: 600; white-space: nowrap; }
+  .exploited .x-word { color: var(--text); }  /* leads, in the row's own ink: no colour, but never fainter than what qualifies it */
+  .exploited:has(.no-patch) .x-word { color: var(--exploited-ink); }
+  .exploited .x-word.compromised { color: var(--caution-ink); }  /* a supply-chain attack: a warning (yellow), not danger (red) */  /* red only while there's nothing to apply: rare, and worth it */
+  .exploited .fix-pill { padding: 0 7px; border-radius: 999px; font-weight: 700; }
+  .exploited .no-patch { background: var(--exploited); color: var(--exploited-text); }
+  .exploited .patch-out { padding: 0; color: var(--accent); font-weight: 600; }  /* the good news, in the accent, as Essential is */
+  .exploited .mitigation { padding: 0; color: var(--text-muted); font-weight: 500; }  /* a workaround only: no colour, no alarm */
+  .exploited :is(.patch-out, .mitigation)::before { content: "· "; color: var(--text-muted); }
+  .f-open { flex: none; color: var(--exploited-ink); font-size: .75rem; font-weight: 600; }  /* exploited flaws with no fix yet */
   .skeleton { pointer-events: none; }
   .skeleton .bone { display: block; height: .8em; border-radius: 6px; background: var(--border); animation: pulse 1.4s ease-in-out infinite; }
   .skeleton .src-icon.bone { height: 20px; }
