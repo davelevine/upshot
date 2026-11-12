@@ -132,6 +132,8 @@
   .bar-btn:disabled { opacity: .4; cursor: default; }
   @media (hover: hover) { .bar-btn:not(:disabled):hover { background: var(--bg-card-hover); color: var(--accent); } }
   #bar-top { display: none; }
+  /* Named "Scroll to the top", not "Back to top": Fanboy's Annoyance list, which Brave and uBlock offer, hides any
+     [aria-label="Back to top"], which took the phone's Top button (and the floating one) away. */
   .more-wrap { position: relative; z-index: 2; align-self: flex-end; margin: -39px 6px 3px 0; }  /* centred on the row's age line, taking no room */
   .more-wrap > .icon-btn[aria-expanded="true"] { background: var(--bg-card-hover); color: var(--text); }
   .popover.more-pop { white-space: nowrap; }
@@ -472,7 +474,7 @@
   </div>
 </header>
 <div class="stale feed" id="stale" hidden><span id="stale-msg"></span><button class="icon-btn" id="stale-check" type="button" aria-label="Check again" title="Check again"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button></div>
-<div class="list-bar feed" id="list-bar"><button class="bar-btn" id="bar-top" type="button" aria-label="Back to top" title="Back to top" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button><button class="bar-btn" id="bar-keys" type="button" aria-haspopup="dialog" aria-label="Keyboard shortcuts" title="Keyboard shortcuts"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>Shortcuts</button><button class="bar-btn" id="read-all" type="button" aria-label="Mark all as read" title="Mark all as read"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.7 2.7L16 9.8"/></svg>Read</button></div>
+<div class="list-bar feed" id="list-bar"><button class="bar-btn" id="bar-top" type="button" aria-label="Scroll to the top" title="Scroll to the top" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button><button class="bar-btn" id="bar-keys" type="button" aria-haspopup="dialog" aria-label="Keyboard shortcuts" title="Keyboard shortcuts"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>Shortcuts</button><button class="bar-btn" id="read-all" type="button" aria-label="Mark all as read" title="Mark all as read"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.7 2.7L16 9.8"/></svg>Read</button></div>
 <div class="shell">
 <aside class="subheader side feed">
   <div class="search-row" role="search">
@@ -565,7 +567,7 @@
     <div class="confirm-btns"><button value="cancel">Cancel</button><button value="ok" class="primary">Mark as read</button></div>
   </form>
 </dialog>
-<button class="back-to-top" id="top" type="button" aria-label="Back to top" hidden><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+<button class="back-to-top" id="top" type="button" aria-label="Scroll to the top" title="Scroll to the top" hidden><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <script src="/app.js"></script>
 </body>
 </html>

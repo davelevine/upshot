@@ -943,6 +943,14 @@ def test_share_survives_ad_blockers_social_lists(browser):
     assert links == 0
 
 
+def test_back_to_top_survives_annoyance_lists(browser):
+    # Fanboy's Annoyance list (in Brave and uBlock) hides any element named "Back to top", which took the phone's Top button away.
+    pg = open_site(browser, viewport={"width": 390, "height": 800}, has_touch=True, is_mobile=True)
+    hidden = ['[aria-label="Back to top"]', '[title="Back to Top"]', '[title="Back to top"]', '[title="Go to Top"]', '#back-to-top', '#BackToTop']
+    assert pg.evaluate("s => s.filter(q => document.querySelector(q))", hidden) == []
+    assert pg.locator("#bar-top").is_visible()
+
+
 def test_palette_lists_every_match(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 900})
     total = pg.evaluate("fetch('/data.json').then(r => r.json()).then(d => d.items.length)")
