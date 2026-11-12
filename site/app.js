@@ -37,6 +37,9 @@ const inList = (i, f) => f === 'all' || (f === 'essentials' ? picks.has(i.url) :
 const plural = (n, one, many) => (n === 1 ? one : many);
 const FIX = { none: 'No patch', available: 'Patched' };
 const exploitedPill = (x, first = 'Exploited') => `<span class="exploited"><span>${first}</span>${FIX[x.fix] ? `<span class="fix ${x.fix}"> ${FIX[x.fix]}</span>` : ''}</span>`;
+// A row's labels, kept together: beside the source while they fit, all on the next line when they don't.
+const labels = (i, ess) => { const l = (i.exploited ? exploitedPill(i.exploited) : '') + (ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : '') + (isNew(i) ? '<span class="new">New</span>' : '');
+  return l && `<span class="labels">${l}</span>`; };
 const unpatched = () => items.filter(i => listed(i) && i.exploited.fix === 'none').length;
 
 // Today in the site's time zone (data.json's tz), not the device's: some browsers report UTC for privacy, which
@@ -85,8 +88,8 @@ function renderFilters() {
   }
   const unreadPicks = items.filter(i => picks.has(i.url) && isUnread(i)).length;
   const btn = (f, n, mark, note = '') => `<button class="filter-btn${filter === f ? ' active' : ''}" data-f="${f}" aria-pressed="${filter === f}">` +
-    `<span class="f-mark" aria-hidden="true">${mark}</span><span class="f-name">${label(f)}</span>${note}${n ? `<span class="f-count">${n}<span class="sr-only"> unread</span></span>` : ''}</button>`;
-  const open = unpatched();  // exploited flaws with no fix yet: there only while there are any
+    `<span class="f-mark" aria-hidden="true">${mark}</span><span class="f-name">${label(f)}</span>${note || (n ? `<span class="f-count">${n}<span class="sr-only"> unread</span></span>` : '')}</button>`;
+  const open = unpatched();  // exploited flaws with no fix yet: in place of the unread count while there are any
   $('filters').innerHTML = btn('all', unreadAll, '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>') +
     (picks.size ? btn('essentials', unreadPicks, '<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>') : '') +
     (exists('exploited') ? btn('exploited', items.filter(i => listed(i) && isUnread(i)).length, '<svg viewBox="0 0 24 24"><path d="M12 4 2.5 20h19z"/><path d="M12 10v4M12 17h.01"/></svg>',
@@ -115,7 +118,7 @@ function renderPage() {
       ${iconHtml(i.publisher)}
       <div class="card-body">
         <div class="card-title">${highlight(i.title, q)}</div>
-        <div class="card-meta"><span class="card-src">${esc(source(i))}</span>${i.exploited ? exploitedPill(i.exploited) : ''}${ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : ''}${isNew(i) ? '<span class="new">New</span>' : ''}</div>
+        <div class="card-meta"><span class="card-src">${esc(source(i))}</span>${labels(i, ess)}</div>
         ${preview ? `<div class="card-sum${why ? ' full' : ''}">${why ? '<b>What to do: </b>' : ''}${highlight(preview, q)}</div>` : ''}
         ${ageHtml(i)}
       </div>

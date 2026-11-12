@@ -1414,8 +1414,8 @@ def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, sc
     assert pill(sec) == "exploited patched" and pill(infra) == "exploited no patch"  # whether the vendor's fix is out
     assert pg.evaluate("u => items.find(i => i.url === u).exploited && !listed(items.find(i => i.url === u))", old)  # tagged, but too old to list
     entry = pg.locator("#filters [data-f='exploited']")
-    assert entry.locator(".f-name").inner_text() == "Exploited" and entry.locator(".f-count").inner_text().startswith("2")
-    assert entry.locator(".f-open").inner_text() == "1 unpatched"  # there only while a flaw has no fix
+    assert entry.locator(".f-name").inner_text() == "Exploited" and entry.locator(".f-open").inner_text() == "1 unpatched"
+    assert entry.locator(".f-count").count() == 0  # in place of the unread count, while a flaw has no fix
     entry.click()
     assert sorted(pg.evaluate("shown.map(i => i.url)")) == sorted([sec, infra]) and by_age()  # the last week's, newest first
     assert pg.locator("a.card .exploited").count() == 2  # marked in every list, this one too
@@ -1426,6 +1426,16 @@ def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, sc
     card(sec).click()
     flag = pg.frame_locator("#reader-body iframe:not(.loading)").locator(".meta .flag")
     assert " ".join(flag.inner_text().split()).lower() == "actively exploited · patch available · confirmed by cisa"
+    assert pg.problems == []
+
+
+def test_a_rows_labels_never_squeeze_its_source_on_a_phone(browser):
+    pg = open_site(browser, patch=flag_some, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
+    sec = pg.evaluate("fetch('/data.json').then(r => r.json()).then(d => d.flagged[0])")
+    card = pg.locator(f'a.card[href="{sec}"]')
+    card.scroll_into_view_if_needed()
+    assert card.locator(".card-meta > .labels").count() == 1  # the labels wrap as one group
+    assert card.locator(".card-src").evaluate("e => e.scrollWidth <= e.clientWidth")  # the source stays whole
     assert pg.problems == []
 
 
