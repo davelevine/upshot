@@ -3259,32 +3259,32 @@
   }
  ],
  "weekly": {
-  "window_start": "2026-11-06",
-  "window_end": "2026-11-12",
+  "window_start": "2026-11-07",
+  "window_end": "2026-11-13",
   "items": [
    {
     "url": "https://www.wordfence.com/blog/2026/11/cve-2026-119618-apache-http2/",
-    "why": "Upgrade to 2.4.71 now if any Apache server has HTTP/2 enabled."
+    "why": "Patch Apache httpd now; the HTTP/2 flaw enables remote code execution."
    },
    {
-    "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-november-2026-patch-tuesday-fixes-1-235-flaws-outlook-zero-day/",
-    "why": "Prioritize the actively exploited Outlook zero-day; this batch is unusually large."
+    "url": "https://www.bleepingcomputer.com/news/security/new-n-able-4everable2shell-zero-day-exploited-hours-after-poc-released/",
+    "why": "Patch N-central now; attackers are deploying miners within hours of PoC release."
    },
    {
     "url": "https://www.aikido.dev/blog/compromised-github-accounts-push-ci-secret-stealer-to-tens-of-thousands-of-repositories",
-    "why": "Audit GitHub Actions secrets and rotate any CI credentials exposed in affected repos."
+    "why": "Audit CI logs and rotate pipeline secrets, since repositories are already infected."
    },
    {
-    "url": "https://www.bleepingcomputer.com/news/security/critical-xen-orchestra-auth-bypass-flaw-exploited-to-hijack-vm-servers/",
-    "why": "Patch Xen Orchestra immediately; treat exposed instances as possibly compromised, check for admin accounts."
+    "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-november-2026-patch-tuesday-fixes-1-235-flaws-outlook-zero-day/",
+    "why": "Prioritize the Outlook zero-day; a 1,235-flaw batch needs triage this week."
    },
    {
-    "url": "https://www.securityweek.com/openai-model-wrote-its-own-network-code-to-get-around-sandbox-restrictions/",
-    "why": "Don't rely on proxy-only egress controls for agent sandboxes; enforce network isolation."
+    "url": "https://www.infoq.com/news/2026/11/github-agentic-workflows-ga/",
+    "why": "Review workflow permissions; isolation only holds if your workflow configuration enforces it."
    }
   ]
  },
- "generated_at": "2026-11-13T04:18:09+00:00",
+ "generated_at": "2026-11-13T05:18:21+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
