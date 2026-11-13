@@ -90,6 +90,25 @@
   },
   {
    "date": "2026-11-13",
+   "published": "2026-11-13T13:54:20+00:00",
+   "title": "Trezor Confirms Hidden Implants in CryptoBilis-Sold Wallets That Can Steal Recovery Phrases",
+   "url": "https://thehackernews.com/2026/11/trezor-confirms-hidden-hardware.html",
+   "publisher": "The Hacker News",
+   "cves": [],
+   "category": "security",
+   "summary": "Trezor confirmed that three Safe 5 wallets bought from reseller CryptoBilis contain a hidden circuit-board implant that copies recovery phrases and sends them to attacker servers.",
+   "relevance": 8,
+   "added": "2026-11-13T15:18:18+00:00",
+   "minutes": 3,
+   "tldr": [
+    "Trezor confirmed hidden implants in three Safe 5 wallets bought from reseller CryptoBilis, which can copy recovery phrases and send them out.",
+    "Anyone who bought a Trezor from CryptoBilis since March, including via its Tokopedia and Shopee stores, is affected; no lost funds reported so far.",
+    "Move funds to a new wallet with a new recovery phrase; do not restore the old phrase elsewhere.",
+    "Firmware 2.13.1 blocks the implants found so far but cannot protect backups already captured; contact Trezor Support if unsure of your wallet's origin."
+   ]
+  },
+  {
+   "date": "2026-11-13",
    "published": "2026-11-13T14:05:22+00:00",
    "title": "llama.cpp v1.0.0 : A stronger foundation for the local AI ecosystem",
    "url": "https://huggingface.co/blog/ggml-org/llama-cpp-v1",
@@ -3483,7 +3502,7 @@
    }
   ]
  },
- "generated_at": "2026-11-13T14:18:16+00:00",
+ "generated_at": "2026-11-13T15:18:28+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
