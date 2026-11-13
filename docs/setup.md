@@ -88,6 +88,18 @@ Without the secret the cron does nothing, silently: Workers Logs still show each
 
 The build flags a story **Exploited** or **Compromised** from CISA's catalog or from what the article says, checked against a quote. If one is wrong (a trend piece read as an attack, say), add its URL to [`not-exploited.txt`](../not-exploited.txt), one a line. The next build drops the flag from the site and never sets it again. Each build's run summary counts the flags, so a run of wrong ones shows up there.
 
+## Optional: the article font
+
+The reader sets articles in Mercury Text, a licensed font that isn't in the repository, so a fork shows them in the system serif (Iowan Old Style, Charter or Georgia) instead. Nothing breaks: `/fonts/mercury/` simply answers 404.
+
+To use Mercury, or another licensed font in its place, create a private R2 bucket named `upshot-fonts` (no public access or custom domain; the Worker serves the files) and upload the `.woff2` files with the names `site/app.js` asks for:
+
+```bash
+for f in Mercury-TextG[12]*.woff2; do npx wrangler r2 object put "upshot-fonts/$f" --file "$f" --content-type font/woff2 --remote; done
+```
+
+Keep the bucket for the fonts alone: the Worker's binding can read and write everything in it.
+
 ## Optional: Renovate
 
 Install the [Renovate app](https://github.com/apps/renovate) on the fork; [`renovate.json`](../renovate.json) is already set up.

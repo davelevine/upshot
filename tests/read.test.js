@@ -363,3 +363,20 @@ test('the cron dispatches the Build workflow on main, skips without a token, and
     await assert.rejects(dispatchBuild(env), /401/);
   } finally { globalThis.fetch = real; }
 });
+
+test('the licensed fonts come from R2, only as .woff2, and only to the site and its reader frame', async () => {
+  const asked = [];
+  const env = { FONTS: { get: async key => (asked.push(key), key === 'Mercury-TextG2Roman.woff2' ? { body: 'FONT', httpEtag: '"e1"' } : null) } };
+  const get = path => worker.fetch(new Request('https://site.test' + path), env);
+  const res = await get('/fonts/mercury/Mercury-TextG2Roman');
+  assert.equal(res.status, 200);
+  assert.equal(await res.text(), 'FONT');
+  assert.equal(res.headers.get('content-type'), 'font/woff2');
+  assert.equal(res.headers.get('etag'), '"e1"');
+  assert.equal(res.headers.get('access-control-allow-origin'), 'null');  // the sandboxed frame, not every site
+  assert.match(res.headers.get('cache-control'), /max-age=604800/);
+  assert.equal((await get('/fonts/mercury/Missing')).status, 404);
+  assert.deepEqual(asked, ['Mercury-TextG2Roman.woff2', 'Missing.woff2']);  // nothing but .woff2 can be read from the bucket
+  const unbound = await worker.fetch(new Request('https://site.test/fonts/mercury/Mercury-TextG2Roman'), {});
+  assert.equal(unbound.status, 404);  // a fork without the bucket: the reader falls back to the system serif
+});

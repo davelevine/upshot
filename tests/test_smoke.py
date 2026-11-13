@@ -507,29 +507,36 @@ def test_public_sans_is_served_from_the_site(browser):
     assert pg.evaluate("[document.body, document.querySelector('.card-sum')].map(e => getComputedStyle(e).fontWeight)") == ["370", "370"]
 
 
-def test_articles_are_set_in_literata_without_downloading_fonts_each_time(browser):
-    ctx = browser.new_context(viewport={"width": 1440, "height": 900})
-    ctx.route("**/api/read?*", lambda route: route.fulfill(content_type="application/json", body=json.dumps(
-        {"frameable": False, "content": f'{BODY}<p><em>An italic line.</em></p>'})))
-    pg = ctx.new_page()
-    fonts = []
-    pg.on("response", lambda r: fonts.append(r.url.rsplit("/", 1)[-1]) if "/fonts/" in r.url else None)
-    pg.goto(URL)
-    enter_list(pg)
-    pg.wait_for_function("() => Object.keys(frameFonts).length === 3")  # fetched once, in the background, after the list
-    assert {"LiterataVariable.woff2", "LiterataVariable-Italic.woff2"} <= set(fonts)
-    before = len(fonts)
-    for n in (0, 1, 0):  # including one opened again
-        pg.evaluate("n => openReader(items[n])", n)
-        frame = pg.frame_locator("#reader-body iframe:not(.loading)")
-        frame.locator("p").nth(29).wait_for()
-        faces = frame.locator("body").evaluate("() => document.fonts.ready.then(() => [...document.fonts].filter(f => f.status === 'loaded').map(f => f.family))")
-        assert "Literata" in faces and "Public Sans" in faces  # the article in Literata, its headings in Public Sans
-        assert frame.locator("em").evaluate("e => document.fonts.check('italic 17px Literata')")  # real italics, not slanted
-        assert frame.locator("main p").nth(3).evaluate("e => getComputedStyle(e).fontFamily").startswith("Literata")
-    # A sandboxed frame caches apart every time, so fonts loaded there by URL came down again for every article.
-    assert fonts[before:] == []
-    assert pg.problems == [] if hasattr(pg, "problems") else True
+def test_articles_are_set_in_mercury_by_theme_without_downloading_fonts_each_time(browser):
+    # Mercury is licensed, so CI's R2 has none: Public Sans's bytes stand in, which is enough to follow every face.
+    stand_in = open(os.path.join(os.path.dirname(__file__), "..", "site", "fonts", "PublicSansVariable.woff2"), "rb").read()
+    for theme, grade in (("light", "G2"), ("dark", "G1")):  # the lighter grade where light text on dark reads heavier
+        ctx = browser.new_context(viewport={"width": 1440, "height": 900})
+        ctx.add_init_script(f"localStorage.setItem('theme', '{theme}')")
+        ctx.route("**/api/read?*", lambda route: route.fulfill(content_type="application/json", body=json.dumps(
+            {"frameable": False, "content": f'{BODY}<p><em>An italic line.</em></p>'})))
+        ctx.route("**/fonts/mercury/*", lambda route: route.fulfill(body=stand_in, content_type="font/woff2",
+                                                                    headers={"Access-Control-Allow-Origin": "null"}))
+        pg = ctx.new_page()
+        fonts = []
+        pg.on("response", lambda r: fonts.append(r.url.rsplit("/", 1)[-1]) if "/fonts/" in r.url else None)
+        pg.goto(URL)
+        enter_list(pg)
+        pg.wait_for_function("() => Object.keys(frameFonts).length === 13")  # fetched once, in the background, after the list
+        assert {f"Mercury-Text{g}{s}" for g in ("G1", "G2") for s in ("Roman", "Italic", "Bold")} <= set(fonts)
+        before = len(fonts)
+        for n in (0, 1, 0):  # including one opened again
+            pg.evaluate("n => openReader(items[n])", n)
+            frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+            frame.locator("p").nth(29).wait_for()
+            faces = frame.locator("body").evaluate("() => document.fonts.ready.then(() => [...document.fonts].filter(f => f.status === 'loaded').map(f => f.family.replace(/\"/g, '')))")
+            assert f"Mercury Text {grade}" in faces and "Public Sans" in faces  # the article in Mercury, its headings in Public Sans
+            assert {f for f in faces if f.startswith("Mercury")} == {f"Mercury Text {grade}"}  # only this theme's grade
+            assert frame.locator("em").evaluate(f"e => document.fonts.check('italic 17px \"Mercury Text {grade}\"')")  # real italics
+            assert frame.locator("main p").nth(3).evaluate("e => getComputedStyle(e).fontFamily").startswith(f'"Mercury Text {grade}"')
+        # A sandboxed frame caches apart every time, so fonts loaded there by URL came down again for every article.
+        assert fonts[before:] == []
+        ctx.close()
 
 
 def test_escape_returns_focus_to_the_row_for_the_keyboard(browser):
@@ -799,7 +806,7 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     # The text size control scales the box and the byline with the article, not just the body text.
     sizes = """() => ['body', '.tldr > b', '.tldr li', '.tldr .do', '.tldr .do b', '.meta'].map(s => parseFloat(getComputedStyle(document.querySelector(s)).fontSize))"""
     before = frame.locator("body").evaluate(f"({sizes})")
-    assert [round(v) for v in before] == [18, 15, 17, 17, 15, 16]  # the default size: 18px, a step up for Literata
+    assert [round(v) for v in before] == [18, 15, 17, 17, 15, 16]  # the default size: 18px, a step up for a small x-height
     pg.locator("#reader-size").click()
     pg.locator("#size-pop button[data-size='3']").click()
     frame.locator("html[data-size='3']").wait_for(state="attached")

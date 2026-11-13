@@ -453,11 +453,15 @@ addEventListener('keydown', e => {  // keys pressed while the article has focus 
   if (!e.altKey && (['escape', 'j', 'k', 'm', 'arrowleft', 'arrowright', '?', '/'].includes(k) || (k === 'a' && e.shiftKey && !mod))) { e.preventDefault(); parent.postMessage({ tw: 'key', key: k, mod: mod, shift: e.shiftKey }, '*'); }
 });`;
 
-// The article frame's fonts: Public Sans for its headings, Literata for the article. A sandboxed frame has an opaque origin,
+// The article frame's fonts: Public Sans for its headings, Mercury Text for the article. Mercury comes in grades, darker
+// or lighter at identical widths: G2 for the light theme, the lighter G1 for the dark, where light text reads heavier.
+// It's licensed, so it isn't in site/; the Worker serves it from R2 (worker.js). A sandboxed frame has an opaque origin,
 // which the browser caches apart every time, so a font loaded there by URL was downloaded afresh for every frame (two
 // per article) and flashed the fallback meanwhile. The page fetches each once instead, cached as usual, and hands it to
 // every frame inline. Until one arrives, a frame loads it by URL as before.
-const FRAME_FONTS = { sans: '/fonts/PublicSansVariable.woff2', literata: '/fonts/LiterataVariable.woff2', literataItalic: '/fonts/LiterataVariable-Italic.woff2' };
+const MERCURY = [['Roman', 400, 'normal'], ['Italic', 400, 'italic'], ['Semibold', 600, 'normal'], ['SemiboldItalic', 600, 'italic'], ['Bold', 700, 'normal'], ['BoldItalic', 700, 'italic']];
+const MERCURY_FACES = ['G1', 'G2'].flatMap(g => MERCURY.map(([style, weight, slant]) => ({ key: g + style, url: `/fonts/mercury/Mercury-Text${g}${style}`, family: `Mercury Text ${g}`, weight, slant })));
+const FRAME_FONTS = { sans: '/fonts/PublicSansVariable.woff2', ...Object.fromEntries(MERCURY_FACES.map(f => [f.key, f.url])) };
 const frameFonts = {};
 const frameFont = k => frameFonts[k] || location.origin + FRAME_FONTS[k];
 function loadFrameFonts() {
@@ -510,16 +514,16 @@ function articleDoc(i, html, nonce, why, minutes, byline) {
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${location.origin} data:; img-src https: data:; media-src https:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'">
 <base target="_blank"><style>
 :root { ${frameVars('light')} } :root[data-theme="dark"] { ${frameVars('dark')} }
-body { margin: 0; background: var(--bg); color: var(--text); font: 1.125rem/1.65 Literata, "Iowan Old Style", Charter, Georgia, serif; overflow-wrap: break-word; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 1.125rem/1.65 "Mercury Text G2", "Iowan Old Style", Charter, Georgia, serif; overflow-wrap: break-word; }
 main { max-width: 640px; margin: 0 auto; padding: 32px 24px 96px; }
 a { color: var(--accent); }
 h1 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 0 0 .4em; font-size: clamp(1.4rem, 1rem + 2vw, 1.75rem); font-weight: 700; line-height: 1.2; letter-spacing: -.01em; }
 h1 a { color: inherit; text-decoration: none; } h1 a:hover { text-decoration: underline; text-decoration-thickness: 2px; }
 @font-face { font-family: "Public Sans"; src: url("${frameFont('sans')}") format("woff2"); font-weight: 100 900; size-adjust: 103%; font-display: swap; }
-@font-face { font-family: Literata; src: url("${frameFont('literata')}") format("woff2"); font-weight: 400 700; font-style: normal; font-display: swap; }
-@font-face { font-family: Literata; src: url("${frameFont('literataItalic')}") format("woff2"); font-weight: 400 700; font-style: italic; font-display: swap; }
+${MERCURY_FACES.map(f => `@font-face { font-family: "${f.family}"; src: url("${frameFont(f.key)}") format("woff2"); font-weight: ${f.weight}; font-style: ${f.slant}; size-adjust: 113%; font-display: swap; }`).join('\n')}
+:root[data-theme="dark"] body { font-family: "Mercury Text G1", "Iowan Old Style", Charter, Georgia, serif; }  /* the lighter grade: light text on dark reads heavier; widths match, so no reflow */
 h1 { font-family: "Public Sans", system-ui, sans-serif; letter-spacing: -.01em; }
-[data-size="0"] body { font-size: 1.0625rem; } [data-size="2"] body { font-size: 1.25rem; } [data-size="3"] body { font-size: 1.375rem; }  /* a step up for Literata's smaller x-height (0.507) */
+[data-size="0"] body { font-size: 1.0625rem; } [data-size="2"] body { font-size: 1.25rem; } [data-size="3"] body { font-size: 1.375rem; }  /* a step up for a small x-height: Mercury's is 0.448 of the em, which size-adjust: 113% above brings to 0.506 */
 .meta { margin-bottom: 1.8em; color: var(--text-muted); font: 370 .88em/1.45 "Public Sans", system-ui, sans-serif; }  /* em: follows the text size */
 .todo { margin: 0 0 1.8em; padding: 12px 16px; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; background: var(--bg-card); }
 .tldr ul { margin: .35em 0 0; padding-left: 1.15em; font: 370 .94em/1.5 "Public Sans", system-ui, sans-serif; } .tldr li + li { margin-top: .45em; }  /* sans: scanned, not read */
