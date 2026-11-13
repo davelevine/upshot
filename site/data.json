@@ -143,6 +143,25 @@
   },
   {
    "date": "2026-11-12",
+   "published": "2026-11-12T18:39:05+00:00",
+   "title": "Rust 1.100",
+   "url": "https://blog.rust-lang.org/2026/11/12/Rust-1.100.0/",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "engineering",
+   "summary": "The Rust project published its Rust 1.100.0 release announcement on its official blog, which drew 340 points on Hacker News.",
+   "relevance": 7,
+   "added": "2026-11-13T00:18:13+00:00",
+   "minutes": 9,
+   "tldr": [
+    "Rust 1.100.0 is out, stabilizing the never type, the Allocator API, core::mem::DropGuard, and std::mem::conjure_zst.",
+    "The never type fallback changes from () to ! in editions 2015, 2018, and 2021, which can affect some code.",
+    "Update with rustup update stable. If a dependency fails from the never type change, consider updating it, as a fix might already be released.",
+    "Cargo now stabilizes min-publish-age dependency cooldowns, opt-in via global-min-publish-age in .cargo/config.toml."
+   ]
+  },
+  {
+   "date": "2026-11-12",
    "published": "2026-11-12T12:11:11+00:00",
    "title": "Microsoft: Recent Windows updates cause SQL Server performance issues",
    "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-recent-windows-updates-cause-sql-server-performance-issues/",
@@ -3149,7 +3168,9 @@
     "kev": [
      "CVE-2026-81578",
      "CVE-2026-82078"
-    ]
+    ],
+    "fix_read": true,
+    "fix": "patch"
    }
   },
   {
@@ -3263,7 +3284,7 @@
    }
   ]
  },
- "generated_at": "2026-11-12T23:18:52+00:00",
+ "generated_at": "2026-11-13T00:18:24+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
