@@ -136,7 +136,7 @@ jobs:
           python-version: "3.15"
           cache: pip
       - run: npm ci
-      - run: pip install pytest playwright==1.64.1 axe-playwright-python==0.1.8  # no browser download: the tests use the runner's Chrome
+      - run: pip install pytest playwright==1.65.0 axe-playwright-python==0.1.8  # no browser download: the tests use the runner's Chrome
       - name: Start the site
         run: |
           npx wrangler dev --port 8788 --ip 127.0.0.1 > wrangler.log 2>&1 &  # wrangler.jsonc: the Worker and site/, as deployed
