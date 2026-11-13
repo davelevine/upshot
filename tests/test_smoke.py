@@ -282,7 +282,7 @@ def test_each_story_says_how_long_ago_it_was_published(browser):
             {**b, "date": day(0), "published": ago(hours=5, minutes=10)},
             {**c, "date": day(3), "published": ago(days=3, hours=2)},
             {**d, "date": day(2), "added": ago(minutes=30)},  # before the exact time was kept: whole days by its date
-            {**e, "date": day(0), "added": ago(hours=2)},  # ...or when it arrived, the same day
+            {**e, "date": (now - timedelta(hours=2)).date().isoformat(), "added": ago(hours=2)},  # ...or when it arrived, the same day (yesterday's, just after midnight)
             {**f, "date": "2026-01-05", "published": "2026-01-05T09:00:00+00:00"},
             {**g, "date": (now - timedelta(hours=20)).date().isoformat(), "added": ago(hours=20)},  # ...on its date, even if that was yesterday
         ]
