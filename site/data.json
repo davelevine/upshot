@@ -90,6 +90,42 @@
   },
   {
    "date": "2026-11-13",
+   "published": "2026-11-13T14:05:22+00:00",
+   "title": "llama.cpp v1.0.0 : A stronger foundation for the local AI ecosystem",
+   "url": "https://huggingface.co/blog/ggml-org/llama-cpp-v1",
+   "publisher": "Hugging Face",
+   "cves": [],
+   "category": "ai",
+   "summary": "Hugging Face announced llama.cpp v1.0.0, a first stable major release of the local AI inference project.",
+   "relevance": 7,
+   "added": "2026-11-13T14:18:09+00:00",
+   "minutes": 3,
+   "tldr": [
+    "llama.cpp and ggml have released libraries v1.0.0, with public headers in llama.cpp/include/ and ggml/include/.",
+    "Both projects will signal API and ABI incompatibilities only through major-version bumps, so downstream developers should watch for those.",
+    "Under the semantic versioning rules, breaking changes to the public C API in ./include trigger a MAJOR bump, while MINOR and PATCH releases stay backward-compatible."
+   ]
+  },
+  {
+   "date": "2026-11-13",
+   "published": "2026-11-13T13:47:42+00:00",
+   "title": "Microsoft Struggles to Restore Email and Other Services in a Global Outage",
+   "url": "https://www.securityweek.com/microsoft-struggles-to-restore-email-and-other-services-in-a-global-outage/",
+   "publisher": "SecurityWeek",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Microsoft is working to identify the cause of a global outage and restore email and other services using a measured repair approach.",
+   "relevance": 7,
+   "added": "2026-11-13T14:18:09+00:00",
+   "minutes": 4,
+   "tldr": [
+    "Microsoft 365 outage disrupted Outlook, Teams and Copilot worldwide, with email affected for governments, hospitals, businesses and airlines across Asia, Europe and the U.S.",
+    "Microsoft said the outage is not caused by malicious activity and is more like the 2024 CrowdStrike incident, an update gone awry, but recovery is still ongoing and service health remains variable.",
+    "The article gives no workaround; Microsoft said it is working through recovery in phases, and UK police urged people to call emergency responders for urgent reports."
+   ]
+  },
+  {
+   "date": "2026-11-13",
    "published": "2026-11-13T06:15:00+00:00",
    "title": "Dropbox Shares How Its In-House Cookie Auditor Tests Consent Behaviour Across 200+ Web Surfaces",
    "url": "https://www.infoq.com/news/2026/11/dropbox-cookie-auditor/",
@@ -3447,7 +3483,7 @@
    }
   ]
  },
- "generated_at": "2026-11-13T13:18:18+00:00",
+ "generated_at": "2026-11-13T14:18:16+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
