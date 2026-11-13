@@ -60,3 +60,12 @@
 **Rules:**
 - For any per-record state, list every way a record can reach it (on arrival, on a later build, by a backfill, via another record) and check that each path fills every field, before calling the evaluation done.
 - After a feature ships, look at its first real output on the live site, not only at the dry runs.
+
+## 2026-11-12 — A screenshot must show what it claims: check the selection is in view
+
+**Mistake:** The README composites opened the Barracuda story in the reader while the list was scrolled to the top. The story was row 31, two days old, so the composite showed an open story with no matching row in the list. The capture script printed "story is row 31" and it was ignored; the user caught it after the PR merged. The earlier composites had the same gap.
+
+**Rules:**
+- In any screenshot with a selection (an open story, a highlighted row), check that the selected item is visible and highlighted in the shot, not just open in the reader.
+- Read every number a capture script prints and ask what it implies for the image; "row 31" in a 900px window means off-screen.
+- Prefer a selection near the top of a fresh list: that is how the app is used, and it reads as live.
