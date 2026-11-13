@@ -352,13 +352,14 @@ $('reader-unread').onclick = toggleRead;
 const agoText = mins => (mins < 1 ? 'just now' : mins < 60 ? `${Math.floor(mins)}m ago`
   : mins < 48 * 60 ? `${Math.floor(mins / 60)}h ago` : `${Math.floor(mins / 1440)}d ago`);
 function showUpdated() {
-  const el = $('updated'), mins = Math.max(0, (Date.now() - Date.parse(generatedAt)) / 60e3);  // none on an empty feed
-  el.dateTime = generatedAt;
-  el.title = new Date(generatedAt).toLocaleString();
-  const ago = agoText(mins);
-  el.innerHTML = `<span>Updated </span>${ago}`;
+  const mins = Math.max(0, (Date.now() - Date.parse(generatedAt)) / 60e3), ago = agoText(mins);  // none on an empty feed
   $('stale').hidden = mins < STALE_MINUTES;
-  el.hidden = !$('stale').hidden;  // one slot, two states: the bar says the same thing, where it can be acted on
+  for (const el of [$('updated'), $('bar-updated')]) {  // the sidebar's foot, or a phone's bottom bar
+    el.dateTime = generatedAt;
+    el.title = new Date(generatedAt).toLocaleString();
+    el.innerHTML = `<span>Updated </span>${ago}`;
+    el.hidden = !$('stale').hidden;  // one slot, two states: the late bar says the same thing, where it can be acted on
+  }
   if (!checking) $('stale-msg').textContent = `Last updated ${ago}`;
 }
 // The late bar's one action: look for a new build now, rather than at the next 15-minute check.

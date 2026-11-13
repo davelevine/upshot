@@ -136,6 +136,7 @@
   .bar-btn:disabled { opacity: .4; cursor: default; }
   @media (hover: hover) { .bar-btn:not(:disabled):hover { background: var(--bg-card-hover); color: var(--accent); } }
   #bar-top { display: none; }
+  .bar-status { display: none; color: var(--text-muted); font-size: .8125rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
   /* Named "Scroll to the top", not "Back to top": Fanboy's Annoyance list, which Brave and uBlock offer, hides any
      [aria-label="Back to top"], which took the phone's Top button (and the floating one) away. */
   .more-wrap { position: relative; z-index: 2; align-self: flex-end; margin: -39px 6px 3px 0; }  /* centred on the row's age line, taking no room */
@@ -296,6 +297,12 @@
     body.paging .list-bar { transition: none; }
     .bar-btn svg { width: 22px; height: 22px; }
     #bar-top { display: flex; } #bar-keys, #top { display: none !important; }  /* Back to top lives in the bar here */
+    /* When it updated, in a thin strip on the bar, where the late bar takes its place when a build is late; the topics' foot leaves it to the strip. */
+    .bar-status:not([hidden]) { position: absolute; inset: auto 0 100% 0; display: block; height: 26px; line-height: 25px; text-align: center; border-top: 1px solid var(--border);
+      background: var(--bg); font-size: .75rem; }
+    .list-bar:has(.bar-status:not([hidden])) { border-top-color: transparent; }  /* one rule, above the strip */
+    body:not(.home):has(#bar-updated:not([hidden])) .col { padding-bottom: calc(86px + env(safe-area-inset-bottom)); }
+    .side-foot { display: none; }
     body:not(.home) .stale { bottom: calc(60px + env(safe-area-inset-bottom)); height: 44px; padding-bottom: 0; }
     body:not(.home) .col { padding-bottom: calc(60px + env(safe-area-inset-bottom)); }
     body:not(.home):has(#stale:not([hidden])) .col { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
@@ -362,9 +369,8 @@
     .shell { overflow-x: clip; }
     .subheader.side { display: flex; flex-direction: column; position: fixed; inset: 52px 0 0; z-index: 1; height: auto; align-self: stretch;  /* desktop's start would shrink it to its content */ padding: 0; border: 0; overflow-y: auto; }
     body.reading .side { transform: none; }  /* its search sits in the header; the list moving aside under a story is enough */
-    .side-foot { height: calc(56px + env(safe-area-inset-bottom)); padding: 0 18px env(safe-area-inset-bottom); }  /* in the phone's bottom-bar band, where the late bar shows */
-    .side > nav, .side > .side-foot { transform: translateX(calc(-25% * (1 - var(--pd, 0)))); transition: transform var(--slide-in) var(--ease-in); }
-    body.home .side > nav, body.home .side > .side-foot { transform: translateX(calc(-25% * (1 - var(--pd, 1)))); }
+    .side > nav { transform: translateX(calc(-25% * (1 - var(--pd, 0)))); transition: transform var(--slide-in) var(--ease-in); }
+    body.home .side > nav { transform: translateX(calc(-25% * (1 - var(--pd, 1)))); }
     .col { position: relative; z-index: 2; min-height: calc(100dvh - 52px); background: var(--bg); box-shadow: -12px 0 24px rgba(0, 0, 0, .18);
       transform: translateX(calc(var(--pd, 0) * 100%)); transition: transform var(--slide-in) var(--ease-in); }
     body.home .col { transform: translateX(calc(var(--pd, 1) * 100%)); }
@@ -495,7 +501,7 @@
   </div>
 </header>
 <div class="stale feed" id="stale" hidden><span id="stale-msg"></span><button class="icon-btn" id="stale-check" type="button" aria-label="Check again" title="Check again"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button></div>
-<div class="list-bar feed" id="list-bar"><button class="bar-btn" id="bar-top" type="button" aria-label="Scroll to the top" title="Scroll to the top" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button><button class="bar-btn" id="bar-keys" type="button" aria-haspopup="dialog" aria-label="Keyboard shortcuts" title="Keyboard shortcuts"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>Shortcuts</button><button class="bar-btn" id="read-all" type="button" aria-label="Mark all as read" title="Mark all as read"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.7 2.7L16 9.8"/></svg>Read</button></div>
+<div class="list-bar feed" id="list-bar"><button class="bar-btn" id="bar-top" type="button" aria-label="Scroll to the top" title="Scroll to the top" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Top</button><button class="bar-btn" id="bar-keys" type="button" aria-haspopup="dialog" aria-label="Keyboard shortcuts" title="Keyboard shortcuts"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>Shortcuts</button><time class="bar-status" id="bar-updated"></time><button class="bar-btn" id="read-all" type="button" aria-label="Mark all as read" title="Mark all as read"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.7 2.7L16 9.8"/></svg>Read</button></div>
 <div class="shell">
 <aside class="subheader side feed">
   <div class="search-row" role="search">

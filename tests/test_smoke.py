@@ -266,6 +266,26 @@ def test_late_bar_is_a_bottom_bar_on_a_phone(browser):
     assert bar["x"] == 0 and bar["width"] == 320 and bar["y"] + bar["height"] == tools["y"]  # on top of the list's toolbar
     assert tools["width"] == 320 and tools["y"] + tools["height"] == 700
     assert pg.locator("#stale-check").bounding_box()["height"] >= 44
+    assert pg.locator("#bar-updated").is_hidden()  # the late bar takes the strip's place
+
+
+BOTTOM = "() => { const c = document.getElementById('col'); c.scrollTop = c.scrollHeight; scrollTo(0, document.documentElement.scrollHeight); }"
+
+
+def test_a_phone_says_when_it_updated_in_a_strip_on_the_toolbar(browser):
+    pg = stale_site(browser, 0.5, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
+    strip, tools = pg.locator("#bar-updated").bounding_box(), pg.locator("#list-bar").bounding_box()
+    assert pg.inner_text("#bar-updated") == "Updated 30m ago"  # whole, even this narrow
+    assert strip["x"] == 0 and strip["width"] == 320 and abs(strip["y"] + strip["height"] - tools["y"]) <= 1  # right over the buttons (on the bar's hidden rule)
+    assert pg.locator(".side-foot").is_hidden()  # not also at the topics' foot
+    for _ in range(30):  # to the end of the list, which loads in pages
+        pg.evaluate(BOTTOM)
+        if pg.locator("#end").is_visible():
+            break
+        pg.wait_for_timeout(150)
+    pg.evaluate(BOTTOM); pg.wait_for_timeout(100)
+    last = pg.locator("#end").bounding_box()
+    assert last["y"] + last["height"] <= strip["y"]  # the list's end clears it
 
 
 def test_each_story_says_how_long_ago_it_was_published(browser):
