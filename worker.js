@@ -20,7 +20,14 @@ async function read(request, env) {
 // no extension, so the Worker runs for them (run_worker_first in wrangler.jsonc); the bucket's keys are the file names,
 // with .woff2.
 const FONT_PREFIX = '/fonts/licensed/';
-async function font(path, env) {
+// The licences ask that the fonts serve only to style text: no hotlinking (the CORS header below) and no direct download.
+// Browsers say what a request is for, so a font opened as a page, from the address bar or a link, gets nothing; the
+// page's @font-face and preload ask for a font, and its fetch for the reader frame for nothing in particular ("empty").
+// A client that doesn't say (curl, older browsers) is let through: refusing it would stop no one and break the fonts.
+const FONT_USES = new Set(['font', 'empty']);
+async function font(request, path, env) {
+  const dest = request.headers.get('Sec-Fetch-Dest');
+  if (dest && !FONT_USES.has(dest)) return new Response('Forbidden', { status: 403 });
   const obj = env.FONTS && await env.FONTS.get(path.slice(FONT_PREFIX.length) + '.woff2');
   if (!obj) return new Response('Not found', { status: 404 });
   return new Response(obj.body, {
@@ -64,7 +71,7 @@ export default {
   async fetch(request, env) {
     const path = new URL(request.url).pathname;
     if (path === '/api/read') return read(request, env);
-    if (path.startsWith(FONT_PREFIX)) return font(path, env);
+    if (path.startsWith(FONT_PREFIX)) return font(request, path, env);
     return withNonce(await env.ASSETS.fetch(request));
   },
   async scheduled(event, env) {
