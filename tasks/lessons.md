@@ -77,3 +77,11 @@
 **Rules:**
 - Before every push to an existing PR branch, run `gh pr view <n> --json state` and push only if it's `OPEN`; if it merged, branch from `origin/main` and open a new PR.
 - After the user says a PR merged, check with `git merge-base --is-ancestor` that every commit meant for it is on `main`.
+
+## 2026-11-13 — Loading placeholders must not flash on a normal load
+
+**Mistake:** Added skeleton rows to the sidebar so it wouldn't sit blank while `data.json` loaded. On a real refresh the stories arrive in about 60ms, so the placeholders (the new ones, and the list's existing ones) only flashed for a few frames. The user saw it on the first refresh of the preview. The probes that "showed" the loading state had held `data.json` back on purpose, so they never showed what an ordinary refresh looks like.
+
+**Rules:**
+- Before adding loading UI, time a normal refresh (`performance.getEntriesByName`) and count the frames the loading state is visible on an unthrottled load. If it's a flash, hold it back (`.skeleton`'s 400ms delayed fade-in) or don't add it.
+- Screenshots of a forced slow or failed load prove the state looks right, not that it's welcome; check the fast path too.
