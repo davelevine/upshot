@@ -81,6 +81,25 @@
    ]
   },
   {
+   "date": "2026-11-13",
+   "published": "2026-11-13T09:36:18+00:00",
+   "title": "Microsoft confirms Windows activation failures after November updates",
+   "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-confirms-windows-activation-failures-after-november-updates/",
+   "publisher": "BleepingComputer",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Microsoft confirmed that November Patch Tuesday updates are causing Windows activation and licensing failures with 0x80041008 errors.",
+   "relevance": 6,
+   "added": "2026-11-13T10:18:12+00:00",
+   "minutes": 1,
+   "tldr": [
+    "Microsoft confirmed this month's Patch Tuesday security updates cause Windows activation and licensing failures with error 0x80041008.",
+    "Affected are organizations that automate activation or use SLMGR, on Windows 10 21H2/22H2, Windows 11 23H2, and Windows Server 2019/2022/2025.",
+    "Failures occur when running slmgr.vbs /skms-domain or slmgr.vbs /ipk; devices already activated remain activated.",
+    "A fix will be available over the coming days; organizations needing immediate mitigation should contact Microsoft Support for business."
+   ]
+  },
+  {
    "date": "2026-11-12",
    "published": "2026-11-12T05:12:26+00:00",
    "title": "PSA: Critical Apache HTTP/2 Vulnerability: What WordPress Site Owners Should Know",
@@ -3364,7 +3383,7 @@
    }
   ]
  },
- "generated_at": "2026-11-13T09:18:27+00:00",
+ "generated_at": "2026-11-13T10:18:25+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
