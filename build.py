@@ -461,7 +461,8 @@ OG = {"w": 1200, "h": 630, "pad": 72, "bg": "#15161e", "text": "#eceff4", "muted
 
 
 def og_font(size, weight):
-    font = ImageFont.truetype(str(SITE / "fonts" / "PublicSansVariable.woff2"), size)
+    # Public Sans, the site's sans before Söhne: Söhne is licensed and kept out of the repo, so the build can't draw with it.
+    font = ImageFont.truetype(str(ROOT / "fonts" / "PublicSansVariable.woff2"), size)
     font.set_variation_by_axes([weight])
     return font
 

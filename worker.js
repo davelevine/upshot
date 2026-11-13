@@ -14,19 +14,20 @@ async function read(request, env) {
   });
 }
 
-// The article font, Mercury Text, is licensed, so it can't be in this public repo with the rest of site/. It lives in a
-// private R2 bucket (upshot-fonts; docs/setup.md) and is served from here, on the site's own origin. A week's
-// cache: a replaced file reaches browsers within that, or at once under a new name. The URLs have no extension, so the
-// Worker runs for them (run_worker_first in wrangler.jsonc); the bucket's keys are the file names, with .woff2.
-const FONT_PREFIX = '/fonts/mercury/';
+// The site's fonts (Söhne, Mercury Text and Mercury Display) are licensed, so they can't be in this public repo with the
+// rest of site/. They live in a private R2 bucket (upshot-fonts; docs/setup.md) and are served from here, on the site's
+// own origin. A week's cache: a replaced file reaches browsers within that, or at once under a new name. The URLs have
+// no extension, so the Worker runs for them (run_worker_first in wrangler.jsonc); the bucket's keys are the file names,
+// with .woff2.
+const FONT_PREFIX = '/fonts/licensed/';
 async function font(path, env) {
   const obj = env.FONTS && await env.FONTS.get(path.slice(FONT_PREFIX.length) + '.woff2');
   if (!obj) return new Response('Not found', { status: 404 });
   return new Response(obj.body, {
     headers: {
       'Content-Type': 'font/woff2', ETag: obj.httpEtag, 'Cache-Control': 'public, max-age=604800',
-      // The reader frame is sandboxed, so its requests carry Origin: null. Allowing only that (rather than *, as for the
-      // free fonts in _headers) serves the frame while other sites' pages can't use the fonts.
+      // The reader frame is sandboxed, so its requests carry Origin: null. Allowing only that, rather than *, serves the
+      // frame (and the page itself, which needs no CORS) while other sites' pages can't use the fonts.
       'Access-Control-Allow-Origin': 'null',
     },
   });
