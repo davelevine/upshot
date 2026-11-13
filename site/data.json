@@ -1,6 +1,34 @@
 {
  "items": [
   {
+   "date": "2026-11-13",
+   "published": "2026-11-13T05:43:28+00:00",
+   "title": "Hackers Exploit N-central Flaws to Infect 21 Servers, Including 19 Running Hotfix 2",
+   "url": "https://thehackernews.com/2026/11/hackers-exploit-n-central-flaws-to.html",
+   "publisher": "The Hacker News",
+   "cves": [
+    "CVE-2026-90436"
+   ],
+   "category": "security",
+   "summary": "Attackers exploited N-able N-central flaws (4EverAble2Shell, Agent2Shell) to infect 21 servers, and N-able is restricting some features while remediation is completed.",
+   "relevance": 8,
+   "added": "2026-11-13T06:18:24+00:00",
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-13T06:18:20+00:00",
+    "kind": "flaw",
+    "quote": "Hackers Exploit N-central Flaws to Infect 21 Servers",
+    "fix": "patch"
+   },
+   "minutes": 3,
+   "tldr": [
+    "Attackers are exploiting N-able N-central flaws 4EverAble2Shell and CVE-2026-90436 to deploy XMRig crypto miners on 21 servers.",
+    "Unauthenticated attackers can run commands as root; victims are concentrated in the U.S., South Africa, Canada, the U.K., Germany, France, and Sweden.",
+    "Upgrade Agents and Probes on N-central 2026.4 HF1 and above; Hotfix 2 alone is not enough.",
+    "On-premises customers should also confirm Legacy API access is disabled, if it was previously turned on."
+   ]
+  },
+  {
    "date": "2026-11-12",
    "published": "2026-11-12T05:12:26+00:00",
    "title": "PSA: Critical Apache HTTP/2 Vulnerability: What WordPress Site Owners Should Know",
@@ -3284,7 +3312,7 @@
    }
   ]
  },
- "generated_at": "2026-11-13T05:18:21+00:00",
+ "generated_at": "2026-11-13T06:18:38+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
