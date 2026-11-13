@@ -63,6 +63,33 @@
   },
   {
    "date": "2026-11-13",
+   "published": "2026-11-13T10:44:22+00:00",
+   "title": "Check Point warns of zero-day flaw exploited for root access",
+   "url": "https://www.bleepingcomputer.com/news/security/check-point-patches-zero-day-that-lets-hackers-get-root-access/",
+   "publisher": "BleepingComputer",
+   "cves": [
+    "CVE-2026-123039"
+   ],
+   "category": "security",
+   "summary": "Check Point released emergency hotfixes for a high-severity zero-day that attackers have exploited since late October to gain root access and persistence.",
+   "relevance": 8,
+   "added": "2026-11-13T11:11:30+00:00",
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-13T11:11:26+00:00",
+    "kind": "flaw",
+    "quote": "Check Point warns of zero-day flaw exploited for root access",
+    "fix": "patch"
+   },
+   "minutes": 2,
+   "tldr": [
+    "Check Point warns CVE-2026-123039, a local privilege escalation flaw in Gaia OS DynamicCLI, is exploited against a couple of dozen customers.",
+    "Local users on Check Point Firewall, Security Gateway, Security Management Server and other listed products can run commands as root.",
+    "Check Point has released emergency hotfixes; if they cannot be deployed immediately, stop dynamic_server and prevent restarts."
+   ]
+  },
+  {
+   "date": "2026-11-13",
    "published": "2026-11-13T06:15:00+00:00",
    "title": "Dropbox Shares How Its In-House Cookie Auditor Tests Consent Behaviour Across 200+ Web Surfaces",
    "url": "https://www.infoq.com/news/2026/11/dropbox-cookie-auditor/",
@@ -3383,7 +3410,7 @@
    }
   ]
  },
- "generated_at": "2026-11-13T10:18:25+00:00",
+ "generated_at": "2026-11-13T11:11:40+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
