@@ -127,6 +127,25 @@
    ]
   },
   {
+   "date": "2026-11-13",
+   "published": "2026-11-13T12:00:00+00:00",
+   "title": "Netflix Turns Operational Data Into a Knowledge Graph for AI-Driven Observability",
+   "url": "https://www.infoq.com/news/2026/11/netflix-ai-driven-observability/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Netflix is building an ontology-driven knowledge graph of its operational data to speed production investigations and give AI agents a shared view of its environment.",
+   "relevance": 6,
+   "added": "2026-11-13T12:18:24+00:00",
+   "minutes": 3,
+   "tldr": [
+    "Netflix is developing an ontology-driven knowledge graph linking applications, incidents, deployments, alerts, and infrastructure dependencies.",
+    "Investigating a typical application regression can take around four hours, much of it spent reconstructing relationships between systems.",
+    "Enrichers populate the graph, stored in QuipuDB, using deterministic methods plus LLMs, under strict validation rules.",
+    "Its AutoRCA agents use the ontology as a common interface, and humans retain approval over proposed changes and remediation."
+   ]
+  },
+  {
    "date": "2026-11-12",
    "published": "2026-11-12T05:12:26+00:00",
    "title": "PSA: Critical Apache HTTP/2 Vulnerability: What WordPress Site Owners Should Know",
@@ -3410,7 +3429,7 @@
    }
   ]
  },
- "generated_at": "2026-11-13T11:18:12+00:00",
+ "generated_at": "2026-11-13T12:18:34+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
