@@ -256,6 +256,13 @@ def test_reading_times_prefer_whole_articles_in_feeds(monkeypatch):
     assert calls[0]["items"][0]["minutes"] == 7
 
 
+def test_a_storys_cves_are_the_ones_it_names_not_its_articles_background():
+    item = {"title": "Barracuda ESG flaw exploited", "cves": ["CVE-2026-116606"], "summary": "Also CVE-2026-111560.",
+            "tldr": ["Patch CVE-2026-116606 now.", "Admin UI access needed."]}
+    assert build.own_cves(item) == ["CVE-2026-111560", "CVE-2026-116606"]
+    assert "the flaw it reports by CVE ID" in build.TLDR_PROMPT  # the upshot carries what the excerpt cut off
+
+
 def test_reading_times_report_when_the_store_cant_be_updated(monkeypatch):
     fake_extract(monkeypatch, {"words": {}, "error": "KV 403"})
     assert build.add_reading_times([{"url": "https://x.test/a"}]) == "KV 403"
