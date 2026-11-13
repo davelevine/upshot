@@ -69,3 +69,11 @@
 - In any screenshot with a selection (an open story, a highlighted row), check that the selected item is visible and highlighted in the shot, not just open in the reader.
 - Read every number a capture script prints and ask what it implies for the image; "row 31" in a 900px window means off-screen.
 - When choosing the story, weigh what it shows (its picture, its label) over how near the top it sits: the user chose Barracuda, scrolled to row 32, over a weaker story at row 2.
+
+## 2026-11-12 — Check a PR is still open before pushing more work to it
+
+**Mistake:** The user merged #148 while follow-up commits (the Barracuda composites they had just chosen, and a lessons fix) were still being made. Those were pushed to #148's branch after the merge, so they missed `main` and needed a second PR (#149).
+
+**Rules:**
+- Before every push to an existing PR branch, run `gh pr view <n> --json state` and push only if it's `OPEN`; if it merged, branch from `origin/main` and open a new PR.
+- After the user says a PR merged, check with `git merge-base --is-ancestor` that every commit meant for it is on `main`.
