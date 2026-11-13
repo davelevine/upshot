@@ -30,6 +30,39 @@
   },
   {
    "date": "2026-11-13",
+   "published": "2026-11-13T07:39:04+00:00",
+   "title": "PHP2Shell Exploited in Destructive Check Point Gateway Attacks",
+   "url": "https://www.securityweek.com/php2shell-exploited-in-destructive-check-point-gateway-attacks/",
+   "publisher": "SecurityWeek",
+   "cves": [
+    "CVE-2026-109618",
+    "CVE-2026-109619",
+    "CVE-2026-123039"
+   ],
+   "category": "security",
+   "summary": "Attackers exploited PHP2Shell for initial compromise and CVE-2026-123039 for root privilege escalation in destructive attacks on Check Point gateways.",
+   "relevance": 8,
+   "added": "2026-11-13T08:18:19+00:00",
+   "exploited": {
+    "kev": [
+     "CVE-2026-109618",
+     "CVE-2026-109619"
+    ],
+    "at": "2026-11-13T08:18:17+00:00",
+    "kind": "flaw",
+    "quote": "PHP2Shell Exploited in Destructive Check Point Gateway Attacks",
+    "fix": "patch"
+   },
+   "minutes": 2,
+   "tldr": [
+    "Threat actors exploited PHP2Shell flaws CVE-2026-109618 and CVE-2026-109619 to hack Check Point Gateway appliances and deploy a wiper.",
+    "A destructive first wave began October 30 and targeted Israeli organizations. A second wave from November 2 hit organizations in multiple countries.",
+    "Attackers used a DynamicCLI local privilege escalation to gain root, then deployed PHP webshells, TSGA, and TSProxy for persistence and interception.",
+    "The flaws were patched on October 21, but exploitation began days before patches and went mass shortly after."
+   ]
+  },
+  {
+   "date": "2026-11-13",
    "published": "2026-11-13T06:15:00+00:00",
    "title": "Dropbox Shares How Its In-House Cookie Auditor Tests Consent Behaviour Across 200+ Web Surfaces",
    "url": "https://www.infoq.com/news/2026/11/dropbox-cookie-auditor/",
@@ -3331,7 +3364,7 @@
    }
   ]
  },
- "generated_at": "2026-11-13T07:18:26+00:00",
+ "generated_at": "2026-11-13T08:18:31+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
