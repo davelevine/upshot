@@ -18,6 +18,14 @@ node --test 'tests/*.test.js'
 npx wrangler dev --port 8788
 ```
 
+The article font, Mercury Text, is licensed and isn't in the repo; the Worker serves it from R2 (see [architecture](architecture.md#the-reader-and-what-it-does-with-your-data)). `wrangler dev` uses a local, empty copy of the bucket, so the reader shows the system serif until you load the fonts into it once, if you have them:
+
+```bash
+for f in /path/to/fonts/Mercury-TextG[12]*.woff2; do npx wrangler r2 object put "upshot-fonts/$(basename "$f")" --file "$f" --content-type font/woff2 --local; done
+```
+
+They stay in `.wrangler/state`. A second server started with its own `--persist-to` has its own copy and needs the same, with that flag added.
+
 ## The browser smoke test
 
 With `npx wrangler dev --port 8788` running:
@@ -27,7 +35,7 @@ With `npx wrangler dev --port 8788` running:
 SMOKE_URL=http://127.0.0.1:8788 .venv/bin/pytest -q tests/test_smoke.py
 ```
 
-It loads the site in Chromium under its real CSP and checks the feed, reader, search palette, swipe-back and WCAG 2.2 AA (axe). It fails on any CSP violation, console error or page error.
+It loads the site in Chromium under its real CSP and checks the feed, reader, search palette, swipe-back and WCAG 2.2 AA (axe). It fails on any CSP violation, console error or page error. It doesn't need the licensed fonts: it serves Public Sans's bytes in their place, which is enough to check that each theme loads its grade and that no article downloads a font again.
 
 ## Things to know when changing the code
 

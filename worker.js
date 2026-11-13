@@ -14,6 +14,24 @@ async function read(request, env) {
   });
 }
 
+// The article font, Mercury Text, is licensed, so it can't be in this public repo with the rest of site/. It lives in a
+// private R2 bucket (upshot-fonts; docs/setup.md) and is served from here, on the site's own origin. A week's
+// cache: a replaced file reaches browsers within that, or at once under a new name. The URLs have no extension, so the
+// Worker runs for them (run_worker_first in wrangler.jsonc); the bucket's keys are the file names, with .woff2.
+const FONT_PREFIX = '/fonts/mercury/';
+async function font(path, env) {
+  const obj = env.FONTS && await env.FONTS.get(path.slice(FONT_PREFIX.length) + '.woff2');
+  if (!obj) return new Response('Not found', { status: 404 });
+  return new Response(obj.body, {
+    headers: {
+      'Content-Type': 'font/woff2', ETag: obj.httpEtag, 'Cache-Control': 'public, max-age=604800',
+      // The reader frame is sandboxed, so its requests carry Origin: null. Allowing only that (rather than *, as for the
+      // free fonts in _headers) serves the frame while other sites' pages can't use the fonts.
+      'Access-Control-Allow-Origin': 'null',
+    },
+  });
+}
+
 // Cloudflare's Bot Fight Mode injects an inline script into pages, and tags it with the CSP's nonce if there is one.
 // Our own inline scripts are allowed by hash (site/_headers); the fresh nonce is only for Cloudflare's.
 function withNonce(res) {
@@ -43,7 +61,9 @@ export async function dispatchBuild(env) {
 
 export default {
   async fetch(request, env) {
-    if (new URL(request.url).pathname === '/api/read') return read(request, env);
+    const path = new URL(request.url).pathname;
+    if (path === '/api/read') return read(request, env);
+    if (path.startsWith(FONT_PREFIX)) return font(path, env);
     return withNonce(await env.ASSETS.fetch(request));
   },
   async scheduled(event, env) {

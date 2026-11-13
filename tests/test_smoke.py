@@ -17,11 +17,27 @@ PIXEL = "data:image/gif;base64,R0lGODlhAQABAAAAACw="
 BODY = "".join(f"<p>Paragraph {n} of the stub article, long enough to read like the real thing.</p>" for n in range(30))
 
 
+# The article font, Mercury Text, is licensed and served from R2, which is empty in CI and in a fresh checkout. Every
+# context gets Public Sans's bytes in its place, so pages run as in production (no 404s in the console) and the font
+# test can still follow each face.
+STAND_IN_FONT = open(os.path.join(os.path.dirname(__file__), "..", "site", "fonts", "PublicSansVariable.woff2"), "rb").read()
+
+
+def serve_stand_in_font(route):
+    route.fulfill(body=STAND_IN_FONT, content_type="font/woff2", headers={"Access-Control-Allow-Origin": "null"})
+
+
 @pytest.fixture(scope="module")
 def browser():
     from playwright.sync_api import sync_playwright
     with sync_playwright() as p:
         b = p.chromium.launch(executable_path=os.environ.get("PW_CHROMIUM") or None)
+        new_context = b.new_context
+        def with_fonts(**kwargs):  # every context the tests open, however they open it
+            ctx = new_context(**kwargs)
+            ctx.route("**/fonts/mercury/*", serve_stand_in_font)
+            return ctx
+        b.new_context = with_fonts
         yield b
         b.close()
 
@@ -272,6 +288,17 @@ def test_late_bar_is_a_bottom_bar_on_a_phone(browser):
 BOTTOM = "() => { const c = document.getElementById('col'); c.scrollTop = c.scrollHeight; scrollTo(0, document.documentElement.scrollHeight); }"
 
 
+def settle_at_bottom(pg):
+    """Cards hold a placeholder height until they come into view (content-visibility), so jumping to the end makes the
+    last few grow and push it down a moment later. This scrolls until the height settles, as a reader's scrolling would."""
+    height = "() => document.documentElement.scrollHeight + document.getElementById('col').scrollHeight"
+    for _ in range(10):
+        before = pg.evaluate(height)
+        pg.evaluate(BOTTOM); pg.wait_for_timeout(100)
+        if pg.evaluate(height) == before:
+            return
+
+
 def test_a_phone_says_when_it_updated_in_a_strip_on_the_toolbar(browser):
     pg = stale_site(browser, 0.5, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
     strip, tools = pg.locator("#bar-updated").bounding_box(), pg.locator("#list-bar").bounding_box()
@@ -283,7 +310,7 @@ def test_a_phone_says_when_it_updated_in_a_strip_on_the_toolbar(browser):
         if pg.locator("#end").is_visible():
             break
         pg.wait_for_timeout(150)
-    pg.evaluate(BOTTOM); pg.wait_for_timeout(100)
+    settle_at_bottom(pg)
     last = pg.locator("#end").bounding_box()
     assert last["y"] + last["height"] <= strip["y"]  # the list's end clears it
 
@@ -356,8 +383,7 @@ def test_the_phone_toolbar_never_covers_the_end_message(browser):
         if pg.evaluate("!document.getElementById('end').hidden"):
             break
         pg.wait_for_timeout(50)
-    pg.evaluate("window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'instant'})")
-    pg.wait_for_timeout(100)
+    settle_at_bottom(pg)
     msg, bar = pg.locator("#end-msg").bounding_box(), pg.locator("#list-bar").bounding_box()
     assert pg.evaluate("!document.getElementById('end').hidden") and msg["y"] + msg["height"] <= bar["y"]
     assert pg.locator("#top").is_hidden()  # no floating button here: it's in the toolbar
@@ -497,29 +523,33 @@ def test_public_sans_is_served_from_the_site(browser):
     assert pg.evaluate("[document.body, document.querySelector('.card-sum')].map(e => getComputedStyle(e).fontWeight)") == ["370", "370"]
 
 
-def test_articles_are_set_in_literata_without_downloading_fonts_each_time(browser):
-    ctx = browser.new_context(viewport={"width": 1440, "height": 900})
-    ctx.route("**/api/read?*", lambda route: route.fulfill(content_type="application/json", body=json.dumps(
-        {"frameable": False, "content": f'{BODY}<p><em>An italic line.</em></p>'})))
-    pg = ctx.new_page()
-    fonts = []
-    pg.on("response", lambda r: fonts.append(r.url.rsplit("/", 1)[-1]) if "/fonts/" in r.url else None)
-    pg.goto(URL)
-    enter_list(pg)
-    pg.wait_for_function("() => Object.keys(frameFonts).length === 3")  # fetched once, in the background, after the list
-    assert {"LiterataVariable.woff2", "LiterataVariable-Italic.woff2"} <= set(fonts)
-    before = len(fonts)
-    for n in (0, 1, 0):  # including one opened again
-        pg.evaluate("n => openReader(items[n])", n)
-        frame = pg.frame_locator("#reader-body iframe:not(.loading)")
-        frame.locator("p").nth(29).wait_for()
-        faces = frame.locator("body").evaluate("() => document.fonts.ready.then(() => [...document.fonts].filter(f => f.status === 'loaded').map(f => f.family))")
-        assert "Literata" in faces and "Public Sans" in faces  # the article in Literata, its headings in Public Sans
-        assert frame.locator("em").evaluate("e => document.fonts.check('italic 17px Literata')")  # real italics, not slanted
-        assert frame.locator("main p").nth(3).evaluate("e => getComputedStyle(e).fontFamily").startswith("Literata")
-    # A sandboxed frame caches apart every time, so fonts loaded there by URL came down again for every article.
-    assert fonts[before:] == []
-    assert pg.problems == [] if hasattr(pg, "problems") else True
+def test_articles_are_set_in_mercury_by_theme_without_downloading_fonts_each_time(browser):
+    # Mercury's own bytes aren't needed: the browser fixture's stand-in is enough to follow every face.
+    for theme, grade in (("light", "G2"), ("dark", "G1")):  # the lighter grade where light text on dark reads heavier
+        ctx = browser.new_context(viewport={"width": 1440, "height": 900})
+        ctx.add_init_script(f"localStorage.setItem('theme', '{theme}')")
+        ctx.route("**/api/read?*", lambda route: route.fulfill(content_type="application/json", body=json.dumps(
+            {"frameable": False, "content": f'{BODY}<p><em>An italic line.</em></p>'})))
+        pg = ctx.new_page()
+        fonts = []
+        pg.on("response", lambda r: fonts.append(r.url.rsplit("/", 1)[-1]) if "/fonts/" in r.url else None)
+        pg.goto(URL)
+        enter_list(pg)
+        pg.wait_for_function("() => Object.keys(frameFonts).length === 13")  # fetched once, in the background, after the list
+        assert {f"Mercury-Text{g}{s}" for g in ("G1", "G2") for s in ("Roman", "Italic", "Bold")} <= set(fonts)
+        before = len(fonts)
+        for n in (0, 1, 0):  # including one opened again
+            pg.evaluate("n => openReader(items[n])", n)
+            frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+            frame.locator("p").nth(29).wait_for()
+            faces = frame.locator("body").evaluate("() => document.fonts.ready.then(() => [...document.fonts].filter(f => f.status === 'loaded').map(f => f.family.replace(/\"/g, '')))")
+            assert f"Mercury Text {grade}" in faces and "Public Sans" in faces  # the article in Mercury, its headings in Public Sans
+            assert {f for f in faces if f.startswith("Mercury")} == {f"Mercury Text {grade}"}  # only this theme's grade
+            assert frame.locator("em").evaluate(f"e => document.fonts.check('italic 17px \"Mercury Text {grade}\"')")  # real italics
+            assert frame.locator("main p").nth(3).evaluate("e => getComputedStyle(e).fontFamily").startswith(f'"Mercury Text {grade}"')
+        # A sandboxed frame caches apart every time, so fonts loaded there by URL came down again for every article.
+        assert fonts[before:] == []
+        ctx.close()
 
 
 def test_escape_returns_focus_to_the_row_for_the_keyboard(browser):
@@ -789,7 +819,7 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     # The text size control scales the box and the byline with the article, not just the body text.
     sizes = """() => ['body', '.tldr > b', '.tldr li', '.tldr .do', '.tldr .do b', '.meta'].map(s => parseFloat(getComputedStyle(document.querySelector(s)).fontSize))"""
     before = frame.locator("body").evaluate(f"({sizes})")
-    assert [round(v) for v in before] == [18, 15, 17, 17, 15, 16]  # the default size: 18px, a step up for Literata
+    assert [round(v) for v in before] == [18, 15, 17, 17, 15, 16]  # the default size: 18px, a step up for a small x-height
     pg.locator("#reader-size").click()
     pg.locator("#size-pop button[data-size='3']").click()
     frame.locator("html[data-size='3']").wait_for(state="attached")
@@ -1752,8 +1782,10 @@ def test_a_pass_waits_for_the_wordmark_to_be_in_view(browser):
     pg.wait_for_function("() => !document.body.classList.contains('reading')")
     pg.clock.run_for(3000)
     assert not ticking()
+    pg.evaluate("window.samePage = true")
     pg.locator("#list-back").click()  # the topics: now it plays, wordmark first
     pg.wait_for_function("() => document.body.classList.contains('home')")
+    assert pg.evaluate("window.samePage === true")  # still this page: going back would leave for the one before
     pg.clock.run_for(600)
     assert not ticking()
     pg.clock.run_for(1000)
