@@ -414,7 +414,8 @@ def test_reader_shows_the_story_before_the_fetch_finishes(browser):
     held[0].fulfill(content_type="application/json", body=json.dumps({"url": url, "frameable": False, "byline": "By Ada Lovelace", "content": f"<p>{'word ' * 700}</p>"}))
     frame.locator(".meta", has_text="3 min read").wait_for()
     frame.locator(".status").wait_for(state="detached")
-    meta = frame.locator(".meta").inner_text()
+    # The date line itself: an exploited story's flag is its own line above it, and whether the top essential has one depends on the day's news.
+    meta = frame.locator(".meta").evaluate("e => [...e.childNodes].filter(n => !n.matches?.('.flag')).map(n => n.textContent).join('')")
     assert "by Ada Lovelace" in meta and "By By" not in meta  # Feedbin-style: date by author, then minutes
     assert "\n" not in meta and pg.evaluate("readerFor && items.find(i => i.url === readerFor).publisher") == pg.inner_text("#reader-source")  # the source sits in the bar
     assert frame.locator("h1").evaluate("e => getComputedStyle(e).fontFamily").startswith('"Public Sans"')
@@ -1647,6 +1648,11 @@ def test_wide_screens_resize_the_topics_and_the_list(browser):
     pg.keyboard.press("ArrowRight")  # and from the keyboard
     assert width("--side-w") == side - 40 + 16 and pg.get_attribute("#resize-side", "aria-valuenow") == str(int(side - 40 + 16))
     kept = width("--side-w")
+    # Applied before app.js runs, so a reload paints the columns where they were rather than jumping there.
+    pg.route("**/app.js", lambda r: r.fulfill(body="", content_type="text/javascript"))
+    pg.reload()
+    assert width("--side-w") == kept and abs(pg.locator("#reader").bounding_box()["x"] - (kept + width("--list-w"))) <= 1
+    pg.unroute("**/app.js")
     pg.reload()
     enter_list(pg)
     assert width("--side-w") == kept  # kept on this device
@@ -1774,3 +1780,65 @@ def test_a_refresh_is_not_an_opening(browser):
         pg.clock.run_for(1300)  # past the wordmark's moment
         assert ticking() == plays, wait
         pg.clock.run_for(6000)
+
+
+def test_before_app_js_the_page_has_its_hint_and_held_back_placeholders(browser):
+    ctx = browser.new_context(viewport={"width": 1440, "height": 900})
+    ctx.route("**/app.js", lambda r: r.fulfill(body="", content_type="text/javascript"))
+    pg = ctx.new_page()
+    pg.goto(URL)
+    # The ⌘K / Ctrl K hint is CSS, not a late fill-in from app.js; the topics hold placeholder rows, as the list does.
+    hint = pg.locator(".search-kbd")
+    assert hint.is_visible() and pg.evaluate("getComputedStyle(document.querySelector('.search-kbd'), '::after').content") in ('"Ctrl K"', '"⌘K"')
+    assert pg.locator("#filters .f-skel").count() > 0 and pg.locator("#filters .f-skel").first.is_visible()
+    # Held back for 400ms, so a normal load never flashes them; a slow one still shows them.
+    for sel in ["#filters .f-skel", "#items .skeleton"]:
+        assert pg.locator(sel).first.evaluate("e => e.getAnimations().find(a => a.animationName === 'skeleton-in').effect.getTiming().delay") == 400
+    pg.wait_for_timeout(700)
+    assert pg.locator("#items .skeleton").first.evaluate("e => getComputedStyle(e).opacity") == "1"
+    ctx.close()
+
+
+@pytest.mark.parametrize("phone", [False, True])
+def test_a_failed_load_offers_to_try_again(browser, phone):
+    size = {"viewport": {"width": 390, "height": 844}, "is_mobile": True, "has_touch": True} if phone else {"viewport": {"width": 1440, "height": 900}}
+    ctx = browser.new_context(**size)
+    ctx.route("**/data.json*", lambda r: r.fulfill(status=503, body="down"))
+    pg = ctx.new_page()
+    pg.goto(URL)
+    # Where it can be seen: the list, and on a phone the topics, which are the page in view there. No placeholders left pulsing.
+    where = "#filters" if phone else "#items"
+    pg.wait_for_selector(f"{where} .retry")
+    assert pg.locator(".skeleton").count() == 0 and pg.get_attribute("#items", "aria-busy") is None
+    ctx.unroute("**/data.json*")
+    pg.locator(f"{where} .retry").click()
+    pg.wait_for_selector("#filters .filter-btn")
+    assert pg.locator(".retry").count() == 0
+    ctx.close()
+
+
+def test_tab_passes_through_search_and_the_shortcuts_sheet_has_a_close_button(browser):
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    focused = lambda: pg.evaluate("document.activeElement.id || document.activeElement.dataset.f || document.activeElement.className")
+    order = []
+    for _ in range(30):
+        pg.keyboard.press("Tab")
+        order.append(focused())
+        assert not pg.locator("#palette").is_visible()  # reaching the search bar doesn't open it
+        if order[-1] == "card" or "card" in order[-1]:
+            break
+    # Search, then the topics, then the toolbar at their foot, then the stories: the order they're seen in.
+    at = order.index
+    assert at("search") < at("all") < at("bar-keys") < at("read-all") < len(order) - 1 and "card" in order[-1]
+    pg.focus("#search")
+    pg.keyboard.press("Enter")
+    pg.locator("#palette").wait_for()
+    pg.keyboard.press("Escape")
+    pg.locator("#palette").wait_for(state="hidden")
+    assert focused() == "search"  # focus comes back, rather than dropping to the top of the page
+    pg.keyboard.press("Tab")
+    assert focused() == "all"
+    pg.click("#bar-keys")
+    pg.locator("#keys .keys-close").click()
+    pg.locator("#keys").wait_for(state="hidden")
+    assert pg.problems == []
