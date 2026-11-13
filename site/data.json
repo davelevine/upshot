@@ -46,7 +46,8 @@
    "exploited": {
     "kev": [
      "CVE-2026-109618",
-     "CVE-2026-109619"
+     "CVE-2026-109619",
+     "CVE-2026-123039"
     ],
     "at": "2026-11-13T08:18:17+00:00",
     "kind": "flaw",
@@ -75,7 +76,9 @@
    "relevance": 8,
    "added": "2026-11-13T11:11:30+00:00",
    "exploited": {
-    "kev": [],
+    "kev": [
+     "CVE-2026-123039"
+    ],
     "at": "2026-11-13T11:11:26+00:00",
     "kind": "flaw",
     "quote": "Check Point warns of zero-day flaw exploited for root access",
@@ -3502,7 +3505,7 @@
    }
   ]
  },
- "generated_at": "2026-11-13T17:18:27+00:00",
+ "generated_at": "2026-11-13T18:18:08+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
