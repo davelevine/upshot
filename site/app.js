@@ -518,7 +518,8 @@ function articleDoc(i, html, nonce, why, minutes, byline) {
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${location.origin} data:; img-src https: data:; media-src https:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'">
 <base target="_blank"><style>
 :root { ${frameVars('light')} } :root[data-theme="dark"] { ${frameVars('dark')} }
-body { margin: 0; background: var(--bg); color: var(--text); font: 1.125rem/1.65 "Mercury Text G2", "Iowan Old Style", Charter, Georgia, serif; overflow-wrap: break-word; }
+:root { --serif: "Mercury Text G2", "Iowan Old Style", Charter, Georgia, serif; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 1.125rem/1.65 var(--serif); overflow-wrap: break-word; }
 main { max-width: 640px; margin: 0 auto; padding: 32px 24px 96px; }
 a { color: var(--accent); }
 h1 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 0 0 .4em; font-size: clamp(1.4rem, 1rem + 2vw, 1.75rem); font-weight: 600; line-height: 1.2; }
@@ -526,8 +527,8 @@ h1 a { color: inherit; text-decoration: none; } h1 a:hover { text-decoration: un
 ${SOHNE.map(([n, w]) => `@font-face { font-family: Sohne; src: url("${frameFont('sohne' + n)}") format("woff2"); font-weight: ${w}; size-adjust: 108%; font-display: swap; }`).join('\n')}
 @font-face { font-family: "Mercury Display"; src: url("${frameFont('display')}") format("woff2"); font-weight: 600; size-adjust: 113%; font-display: swap; }
 ${MERCURY_FACES.map(f => `@font-face { font-family: "${f.family}"; src: url("${frameFont(f.key)}") format("woff2"); font-weight: ${f.weight}; font-style: ${f.slant}; size-adjust: 113%; font-display: swap; }`).join('\n')}
-:root[data-theme="dark"] body { font-family: "Mercury Text G1", "Iowan Old Style", Charter, Georgia, serif; }  /* the lighter grade: light text on dark reads heavier; widths match, so no reflow */
-h1 { font-family: "Mercury Display", "Mercury Text G2", "Iowan Old Style", Charter, Georgia, serif; }  /* Mercury's headline cut, finer than Text at this size; it has no grades, so both themes share it */
+:root[data-theme="dark"] { --serif: "Mercury Text G1", "Iowan Old Style", Charter, Georgia, serif; }  /* the lighter grade: light text on dark reads heavier; widths match, so no reflow */
+h1 { font-family: "Mercury Display", var(--serif); }  /* Mercury's headline cut, finer than Text at this size; it has no grades, so both themes share it, falling back to the theme's own grade */
 [data-size="0"] body { font-size: 1.0625rem; } [data-size="2"] body { font-size: 1.25rem; } [data-size="3"] body { font-size: 1.375rem; }  /* a step up for a small x-height: Mercury's is 0.448 of the em, which size-adjust: 113% above brings to 0.506 */
 .meta { margin-bottom: 1.8em; color: var(--text-muted); font: 370 .88em/1.45 Sohne, system-ui, sans-serif; }  /* em: follows the text size */
 .todo { margin: 0 0 1.8em; padding: 12px 16px; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; background: var(--bg-card); }
