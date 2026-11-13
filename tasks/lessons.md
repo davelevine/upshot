@@ -68,4 +68,4 @@
 **Rules:**
 - In any screenshot with a selection (an open story, a highlighted row), check that the selected item is visible and highlighted in the shot, not just open in the reader.
 - Read every number a capture script prints and ask what it implies for the image; "row 31" in a 900px window means off-screen.
-- Prefer a selection near the top of a fresh list: that is how the app is used, and it reads as live.
+- When choosing the story, weigh what it shows (its picture, its label) over how near the top it sits: the user chose Barracuda, scrolled to row 32, over a weaker story at row 2.
