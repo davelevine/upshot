@@ -1769,8 +1769,10 @@ def test_a_pass_waits_for_the_wordmark_to_be_in_view(browser):
     pg.wait_for_function("() => !document.body.classList.contains('reading')")
     pg.clock.run_for(3000)
     assert not ticking()
+    pg.evaluate("window.samePage = true")
     pg.locator("#list-back").click()  # the topics: now it plays, wordmark first
     pg.wait_for_function("() => document.body.classList.contains('home')")
+    assert pg.evaluate("window.samePage === true")  # still this page: going back would leave for the one before
     pg.clock.run_for(600)
     assert not ticking()
     pg.clock.run_for(1000)

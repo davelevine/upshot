@@ -219,13 +219,15 @@ function syncHome() {
 let lastList = null;  // the list a swipe left on the topics goes back into (the filter is still set to it)
 const setPd = v => (v == null ? document.documentElement.style.removeProperty('--pd') : document.documentElement.style.setProperty('--pd', v));
 function enterList(same) {
-  history.pushState({ list: true, f: filter }, '', location.pathname + location.search);
+  history.pushState({ list: true, pushed: true, f: filter }, '', location.pathname + location.search);
   syncHome();  // the list slides in over the topics (CSS)
   if (!same) scrollTo(0, 0);  // the same list again keeps its place
 }
 function leaveList() {
   lastList = filter;
-  if (history.state?.list) history.back();  // popstate slides it out
+  // Back only over an entry pushed above: a story opened from a link becomes a list in place (dismiss), with the
+  // page it came from below, so going back there would leave the site.
+  if (history.state?.pushed) history.back();  // popstate slides it out
   else { history.replaceState(null, ''); syncHome(); }
 }
 $('list-back').onclick = leaveList;
