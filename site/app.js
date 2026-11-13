@@ -110,29 +110,26 @@ function renderFilters() {
 }
 
 function renderItems(keepLimit) {
-  const ql = $('search').value.trim().toLowerCase();
-  shown = items.filter(i => inList(i, filter) && (!ql || `${i.title} ${i.summary} ${i.publisher} ${domain(i.url)}`.toLowerCase().includes(ql)));
-  $('status').textContent = ql ? `${shown.length} articles found` : '';
+  shown = items.filter(i => inList(i, filter));  // searching is the palette's job: the search bar only opens it
   if (!keepLimit) limit = PAGE;
   renderPage();
 }
 
 // Renders the first `limit` matches; the sentinel below the list raises it as you scroll.
 function renderPage() {
-  const q = $('search').value.trim();
   // No headings or counts: the list starts at the top, each story says how old it is, and the sidebar says which list it is.
   $('items').innerHTML = shown.length ? `
     ${shown.slice(0, limit).map(i => { const ess = picks.has(i.url), why = filter === 'essentials' && picks.get(i.url), preview = why || i.summary; return `
     <a class="card${isRead(i.url) ? ' read' : ''}${ess ? ' essential' : ''}" href="${esc(i.url)}" target="_blank" rel="noopener"${i.url === currentUrl() ? ' aria-current="true"' : ''}>
       ${iconHtml(i.publisher)}
       <div class="card-body">
-        <div class="card-title">${highlight(i.title, q)}</div>
+        <div class="card-title">${esc(i.title)}</div>
         <div class="card-meta"><span class="card-src">${esc(source(i))}</span>${label1(i, ess)}</div>
-        ${preview ? `<div class="card-sum${why ? ' full' : ''}">${why ? '<b>What to do: </b>' : ''}${highlight(preview, q)}</div>` : ''}
+        ${preview ? `<div class="card-sum${why ? ' full' : ''}">${why ? '<b>What to do: </b>' : ''}${esc(preview)}</div>` : ''}
         ${ageHtml(i)}
       </div>
     </a>`; }).join('')}`
-    : '<p class="empty">No articles match your search.</p>';
+    : '<p class="empty">Nothing in this list right now.</p>';
   $('items').removeAttribute('aria-busy');
   syncReadAll(); placeMore();
   if (generatedAt) showUpdated();  // the feed was just redrawn, and its "Updated" with it
@@ -145,7 +142,7 @@ function renderPage() {
     const n = shown.length, what = filter === 'essentials' ? `essential${n === 1 ? '' : 's'}` : filter === 'exploited' ? plural(n, 'exploited flaw', 'exploited flaws')
       : `stor${n === 1 ? 'y' : 'ies'}${filter === 'all' ? '' : ` in ${label(filter)}`}`;
     const days = Math.min(KEEP_DAYS, Math.ceil((Date.now() - Date.parse(items.reduce((o, i) => (i.date < o ? i.date : o), items[0].date))) / 864e5));
-    const scope = q ? ` matching \u201c${q}\u201d` : filter === 'all' ? ` from the last ${days} days`
+    const scope = filter === 'all' ? ` from the last ${days} days`
       : filter === 'essentials' && weekly?.window_start ? ` from ${weekRange(weekly)}` : filter === 'exploited' ? ` from the last ${EXPLOITED_DAYS} days` : '';  // the real span: a young site hasn't reached KEEP_DAYS
     $('end-msg').textContent = `That\u2019s ${n === 1 ? 'the only' : `all ${n}`} ${what}${scope}.`;
   }
@@ -233,7 +230,7 @@ function leaveList() {
 }
 $('list-back').onclick = leaveList;
 // The search bar opens the palette, the same search as ⌘K, rather than filtering the feed in place.
-$('search').addEventListener('focus', () => { $('search').blur(); openPalette(); });
+$('search').onclick = () => openPalette();  // on a click or Enter, not focus, so Tab passes through and Esc hands focus back
 $('search-btn').onclick = () => openPalette();  // phones: the header's own
 // The phone's toolbar has Back to top, dimmed at the top as Feedbin dims Edit; elsewhere it floats once you're well down.
 addEventListener('scroll', () => { const y = scroller().scrollTop; $('top').hidden = y < 800; $('bar-top').disabled = y < 1; }, { passive: true, capture: true });  // capture: the list's own scrolling doesn't bubble
@@ -914,10 +911,6 @@ $('send-copy').onclick = async () => {
   clearTimeout(done.timer);
   done.timer = setTimeout(() => { done.hidden = true; }, 1600);
 };
-if (matchMedia('(pointer: fine)').matches) {
-  $('search-kbd').textContent = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘K' : 'Ctrl K';
-  $('search-kbd').hidden = false;
-}
 
 // Cmd/Ctrl+K palette: find any article and open it in the reader. Works over the reader too.
 // A native modal <dialog>: the page behind goes inert, and Esc or the phone's back button close it.
@@ -1010,7 +1003,7 @@ function setCol(k, px, keep = true) {
 for (const [k, c] of Object.entries(COLS)) {
   const el = $(c.el);
   el.setAttribute('aria-valuemin', c.min); el.setAttribute('aria-valuemax', c.max);
-  if (localStorage.getItem(k + 'Width')) setCol(k, +localStorage.getItem(k + 'Width'), false);
+  if (localStorage.getItem(k + 'Width')) setCol(k, +localStorage.getItem(k + 'Width'), false);  // index.html's head script applied it before the first paint; this fits it to the window
   el.setAttribute('aria-valuenow', colWidth(k));
   el.addEventListener('pointerdown', e => {
     if (e.button !== 0) return;
@@ -1084,7 +1077,20 @@ function playTicker() {
 document.querySelector('.logo-h').addEventListener('click', e => { if (document.body.classList.contains('ticking')) { e.preventDefault(); stopTicker(); } });
 
 syncThemeColor();
-load().catch(() => { $('items').innerHTML = '<p class="empty">Couldn’t load the news. Try again in a bit.</p>'; });
+// The first load failed: say so where the stories go, and on a phone's topics (the page in view there), with a way to try again.
+// The 15-minute check keeps trying too, and its redraw replaces this.
+function loadFailed() {
+  const msg = '<p class="empty">Couldn\u2019t load the news.<button class="retry" type="button">Try again</button></p>';
+  $('items').innerHTML = msg;
+  $('items').removeAttribute('aria-busy');
+  $('filters').innerHTML = phone.matches ? msg : '';
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.retry')) return;
+  document.querySelectorAll('.retry').forEach(b => { b.disabled = true; b.textContent = 'Trying\u2026'; });
+  load().catch(loadFailed);
+});
+load().catch(loadFailed);
 // Builds land every hour: check every 15 min while visible, and when the tab comes back into view.
 const check = () => { if (!document.hidden) return load().catch(() => {}); };
 setInterval(check, 15 * 60e3);
