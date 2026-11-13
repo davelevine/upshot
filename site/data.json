@@ -146,6 +146,24 @@
    ]
   },
   {
+   "date": "2026-11-13",
+   "published": "2026-11-13T12:27:40+00:00",
+   "title": "Microsoft says November security updates cause printing issues",
+   "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-says-november-security-updates-cause-printing-issues/",
+   "publisher": "BleepingComputer",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Microsoft warned that the November 2026 security updates may break printing for documents with complex formatting.",
+   "relevance": 6,
+   "added": "2026-11-13T13:18:11+00:00",
+   "minutes": 1,
+   "tldr": [
+    "Microsoft warns the November 2026 Windows security updates may cause printing failures for documents with images that have zero height or width.",
+    "It affects server (Windows Server 2016 or later) and client (Windows 10 or later) devices, mainly when printing Word documents via GDI.",
+    "Separately, November 2026 Windows 11 updates fail to install on systems with the October 2026 preview update."
+   ]
+  },
+  {
    "date": "2026-11-12",
    "published": "2026-11-12T05:12:26+00:00",
    "title": "PSA: Critical Apache HTTP/2 Vulnerability: What WordPress Site Owners Should Know",
@@ -3429,7 +3447,7 @@
    }
   ]
  },
- "generated_at": "2026-11-13T12:18:34+00:00",
+ "generated_at": "2026-11-13T13:18:18+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
