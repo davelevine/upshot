@@ -522,7 +522,7 @@ function articleDoc(i, html, nonce, why, minutes, byline) {
 body { margin: 0; background: var(--bg); color: var(--text); font: 1.125rem/1.65 var(--serif); overflow-wrap: break-word; }
 main { max-width: 640px; margin: 0 auto; padding: 32px 24px 96px; }
 a { color: var(--accent); }
-h1 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 0 0 .4em; font-size: clamp(1.4rem, 1rem + 2vw, 1.75rem); font-weight: 600; line-height: 1.2; }
+h1 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 0 -.1em .4em; padding: 0 .1em; font-size: clamp(1.4rem, 1rem + 2vw, 1.75rem); font-weight: 600; line-height: 1.25; }  /* the clamp's overflow clips: 1.25, not 1.2, leaves room for Mercury Display's descenders (g, p, y reach 0.235em below the baseline; 1.2 left 0.233em), and the side padding, cancelled by the margin, for a line-initial f, whose tip reaches left of its box */
 h1 a { color: inherit; text-decoration: none; } h1 a:hover { text-decoration: underline; text-decoration-thickness: 2px; }
 ${SOHNE.map(([n, w]) => `@font-face { font-family: Sohne; src: url("${frameFont('sohne' + n)}") format("woff2"); font-weight: ${w}; size-adjust: 108%; font-display: swap; }`).join('\n')}
 @font-face { font-family: "Mercury Display"; src: url("${frameFont('display')}") format("woff2"); font-weight: 600; size-adjust: 113%; font-display: swap; }
