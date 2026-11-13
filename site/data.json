@@ -29,6 +29,25 @@
    ]
   },
   {
+   "date": "2026-11-13",
+   "published": "2026-11-13T06:15:00+00:00",
+   "title": "Dropbox Shares How Its In-House Cookie Auditor Tests Consent Behaviour Across 200+ Web Surfaces",
+   "url": "https://www.infoq.com/news/2026/11/dropbox-cookie-auditor/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Dropbox describes a Playwright-based auditor that tests cookie consent behaviour on 200+ web surfaces under US, EU and Global Privacy Control conditions, with rules kept outside the code.",
+   "relevance": 6,
+   "added": "2026-11-13T07:18:16+00:00",
+   "minutes": 3,
+   "tldr": [
+    "Dropbox published how its in-house Playwright-based cookie auditor checks consent behaviour across more than 200 web surfaces.",
+    "The auditor runs US, EU and Global Privacy Control tests in fresh browser contexts, declining non-essential cookies and reloading to confirm the preference holds.",
+    "Dropbox keeps cookie classifications outside auditor code, so its Privacy team can update the approved list without an engineering release.",
+    "A weekly report separates likely violations from known false positives, and routing findings to page owners is the next planned step."
+   ]
+  },
+  {
    "date": "2026-11-12",
    "published": "2026-11-12T05:12:26+00:00",
    "title": "PSA: Critical Apache HTTP/2 Vulnerability: What WordPress Site Owners Should Know",
@@ -3312,7 +3331,7 @@
    }
   ]
  },
- "generated_at": "2026-11-13T06:18:38+00:00",
+ "generated_at": "2026-11-13T07:18:26+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
