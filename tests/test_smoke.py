@@ -17,11 +17,27 @@ PIXEL = "data:image/gif;base64,R0lGODlhAQABAAAAACw="
 BODY = "".join(f"<p>Paragraph {n} of the stub article, long enough to read like the real thing.</p>" for n in range(30))
 
 
+# The article font, Mercury Text, is licensed and served from R2, which is empty in CI and in a fresh checkout. Every
+# context gets Public Sans's bytes in its place, so pages run as in production (no 404s in the console) and the font
+# test can still follow each face.
+STAND_IN_FONT = open(os.path.join(os.path.dirname(__file__), "..", "site", "fonts", "PublicSansVariable.woff2"), "rb").read()
+
+
+def serve_stand_in_font(route):
+    route.fulfill(body=STAND_IN_FONT, content_type="font/woff2", headers={"Access-Control-Allow-Origin": "null"})
+
+
 @pytest.fixture(scope="module")
 def browser():
     from playwright.sync_api import sync_playwright
     with sync_playwright() as p:
         b = p.chromium.launch(executable_path=os.environ.get("PW_CHROMIUM") or None)
+        new_context = b.new_context
+        def with_fonts(**kwargs):  # every context the tests open, however they open it
+            ctx = new_context(**kwargs)
+            ctx.route("**/fonts/mercury/*", serve_stand_in_font)
+            return ctx
+        b.new_context = with_fonts
         yield b
         b.close()
 
@@ -508,15 +524,12 @@ def test_public_sans_is_served_from_the_site(browser):
 
 
 def test_articles_are_set_in_mercury_by_theme_without_downloading_fonts_each_time(browser):
-    # Mercury is licensed, so CI's R2 has none: Public Sans's bytes stand in, which is enough to follow every face.
-    stand_in = open(os.path.join(os.path.dirname(__file__), "..", "site", "fonts", "PublicSansVariable.woff2"), "rb").read()
+    # Mercury's own bytes aren't needed: the browser fixture's stand-in is enough to follow every face.
     for theme, grade in (("light", "G2"), ("dark", "G1")):  # the lighter grade where light text on dark reads heavier
         ctx = browser.new_context(viewport={"width": 1440, "height": 900})
         ctx.add_init_script(f"localStorage.setItem('theme', '{theme}')")
         ctx.route("**/api/read?*", lambda route: route.fulfill(content_type="application/json", body=json.dumps(
             {"frameable": False, "content": f'{BODY}<p><em>An italic line.</em></p>'})))
-        ctx.route("**/fonts/mercury/*", lambda route: route.fulfill(body=stand_in, content_type="font/woff2",
-                                                                    headers={"Access-Control-Allow-Origin": "null"}))
         pg = ctx.new_page()
         fonts = []
         pg.on("response", lambda r: fonts.append(r.url.rsplit("/", 1)[-1]) if "/fonts/" in r.url else None)

@@ -90,7 +90,7 @@ The build flags a story **Exploited** or **Compromised** from CISA's catalog or 
 
 ## Optional: the article font
 
-The reader sets articles in Mercury Text, a licensed font that isn't in the repository, so a fork shows them in the system serif (Iowan Old Style, Charter or Georgia) instead. Nothing breaks: `/fonts/mercury/` simply answers 404.
+The reader sets articles in Mercury Text, a licensed font that isn't in the repository, so a fork shows them in the system serif (Iowan Old Style, Charter or Georgia) instead. Nothing else changes: `/fonts/mercury/` answers 404, which the browser console lists.
 
 To use Mercury, or another licensed font in its place, create a private R2 bucket named `upshot-fonts` (no public access or custom domain; the Worker serves the files) and upload the `.woff2` files with the names `site/app.js` asks for:
 
