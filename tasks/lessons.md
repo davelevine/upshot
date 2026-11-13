@@ -85,3 +85,11 @@
 **Rules:**
 - Before adding loading UI, time a normal refresh (`performance.getEntriesByName`) and count the frames the loading state is visible on an unthrottled load. If it's a flash, hold it back (`.skeleton`'s 400ms delayed fade-in) or don't add it.
 - Screenshots of a forced slow or failed load prove the state looks right, not that it's welcome; check the fast path too.
+
+## 2026-11-13 — A font check in headless Chromium doesn't show what the user's browser renders
+
+**Mistake:** Swapped the reader font to Mercury Text and reported it working because headless Chromium loaded the faces and the screenshot looked right. In the user's browser the article still rendered in a fallback serif (with ligatures that Mercury's files don't contain). Only Chromium had been checked, and the screenshot was never compared with a sample of the font itself.
+
+**Rules:**
+- For a font change, say which engine was checked. If Safari/WebKit or Firefox can't run here, say so instead of reporting the change as working.
+- Check the glyphs against the font file, not just `document.fonts`: look for a feature the font lacks (ligatures, oldstyle numerals) or a distinctive letterform, so a fallback can't pass as the real face.
