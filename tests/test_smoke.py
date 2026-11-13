@@ -17,10 +17,10 @@ PIXEL = "data:image/gif;base64,R0lGODlhAQABAAAAACw="
 BODY = "".join(f"<p>Paragraph {n} of the stub article, long enough to read like the real thing.</p>" for n in range(30))
 
 
-# The article font, Mercury Text, is licensed and served from R2, which is empty in CI and in a fresh checkout. Every
-# context gets Public Sans's bytes in its place, so pages run as in production (no 404s in the console) and the font
-# test can still follow each face.
-STAND_IN_FONT = open(os.path.join(os.path.dirname(__file__), "..", "site", "fonts", "PublicSansVariable.woff2"), "rb").read()
+# The site's fonts (Söhne, Mercury Text, Mercury Display) are licensed and served from R2, which is empty in CI and in a
+# fresh checkout. Every context gets Public Sans's bytes (kept for the build's og.png) in their place, so pages run as in
+# production (no 404s in the console) and the font tests can still follow each face.
+STAND_IN_FONT = open(os.path.join(os.path.dirname(__file__), "..", "fonts", "PublicSansVariable.woff2"), "rb").read()
 
 
 def serve_stand_in_font(route):
@@ -35,7 +35,7 @@ def browser():
         new_context = b.new_context
         def with_fonts(**kwargs):  # every context the tests open, however they open it
             ctx = new_context(**kwargs)
-            ctx.route("**/fonts/mercury/*", serve_stand_in_font)
+            ctx.route("**/fonts/licensed/*", serve_stand_in_font)
             return ctx
         b.new_context = with_fonts
         yield b
@@ -444,7 +444,7 @@ def test_reader_shows_the_story_before_the_fetch_finishes(browser):
     meta = frame.locator(".meta").evaluate("e => [...e.childNodes].filter(n => !n.matches?.('.flag')).map(n => n.textContent).join('')")
     assert "by Ada Lovelace" in meta and "By By" not in meta  # Feedbin-style: date by author, then minutes
     assert "\n" not in meta and pg.evaluate("readerFor && items.find(i => i.url === readerFor).publisher") == pg.inner_text("#reader-source")  # the source sits in the bar
-    assert frame.locator("h1").evaluate("e => getComputedStyle(e).fontFamily").startswith('"Public Sans"')
+    assert frame.locator("h1").evaluate("e => getComputedStyle(e).fontFamily").startswith('"Mercury Display"')
     assert frame.locator("h1").inner_text() == title and frame.locator(".todo").count() == 1
 
 
@@ -510,21 +510,23 @@ def test_reader_says_when_an_article_isnt_stored_yet(browser):
     frame.locator(".status", has_text="ready yet").wait_for()
 
 
-def test_public_sans_is_served_from_the_site(browser):
+def test_the_page_is_set_in_sohne_one_face_per_weight(browser):
     pg = browser.new_context().new_page()
     fonts = []
-    pg.on("response", lambda r: fonts.append((r.url, r.status)) if "/fonts/" in r.url else None)
+    pg.on("response", lambda r: fonts.append(r.url.rsplit("/", 1)[-1]) if "/fonts/" in r.url else None)
     pg.goto(URL)
     enter_list(pg)
     pg.evaluate("document.fonts.ready")
-    assert any(u.endswith("/fonts/PublicSansVariable.woff2") and s == 200 for u, s in fonts)
-    assert pg.evaluate("""document.fonts.check('16px "Public Sans"')""")
-    # Public Sans's regular is heavier than Inter's (its other weights match), so regular text sits at 370.
-    assert pg.evaluate("[document.body, document.querySelector('.card-sum')].map(e => getComputedStyle(e).fontWeight)") == ["370", "370"]
+    assert {"Sohne-Buch", "Sohne-Kraftig"} <= set(fonts)  # body text, and the titles
+    assert pg.evaluate("document.fonts.check('16px Sohne')")
+    # The weights were tuned for Public Sans; each face takes the range nearest its ink: 370 and 500 Buch, 600 Kräftig.
+    assert pg.evaluate("[document.body, document.querySelector('.card-sum'), document.querySelector('.card-title')].map(e => getComputedStyle(e).fontWeight)") == ["370", "370", "600"]
+    loaded = pg.evaluate("[...document.fonts].filter(f => f.status === 'loaded' && f.family.includes('Sohne')).map(f => f.weight)")
+    assert {"100 549", "550 649"} <= set(loaded)
 
 
 def test_articles_are_set_in_mercury_by_theme_without_downloading_fonts_each_time(browser):
-    # Mercury's own bytes aren't needed: the browser fixture's stand-in is enough to follow every face.
+    # The fonts' own bytes aren't needed: the browser fixture's stand-in is enough to follow every face.
     for theme, grade in (("light", "G2"), ("dark", "G1")):  # the lighter grade where light text on dark reads heavier
         ctx = browser.new_context(viewport={"width": 1440, "height": 900})
         ctx.add_init_script(f"localStorage.setItem('theme', '{theme}')")
@@ -535,7 +537,7 @@ def test_articles_are_set_in_mercury_by_theme_without_downloading_fonts_each_tim
         pg.on("response", lambda r: fonts.append(r.url.rsplit("/", 1)[-1]) if "/fonts/" in r.url else None)
         pg.goto(URL)
         enter_list(pg)
-        pg.wait_for_function("() => Object.keys(frameFonts).length === 13")  # fetched once, in the background, after the list
+        pg.wait_for_function("() => Object.keys(frameFonts).length === 16")  # 12 Mercury Text, Mercury Display, 3 Söhne: fetched once, after the list
         assert {f"Mercury-Text{g}{s}" for g in ("G1", "G2") for s in ("Roman", "Italic", "Bold")} <= set(fonts)
         before = len(fonts)
         for n in (0, 1, 0):  # including one opened again
@@ -543,8 +545,9 @@ def test_articles_are_set_in_mercury_by_theme_without_downloading_fonts_each_tim
             frame = pg.frame_locator("#reader-body iframe:not(.loading)")
             frame.locator("p").nth(29).wait_for()
             faces = frame.locator("body").evaluate("() => document.fonts.ready.then(() => [...document.fonts].filter(f => f.status === 'loaded').map(f => f.family.replace(/\"/g, '')))")
-            assert f"Mercury Text {grade}" in faces and "Public Sans" in faces  # the article in Mercury, its headings in Public Sans
-            assert {f for f in faces if f.startswith("Mercury")} == {f"Mercury Text {grade}"}  # only this theme's grade
+            assert f"Mercury Text {grade}" in faces and "Sohne" in faces  # the article in Mercury, the upshot and date line in Söhne
+            assert {f for f in faces if f.startswith("Mercury")} == {f"Mercury Text {grade}", "Mercury Display"}  # this theme's grade, and the headline cut
+            assert frame.locator("h1").evaluate("e => getComputedStyle(e).fontFamily").startswith('"Mercury Display"')
             assert frame.locator("em").evaluate(f"e => document.fonts.check('italic 17px \"Mercury Text {grade}\"')")  # real italics
             assert frame.locator("main p").nth(3).evaluate("e => getComputedStyle(e).fontFamily").startswith(f'"Mercury Text {grade}"')
         # A sandboxed frame caches apart every time, so fonts loaded there by URL came down again for every article.

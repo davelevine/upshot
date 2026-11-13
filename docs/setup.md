@@ -88,15 +88,17 @@ Without the secret the cron does nothing, silently: Workers Logs still show each
 
 The build flags a story **Exploited** or **Compromised** from CISA's catalog or from what the article says, checked against a quote. If one is wrong (a trend piece read as an attack, say), add its URL to [`not-exploited.txt`](../not-exploited.txt), one a line. The next build drops the flag from the site and never sets it again. Each build's run summary counts the flags, so a run of wrong ones shows up there.
 
-## Optional: the article font
+## Optional: the fonts
 
-The reader sets articles in Mercury Text, a licensed font that isn't in the repository, so a fork shows them in the system serif (Iowan Old Style, Charter or Georgia) instead. Nothing else changes: `/fonts/mercury/` answers 404, which the browser console lists.
+The site is set in Söhne, Mercury Text and Mercury Display, licensed fonts that aren't in the repository, so a fork shows the system sans and serif (Iowan Old Style, Charter or Georgia) instead. Nothing else changes: `/fonts/licensed/` answers 404, which the browser console lists.
 
-To use Mercury, or another licensed font in its place, create a private R2 bucket named `upshot-fonts` (no public access or custom domain; the Worker serves the files) and upload the `.woff2` files with the names `site/app.js` asks for:
+To use them, or other licensed fonts in their place, create a private R2 bucket named `upshot-fonts` (no public access or custom domain; the Worker serves the files) and upload the `.woff2` files at its top level, under the names `site/index.html` and `site/app.js` ask for: `Sohne-Buch`, `Sohne-Kraftig`, `Sohne-Halbfett`, `Mercury-DisplaySemibold` and the twelve `Mercury-TextG1…`/`Mercury-TextG2…` faces (roman, italic, semibold, semibold italic, bold, bold italic). Any of them can go up through the dashboard, or all at once:
 
 ```bash
-for f in Mercury-TextG[12]*.woff2; do npx wrangler r2 object put "upshot-fonts/$f" --file "$f" --content-type font/woff2 --remote; done
+for f in Sohne-*.woff2 Mercury-*.woff2; do npx wrangler r2 object put "upshot-fonts/$f" --file "$f" --content-type font/woff2 --remote; done
 ```
+
+H&Co's Mercury files need cleaning first; see [architecture](architecture.md#the-reader-and-what-it-does-with-your-data).
 
 Keep the bucket for the fonts alone: the Worker's binding can read and write everything in it.
 

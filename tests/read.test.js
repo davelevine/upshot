@@ -368,15 +368,21 @@ test('the licensed fonts come from R2, only as .woff2, and only to the site and 
   const asked = [];
   const env = { FONTS: { get: async key => (asked.push(key), key === 'Mercury-TextG2Roman.woff2' ? { body: 'FONT', httpEtag: '"e1"' } : null) } };
   const get = path => worker.fetch(new Request('https://site.test' + path), env);
-  const res = await get('/fonts/mercury/Mercury-TextG2Roman');
+  const res = await get('/fonts/licensed/Mercury-TextG2Roman');
   assert.equal(res.status, 200);
   assert.equal(await res.text(), 'FONT');
   assert.equal(res.headers.get('content-type'), 'font/woff2');
   assert.equal(res.headers.get('etag'), '"e1"');
   assert.equal(res.headers.get('access-control-allow-origin'), 'null');  // the sandboxed frame, not every site
   assert.match(res.headers.get('cache-control'), /max-age=604800/);
-  assert.equal((await get('/fonts/mercury/Missing')).status, 404);
+  assert.equal((await get('/fonts/licensed/Missing')).status, 404);
   assert.deepEqual(asked, ['Mercury-TextG2Roman.woff2', 'Missing.woff2']);  // nothing but .woff2 can be read from the bucket
-  const unbound = await worker.fetch(new Request('https://site.test/fonts/mercury/Mercury-TextG2Roman'), {});
+  // Only to style text: a font opened as a page (the address bar, a link) is refused; the page's own requests aren't.
+  const as = dest => worker.fetch(new Request('https://site.test/fonts/licensed/Mercury-TextG2Roman', { headers: { 'Sec-Fetch-Dest': dest } }), env);
+  assert.equal((await as('document')).status, 403);
+  assert.equal((await as('iframe')).status, 403);
+  assert.equal((await as('font')).status, 200);  // @font-face and the preload
+  assert.equal((await as('empty')).status, 200);  // the fetch that inlines fonts into the reader frame
+  const unbound = await worker.fetch(new Request('https://site.test/fonts/licensed/Mercury-TextG2Roman'), {});
   assert.equal(unbound.status, 404);  // a fork without the bucket: the reader falls back to the system serif
 });

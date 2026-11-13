@@ -16,7 +16,7 @@
 <meta property="og:image:alt" content="Upshot: this week’s top story and what to do about it">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="alternate" type="application/rss+xml" title="Upshot" href="/rss.xml">
-<link rel="preload" href="/fonts/PublicSansVariable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/licensed/Sohne-Buch" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -26,10 +26,13 @@
 if (/Mac|iPhone|iPad/.test(navigator.platform)) document.documentElement.dataset.mac = '';
 for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width'); if (w) document.documentElement.style.setProperty('--' + k + '-w', w + 'px'); }</script>
 <style>
-  /* Public Sans 2.001, Latin subset, so every visitor gets the same metrics and line clamps. Licence: /fonts/LICENSE-PublicSans.txt
-     size-adjust: the sizes were set for Inter, whose lowercase is taller and capitals shorter; 3% up splits the difference at Inter's width.
-     Regular text is 370, not 400: Public Sans's regular draws heavier (its other weights match). */
-  @font-face { font-family: "Public Sans"; src: url("/fonts/PublicSansVariable.woff2") format("woff2"); font-weight: 100 900; font-style: normal; size-adjust: 103%; font-display: swap; }
+  /* Söhne (Klim), licensed, so the Worker serves it from R2 (worker.js); without it, the system sans. Three faces, each taking a
+     range of weights: the weights below were tuned for Public Sans, and these are the faces whose rendered ink is nearest
+     (370 regular and 500 → Buch, 600 → Kräftig, 700 → Halbfett). size-adjust: 108% sets it as wide as Public Sans was, so
+     lines break and clamp where they did; at 102% it matched the x-height but read small, being narrower. */
+  @font-face { font-family: Sohne; src: url("/fonts/licensed/Sohne-Buch") format("woff2"); font-weight: 100 549; font-style: normal; size-adjust: 108%; font-display: swap; }
+  @font-face { font-family: Sohne; src: url("/fonts/licensed/Sohne-Kraftig") format("woff2"); font-weight: 550 649; font-style: normal; size-adjust: 108%; font-display: swap; }
+  @font-face { font-family: Sohne; src: url("/fonts/licensed/Sohne-Halbfett") format("woff2"); font-weight: 650 900; font-style: normal; size-adjust: 108%; font-display: swap; }
   :root, [data-theme="light"] {
     color-scheme: light;
     --bg: #e3e6ec; --bg-card: #ffffff; --bg-card-hover: #eceff3; --border: #dde1e8; --border-strong: #b6bdc9;
@@ -69,7 +72,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   .popover.send-pop { left: auto; right: 0; width: auto; min-width: 180px; display: flex; flex-direction: column; padding: 6px; }
   .popover.send-pop[hidden] { display: none; }
   .send-pop > * { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border: 0; border-radius: var(--radius-sm); background: none;
-    color: var(--text); font: 500 .9375rem/1.2 "Public Sans", system-ui, sans-serif; text-align: left; text-decoration: none; cursor: pointer; }
+    color: var(--text); font: 500 .9375rem/1.2 Sohne, system-ui, sans-serif; text-align: left; text-decoration: none; cursor: pointer; }
   .send-pop > *:hover { background: var(--bg-card-hover); }
   .send-ico { flex: none; width: 18px; height: 18px; color: var(--text-muted); }
   .send-ico.fill { fill: currentColor; stroke: none; }  /* Bluesky, Reddit and LinkedIn marks from Simple Icons (CC0); LinkedIn's is the one the portfolio uses */
@@ -83,7 +86,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .35s; animation-timing-function: ease; }
   html { scrollbar-gutter: stable; scroll-padding-top: 64px; }  /* the reader locks scrolling; keep the scrollbar's space so nothing shifts */
   * { -webkit-tap-highlight-color: transparent; }  /* Android paints it above the reader that opens on tap */
-  body { font-weight: 370; font-family: "Public Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  body { font-weight: 370; font-family: Sohne, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
   a { color: inherit; text-decoration: none; }
   button { font: inherit; }
   svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -154,7 +157,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   /* A button drawn as a field: it opens the search palette, like ⌘K. Opening on focus instead trapped Tab there, and Esc lost focus. */
   #search { display: block; width: 100%; padding: 8px 64px 8px 36px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-card);
     color: var(--text-muted); font: inherit; font-size: .875rem; line-height: 1.15; text-align: left; cursor: pointer; }
-  kbd { padding: 3px 6px; border: 1px solid var(--border-strong); border-bottom-width: 2px; border-radius: 5px; background: var(--bg); color: var(--text-muted); font: 600 .7rem/1 "Public Sans", system-ui, sans-serif; white-space: nowrap; }
+  kbd { padding: 3px 6px; border: 1px solid var(--border-strong); border-bottom-width: 2px; border-radius: 5px; background: var(--bg); color: var(--text-muted); font: 600 .7rem/1 Sohne, system-ui, sans-serif; white-space: nowrap; }
   .search-kbd { position: absolute; right: 10px; top: 50%; display: none; transform: translateY(-50%); pointer-events: none; }
   .search-kbd::after { content: "Ctrl K"; } [data-mac] .search-kbd::after { content: "\2318K"; }  /* drawn here, so it's there from the first paint (the head script sets data-mac) */
   @media (pointer: fine) { .search-kbd { display: block; } }  /* a hint for keyboards */
@@ -178,7 +181,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   .palette-list .palette-empty { justify-content: center; padding: 22px; color: var(--text-muted); font-size: .875rem; cursor: default; }
   .palette-foot { display: flex; gap: 16px; padding: 8px 14px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: .72rem; }
   .palette-foot kbd { margin-right: 3px; }
-  .palette-close { flex: none; padding: 0; border: 0; background: none; color: var(--accent); font: 500 1rem "Public Sans", system-ui, sans-serif; cursor: pointer; }
+  .palette-close { flex: none; padding: 0; border: 0; background: none; color: var(--accent); font: 500 1rem Sohne, system-ui, sans-serif; cursor: pointer; }
   .palette-close svg { display: none; }
   /* A list in the sidebar; the same list in a drawer behind the topic button on phones. */
   .filters { position: static; display: flex; flex-direction: column; gap: 1px; width: auto; height: auto; margin: 0; padding: 0; overflow: visible; border: 0; background: none; color: inherit; }
@@ -218,7 +221,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   .card-sum b { color: var(--accent); font-weight: 600; }
   .card-meta .ess { color: var(--accent); font-size: .75rem; font-weight: 600; }  /* the week's picks, marked where they fall in the feed */
   .src-icon { flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 5px; }
-  .src-mono { display: grid; place-items: center; background: var(--bg-card); box-shadow: inset 0 0 0 1px var(--border-strong); color: var(--text-muted); font: 700 .6875rem/1 "Public Sans", system-ui, sans-serif; }
+  .src-mono { display: grid; place-items: center; background: var(--bg-card); box-shadow: inset 0 0 0 1px var(--border-strong); color: var(--text-muted); font: 700 .6875rem/1 Sohne, system-ui, sans-serif; }
   mark { background: var(--accent-soft); color: inherit; border-radius: 2px; }
   .back-to-top { position: fixed; right: 24px; bottom: 24px; z-index: 90; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--accent);
     border-radius: 999px; background: var(--bg-card); color: var(--accent); cursor: pointer; box-shadow: 0 8px 24px rgba(0, 0, 0, .2); }
@@ -449,7 +452,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   .size-pop { left: auto; right: 0; width: auto; display: flex; gap: 4px; padding: 6px; }
   .size-pop[hidden] { display: none; }
   .size-pop button { display: grid; place-items: end center; width: 44px; height: 44px; padding-bottom: 11px; border: 1px solid transparent; border-radius: var(--radius-sm);
-    background: none; color: var(--text-muted); font-family: "Public Sans", system-ui, sans-serif; font-weight: 600; line-height: 1; cursor: pointer; }
+    background: none; color: var(--text-muted); font-family: Sohne, system-ui, sans-serif; font-weight: 600; line-height: 1; cursor: pointer; }
   .size-pop button:hover { background: var(--bg-card-hover); color: var(--text); }
   .size-pop button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
   .size-pop [data-size="0"] { font-size: 13px; } .size-pop [data-size="1"] { font-size: 16px; } .size-pop [data-size="2"] { font-size: 20px; } .size-pop [data-size="3"] { font-size: 24px; }

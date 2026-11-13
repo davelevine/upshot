@@ -8,14 +8,14 @@
     "directory": "site",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
-    // Code runs for the reader, for the licensed article font (from R2, at paths without a dot for this reason), and for
-    // pages (paths without a dot), which get a per-request CSP nonce. Files (data.json, app.js, icons, the free fonts) are
-    // free static assets. Wrangler rejects a narrower rule such as "/fonts/mercury/*" next to "/*", and "!/*.*" wins.
+    // Code runs for the reader, for the licensed fonts (from R2, at paths without a dot for this reason), and for pages
+    // (paths without a dot), which get a per-request CSP nonce. Files (data.json, app.js, icons) are free static assets.
+    // Wrangler rejects a narrower rule such as "/fonts/licensed/*" next to "/*", and "!/*.*" wins.
     "run_worker_first": ["/*", "!/*.*"]
   },
   // The reader's stored articles. The Worker only reads them, so Previews safely share the namespace.
   "kv_namespaces": [{ "binding": "ARTICLES", "id": "1bba8ed2e55040b1b00a7f32be0ea5d3" }],
-  // The licensed article font (worker.js). A private bucket of its own (docs/setup.md): a binding can read and
+  // The licensed fonts (worker.js). A private bucket of its own (docs/setup.md): a binding can read and
   // write its whole bucket, so this one holds nothing else. Previews read the same files.
   "r2_buckets": [{ "binding": "FONTS", "bucket_name": "upshot-fonts" }],
   "routes": [{ "pattern": "upshot.levine.io", "custom_domain": true }],
