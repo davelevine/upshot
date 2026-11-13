@@ -275,6 +275,13 @@ def cves(text):
     return sorted({c.upper() for c in CVE.findall(text or "")})
 
 
+def own_cves(item):
+    """The CVEs a story is about: its stored ones (from its title and excerpt) and those its summary and upshot name.
+    Never the rest of the article, which cites older flaws for background: matched against CISA's catalog, those would
+    flag a story, or confirm it, on the strength of a flaw it isn't about."""
+    return sorted(set(item.get("cves", [])) | set(cves(f"{item['title']} {item.get('summary', '')} {' '.join(item.get('tldr', []))}")))
+
+
 def fetch_kev():
     """CISA's Known Exploited Vulnerabilities: {cveID: dateAdded}. Empty if it can't be read, so the build carries on
     with the model's checked claims alone."""
@@ -749,7 +756,8 @@ def add_reading_times(items, known=None, feeds=None, texts=None):
 TLDR_LIMIT = 60  # summaries written per build; a backlog (a backfill, a redo) spreads over later builds
 TLDR_PROMPT = """You write the TL;DR at the top of a tech news article, for a senior engineer who wants to act on it
 straight away. Return 2 to 4 bullets, each under 25 words. Lead with what happened, then who or what is affected,
-then the fix or action if the article gives one (if it gives none, leave action out rather than saying so). Use only facts stated in the article: never add a version, CVE,
+then the fix or action if the article gives one (if it gives none, leave action out rather than saying so). If the
+article identifies the flaw it reports by CVE ID, name it (at most two), not CVEs it cites for background. Use only facts stated in the article: never add a version, CVE,
 number, date or name that isn't in the text, and copy any you use exactly. No hype, no speculation, no
 "this article" framing. Plain sentences, no markdown."""
 TLDR_SCHEMA = {
@@ -1051,12 +1059,9 @@ def main():
 
     texts = {}
     reader_error = add_reading_times(data["items"], feed_minutes(fetched), full_text_feeds(fetched), texts)
-    for i in data["items"]:  # the whole article names CVEs a 600-character excerpt cuts off
-        if i["url"] in texts:
-            i["cves"] = sorted(set(i.get("cves", [])) | set(cves(texts[i["url"]])))
     print(f"TL;DRs written: {add_tldrs(data['items'], texts)}")
-    for i in data["items"]:  # and so does the upshot, written from it: for stories from before the flag, the only record of it
-        i["cves"] = sorted(set(i.get("cves", [])) | set(cves(f"{i['title']} {i.get('summary', '')} {' '.join(i.get('tldr', []))}")))
+    for i in data["items"]:  # the upshot is written from the whole article, so it names the CVEs an excerpt cuts off
+        i["cves"] = own_cves(i)
     if kev:
         tag_kev(data["items"], kev)
     if not state.get("claims_backfilled"):  # once: the week before the flag shipped
