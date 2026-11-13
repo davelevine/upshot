@@ -148,6 +148,19 @@
   },
   {
    "date": "2026-11-13",
+   "published": "2026-11-13T21:05:53+00:00",
+   "title": "FAA Issues National Ground Stop",
+   "url": "https://www.fly.faa.gov/adv/adv_otherdis?adv_date=11132026&advn=111",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "The FAA issued a national ground stop advisory, halting flights nationwide; the excerpt gives no cause. It drew 532 points on Hacker News.",
+   "relevance": 6,
+   "added": "2026-11-13T22:18:08+00:00",
+   "minutes": 0
+  },
+  {
+   "date": "2026-11-13",
    "published": "2026-11-13T06:15:00+00:00",
    "title": "Dropbox Shares How Its In-House Cookie Auditor Tests Consent Behaviour Across 200+ Web Surfaces",
    "url": "https://www.infoq.com/news/2026/11/dropbox-cookie-auditor/",
@@ -3524,7 +3537,7 @@
    }
   ]
  },
- "generated_at": "2026-11-13T21:18:29+00:00",
+ "generated_at": "2026-11-13T22:18:13+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
