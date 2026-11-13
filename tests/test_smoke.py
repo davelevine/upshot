@@ -414,7 +414,8 @@ def test_reader_shows_the_story_before_the_fetch_finishes(browser):
     held[0].fulfill(content_type="application/json", body=json.dumps({"url": url, "frameable": False, "byline": "By Ada Lovelace", "content": f"<p>{'word ' * 700}</p>"}))
     frame.locator(".meta", has_text="3 min read").wait_for()
     frame.locator(".status").wait_for(state="detached")
-    meta = frame.locator(".meta").inner_text()
+    # The date line itself: an exploited story's flag is its own line above it, and whether the top essential has one depends on the day's news.
+    meta = frame.locator(".meta").evaluate("e => [...e.childNodes].filter(n => !n.matches?.('.flag')).map(n => n.textContent).join('')")
     assert "by Ada Lovelace" in meta and "By By" not in meta  # Feedbin-style: date by author, then minutes
     assert "\n" not in meta and pg.evaluate("readerFor && items.find(i => i.url === readerFor).publisher") == pg.inner_text("#reader-source")  # the source sits in the bar
     assert frame.locator("h1").evaluate("e => getComputedStyle(e).fontFamily").startswith('"Public Sans"')
