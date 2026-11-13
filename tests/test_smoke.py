@@ -272,6 +272,17 @@ def test_late_bar_is_a_bottom_bar_on_a_phone(browser):
 BOTTOM = "() => { const c = document.getElementById('col'); c.scrollTop = c.scrollHeight; scrollTo(0, document.documentElement.scrollHeight); }"
 
 
+def settle_at_bottom(pg):
+    """Cards hold a placeholder height until they come into view (content-visibility), so jumping to the end makes the
+    last few grow and push it down a moment later. This scrolls until the height settles, as a reader's scrolling would."""
+    height = "() => document.documentElement.scrollHeight + document.getElementById('col').scrollHeight"
+    for _ in range(10):
+        before = pg.evaluate(height)
+        pg.evaluate(BOTTOM); pg.wait_for_timeout(100)
+        if pg.evaluate(height) == before:
+            return
+
+
 def test_a_phone_says_when_it_updated_in_a_strip_on_the_toolbar(browser):
     pg = stale_site(browser, 0.5, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
     strip, tools = pg.locator("#bar-updated").bounding_box(), pg.locator("#list-bar").bounding_box()
@@ -283,7 +294,7 @@ def test_a_phone_says_when_it_updated_in_a_strip_on_the_toolbar(browser):
         if pg.locator("#end").is_visible():
             break
         pg.wait_for_timeout(150)
-    pg.evaluate(BOTTOM); pg.wait_for_timeout(100)
+    settle_at_bottom(pg)
     last = pg.locator("#end").bounding_box()
     assert last["y"] + last["height"] <= strip["y"]  # the list's end clears it
 
@@ -356,8 +367,7 @@ def test_the_phone_toolbar_never_covers_the_end_message(browser):
         if pg.evaluate("!document.getElementById('end').hidden"):
             break
         pg.wait_for_timeout(50)
-    pg.evaluate("window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'instant'})")
-    pg.wait_for_timeout(100)
+    settle_at_bottom(pg)
     msg, bar = pg.locator("#end-msg").bounding_box(), pg.locator("#list-bar").bounding_box()
     assert pg.evaluate("!document.getElementById('end').hidden") and msg["y"] + msg["height"] <= bar["y"]
     assert pg.locator("#top").is_hidden()  # no floating button here: it's in the toolbar
