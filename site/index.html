@@ -23,7 +23,7 @@
 <meta name="theme-color" content="#e3e6ec" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#15161e" media="(prefers-color-scheme: dark)">
 <script>document.documentElement.dataset.theme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-if (/Mac|iPhone|iPad/.test(navigator.platform)) document.documentElement.dataset.mac = '';
+if (/Mac|iPhone|iPad/.test(navigator.platform)) document.documentElement.dataset.mac = ''; else if (/Android/.test(navigator.userAgent)) document.documentElement.dataset.android = '';
 for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width'); if (w) document.documentElement.style.setProperty('--' + k + '-w', w + 'px'); }</script>
 <style>
   /* Söhne (Klim), licensed, so the Worker serves it from R2 (worker.js); without it, the system sans. Three faces, each taking a
@@ -262,6 +262,8 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   .menu { position: fixed; inset: 56px 12px auto auto; display: flex; flex-direction: column; align-items: stretch; gap: 0; width: 220px; height: auto; margin: 0; padding: 6px;
     border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-card); color: inherit; box-shadow: 0 24px 64px rgba(0, 0, 0, .25); overflow: visible; }
   .menu:not(:popover-open) { display: none; }
+  .menu-btn svg:not(.more-web), [data-mac] .menu-btn .more-web, [data-android] .menu-btn .more-web { display: none; }
+  [data-mac] .menu-btn .more-apple, [data-android] .menu-btn .more-android { display: block; }
   .menu-btn:has(+ .menu:popover-open) { background: var(--bg-card-hover); color: var(--text); }
   .menu .icon-btn { display: flex; align-items: center; justify-content: flex-start; gap: 12px; width: 100%; height: 40px; padding: 0 10px; border: 0; border-radius: var(--radius-sm);
     background: none; color: var(--text-muted); font: inherit; text-align: left; }
@@ -490,7 +492,10 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   <div class="controls">
     <button class="icon-btn search-btn" id="search-btn" type="button" aria-label="Search articles" aria-haspopup="dialog" title="Search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
     <button class="icon-btn menu-btn" id="menu-btn" type="button" popovertarget="menu" aria-label="Menu" title="Menu">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="8" cy="12" r=".6" fill="currentColor"/><circle cx="12" cy="12" r=".6" fill="currentColor"/><circle cx="16" cy="12" r=".6" fill="currentColor"/></svg>
+      <!-- Each platform's own "more" icon: Apple's ⋯ in a circle, Android's ⋮, the web's plain ⋯ (index.html's head script marks which). -->
+      <svg class="more-apple" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="8" cy="12" r=".6" fill="currentColor"/><circle cx="12" cy="12" r=".6" fill="currentColor"/><circle cx="16" cy="12" r=".6" fill="currentColor"/></svg>
+      <svg class="more-android" viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1.6" fill="currentColor" stroke="none"/></svg>
+      <svg class="more-web" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg>
     </button>
     <div class="menu" id="menu" popover>
     <a class="icon-btn" href="/rss.xml" title="RSS feed" aria-label="RSS feed">
