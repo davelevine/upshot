@@ -61,7 +61,7 @@ def open_site(browser, patch=None, url=None, **context):
     def stub(route):
         url = urllib.parse.parse_qs(urllib.parse.urlsplit(route.request.url).query)["url"][0]
         route.fulfill(content_type="application/json",
-                      body=json.dumps({"url": url, "frameable": False, "content": f'<img src="{PIXEL}" alt="">{BODY}'}))
+                      body=json.dumps({"url": url, "content": f'<img src="{PIXEL}" alt="">{BODY}'}))
     ctx.route("**/api/read?*", stub)
     pg.goto(url or URL)
     enter_list(pg)
@@ -437,7 +437,7 @@ def test_reader_shows_the_story_before_the_fetch_finishes(browser):
         pg.wait_for_timeout(20)
     assert len(held) == 1  # still in flight: nothing above waited for it
     url = urllib.parse.parse_qs(urllib.parse.urlsplit(held[0].request.url).query)["url"][0]
-    held[0].fulfill(content_type="application/json", body=json.dumps({"url": url, "frameable": False, "byline": "By Ada Lovelace", "content": f"<p>{'word ' * 700}</p>"}))
+    held[0].fulfill(content_type="application/json", body=json.dumps({"url": url, "byline": "By Ada Lovelace", "content": f"<p>{'word ' * 700}</p>"}))
     frame.locator(".meta", has_text="3 min read").wait_for()
     frame.locator(".status").wait_for(state="detached")
     # The date line itself: an exploited story's flag is its own line above it, and whether the top essential has one depends on the day's news.
@@ -462,7 +462,7 @@ def test_reader_swaps_frames_without_a_blank_gap(browser):
             .observe(document.getElementById('reader-body'), { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
     }""")
     url = urllib.parse.parse_qs(urllib.parse.urlsplit(held[0].request.url).query)["url"][0]
-    held[0].fulfill(content_type="application/json", body=json.dumps({"url": url, "frameable": False, "content": BODY}))
+    held[0].fulfill(content_type="application/json", body=json.dumps({"url": url, "content": BODY}))
     frame.locator("p").nth(29).wait_for()
     batches = pg.evaluate("__swap")
     assert batches[0] == ["added"] and batches[1] == ["removed", "revealed"], batches  # separate moments, then together
@@ -477,7 +477,7 @@ def test_reader_keeps_the_card_when_the_article_is_blocked(browser):
             break
         pg.wait_for_timeout(20)
     url = urllib.parse.parse_qs(urllib.parse.urlsplit(held[0].request.url).query)["url"][0]
-    held[0].fulfill(content_type="application/json", body=json.dumps({"url": url, "frameable": False, "reason": "challenge"}))
+    held[0].fulfill(content_type="application/json", body=json.dumps({"url": url, "reason": "challenge"}))
     frame.locator(".status", has_text="doesn\u2019t allow a reader view").wait_for()
     assert frame.locator("h1").inner_text() == title and frame.locator(".todo").count() == 1
     assert frame.locator("a.pill").get_attribute("href") == url
@@ -494,8 +494,23 @@ def test_reader_message_follows_the_reason(browser):
             break
         pg.wait_for_timeout(20)
     url = urllib.parse.parse_qs(urllib.parse.urlsplit(held[0].request.url).query)["url"][0]
-    held[0].fulfill(content_type="application/json", body=json.dumps({"url": url, "frameable": False, "reason": "not_html"}))
+    held[0].fulfill(content_type="application/json", body=json.dumps({"url": url, "reason": "not_html"}))
     frame.locator(".status", has_text="needs the original site").wait_for()
+
+
+def test_reader_never_frames_the_original_page(browser):
+    # Articles stored before framing was dropped still say frameable: true; the reader links out instead.
+    pg, held, _, frame = held_reader(browser, viewport={"width": 1300, "height": 900})
+    frame.locator("h1").wait_for()
+    for _ in range(50):
+        if held:
+            break
+        pg.wait_for_timeout(20)
+    url = urllib.parse.parse_qs(urllib.parse.urlsplit(held[0].request.url).query)["url"][0]
+    held[0].fulfill(content_type="application/json", body=json.dumps({"url": url, "frameable": True, "reason": "shell"}))
+    frame.locator(".status", has_text="needs the original site").wait_for()
+    assert frame.locator("a.pill").get_attribute("href") == url
+    assert pg.locator("#reader-body iframe:not([srcdoc])").count() == 0
 
 
 def test_reader_says_when_an_article_isnt_stored_yet(browser):
@@ -506,7 +521,7 @@ def test_reader_says_when_an_article_isnt_stored_yet(browser):
             break
         pg.wait_for_timeout(20)
     url = urllib.parse.parse_qs(urllib.parse.urlsplit(held[0].request.url).query)["url"][0]
-    held[0].fulfill(content_type="application/json", body=json.dumps({"url": url, "frameable": False, "reason": "pending"}))
+    held[0].fulfill(content_type="application/json", body=json.dumps({"url": url, "reason": "pending"}))
     frame.locator(".status", has_text="ready yet").wait_for()
 
 
@@ -531,7 +546,7 @@ def test_articles_are_set_in_mercury_by_theme_without_downloading_fonts_each_tim
         ctx = browser.new_context(viewport={"width": 1440, "height": 900})
         ctx.add_init_script(f"localStorage.setItem('theme', '{theme}')")
         ctx.route("**/api/read?*", lambda route: route.fulfill(content_type="application/json", body=json.dumps(
-            {"frameable": False, "content": f'{BODY}<p><em>An italic line.</em></p>'})))
+            {"content": f'{BODY}<p><em>An italic line.</em></p>'})))
         pg = ctx.new_page()
         fonts = []
         pg.on("response", lambda r: fonts.append(r.url.rsplit("/", 1)[-1]) if "/fonts/" in r.url else None)
@@ -806,7 +821,7 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
                 i["tldr"] = ["First fact & <detail>.", "Second fact.", "Third fact."]
         route.fulfill(response=res, json=data)
     ctx.route("**/data.json", with_tldr)
-    ctx.route("**/api/read?*", lambda r: r.fulfill(content_type="application/json", body=json.dumps({"reason": "pending", "frameable": False})))
+    ctx.route("**/api/read?*", lambda r: r.fulfill(content_type="application/json", body=json.dumps({"reason": "pending"})))
     pg = ctx.new_page()
     pg.goto(URL)
     enter_list(pg)
@@ -881,7 +896,7 @@ def test_the_reader_endpoint_reaches_the_worker(browser):
     # The browser tests stub /api/read; this asks the real route, which is the only path that runs code.
     res = browser.new_context().request.get(URL.rstrip("/") + "/api/read?url=" + urllib.parse.quote("https://x.test/not-stored", safe=""))
     assert res.status == 200 and res.headers["content-type"].startswith("application/json")
-    assert res.json() == {"url": "https://x.test/not-stored", "frameable": False, "reason": "pending"}
+    assert res.json() == {"url": "https://x.test/not-stored", "reason": "pending"}
 
 
 def test_wide_screens_keep_the_filter_row(browser):
@@ -1154,7 +1169,7 @@ def test_reader_header_tidies_bylines_and_never_starts_blank(browser):
     def article(route):
         url = urllib.parse.parse_qs(urllib.parse.urlsplit(route.request.url).query)["url"][0]
         route.fulfill(content_type="application/json", body=json.dumps(
-            {"url": url, "frameable": False, "byline": "Posted on November 8, 2026\n\t\tby audra", "content": f"<p>{'word ' * 400}</p>"}))
+            {"url": url, "byline": "Posted on November 8, 2026\n\t\tby audra", "content": f"<p>{'word ' * 400}</p>"}))
     ctx.route("**/api/read?*", article)
     pg = ctx.new_page()
     pg.goto(URL)

@@ -989,13 +989,6 @@ function openReader(i, { fromHash = false } = {}) {
     if (r.content) {
       const { minutes } = articles.get(i.url);
       showInReader(i, r.content, why, minutes, r.byline);
-    } else if (r.frameable) {
-      const frame = document.createElement('iframe');
-      frame.sandbox = 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms';
-      frame.referrerPolicy = 'no-referrer';
-      frame.src = i.url;
-      frame.title = i.title;
-      mountFrame(frame);
     } else {
       if (['shell', 'short', 'not_html'].includes(r.reason)) unreadable = 'This page needs the original site to display.';
       if (r.reason === 'challenge') unreadable = 'This publisher doesn\u2019t allow a reader view.';

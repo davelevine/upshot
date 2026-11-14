@@ -1,16 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { classify, clean, extract, feedArticle, feedReader, frameable, kvClient, linkShare, readArticle, run, tidy } from '../extract.mjs';
+import { classify, clean, extract, feedArticle, feedReader, kvClient, linkShare, readArticle, run, tidy } from '../extract.mjs';
 import worker, { dispatchBuild, keyFor } from '../worker.js';
-
-test('frameable honours X-Frame-Options and frame-ancestors', () => {
-  const h = o => new Headers(o);
-  assert.equal(frameable(h({})), true);
-  assert.equal(frameable(h({ 'X-Frame-Options': 'DENY' })), false);
-  assert.equal(frameable(h({ 'X-Frame-Options': 'SAMEORIGIN' })), false);
-  assert.equal(frameable(h({ 'Content-Security-Policy': "default-src 'self'; frame-ancestors 'self'" })), false);
-  assert.equal(frameable(h({ 'Content-Security-Policy': 'frame-ancestors *' })), true);
-});
 
 test('clean strips active content and makes links absolute', () => {
   const out = clean(`<p onclick="x()" style="color:red">Hi<script>alert(1)</script></p>
@@ -70,10 +61,10 @@ test('readArticle gives a reason for every outcome', async () => {
   assert.equal(r.reason, 'ok'); assert.ok(r.content);
 
   r = await read({ 'https://x.test/a': page(403, {}, 'blocked') });
-  assert.equal(r.reason, 'challenge'); assert.equal(r.frameable, false); assert.equal(r.content, undefined);
+  assert.equal(r.reason, 'challenge'); assert.equal(r.content, undefined);
 
   r = await read({ 'https://x.test/a': page(200, {}, '<div id="__next"></div>') });
-  assert.equal(r.reason, 'shell'); assert.equal(r.frameable, true);
+  assert.equal(r.reason, 'shell'); assert.equal(r.content, undefined);
 
   r = await read({ 'https://x.test/a': Object.assign(new Error('slow'), { name: 'TimeoutError' }) });
   assert.equal(r.reason, 'timeout');
@@ -291,7 +282,7 @@ test('/api/read returns what the build stored, and pending otherwise', async () 
     return [res.status, await res.json(), res.headers.get('cache-control')];
   };
   const k = await keyFor(url);
-  const env = { ARTICLES: { get: async wanted => (wanted === k ? JSON.stringify({ url, reason: 'ok', frameable: false, content: '<p>x</p>' }) : null) } };
+  const env = { ARTICLES: { get: async wanted => (wanted === k ? JSON.stringify({ url, reason: 'ok', content: '<p>x</p>' }) : null) } };
   let [status, r, cache] = await ask(env);
   assert.equal(status, 200); assert.equal(r.content, '<p>x</p>'); assert.equal(cache, 'no-store');
   [, r] = await ask(env, 'https://elsewhere.test/not-stored');

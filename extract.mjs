@@ -25,14 +25,6 @@ const TRANSIENT = ['timeout', 'error']; // not a verdict on the article: try aga
 const CHALLENGE = /cf-challenge|_cf_chl_opt|Just a moment|Access Denied|Request unsuccessful|Incapsula/i; // about bot-protection vendors, not publishers
 const DROP = 'script, style, noscript, iframe, object, embed, form, input, button, link, meta, svg';
 
-// Whether the site lets itself be shown in a frame on another origin.
-export function frameable(headers) {
-  const xfo = (headers.get('x-frame-options') || '').toLowerCase();
-  if (xfo.includes('deny') || xfo.includes('sameorigin')) return false;
-  const fa = /frame-ancestors([^;]*)/i.exec(headers.get('content-security-policy') || '');
-  return !fa || fa[1].includes('*');
-}
-
 // Strips anything active and makes every link and image absolute.
 export function clean(html, base) {
   const { document } = parseHTML(`<!doctype html><html><body><div id="root">${html}</div></body></html>`);
@@ -303,7 +295,7 @@ export function tidy(article, url = '') {
 // What the reader gets for one story: its article, or the reason there isn't one.
 export async function readArticle(item, feedText) {
   const { url } = item;
-  const result = { url, frameable: false, reason: 'error' };
+  const result = { url, reason: 'error' };
   try {
     const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'text/html,application/xhtml+xml' }, signal: AbortSignal.timeout(PAGE_TIMEOUT) });
     const html = (await res.text()).slice(0, MAX_HTML);
@@ -313,11 +305,10 @@ export async function readArticle(item, feedText) {
       const article = extract(html);
       const tidied = article && tidy(article, res.url || url);
       if (tidied && tidied.text >= MIN_TEXT) {  // less is a page that was mostly furniture
-        return { url, frameable: false, reason: 'ok', ...(tidied.skipped && { tidy: 'skipped' }), title: article.title, byline: article.byline, siteName: article.siteName, content: clean(tidied.content, res.url || url) };
+        return { url, reason: 'ok', ...(tidied.skipped && { tidy: 'skipped' }), title: article.title, byline: article.byline, siteName: article.siteName, content: clean(tidied.content, res.url || url) };
       }
-      // The page loaded but has no article to pull out, so showing the original is the only thing that can help.
+      // The page loaded but has no article to pull out: the reader links to the original instead.
       result.reason = visibleWords(html) < MIN_PAGE_WORDS ? 'shell' : 'short';
-      result.frameable = frameable(res.headers);
     }
   } catch (e) {
     result.reason = e?.name === 'TimeoutError' || e?.name === 'AbortError' ? 'timeout' : 'error';
@@ -325,7 +316,7 @@ export async function readArticle(item, feedText) {
   const body = feedArticle(await feedText(item.publisher), url);
   if (!body) return result;
   const tidied = tidy({ content: body, title: item.title }, url);
-  return { url, frameable: false, reason: 'ok', source: 'feed', ...(tidied.skipped && { tidy: 'skipped' }), content: clean(tidied.content, url) };
+  return { url, reason: 'ok', source: 'feed', ...(tidied.skipped && { tidy: 'skipped' }), content: clean(tidied.content, url) };
 }
 
 // Each feed once per run, and '' if there isn't one or it fails.
