@@ -2009,6 +2009,8 @@ def test_the_sync_arrows_match_the_search_icon_on_phones(browser):
     a = open_site(browser, url=SYNC_URL, viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
     turn_on(a)
     a.keyboard.press("Escape")
+    # Measured at rest: turning, a sync's arrows have a wider box (each sync turns them at least once round).
+    assert until(a, "syncState === 'ok' && !document.getElementById('sync-ind').classList.contains('busy')")
     ink = a.evaluate("""() => ['search-btn', 'sync-ind'].map(id => {
       const g = document.querySelector(`#${id} svg`), k = g.getBoundingClientRect().width / g.viewBox.baseVal.width, b = g.getBBox();
       return [Math.round(b.width * k * 10) / 10, Math.round(b.height * k * 10) / 10, Math.round(parseFloat(getComputedStyle(g).strokeWidth) * k * 10) / 10];
@@ -2045,6 +2047,75 @@ def test_sync_survives_cleared_storage_and_deletes(browser):
     assert not a.evaluate("syncOn")
     assert a.is_hidden("#sync-ind"), "the sync button goes"
     assert a.evaluate("fetch('/api/auth/me').then(r => r.json()).then(m => m.signedIn)") is False
+    assert a.problems == []
+
+
+def test_the_sheet_says_when_upshot_cant_be_reached_and_tries_again(browser):
+    """When a sync fails, the sheet says so, with a Try again that syncs at once
+    rather than after the reconnect's wait; once it works the button goes and focus moves to a control still there."""
+    a = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900})
+    turn_on(a)
+    a.keyboard.press("Escape")
+    assert until(a, "!pending.size && syncState === 'ok'")
+    a.route("**/api/sync", lambda route: route.abort("internetdisconnected"))
+    a.evaluate("syncNow()")
+    assert until(a, "document.getElementById('sync-ind').classList.contains('error')")
+    open_sync(a)
+    a.wait_for_selector("[data-view=in]:not([hidden])")
+    assert a.inner_text("#sync-last").startswith("Couldn\u2019t reach Upshot. Last synced")
+    assert a.is_visible("#sync-retry")
+    a.click("#sync-retry")
+    assert until(a, "syncState === 'error'"), "still unreachable: still says so"
+    assert a.is_visible("#sync-retry")
+    a.unroute("**/api/sync")
+    a.click("#sync-retry")
+    assert until(a, "syncState === 'ok' && document.getElementById('sync-retry').hidden")
+    assert a.inner_text("#sync-last") == "Synced just now. To add a device, generate a sync code."
+    assert a.evaluate("document.activeElement.id") == "sync-add-device"
+    assert a.evaluate("!document.getElementById('sync-ind').classList.contains('error')")
+    # The blocked requests are logged as failed loads, as they would be offline; nothing else may be.
+    assert [p for p in a.problems if "Failed to load resource" not in p] == []
+
+
+def test_the_header_sync_button_syncs_now_and_shows_it(browser):
+    """Set up from the menu; then the header's button syncs on a tap, turning at least once round even when the sync is
+    quick, and a tap while unreachable retries at once."""
+    a = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900})
+    turn_on(a)
+    a.keyboard.press("Escape")
+    assert until(a, "!pending.size && syncState === 'ok' && !document.getElementById('sync-ind').classList.contains('busy')")
+    with a.expect_request(lambda r: r.url.endswith("/api/sync") and r.method == "POST"):
+        a.click("#sync-ind")
+    assert not a.evaluate("document.getElementById('sync').open"), "a tap syncs; it doesn't open the sheet"
+    assert until(a, "syncState === 'ok'"), "the sync itself is quick"
+    assert a.evaluate("document.getElementById('sync-ind').classList.contains('busy')"), "still turning: a whole turn at least"
+    assert until(a, "!document.getElementById('sync-ind').classList.contains('busy')", timeout=2000), "then it stops"
+    assert a.get_attribute("#sync-ind", "aria-label").startswith("Synced just now. Sync now")
+    # Unreachable: the tap retries now, not after the reconnect's wait.
+    a.route("**/api/sync", lambda route: route.abort("internetdisconnected"))
+    a.evaluate("syncNow()")
+    assert until(a, "syncState === 'error'")
+    a.unroute("**/api/sync")
+    a.click("#sync-ind")
+    assert until(a, "syncState === 'ok'")
+    assert [p for p in a.problems if "Failed to load resource" not in p] == []
+
+
+def test_turning_sync_off_works_before_the_device_list_loads(browser):
+    """Leaving names this device by its cookie, so a tap before the list arrives isn't lost."""
+    a = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900})
+    name = lambda: a.evaluate("[document.querySelector('#sync-btn .menu-label').textContent, document.getElementById('sync-title').textContent]")
+    assert name() == ["Sync your reading"] * 2, "an invitation while off"
+    turn_on(a)
+    assert name() == ["Sync settings"] * 2, "settings once on: the header's button does the syncing"
+    a.keyboard.press("Escape")
+    a.route("**/api/auth/me", lambda route: None)  # never answers
+    open_sync(a)
+    a.click("#sync-leave")
+    a.wait_for_selector("[data-view=out]:not([hidden])", timeout=5000)
+    assert not a.evaluate("syncOn")
+    assert name() == ["Sync your reading"] * 2, "an invitation again"
+    a.unroute_all(behavior="ignoreErrors")
     assert a.problems == []
 
 
@@ -2336,7 +2407,8 @@ def test_sync_sheet_keeps_focus_on_a_visible_control(browser):
     a.wait_for_selector("#sync-show:text-matches('-')")
     assert focused(), "after generating a code"
     a.click("#sync-show-back")
-    a.click("#sync-ind")
+    a.keyboard.press("Escape")
+    open_sync(a)
     assert until(a, "document.activeElement.id === 'sync-add-device'"), "on opening while syncing"
     a.click("#sync-add-device")
     assert focused(), "after generating another code"

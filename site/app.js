@@ -329,7 +329,7 @@ function fromMarks() {
 // The first sync takes the sync's cutoff and rebuilds the read list from its marks (syncNow); until then the old list shows.
 function signedIn(joined = false) {
   syncGen++;
-  syncOn = true; localStorage.setItem('syncOn', 1);
+  syncOn = true; localStorage.setItem('syncOn', 1); nameSheet();
   marks = {}; cursor = 0; localStorage.setItem('syncCursor', 0);
   if (joined) { pending = new Set(); saveMarks(); } else seedMarks();
   takeSince = joined; joined ? localStorage.setItem('syncTakeSince', 1) : localStorage.removeItem('syncTakeSince');  // stored: another tab, or a reload, mustn't send the old cutoff either
@@ -352,18 +352,50 @@ const SYNC_ARROWS = '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8
 const syncIcon = () => `<svg viewBox="0 0 24 24" aria-hidden="true">${SYNC_ARROWS}${syncState === 'error' ? '<path d="m2 2 20 20"/>' : ''}</svg>`;
 const syncLabel = () => syncState === 'busy' ? 'Syncing\u2026' : syncState === 'error' ? 'Not synced: Upshot couldn\u2019t be reached'
   : `Synced ${syncedAt ? agoText((Date.now() - syncedAt) / 60e3) : ''}`.trim();
-// The header's sync button, as Obsidian shows sync in its status bar: there only while this device syncs, and a way into the sheet.
+// The header's sync button: there only while this device syncs (set up from the menu, nameSheet), and a tap syncs
+// now (syncByHand). Every sync, asked for or not, turns its arrows at least once round and stops on a whole turn, so even
+// one that takes a moment shows; a failure shows at once.
+const SPIN = 1000;  // one turn, as index.html's .sync-ind.busy animation
+let spinFrom = 0, spinUntil = 0, spinTimer;
 function showSync() {
-  const b = $('sync-ind'), label = `${syncLabel()}. Sync your reading`;
+  const b = $('sync-ind'), now = Date.now();
+  let shown = syncState;
+  clearTimeout(spinTimer);
+  if (syncState === 'busy') { if (!b.classList.contains('busy')) spinFrom = now; spinUntil = 0; }
+  else if (syncState === 'ok' && b.classList.contains('busy')) {
+    spinUntil ||= spinFrom + Math.max(1, Math.ceil((now - spinFrom) / SPIN)) * SPIN;
+    if (spinUntil > now) { shown = 'busy'; spinTimer = setTimeout(showSync, spinUntil - now); }
+  }
   b.hidden = !syncOn;
-  b.className = `icon-btn sync-ind ${syncState}`;
-  b.innerHTML = syncIcon();
-  b.setAttribute('aria-label', label); b.title = syncLabel();
+  b.className = `icon-btn sync-ind ${shown}`;
+  const err = String(syncState === 'error');
+  if (b.dataset.err !== err) { b.dataset.err = err; b.innerHTML = syncIcon(); }  // only when it changes: a new icon would restart the turn
+  b.title = `${syncLabel()}. Sync now`; b.setAttribute('aria-label', b.title);
+  nameSheet();
 }
+// The menu item and its sheet: an invitation while this device doesn't sync, and once it does (the header's button doing
+// the syncing), where its devices and codes are kept, as a browser's "Sign in" becomes its account.
+function nameSheet() {
+  const name = syncOn ? 'Sync settings' : 'Sync your reading';
+  $('sync-btn').querySelector('.menu-label').textContent = $('sync-title').textContent = name;
+}
+nameSheet();
+// Sync now, from the header's button or the sheet's Try again. Unreachable, this retries at once rather than waiting out
+// the reconnect's backoff (connectLive); one already under way is left to finish.
+const syncByHand = () => syncState === 'busy' || (live ? syncNow() : connectLive());
 function setSync(state) {
   syncState = state;
   if (state === 'ok') syncedAt = Date.now();
   showSync();
+  if ($('sync').open && syncViewName === 'in') syncLead();
+}
+// The sheet's first line: when this device last synced, or that Upshot can't be reached, with Try again (syncByHand).
+function syncLead() {
+  const err = syncState === 'error', ago = syncedAt ? agoText((Date.now() - syncedAt) / 60e3) : '';
+  $('sync-last').textContent = err ? `Couldn\u2019t reach Upshot${ago ? `. Last synced ${ago}` : ''}.`
+    : `${ago ? `Synced ${ago}. ` : ''}To add a device, generate a sync code.`;
+  if (!err && document.activeElement === $('sync-retry')) $('sync-add-device').focus();  // it worked: the button goes
+  $('sync-retry').hidden = !err;
 }
 // Whatever the reason (turned off here or elsewhere, removed, the last other device gone), one thing to say.
 const STOPPED = 'Sync is off on this device. It keeps what it has read.';
@@ -459,7 +491,7 @@ document.addEventListener('visibilitychange', () => {
 });
 addEventListener('online', () => (document.hidden ? syncNow() : connectLive()));
 
-// The sheet: Menu \u203a Sync your reading, one view at a time.
+// The sheet: Menu \u203a Sync your reading (Sync settings once syncing, nameSheet), one view at a time.
 // News (ok) goes under the title, failures under the buttons; each view starts with neither.
 const sayErr = (msg, ok = false) => {
   for (const [id, show] of [['sync-msg', ok], ['sync-err', !ok]]) { $(id).textContent = show ? msg : ''; $(id).hidden = !(show && msg); }
@@ -474,7 +506,7 @@ function syncView(name, { justOn = false } = {}) {
   for (const v of document.querySelectorAll('#sync .sync-view')) v.hidden = v.dataset.view !== name;
   if (name === 'out' && syncNotice) { sayErr(syncNotice, true); syncNotice = ''; }  // why this device stopped syncing
   if (name === 'in') {
-    $('sync-last').textContent = `${syncedAt ? `Synced ${agoText((Date.now() - syncedAt) / 60e3)}. ` : ''}To add a device, generate a sync code.`;
+    syncLead();
     listDevices();  // kept current while open by the live connection's 'devices' messages
   }
   if (name === 'show') { $('sync-show-on').hidden = $('sync-show-other').hidden = !justOn; showBack(!justOn); showLinkCode(); }
@@ -502,7 +534,6 @@ async function listDevices(recheck = false) {
   if (me && !me.signedIn) { signedOut(STOPPED); return renderSync(); }
   if (recheck && (!me || JSON.stringify(me.devices.map(d => d.id)) === shownDevices)) return;  // unchanged: nothing moves under the pointer
   shownDevices = JSON.stringify((me?.devices || []).map(d => d.id));
-  thisDevice = me?.devices?.find(d => d.current) ?? null;
   $('sync-devices').replaceChildren(...(me?.devices || []).map(d => {
     const li = document.createElement('li'), name = document.createElement('span'), when = document.createElement('span'), b = document.createElement('button');
     name.className = 'sync-dev'; name.textContent = d.label;
@@ -516,21 +547,22 @@ async function listDevices(recheck = false) {
     return li;
   }));
 }
-let thisDevice = null;
 // A phone, tablet or computer outline beside each device, from its label ("Safari on iPhone"), as Google lists your devices.
 const deviceIcon = label => /iPhone|Android/.test(label) ? '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg>'
   : /iPad/.test(label) ? '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M11 18h2"/></svg>'
   : '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M2 20h20"/></svg>';
+// `d.current`: this device, which leaves by its cookie (/api/auth/logout), so the button works before the list has loaded.
 async function signOutDevice(d, b) {
   b.disabled = true;
-  const { status, data: res } = await call('/api/auth/devices/revoke', { id: d.id });
+  const { status, data: res } = await (d.current ? call('/api/auth/logout') : call('/api/auth/devices/revoke', { id: d.id }));
   b.disabled = false;
   if (!res) return failed(status, d.current ? 'stop syncing' : 'remove that device');
   if (!d.current && res.left) { await listDevices(); return $('sync-add-device').focus(); }  // its row, and the button in it, are gone
   signedOut(); syncView('out');  // this device left, or removing the other left it alone: off either way
   sayErr(STOPPED, true);
 }
-$('sync-leave').onclick = () => thisDevice && signOutDevice(thisDevice, $('sync-leave'));
+$('sync-retry').onclick = syncByHand;
+$('sync-leave').onclick = () => signOutDevice({ current: true }, $('sync-leave'));
 // Turning sync on: this device becomes the first, and the sheet goes straight to a code for the next one.
 async function turnOn() {
   const b = $('sync-create');
@@ -592,7 +624,7 @@ async function joinWithCode() {
 // the background) catches up first, so it never offers to start a sync this browser already has.
 const openSheet = () => { $('sync').showModal(); renderSync(); if (!syncOn && maySync()) syncNow().then(() => { if (syncOn && syncViewName === 'out') renderSync(); }); };
 $('sync-btn').onclick = () => { $('menu').hidePopover(); openSheet(); };
-$('sync-ind').onclick = openSheet;
+$('sync-ind').onclick = syncByHand;
 setInterval(() => { if (syncOn && !document.hidden) showSync(); }, 60e3);  // "Synced 3m ago" stays true
 $('sync').addEventListener('click', e => {
   if (e.target === $('sync')) return $('sync').close();  // the backdrop
