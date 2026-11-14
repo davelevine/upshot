@@ -3531,32 +3531,32 @@
   }
  ],
  "weekly": {
-  "window_start": "2026-11-07",
-  "window_end": "2026-11-13",
+  "window_start": "2026-11-08",
+  "window_end": "2026-11-14",
   "items": [
    {
-    "url": "https://www.wordfence.com/blog/2026/11/cve-2026-119618-apache-http2/",
-    "why": "Patch Apache httpd now; the HTTP/2 flaw enables remote code execution."
+    "url": "https://www.bleepingcomputer.com/news/security/check-point-patches-zero-day-that-lets-hackers-get-root-access/",
+    "why": "Apply the emergency hotfix now; attackers have had root access since late October."
    },
    {
-    "url": "https://www.bleepingcomputer.com/news/security/new-n-able-4everable2shell-zero-day-exploited-hours-after-poc-released/",
-    "why": "Patch N-central now; attackers are deploying miners within hours of PoC release."
+    "url": "https://thehackernews.com/2026/11/hackers-exploit-n-central-flaws-to.html",
+    "why": "Assume compromise and hunt for miners; 19 of 21 infected servers ran Hotfix 2."
    },
    {
     "url": "https://www.aikido.dev/blog/compromised-github-accounts-push-ci-secret-stealer-to-tens-of-thousands-of-repositories",
-    "why": "Audit CI logs and rotate pipeline secrets, since repositories are already infected."
+    "why": "Rotate CI secrets in any repo touched by compromised accounts; check the affected list."
    },
    {
     "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-november-2026-patch-tuesday-fixes-1-235-flaws-outlook-zero-day/",
-    "why": "Prioritize the Outlook zero-day; a 1,235-flaw batch needs triage this week."
+    "why": "Patch the exploited Outlook zero-day first, then expect update-related printing and activation issues."
    },
    {
-    "url": "https://www.infoq.com/news/2026/11/github-agentic-workflows-ga/",
-    "why": "Review workflow permissions; isolation only holds if your workflow configuration enforces it."
+    "url": "https://www.wordfence.com/blog/2026/11/cve-2026-119618-apache-http2/",
+    "why": "Upgrade to the fixed Apache release; check if HTTP/2 is enabled on your servers."
    }
   ]
  },
- "generated_at": "2026-11-14T04:18:18+00:00",
+ "generated_at": "2026-11-14T05:18:23+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
