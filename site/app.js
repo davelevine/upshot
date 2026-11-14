@@ -337,17 +337,18 @@ function signedOut(notice = '') {
   for (const k of ['syncOn', 'marks', 'syncPending', 'syncCursor', 'syncTakeSince']) localStorage.removeItem(k);
   syncNotice = notice;
   disconnectLive();
-  showSync();  // the cloud goes
+  showSync();  // the sync button goes
 }
 const post = (path, body) => fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-// What the header's cloud shows: 'busy', 'ok' (with when), or 'error'.
+// What the header's sync button shows: 'busy', 'ok' (with when), or 'error'.
 let syncState = 'ok', syncedAt = 0;
-// A cloud, as Google Docs shows saving: a tick when synced, pulsing while it works, struck through when it can't reach Upshot.
-const CLOUD = 'M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z';
-const syncIcon = () => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${CLOUD}"/>${syncState === 'ok' ? '<path d="m9.5 14.5 2 2 3.5-3.5"/>' : syncState === 'error' ? '<path d="m2 2 20 20"/>' : ''}</svg>`;
+// Two circling arrows (Lucide's refresh-cw, as index.html's menu item draws it): still when synced, turning while it works,
+// struck through when it can't reach Upshot. Round, so it sits evenly beside the reader's unread circle.
+const SYNC_ARROWS = '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>';
+const syncIcon = () => `<svg viewBox="0 0 24 24" aria-hidden="true">${SYNC_ARROWS}${syncState === 'error' ? '<path d="m2 2 20 20"/>' : ''}</svg>`;
 const syncLabel = () => syncState === 'busy' ? 'Syncing\u2026' : syncState === 'error' ? 'Not synced: Upshot couldn\u2019t be reached'
   : `Synced ${syncedAt ? agoText((Date.now() - syncedAt) / 60e3) : ''}`.trim();
-// The header's cloud, as Obsidian shows sync in its status bar: there only while this device syncs, and a way into the sheet.
+// The header's sync button, as Obsidian shows sync in its status bar: there only while this device syncs, and a way into the sheet.
 function showSync() {
   const b = $('sync-ind'), label = `${syncLabel()}. Sync your reading`;
   b.hidden = !syncOn;

@@ -2017,7 +2017,7 @@ def test_sync_survives_cleared_storage_and_deletes(browser):
     enter_list(a)
     assert until(a, "syncOn"), "still syncing"
     assert until(a, "u => readSet.has(u)", url), "the read list comes back"
-    # The header's cloud: there while syncing, saying when it last synced.
+    # The header's sync button: there while syncing, saying when it last synced.
     assert until(a, "/^Synced/.test(document.getElementById('sync-ind').title) && !document.getElementById('sync-ind').hidden")
 
     open_sync(a)
@@ -2028,7 +2028,7 @@ def test_sync_survives_cleared_storage_and_deletes(browser):
     assert "Sync is off" in a.inner_text("#sync-msg") and a.is_visible("#sync"), "says so, sheet open"
     assert a.is_hidden("#sync-err"), "news, not an error"
     assert not a.evaluate("syncOn")
-    assert a.is_hidden("#sync-ind"), "the cloud goes"
+    assert a.is_hidden("#sync-ind"), "the sync button goes"
     assert a.evaluate("fetch('/api/auth/me').then(r => r.json()).then(m => m.signedIn)") is False
     assert a.problems == []
 
@@ -2539,7 +2539,7 @@ def _group(browser, n):
 
 
 def _off(d, timeout=4000):
-    """Stopped syncing by itself: no cloud, and the reason it'll show (in the sheet now, or the next time it opens)."""
+    """Stopped syncing by itself: no sync button, and the reason it'll show (in the sheet now, or the next time it opens)."""
     assert until(d, "!syncOn && document.getElementById('sync-ind').hidden", timeout=timeout), "stops by itself"
     return d.evaluate("syncNotice || document.getElementById('sync-msg').textContent")
 
