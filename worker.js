@@ -10,7 +10,7 @@ export async function keyFor(url) {
 async function read(request, env) {
   const url = new URL(request.url).searchParams.get('url');
   const stored = url && env.ARTICLES && await env.ARTICLES.get(await keyFor(url));  // passed through unparsed, to stay cheap
-  return new Response(stored || JSON.stringify({ url, frameable: false, reason: 'pending' }), {
+  return new Response(stored || JSON.stringify({ url, reason: 'pending' }), {
     headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
   });
 }
