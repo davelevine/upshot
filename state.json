@@ -1,8 +1,6 @@
 {
  "claims_backfilled": true,
- "failing_since": {
-  "https://blog.google/rss/": "2026-11-14"
- },
+ "failing_since": {},
  "seen": {
   "http://muratbuffalo.blogspot.com/2026/11/writing-as-thinking-tool.html": "2026-11-08",
   "https://8rank.ai/game/apple-intelligence-personal-knowledge-graph": "2026-11-07",
