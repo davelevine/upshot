@@ -1965,12 +1965,14 @@ def test_sync_by_code_between_devices(browser):
     a.keyboard.press("Escape")
 
     read_one(a, 3)
-    a.wait_for_timeout(3500)  # marks go a few seconds after the last one
+    a.evaluate("syncNow()")  # rather than wait out the few seconds marks are held for, to go together
+    assert until(a, "!pending.size")
     b.evaluate("syncNow()")  # what a return to the tab does
     assert until(b, "u => isRead(u)", url), "the story read on the first device"
 
     b.evaluate("u => markUnread(u)", url)
-    b.wait_for_timeout(3500)
+    b.evaluate("syncNow()")
+    assert until(b, "!pending.size")
     a.evaluate("syncNow()")
     assert until(a, "u => !isRead(u)", url), "unread carries back"
 
@@ -2140,13 +2142,17 @@ def test_an_expired_sync_code_says_so_and_stops_checking(browser):
         data["expires"] = int(a.evaluate("Date.now()")) + 1500
         route.fulfill(json=data)
     a.context.route("**/api/auth/link/start", soon)
+    # Fake timers from before the code screen sets any (its expiry, and any check a regression adds), so time is moved on by
+    # hand: past the expiry, then a minute, at once.
+    a.clock.install()
     turn_on(a)
     polls = []
     a.on("request", lambda r: polls.append(r.url) if r.url.endswith("/api/auth/me") else None)
+    a.clock.run_for(2000)
     assert until(a, "/expired/.test(document.getElementById('sync-note').textContent)"), "says it expired"
     assert a.inner_text("#sync-show-back") == "Back" and not a.is_visible("#sync-show")
     count = len(polls)
-    a.wait_for_timeout(3500)  # longer than one polling interval
+    a.clock.run_for(60_000)
     assert len(polls) == count, "stopped checking"
     assert a.problems == []
 
@@ -2417,16 +2423,20 @@ def _pair(browser):
 
 def test_an_open_sheet_makes_no_requests_while_it_waits(browser):
     a, b = _pair(browser)
-    open_sync(a)
-    a.wait_for_selector("#sync-devices li >> nth=1")
     calls = []
     a.on("request", lambda r: calls.append(r.url) if "/api/" in r.url else None)
-    a.wait_for_timeout(7000)  # longer than any old polling interval
+    # Fake timers, installed before the sheet sets any: each run_for passes a minute at once, far longer than any old
+    # polling interval, so a poll added to either view would fire a dozen times.
+    a.clock.install()
+    open_sync(a)
+    a.wait_for_selector("#sync-devices li >> nth=1")
+    calls.clear()
+    a.clock.run_for(60_000)
     assert calls == [], "the device list"
     a.click("#sync-add-device")
     a.wait_for_selector("#sync-show:text-matches('-')")
     calls.clear()
-    a.wait_for_timeout(7000)
+    a.clock.run_for(60_000)
     assert calls == [], "a code waiting to be used"
     assert a.problems == [] and b.problems == []
 
