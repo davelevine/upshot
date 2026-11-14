@@ -41,7 +41,7 @@
     },
     {
       "description": "Tools used only by the PR smoke test move together",
-      "matchDepNames": ["playwright", "axe-playwright-python", "wrangler"],
+      "matchDepNames": ["playwright", "axe-playwright-python", "pytest-xdist", "wrangler"],
       "groupName": "smoke test tooling"
     }
   ],
@@ -61,6 +61,14 @@
       "matchStrings": ["axe-playwright-python==(?<currentValue>[0-9][0-9.]*)"],
       "datasourceTemplate": "pypi",
       "depNameTemplate": "axe-playwright-python"
+    },
+    {
+      "customType": "regex",
+      "description": "pytest-xdist pinned in the smoke job's pip install (runs the smoke tests in parallel)",
+      "managerFilePatterns": ["/^\\.github/workflows/build\\.yml$/"],
+      "matchStrings": ["pytest-xdist==(?<currentValue>[0-9][0-9.]*)"],
+      "datasourceTemplate": "pypi",
+      "depNameTemplate": "pytest-xdist"
     },
     {
       "customType": "regex",
