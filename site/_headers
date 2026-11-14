@@ -2,5 +2,5 @@
 # index.html and the reader frame's swipe/keyboard relay in app.js); tests/csp.test.js keeps the hashes current.
 # img-src and frame-src are open to https because the reader shows article images and framed original pages.
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-1F73aBZfGa1Gw1GO7hoPKvWM5F0hwKM3u3vvaqNxWXM=' 'sha256-EViuThbIakYHvcQA7l53w1qYkPJAcrzW5II4FSazx/E='; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src https:; frame-src https:; connect-src 'self'; font-src 'self' data:; manifest-src 'self'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-LYsvS5zcmV4CEGkgqwTZlWxHzzkNmvxir+/q1/F+bbQ=' 'sha256-EViuThbIakYHvcQA7l53w1qYkPJAcrzW5II4FSazx/E='; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src https:; frame-src https:; connect-src 'self'; font-src 'self' data:; manifest-src 'self'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()

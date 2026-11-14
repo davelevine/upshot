@@ -1,6 +1,7 @@
-// The Worker behind upshot.levine.io. Files come straight from site/; this runs only for the reader's /api/read and for
-// pages (run_worker_first in wrangler.jsonc). Extraction happens in the build (extract.mjs), because parsing a page
-// costs far more CPU than a request is allowed. Only stored articles can come back.
+// The Worker behind upshot.levine.io. Files come straight from site/; this runs only for the reader's /api/read, for
+// read-state sync's /api/sync and /api/auth/* (passed to sync/), and for pages (run_worker_first in wrangler.jsonc).
+// Extraction happens in the build (extract.mjs), because parsing a page costs far more CPU than a request is allowed.
+// Only stored articles can come back.
 export async function keyFor(url) {
   const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(url));
   return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, '0')).join('');
@@ -12,6 +13,15 @@ async function read(request, env) {
   return new Response(stored || JSON.stringify({ url, frameable: false, reason: 'pending' }), {
     headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
   });
+}
+
+// Read-state sync lives in its own Worker, upshot-sync (sync/), reached over a service binding. Every page load asks
+// /api/sync whether it's signed in; without a session cookie the answer is no, given here so that visitors who never
+// sign in never start that Worker.
+function toSync(request, env) {
+  const signedOut = !/(?:^|;\s*)upshot_session=/.test(request.headers.get('Cookie') || '');
+  if (new URL(request.url).pathname === '/api/sync' && request.method === 'POST' && signedOut) return Response.json({ signedIn: false }, { headers: { 'Cache-Control': 'no-store' } });
+  return env.SYNC ? env.SYNC.fetch(request) : Response.json({ error: 'sync is off' }, { status: 503 });  // a fork without it
 }
 
 // The site's fonts (Söhne, Mercury Text and Mercury Display) are licensed, so they can't be in this public repo with the
@@ -71,6 +81,7 @@ export default {
   async fetch(request, env) {
     const path = new URL(request.url).pathname;
     if (path === '/api/read') return read(request, env);
+    if (path === '/api/sync' || path.startsWith('/api/auth/')) return toSync(request, env);
     if (path.startsWith(FONT_PREFIX)) return font(request, path, env);
     return withNonce(await env.ASSETS.fetch(request));
   },

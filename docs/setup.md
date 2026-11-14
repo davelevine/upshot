@@ -24,7 +24,9 @@ Everything runs on the free tiers of GitHub Actions and Cloudflare Workers. The 
 
 4. **Connect Cloudflare Workers.** In [`wrangler.jsonc`](../wrangler.jsonc), change `routes` to your own domain, or delete it and set `workers_dev` to `true` to use the `workers.dev` address.
 
-   In Cloudflare, go to **Workers & Pages → Create → Import a repository**, pick your fork, and name the Worker `upshot`; it must match `name` in `wrangler.jsonc`. Leave the build command empty and the deploy and preview commands at their defaults.
+   The site's Worker binds to a second one, `upshot-sync` ([`sync/`](../sync/), read-state sync), so set that up first. In Cloudflare, go to **Workers & Pages → Create → Import a repository**, pick your fork, and name the Worker `upshot-sync`. Set the deploy command to `npx wrangler deploy -c sync/wrangler.jsonc`, clear the preview command, and under **Settings → Build** turn off builds for non-production branches and set the build watch paths to `sync/*`, `package.json` and `package-lock.json`, so only changes to it deploy it.
+
+   Then import the repository again and name this Worker `upshot`; it must match `name` in `wrangler.jsonc`. Leave the build command empty and the deploy and preview commands at their defaults.
 
 5. **Tell the build where the site lives.** Under **Settings → Secrets and variables → Actions → Variables**, add `SITE_URL` with your site's address, for example `https://news.example.com`. The build uses it for the RSS feed's links and to look up reading times through the site's reader.
 
@@ -87,6 +89,13 @@ Without the secret the cron does nothing, silently: Workers Logs still show each
 ## Retracting a wrong flag
 
 The build flags a story **Exploited** or **Compromised** from CISA's catalog or from what the article says, checked against a quote. If one is wrong (a trend piece read as an attack, say), add its URL to [`not-exploited.txt`](../not-exploited.txt), one a line. The next build drops the flag from the site and never sets it again. Each build's run summary counts the flags, so a run of wrong ones shows up there.
+
+## Read-state sync
+
+Readers can turn on sync to keep what they've read in step across devices, joining each device with a short code ([architecture](architecture.md#syncing-what-youve-read)). It runs on the Free plan: SQLite-backed Durable Objects and a rate limit, both in [`sync/wrangler.jsonc`](../sync/wrangler.jsonc), need no setup beyond deploying `upshot-sync` (step 4).
+
+- **Previews.** PR previews of the site reach the same `upshot-sync`. Session cookies belong to the host that set them, so a preview's syncs are separate from the live site's, and can't see its data. Changes to `sync/` itself deploy only from `main`; try them locally first ([developing](developing.md#running-locally)).
+- **Changing the storage.** The Durable Objects' tables are created in their constructors (`CREATE TABLE IF NOT EXISTS`). A new column needs an `ALTER TABLE` there as well; a new Durable Object class needs a new entry in `migrations`.
 
 ## Optional: the fonts
 
