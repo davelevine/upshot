@@ -51,5 +51,5 @@ Setup takes about fifteen minutes. Once it's done, the build runs itself every h
 ## What's next
 
 - [Feeds](feeds.md): adding a feed, backfilling, and retracting a wrong flag.
-- [Configuration](configuration.md): the knobs in `build.py`, and making sure the hourly schedule actually runs on time.
+- [Configuration](configuration.md): the settings in `build.py`, and making sure the hourly schedule actually runs on time.
 - [Optional extras](optional.md): the licensed fonts, Renovate, and a few notes on read-state sync.

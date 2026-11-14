@@ -212,3 +212,13 @@
 - Weigh what users expect a familiar icon to do above whether the action is technically redundant. A redundant action that confirms "it's synced" still has value; a button that does something other than its icon suggests doesn't.
 - When two entry points open the same place, treat that as a sign one of them should have a different job.
 - When a control's job changes, check the labels around it still describe theirs.
+
+## 2026-11-14 — Writing in Dave's voice means no stock AI phrasing
+
+**Mistake:** The docs rewrite was meant to read in Dave's voice, but it leaned on stock phrases: "knobs" for settings, "crying wolf", "guardrail", "escape hatch", "That's really it", "That's the whole point, really", "the short version". The README was only lightly edited, so it still read in the old impersonal style, not his. The PR title also described the work as a rewrite "in the author's voice".
+
+**Rules:**
+- Name things plainly: settings, not knobs or levers; "how a wrong flag gets retracted", not an escape hatch. No idioms used as filler (crying wolf, heavy lifting, under the hood), and no throwaway closers ("That's really it", "the whole point, really", "In short").
+- Before calling a voice pass done, grep the result for those phrases, and read it next to one of his posts (portfolio-v2 `secrets-at-deploy-time.md`). Voice comes from first person and his reasons, not from colourful wording.
+- A voice pass covers every file in scope, including the README. Don't treat a file as finished just because it was already close.
+- Never describe the work as being "in the author's voice" (or similar) in commits, PRs or docs. Describe what changed.

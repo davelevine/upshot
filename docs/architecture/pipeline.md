@@ -29,7 +29,7 @@ A story is published if it clears its category's bar and isn't a repeat, or if i
 - **7** for AI and Other
 - **6** for Infrastructure and Engineering
 
-There are no per-category quotas, so a big security day shows as one and a slow day stays short. That's the whole point, really.
+There are no per-category quotas, so a big security day shows as one and a slow day stays short.
 
 Nothing published is ever taken down. There's a 20-story daily cap, but it exists only to catch a malfunction, like a broken feed.
 

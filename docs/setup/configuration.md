@@ -1,10 +1,10 @@
 # Configuration
 
-Most of Upshot's behaviour is tuned with a handful of constants at the top of `build.py`. The defaults are what I run, but they're easy to change if you want a busier or quieter site. The other thing worth setting up is the Worker's cron, since GitHub's own scheduler can't be trusted to run the build on time.
+Most of Upshot's behaviour is set by a few constants at the top of `build.py`. The defaults are what I run, but they're easy to change if you want a busier or quieter site. The other thing worth setting up is the Worker's cron, since GitHub's own scheduler can't be trusted to run the build on time.
 
-## The knobs
+## Settings
 
-The knobs live at the top of [`build.py`](../../build.py):
+The settings live at the top of [`build.py`](../../build.py):
 
 | Setting | Default | What it does |
 | ------- | ------- | ------------ |

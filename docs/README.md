@@ -1,6 +1,6 @@
 # Upshot docs
 
-These pages cover how Upshot works, how to run your own copy, and how to work on the code. Start with the [overview](architecture/overview.md) if you want the big picture, or [getting started](setup/getting-started.md) if you just want it running.
+These pages cover how Upshot works, how to run your own copy, and how to work on the code. Start with the [overview](architecture/overview.md) if you want to see how it all fits together, or [getting started](setup/getting-started.md) if you just want it running.
 
 ## How it works
 
@@ -17,7 +17,7 @@ These pages cover how Upshot works, how to run your own copy, and how to work on
 
 - **[Getting started](setup/getting-started.md):** the seven setup steps, about fifteen minutes.
 - **[Feeds](setup/feeds.md):** adding a feed, backfilling, and retracting a wrong flag.
-- **[Configuration](setup/configuration.md):** the knobs in `build.py`, and keeping the schedule on time.
+- **[Configuration](setup/configuration.md):** the settings in `build.py`, and keeping the schedule on time.
 - **[Optional extras](setup/optional.md):** the licensed fonts, Renovate, and notes on running sync.
 
 ## Working on the code
