@@ -2107,13 +2107,16 @@ def test_an_expired_sync_code_says_so_and_stops_checking(browser):
         data["expires"] = int(a.evaluate("Date.now()")) + 1500
         route.fulfill(json=data)
     a.context.route("**/api/auth/link/start", soon)
+    # Fake timers from before the code screen sets any (its expiry, and any check a regression adds), so time is moved on by
+    # hand: past the expiry, then a minute, at once.
+    a.clock.install()
     turn_on(a)
     polls = []
     a.on("request", lambda r: polls.append(r.url) if r.url.endswith("/api/auth/me") else None)
+    a.clock.run_for(2000)
     assert until(a, "/expired/.test(document.getElementById('sync-note').textContent)"), "says it expired"
     assert a.inner_text("#sync-show-back") == "Back" and not a.is_visible("#sync-show")
     count = len(polls)
-    a.clock.install()  # timers set from here on are fake: a minute passes at once
     a.clock.run_for(60_000)
     assert len(polls) == count, "stopped checking"
     assert a.problems == []
