@@ -2038,7 +2038,7 @@ def test_simultaneous_syncs_lose_nothing(browser):
 
 def test_a_device_that_turned_on_its_own_sync_can_join_another(browser):
     """Turning sync on on a second device by mistake starts a separate sync; entering the first device's code then moves
-    it across, bringing what it has read, and its own sync, now empty of devices, is gone."""
+    it across, taking the first device's reading in place of its own, and its own sync, now empty of devices, is gone."""
     size = {"viewport": {"width": 390, "height": 844}}
     a = open_site(browser, url=SYNC_URL, **size)
     code = turn_on(a)
@@ -2062,8 +2062,9 @@ def test_a_device_that_turned_on_its_own_sync_can_join_another(browser):
     assert until(a, "!pending.size")
     b.evaluate("syncNow()")
     assert until(b, "u => isRead(u)", a_url), "now shares the first device's reading"
+    assert b.evaluate("u => !isRead(u)", b_url), "its own reading gave way to the sync's"
     a.evaluate("syncNow()")
-    assert until(a, "u => readSet.has(u)", b_url), "and brought its own along"
+    assert a.evaluate("u => !isRead(u)", b_url), "and didn't come across"
     devices = a.evaluate("fetch('/api/auth/me').then(r => r.json()).then(m => m.devices.length)")
     assert devices == 2
     # Removing this device, its sync's other device still there: the sheet stays open at the start.
@@ -2209,9 +2210,11 @@ def test_a_device_with_a_fast_clock_still_agrees(browser):
     assert a.problems == [] and fast.problems == []
 
 
-def test_joined_devices_share_the_earliest_first_visit_cutoff(browser):
-    """A phone visiting for the first time counts older stories as read; joining a sync that started earlier, it adopts that
-    sync's cutoff, so both show the same unread stories."""
+def test_joining_takes_the_syncs_reading_and_cutoff(browser):
+    """A device joining by code takes the sync's state, as a new device in a feed reader takes the account's. A phone
+    visiting for the first time adopts the earlier cutoff of a laptop's sync; a phone that read a story the laptop still has
+    unread, or that first visited before the laptop did, changes nothing on the laptop. (Its reads once won: an unread story
+    is only the absence of a mark, so a laptop's one unread story went read when the phone joined.)"""
     a = open_site(browser, url=SYNC_URL)  # its cutoff: 1970, everything unread
     code = turn_on(a)
     a.keyboard.press("Escape")
@@ -2221,7 +2224,22 @@ def test_joined_devices_share_the_earliest_first_visit_cutoff(browser):
     join(b, code)
     assert until(b, "since === '1970-01-01T00:00:00.000Z' || since === '1970-01-01T00:00:00Z'"), "takes the earlier cutoff"
     assert b.evaluate("items.filter(isUnread).length") == a.evaluate("items.filter(isUnread).length")
-    assert a.problems == [] and b.problems == []
+
+    laptop = open_site(browser, url=SYNC_URL)
+    laptop.evaluate("localStorage.setItem('since', since = new Date(Date.now() - 864e5).toISOString()); renderItems(true)")
+    code = turn_on(laptop)
+    laptop.keyboard.press("Escape")
+    laptop.evaluate("syncNow()")
+    unread, cutoff = laptop.evaluate("[items.filter(isUnread).map(i => i.url), since]")
+    assert unread, "the laptop has unread stories"
+    phone = open_site(browser, url=SYNC_URL)  # its cutoff: 1970, before the laptop's
+    phone.evaluate("u => markRead(u)", unread[0])  # read here before syncing
+    join(phone, code)
+    assert until(phone, "s => since === s", cutoff), "takes the later cutoff too"
+    assert until(phone, "u => !isRead(u)", unread[0]), "its own read gave way"
+    laptop.evaluate("syncNow()")
+    assert laptop.evaluate("[items.filter(isUnread).map(i => i.url), since]") == [unread, cutoff], "the laptop is unchanged"
+    assert a.problems == [] and b.problems == [] and laptop.problems == [] and phone.problems == []
 
 
 def test_sync_sheet_keeps_focus_on_a_visible_control(browser):
@@ -2389,7 +2407,7 @@ def test_with_three_devices_removing_one_leaves_the_others_syncing(browser):
 
 
 def test_a_scanned_code_joins_at_once_even_on_a_device_already_syncing(browser):
-    """Scanning is the choice: a device in a sync of its own (or another) moves across at once, bringing what it has read."""
+    """Scanning is the choice: a device in a sync of its own (or another) moves across at once."""
     size = {"viewport": {"width": 390, "height": 844}, "is_mobile": True, "has_touch": True}
     laptop = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900})
     code = turn_on(laptop)
