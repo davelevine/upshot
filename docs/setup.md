@@ -92,7 +92,7 @@ The build flags a story **Exploited** or **Compromised** from CISA's catalog or 
 
 ## Read-state sync
 
-Readers can turn on sync to keep what they've read in step across devices, joining each device with a short code ([architecture](architecture.md#syncing-what-youve-read)). It runs on the Free plan: SQLite-backed Durable Objects and a rate limit, both in [`sync/wrangler.jsonc`](../sync/wrangler.jsonc), need no setup beyond deploying `upshot-sync` (step 4), which GitHub Actions does from then on.
+Readers can turn on sync to keep what they've read in step across devices, joining each device with a short code ([architecture](architecture.md#syncing-what-youve-read)). It runs on the Free plan: SQLite-backed Durable Objects and two rate limits, all in [`sync/wrangler.jsonc`](../sync/wrangler.jsonc), need no setup beyond deploying `upshot-sync` (step 4), which GitHub Actions does from then on.
 
 - **Previews.** PR previews of the site reach the same `upshot-sync`. Session cookies belong to the host that set them, so a preview's syncs are separate from the live site's, and can't see its data. Changes to `sync/` itself deploy only from `main`, through Deploy sync; try them locally first ([developing](developing.md#running-locally)).
 - **Changing the storage.** The Durable Objects' tables are created in their constructors (`CREATE TABLE IF NOT EXISTS`). A new column needs an `ALTER TABLE` there as well; a new Durable Object class needs a new entry in `migrations`.

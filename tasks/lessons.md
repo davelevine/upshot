@@ -203,3 +203,12 @@
 - Climb the ponytail ladder before adding UI states: can an existing message, action or rule cover this case? One message for every way sync stops beat four precise ones.
 - When a fix adds a branch, name the simpler behaviour it replaces and ask whether that would do (e.g. "scanning always joins").
 - Count a feature's states, not just its lines. If a sheet has more views than the task has steps, cut views.
+
+## 2026-11-14 — A control should do what it looks like it does
+
+**Mistake:** Asked whether the header's sync icon should trigger a sync, I recommended it keep opening the sheet, reasoning that sync already ran on every change so a "sync now" would have nothing to do. The user expected the convention: set sync up from the menu, then a sync button that syncs. Built that way (a tap syncs, every sync turns the arrows at least once round) it was clearly better, and the menu item was then renamed to fit (Sync your reading → Sync settings once on).
+
+**Rules:**
+- Weigh what users expect a familiar icon to do above whether the action is technically redundant. A redundant action that confirms "it's synced" still has value; a button that does something other than its icon suggests doesn't.
+- When two entry points open the same place, treat that as a sign one of them should have a different job.
+- When a control's job changes, check the labels around it still describe theirs.
