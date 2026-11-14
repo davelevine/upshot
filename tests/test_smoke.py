@@ -1982,18 +1982,23 @@ def test_sync_by_code_between_devices(browser):
 
 def test_the_sync_button_leaves_the_readers_controls_clear(browser):
     """On wide screens the menu button floats at the end of the reader bar, and while syncing the sync button joins it:
-    the bar keeps room for both, so neither covers the story's own buttons."""
+    the bar keeps room for both, so neither covers the story's own buttons, and they're spaced as one row."""
     a = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900})
     turn_on(a)
     a.keyboard.press("Escape")
     a.evaluate("openReader(items[0])")
     a.wait_for_selector("#reader-body iframe:not(.loading)")
-    overlap = a.evaluate("""() => {
-      const left = document.getElementById('sync-ind').getBoundingClientRect().left;
-      return [...document.querySelectorAll('.reader-bar .icon-btn')].filter(b => b.checkVisibility())
-        .map(b => [b.id || b.className, b.getBoundingClientRect().right]).filter(([, r]) => r > left);
-    }""")
-    assert overlap == [], "reader buttons under the sync button"
+    # Gaps between the visible buttons right of the reader bar's spacer (the story's) and the floating ones, in order.
+    gaps = """() => {
+      const from = document.querySelector('.reader-bar .reader-spacer').getBoundingClientRect().right;
+      const r = [...document.querySelectorAll('.reader-bar .icon-btn, .controls > .icon-btn')].filter(b => b.checkVisibility())
+        .map(b => b.getBoundingClientRect()).filter(x => x.left >= from).sort((x, y) => x.left - y.left);
+      return r.slice(1).map((x, i) => x.left - r[i].right);
+    }"""
+    spaced = a.evaluate(gaps)
+    assert len(spaced) >= 3 and set(spaced) == {8}, f"the story's buttons, the sync button and the menu, evenly spaced: {spaced}"
+    a.evaluate("document.getElementById('sync-ind').hidden = true")
+    assert set(a.evaluate(gaps)) == {8}, f"and with sync off: {a.evaluate(gaps)}"
     assert a.problems == []
 
 
