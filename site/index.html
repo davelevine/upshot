@@ -379,6 +379,9 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
     .filters .f-head { margin-top: 12px; }
     .icon-btn { width: 44px; height: 44px; }
     .icon-btn svg { width: 24px; height: 24px; }
+    /* The sync arrows fill 18 of their 24 units, search 16: drawn as large as search beside them, with a stroke still 2px. On
+       wider screens they sit beside the reader's unread circle, which also fills 18, so they keep the common size there. */
+    .sync-ind svg { width: calc(24px * 16 / 18); height: calc(24px * 16 / 18); stroke-width: 2.25; }
     .palette-list li { min-height: 44px; }
     .items { padding-left: 6px; padding-right: 6px; }
     .card { gap: 10px; }

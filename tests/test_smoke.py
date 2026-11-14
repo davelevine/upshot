@@ -2002,6 +2002,19 @@ def test_the_sync_button_leaves_the_readers_controls_clear(browser):
     assert a.problems == []
 
 
+def test_the_sync_arrows_match_the_search_icon_on_phones(browser):
+    """On a phone the sync button sits beside search: the arrows are drawn as large as the magnifier, at the same 2px stroke."""
+    a = open_site(browser, url=SYNC_URL, viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
+    turn_on(a)
+    a.keyboard.press("Escape")
+    ink = a.evaluate("""() => ['search-btn', 'sync-ind'].map(id => {
+      const g = document.querySelector(`#${id} svg`), k = g.getBoundingClientRect().width / g.viewBox.baseVal.width, b = g.getBBox();
+      return [Math.round(b.width * k * 10) / 10, Math.round(b.height * k * 10) / 10, Math.round(parseFloat(getComputedStyle(g).strokeWidth) * k * 10) / 10];
+    })""")
+    assert ink[0] == ink[1] == [16, 16, 2], f"search, then sync: width, height, stroke in px: {ink}"
+    assert a.problems == []
+
+
 def test_sync_survives_cleared_storage_and_deletes(browser):
     """Safari clears a site's storage after a week away; the session cookie survives, so the read list comes back. Delete
     removes everything and signs out."""
