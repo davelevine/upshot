@@ -28,7 +28,25 @@ export class Reader extends DurableObject {
     this.sql.exec(`
       CREATE TABLE IF NOT EXISTS sessions (hash TEXT PRIMARY KEY, label TEXT NOT NULL, seen INTEGER NOT NULL);
       CREATE TABLE IF NOT EXISTS marks (url TEXT PRIMARY KEY, read INTEGER NOT NULL, at INTEGER NOT NULL, opened INTEGER NOT NULL, seq INTEGER NOT NULL, touched INTEGER NOT NULL);
-      CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v);`);
+      CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v);
+      CREATE INDEX IF NOT EXISTS marks_seq ON marks (seq);
+      CREATE INDEX IF NOT EXISTS marks_touched ON marks (touched);
+      CREATE INDEX IF NOT EXISTS marks_at ON marks (at);`);
+  }
+  // Each sync reads only the rows it needs: the indexes spare it a scan of every mark (billed per row read), and the mark
+  // count is kept here rather than counted. Set once for a reader stored before it was kept.
+  #marks() {
+    return this.#get('n') ?? this.sql.exec('SELECT COUNT(*) AS n FROM marks').one().n;
+  }
+  #dropMarks(where, ...args) { return this.sql.exec(`DELETE FROM marks WHERE ${where} RETURNING url`, ...args).toArray().length; }
+  // The alarm: when the reader's last device has gone unused as long as a cookie lasts (then the reader goes), or its
+  // oldest mark has gone untouched as long as marks are kept (then those go), whichever comes first. So a reader nobody
+  // syncs any more doesn't hold its marks for 400 days.
+  #arm() {
+    const seen = this.sql.exec('SELECT MAX(seen) AS t FROM sessions').one().t;
+    if (seen == null) return;
+    const oldest = this.sql.exec('SELECT MIN(touched) AS t FROM marks').one().t;
+    this.ctx.storage.setAlarm(Math.min(seen + IDLE, oldest == null ? Infinity : oldest + KEEP));
   }
   #get(k) { return this.sql.exec('SELECT v FROM meta WHERE k = ?', k).toArray()[0]?.v ?? null; }
   #set(k, v) { this.sql.exec('INSERT INTO meta VALUES (?, ?) ON CONFLICT (k) DO UPDATE SET v = excluded.v', k, v); }
@@ -52,7 +70,8 @@ export class Reader extends DurableObject {
     this.ctx.acceptWebSocket(here, [hash]);
     return new Response(null, { status: 101, webSocket: page });
   }
-  webSocketMessage() {}  // pages don't send anything; incoming messages would be billed
+  // Pages send nothing, and each message in is billed (at 20 to a request), so a socket that sends one isn't a page: closed.
+  webSocketMessage(ws) { try { ws.close(1008, 'no messages'); } catch {} }
   webSocketClose(ws, code, reason) { try { ws.close(code, reason); } catch {} }
 
   #count() { return this.sql.exec('SELECT COUNT(*) AS n FROM sessions').one().n; }
@@ -62,7 +81,7 @@ export class Reader extends DurableObject {
     if (joining && !this.#count()) return false;
     const now = Date.now();
     this.sql.exec('INSERT INTO sessions VALUES (?, ?, ?)', hash, label, now);
-    this.ctx.storage.setAlarm(now + IDLE);
+    this.#arm();
     this.#tell('devices', hash);
     return true;
   }
@@ -73,7 +92,7 @@ export class Reader extends DurableObject {
     const now = Date.now();
     if (now - row.seen > DAY / 24) {
       this.sql.exec('UPDATE sessions SET seen = ? WHERE hash = ?', now, hash);
-      this.ctx.storage.setAlarm(now + IDLE);
+      this.#arm();
     }
     return true;
   }
@@ -111,18 +130,22 @@ export class Reader extends DurableObject {
     let seq = this.#get('seq') ?? 0;
     if (cursor > seq) cursor = 0;  // a cursor from before the reader's data was deleted: start over
     const refused = [];
+    let n = this.#marks();
     for (const [url, [read, at, opened]] of Object.entries(changes)) {
       const t = Math.min(at, now);  // a clock running ahead can't win every future change
       const had = this.sql.exec('SELECT at FROM marks WHERE url = ?', url).toArray()[0];
       if (had && had.at >= t) { refused.push(url); continue; }
+      if (!had) n++;
       this.sql.exec(`INSERT INTO marks VALUES (?, ?, ?, ?, ?, ?)
         ON CONFLICT (url) DO UPDATE SET read = excluded.read, at = excluded.at, opened = excluded.opened, seq = excluded.seq, touched = excluded.touched`,
         url, read, t, opened, ++seq, now);
     }
     if (seq !== (this.#get('seq') ?? 0)) this.#tell('marks', hash);  // the other devices' pages pull
     this.#set('seq', seq);
-    this.sql.exec('DELETE FROM marks WHERE touched < ?', now - KEEP);
-    this.sql.exec('DELETE FROM marks WHERE url NOT IN (SELECT url FROM marks ORDER BY at DESC LIMIT ?)', MAX_MARKS);
+    n -= this.#dropMarks('touched <= ?', now - KEEP);
+    if (n > MAX_MARKS) n -= this.#dropMarks('url IN (SELECT url FROM marks ORDER BY at LIMIT ?)', n - MAX_MARKS);
+    this.#set('n', n);
+    this.#arm();
     const rows = this.sql.exec('SELECT url, read, at, opened FROM marks WHERE seq > ? ORDER BY seq', cursor).toArray();
     for (const url of refused) rows.push(...this.sql.exec('SELECT url, read, at, opened FROM marks WHERE url = ?', url).toArray());
     const kept = this.#get('since');
@@ -137,9 +160,13 @@ export class Reader extends DurableObject {
     await this.ctx.storage.deleteAll();  // the alarm too
     this.#schema();  // this instance can outlive its data; later calls find empty tables, not missing ones
   }
-  // No device has used sync for as long as a cookie lasts (each use moves the alarm): every cookie has expired, so it goes.
+  // No device has used sync for as long as a cookie lasts: every cookie has expired, so the reader goes. Otherwise it's marks
+  // untouched for as long as they're kept (#arm).
   async alarm() {
-    await this.deleteAll();
+    const now = Date.now();
+    if (!(this.sql.exec('SELECT MAX(seen) AS t FROM sessions').one().t > now - IDLE)) return this.deleteAll();
+    this.#set('n', this.#marks() - this.#dropMarks('touched <= ?', now - KEEP));
+    this.#arm();
   }
 }
 

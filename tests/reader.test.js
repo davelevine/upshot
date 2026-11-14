@@ -29,7 +29,7 @@ function reader() {
         exec(q, ...args) {
           if (!args.length && q.split(';').filter(x => x.trim()).length > 1) { db.exec(q); return cursor([]); }
           const st = db.prepare(q);
-          return /^\s*SELECT/i.test(q) ? cursor(st.all(...args).map(r => ({ ...r }))) : (st.run(...args), cursor([]));
+          return /^\s*(SELECT|EXPLAIN)|RETURNING/i.test(q) ? cursor(st.all(...args).map(r => ({ ...r }))) : (st.run(...args), cursor([]));
         },
       },
       setAlarm: t => { ctx.alarm = t; },
@@ -109,4 +109,42 @@ test('the device list says when each device last synced, to the minute', () => {
   now += 5 * MIN;
   r.sync('b', {}, 0, null);  // within the hour checkSession waits between writes
   assert.equal(r.devices('a').find(d => d.hash === 'b').seen, now);
+});
+
+test("a reader nobody syncs any more loses its marks when they'd be pruned, not 400 days on", async () => {
+  const r = reader(), u = 'https://x.test/a';
+  r.addSession('a', 'A'); r.addSession('b', 'B', true);
+  r.sync('a', { [u]: [1, now, 1] }, 0, null);
+  assert.equal(r.ctx.alarm, now + 120 * DAY, 'the oldest mark comes due first');
+  now = r.ctx.alarm;
+  await r.alarm();
+  assert.ok(r.devices('a'), 'the sync carries on');
+  assert.deepEqual(r.sync('a', {}, 0, null).marks, {}, 'its stale mark is gone');
+  assert.equal(r.ctx.alarm, now + 400 * DAY, 'no marks left: the idle deadline');
+});
+
+test('a reader keeps its newest 2,000 marks, counted without a scan', () => {
+  const r = reader();
+  r.addSession('a', 'A'); r.addSession('b', 'B', true);
+  for (let batch = 0; batch < 7; batch++) {  // 2,100 marks, 300 at a time as the page sends them
+    now += 1000;
+    r.sync('a', Object.fromEntries(Array.from({ length: 300 }, (_, i) => [`https://x.test/${batch}/${i}`, [1, now, 0]])), 0, null);
+  }
+  const marks = r.sync('a', {}, 0, null).marks;
+  assert.equal(Object.keys(marks).length, 2000);
+  assert.ok(!('https://x.test/0/0' in marks) && 'https://x.test/6/299' in marks, 'the oldest went');
+});
+
+test('the queries a sync runs on every call use an index, not a scan of every mark', () => {
+  const sql = reader().ctx.storage.sql;
+  for (const q of ['SELECT url FROM marks WHERE seq > 1', 'DELETE FROM marks WHERE touched <= 1', 'SELECT MIN(touched) FROM marks', 'SELECT url FROM marks ORDER BY at LIMIT 1']) {
+    const plan = sql.exec(`EXPLAIN QUERY PLAN ${q}`).toArray().map(r => r.detail).join('; ');
+    assert.match(plan, /USING (COVERING )?INDEX/, `${q}: ${plan}`);
+  }
+});
+
+test('a socket that sends anything is closed: pages send nothing', () => {
+  const r = reader(), s = r.socket('a');
+  r.webSocketMessage(s, 'x');
+  assert.equal(s.closed, 1008);
 });
