@@ -2232,6 +2232,33 @@ def test_another_tab_cannot_wipe_synced_marks(browser):
     assert a.problems == [] and b.problems == []
 
 
+def test_a_tab_that_hasnt_heard_sync_is_on_keeps_the_other_tabs_marks(browser):
+    """A tab frozen in the background hears of another tab's changes only once it wakes. Syncing first, it took itself for a
+    browser whose storage had been cleared and started over, wiping the other tab's marks, unsent ones included. It now
+    rereads what's stored, keeps the mark as made (its real time, not a placeholder from the read list), and goes live."""
+    a = open_site(browser, url=SYNC_URL)
+    b = a.context.new_page()
+    b.problems = []
+    # Frozen, from here on: a frozen tab's storage events wait until it wakes. Registered before the page's script, this
+    # listener runs before the page's own and can keep it from hearing them.
+    b.add_init_script("window.frozen = false; addEventListener('storage', e => { if (frozen) e.stopImmediatePropagation(); })")
+    b.goto(SYNC_URL)
+    enter_list(b)
+    b.evaluate("frozen = true")
+    turn_on(a)
+    a.keyboard.press("Escape")
+    url = a.evaluate("items[2].url")
+    a.evaluate("u => markRead(u)", url)  # held a few seconds, to go with any others
+    made = a.evaluate("u => marks[u][1]", url)
+    b.evaluate("syncNow()")  # b wakes and syncs before a's mark has gone
+    assert until(b, "syncOn && live?.readyState === 1"), "b takes up the sync and goes live"
+    assert a.evaluate("u => marks[u]?.[1]", url) == made, "a keeps its mark"
+    assert until(a, "!pending.size", timeout=8000), "and sends it"
+    server = a.evaluate("u => fetch('/api/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ marks: {}, cursor: 0 }) }).then(r => r.json()).then(d => d.marks[u])", url)
+    assert server and server[0] == 1 and server[1] == made, f"the server has it as made: {server}"
+    assert a.problems == [] and b.problems == []
+
+
 def test_a_device_with_a_fast_clock_still_agrees(browser):
     """A device whose clock runs an hour ahead marks a story read; a correct one then marks it unread. The server's merge
     wins, so the fast device ends up showing it unread too, rather than trusting its own future timestamp."""
