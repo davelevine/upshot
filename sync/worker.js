@@ -1,4 +1,4 @@
-// upshot-sync: read-state sync's devices and storage (docs/architecture.md). The site's Worker forwards
+// upshot-sync: read-state sync's devices and storage (docs/architecture/sync.md). The site's Worker forwards
 // /api/auth/* and /api/sync here over a service binding; account.js answers them, keeping each reader's state in a Durable
 // Object below. It's a Worker of its own because Cloudflare makes no preview URLs for a Worker that defines a Durable
 // Object, and the site's Worker needs them for PRs.

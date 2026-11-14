@@ -18,7 +18,7 @@
   // Read-state sync: its own Worker, upshot-sync (sync/), since Cloudflare makes no preview URLs for a Worker that defines
   // a Durable Object. Previews reach the same one; cookies belong to a host, so a preview's syncs are its own.
   "services": [{ "binding": "SYNC", "service": "upshot-sync" }],
-  // The licensed fonts (worker.js). A private bucket of its own (docs/setup.md): a binding can read and
+  // The licensed fonts (worker.js). A private bucket of its own (docs/setup/optional.md): a binding can read and
   // write its whole bucket, so this one holds nothing else. Previews read the same files.
   "r2_buckets": [{ "binding": "FONTS", "bucket_name": "upshot-fonts" }],
   "routes": [{ "pattern": "upshot.levine.io", "custom_domain": true }],
@@ -29,7 +29,7 @@
   // Workers Logs: a few days of the Worker's requests and errors, for debugging after the fact. Free-tier allowance.
   "observability": { "enabled": true },
   // Starts the Build workflow on time (worker.js); site/app.js counts down to the same slots. Only the deployed Worker
-  // runs it, never a Preview. Needs the GITHUB_DISPATCH_TOKEN secret (docs/setup.md).
+  // runs it, never a Preview. Needs the GITHUB_DISPATCH_TOKEN secret (docs/setup/configuration.md).
   "triggers": { "crons": ["17 * * * *"] },
   "vars": { "BUILD_REPO": "davelevine/upshot" },
   "previews": {

@@ -45,7 +45,7 @@ SILENT_AFTER_DAYS = 45  # a feed that loads but hasn't posted in this long gets 
 BATCH = 20            # stories per repeat check
 # Urgent security news: an exploited flaw is flagged, published whatever its score, and pinned on the site for a while.
 KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"  # CISA: CVEs exploited in the wild
-NOT_EXPLOITED = ROOT / "not-exploited.txt"  # URLs never to flag: the way to retract a wrong one (docs/setup.md)
+NOT_EXPLOITED = ROOT / "not-exploited.txt"  # URLs never to flag: the way to retract a wrong one (docs/setup/feeds.md)
 CVE = re.compile(r"\bCVE-\d{4}-\d{4,}\b", re.I)
 # A flaw's remedy, as CISA's catalog separates them: a vendor patch or update, else only a mitigation or workaround, else
 # nothing yet. Ranked: later news only ever raises it.

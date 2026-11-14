@@ -1,6 +1,6 @@
 // upshot-sync: read-state sync's devices and Durable Objects (worker.js, account.js). Separate from the site's Worker
 // because Cloudflare makes no preview URLs for a Worker that defines a Durable Object. Deploy it before the site's Worker
-// (docs/setup.md).
+// (docs/setup/getting-started.md).
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
   "name": "upshot-sync",

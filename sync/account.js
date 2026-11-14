@@ -1,4 +1,4 @@
-// Read-state sync's devices and /api/sync (docs/architecture.md). There's no account, email or password.
+// Read-state sync's devices and /api/sync (docs/architecture/sync.md). There's no account, email or password.
 // A reader is a random id; each of their devices holds a session for it. The first device turns sync on; every other one
 // joins with a short code shown on a device that's already syncing. State lives in the reader's own Durable Object
 // (worker.js, beside this). The site's Worker forwards /api/auth/* and /api/sync here.
