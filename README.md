@@ -42,14 +42,15 @@ There's no server or database to look after. A scheduled GitHub Actions job comm
 - **Exploited flaws first.** A story about a flaw under active attack, confirmed by CISA's catalog or by the article itself, is tagged **Exploited** where it falls in the feed, with whether a patch is out (a supply-chain attack is tagged **Compromised**), and the last week's are listed under the essentials.
 - **The week's essentials.** Five picks from the last seven days, each with what to do about it, under their own entry beside the topics and marked where they appear in the feed.
 - **A built-in reader.** Articles open in a clean pane that starts with the upshot: a few bullets on what happened, who's affected and what to do. On wide screens the pane sits beside the list, as in a desktop feed reader.
-- **It remembers where you were.** Unread stories stand out, read ones are dimmed, and none of that leaves your browser. As in Feedbin, a toolbar's **Read** marks a whole list read (after asking), and the selected story's `…` marks everything above or below it.
+- **It remembers where you were.** Unread stories stand out, read ones are dimmed, and none of that leaves your browser unless you turn on sync. As in Feedbin, a toolbar's **Read** marks a whole list read (after asking), and the selected story's `…` marks everything above or below it.
+- **Syncs across your devices, if you want.** Generate a sync code on one device and enter it on another, or scan its QR code with your phone, and what you've read stays the same on both. No account, email or password, and changes arrive as they happen.
 - **Works everywhere.** Swipe and install as an app on a phone; `⌘K` search and `j`/`k` navigation on a desktop (`?` lists the shortcuts). Light and dark themes, and an RSS feed.
 
 ## How it works
 
 Every hour, [`build.py`](build.py) fetches the feeds in [`feeds.opml`](feeds.opml) and sends each new story to Claude Haiku on its own, which gives it a category, a relevance score and a one-sentence summary. Stories that clear their category's bar and aren't repeats are published; once a day the model picks the week's five essentials. The build also extracts each article's text with Mozilla's Readability and stores it in Cloudflare KV, so the reader never fetches from publishers and nothing runs from the source page.
 
-The front end is [`site/index.html`](site/index.html) and [`site/app.js`](site/app.js): no framework, no build step. A Cloudflare Worker serves it and answers the reader's requests.
+The front end is [`site/index.html`](site/index.html) and [`site/app.js`](site/app.js): no framework, no build step. A Cloudflare Worker serves it and answers the reader's requests; a second one, in [`sync/`](sync/), keeps read state in step across a reader's devices.
 
 For the full pipeline, the reader's security model, and how the build looks after itself, see **[docs/architecture.md](docs/architecture.md)**.
 
@@ -59,8 +60,8 @@ Setup takes about fifteen minutes. The only paid piece is a Claude subscription 
 
 1. **Fork the repository** and enable workflows in the fork's **Actions** tab.
 2. **Create the Claude token.** Run `claude setup-token` where you're signed in to Claude Code, and save the result as a repository secret named `CLAUDE_CODE_OAUTH_TOKEN`.
-3. **Create a Cloudflare KV namespace** for article text. Put its ID in both `kv_namespaces` entries in [`wrangler.jsonc`](wrangler.jsonc), and add `CF_API_TOKEN`, `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID` as secrets.
-4. **Connect Cloudflare Workers** to the fork (**Workers & Pages → Create → Import a repository**), naming the Worker `upshot`. Set `routes` in `wrangler.jsonc` to your domain, or use `workers_dev`.
+3. **Create a Cloudflare KV namespace** for article text. Put its ID in both `kv_namespaces` entries in [`wrangler.jsonc`](wrangler.jsonc), and add `CF_API_TOKEN` (with Workers KV Storage and Workers Scripts edit permissions), `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID` as secrets.
+4. **Deploy sync, then connect Cloudflare Workers.** Run **Actions → Deploy sync → Run workflow** once, then import the fork in Cloudflare (**Workers & Pages → Create → Import a repository**), naming the Worker `upshot`. Set `routes` in `wrangler.jsonc` to your domain, or use `workers_dev`.
 5. **Add a `SITE_URL` variable** with your site's address.
 6. **Make it yours:** links and `og:url` in `site/index.html`, the badges above, and your feeds.
 7. **Run the first build** from **Actions → Build → Run workflow**, with `backfill_days` set to `30` to fill in the last month.
