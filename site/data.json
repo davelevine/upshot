@@ -2,6 +2,30 @@
  "items": [
   {
    "date": "2026-11-14",
+   "published": "2026-11-14T17:27:25+00:00",
+   "title": "Cursor confirms security breach led to malicious Claude Code extension",
+   "url": "https://www.bleepingcomputer.com/news/security/cursor-confirms-security-breach-led-to-malicious-claude-code-extension/",
+   "publisher": "BleepingComputer",
+   "cves": [],
+   "category": "security",
+   "summary": "Cursor confirmed a breach in which hackers used credentials stolen from Fireworks AI to distribute a malicious Claude Code extension via its marketplace.",
+   "relevance": 8,
+   "added": "2026-11-14T18:18:06+00:00",
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-14T18:18:04+00:00",
+    "kind": "compromise",
+    "quote": "a security breach that let hackers distribute a malicious Claude Code extension through its marketplace"
+   },
+   "minutes": 3,
+   "tldr": [
+    "Cursor confirmed hackers, using credentials stolen from Fireworks AI, published malicious Claude Code extension versions 2.1.312 and 2.1.313 on October 29.",
+    "Up to 5,000 developers who requested those versions may have received malware that attempted to install persistent SSH backdoors.",
+    "Customers who installed or updated the affected extension should follow Cursor's remediation guidance."
+   ]
+  },
+  {
+   "date": "2026-11-14",
    "published": "2026-11-14T06:37:00+00:00",
    "title": "Open Source DocumentDB 1.0 Reaches General Availability",
    "url": "https://www.infoq.com/news/2026/11/mongodb-compatible-documentdb/",
@@ -3644,7 +3668,7 @@
    }
   ]
  },
- "generated_at": "2026-11-14T17:18:14+00:00",
+ "generated_at": "2026-11-14T18:18:14+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
