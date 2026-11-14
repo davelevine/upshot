@@ -499,7 +499,7 @@ async function listDevices(recheck = false) {
   $('sync-devices').replaceChildren(...(me?.devices || []).map(d => {
     const li = document.createElement('li'), name = document.createElement('span'), when = document.createElement('span'), b = document.createElement('button');
     name.className = 'sync-dev'; name.textContent = d.label;
-    when.className = 'sync-when'; when.textContent = d.current ? 'This device' : `Last used ${agoText((Date.now() - d.seen) / 60e3)}`;
+    when.className = 'sync-when'; when.textContent = d.current ? 'This device' : `Last synced ${agoText((Date.now() - d.seen) / 60e3)}`;
     li.insertAdjacentHTML('afterbegin', deviceIcon(d.label));
     li.append(name, when);
     if (d.current) return li;  // left with "Stop syncing on this device", as Signal and WhatsApp list linked devices
