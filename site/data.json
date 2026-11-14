@@ -1,6 +1,24 @@
 {
  "items": [
   {
+   "date": "2026-11-14",
+   "published": "2026-11-14T06:37:00+00:00",
+   "title": "Open Source DocumentDB 1.0 Reaches General Availability",
+   "url": "https://www.infoq.com/news/2026/11/mongodb-compatible-documentdb/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Open source DocumentDB 1.0, an MIT-licensed document database built on PostgreSQL with MongoDB wire protocol compatibility, reaches general availability.",
+   "relevance": 6,
+   "added": "2026-11-14T07:18:18+00:00",
+   "minutes": 2,
+   "tldr": [
+    "DocumentDB 1.0, an MIT-licensed document database built on PostgreSQL with MongoDB wire protocol compatibility, reached general availability.",
+    "Most MongoDB drivers, tools, and queries work without changes; the GA focuses on security, stability, and fixes for indexing, aggregation, and geospatial queries.",
+    "Ships as container images for PostgreSQL 15–18 and Linux packages for 17 and 18; release notes cover upgrade paths and known issues."
+   ]
+  },
+  {
    "date": "2026-11-13",
    "published": "2026-11-14T01:50:00+00:00",
    "title": "Attackers use Crypto Exchange Names to Disguise Unauthorized Sessions on 100+ ScreenConnect Servers",
@@ -3556,7 +3574,7 @@
    }
   ]
  },
- "generated_at": "2026-11-14T06:18:12+00:00",
+ "generated_at": "2026-11-14T07:18:26+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
