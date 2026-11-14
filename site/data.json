@@ -2,6 +2,25 @@
  "items": [
   {
    "date": "2026-11-13",
+   "published": "2026-11-14T01:50:00+00:00",
+   "title": "Attackers use Crypto Exchange Names to Disguise Unauthorized Sessions on 100+ ScreenConnect Servers",
+   "url": "https://www.huntress.com/blog/fake-crypto-exchange-sessions-screenconnect",
+   "publisher": "Huntress",
+   "cves": [],
+   "category": "security",
+   "summary": "Huntress found attackers hiding unauthorized sessions behind fake crypto exchange names on over 100 ScreenConnect servers, possibly as bait for technicians.",
+   "relevance": 8,
+   "added": "2026-11-14T00:18:23+00:00",
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-14T00:18:20+00:00",
+    "kind": "flaw",
+    "quote": "Attackers use Crypto Exchange Names to Disguise Unauthorized Sessions on 100+ ScreenConnect Servers"
+   },
+   "minutes": 0
+  },
+  {
+   "date": "2026-11-13",
    "published": "2026-11-13T05:43:28+00:00",
    "title": "Hackers Exploit N-central Flaws to Infect 21 Servers, Including 19 Running Hotfix 2",
    "url": "https://thehackernews.com/2026/11/hackers-exploit-n-central-flaws-to.html",
@@ -3537,7 +3556,7 @@
    }
   ]
  },
- "generated_at": "2026-11-13T23:18:24+00:00",
+ "generated_at": "2026-11-14T00:18:28+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
