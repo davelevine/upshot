@@ -39,16 +39,18 @@ There's no server or database to look after. A scheduled GitHub Actions job comm
 ## What you get
 
 - **A calm feed.** A handful of stories on a big day and none on a slow one. Each shows its source's icon, a one-line summary and how long ago it was published, with topics in a sidebar and search.
-- **Exploited flaws first.** A story about a flaw under active attack, confirmed by CISA's catalog or by the article itself, is tagged **Exploited** where it falls in the feed, with whether a patch is out (a supply-chain attack is tagged **Compromised**), and the last week's are listed under the essentials.
-- **The week's essentials.** Five picks from the last seven days, each with what to do about it, under their own entry beside the topics and marked where they appear in the feed.
+- **Exploited flaws stand out.** A story about a flaw under active attack is tagged **Exploited**, with whether a patch is out, and a supply-chain attack is tagged **Compromised**. Each flag is confirmed by CISA's catalog or by the article itself, and the last week's get their own list under the essentials.
+- **The week's essentials.** Five picks from the last seven days, each with what to do about it. They have their own entry beside the topics, and they're marked wherever they appear in the feed.
 - **A built-in reader.** Articles open in a clean pane that starts with the upshot: a few bullets on what happened, who's affected and what to do. On wide screens the pane sits beside the list, as in a desktop feed reader.
-- **It remembers where you were.** Unread stories stand out, read ones are dimmed, and none of that leaves your browser unless you turn on sync. As in Feedbin, a toolbar's **Read** marks a whole list read (after asking), and the selected story's `…` marks everything above or below it.
-- **Syncs across your devices, if you want.** Generate a sync code on one device and enter it on another, or scan its QR code with your phone, and what you've read stays the same on both. No account, email or password, and changes arrive as they happen.
-- **Works everywhere.** Swipe and install as an app on a phone; `⌘K` search and `j`/`k` navigation on a desktop (`?` lists the shortcuts). Light and dark themes, and an RSS feed.
+- **It remembers where you were.** Unread stories stand out and read ones are dimmed. You can mark a whole list read, or everything above or below a story, the way you would in a feed reader. None of it leaves your browser unless you turn on sync.
+- **Syncs across your devices, if you want.** Generate a sync code on one device, then enter it on another or scan its QR code with your phone. From then on, what you've read stays the same on both. There's no account, email or password, and changes show up as they happen.
+- **Works everywhere.** On a phone, swipe around and install it as an app. On a desktop, use `⌘K` to search and `j`/`k` to move (`?` lists the shortcuts). There are light and dark themes, and an RSS feed.
 
 ## How it works
 
-Every hour, [`build.py`](build.py) fetches the feeds in [`feeds.opml`](feeds.opml) and sends each new story to Claude Haiku on its own, which gives it a category, a relevance score and a one-sentence summary. Stories that clear their category's bar and aren't repeats are published; once a day the model picks the week's five essentials. The build also extracts each article's text with Mozilla's Readability and stores it in Cloudflare KV, so the reader never fetches from publishers and nothing runs from the source page.
+Every hour, [`build.py`](build.py) fetches the feeds in [`feeds.opml`](feeds.opml) and sends each new story to Claude Haiku on its own. Haiku gives it a category, a relevance score and a one-sentence summary. Stories that clear their category's bar and aren't repeats are published, and once a day the model picks the week's five essentials.
+
+The build also extracts each article's text with Mozilla's Readability and stores it in Cloudflare KV. That way the reader never fetches from publishers, and nothing from the source page ever runs.
 
 The front end is [`site/index.html`](site/index.html) and [`site/app.js`](site/app.js): no framework, no build step. A Cloudflare Worker serves it and answers the reader's requests; a second one, in [`sync/`](sync/), keeps read state in step across a reader's devices.
 
@@ -56,17 +58,9 @@ That's the short version. The [docs](docs/README.md) go deeper: start with the *
 
 ## Run your own copy
 
-Setup takes about fifteen minutes. The only paid piece is a Claude subscription (Pro or Max); the build uses it through the Claude Code CLI, so there's no API key.
+Setup takes about fifteen minutes. The only paid piece is a Claude subscription (Pro or Max), which the build uses through the Claude Code CLI, so there's no API key to manage. You'll fork the repo, add a Claude token and a few Cloudflare secrets, connect the fork to Cloudflare Workers, and run the first build.
 
-1. **Fork the repository** and enable workflows in the fork's **Actions** tab.
-2. **Create the Claude token.** Run `claude setup-token` where you're signed in to Claude Code, and save the result as a repository secret named `CLAUDE_CODE_OAUTH_TOKEN`.
-3. **Create a Cloudflare KV namespace** for article text. Put its ID in both `kv_namespaces` entries in [`wrangler.jsonc`](wrangler.jsonc), and add `CF_API_TOKEN` (with Workers KV Storage and Workers Scripts edit permissions), `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID` as secrets.
-4. **Deploy sync, then connect Cloudflare Workers.** Run **Actions → Deploy sync → Run workflow** once, then import the fork in Cloudflare (**Workers & Pages → Create → Import a repository**), naming the Worker `upshot`. Set `routes` in `wrangler.jsonc` to your domain, or use `workers_dev`.
-5. **Add a `SITE_URL` variable** with your site's address.
-6. **Make it yours:** links and `og:url` in `site/index.html`, the badges above, and your feeds.
-7. **Run the first build** from **Actions → Build → Run workflow**, with `backfill_days` set to `30` to fill in the last month.
-
-Each step is covered in detail in **[getting started](docs/setup/getting-started.md)**. Once it's running, see [feeds](docs/setup/feeds.md) for adding your own, [configuration](docs/setup/configuration.md) for the knobs and keeping the schedule on time, and [optional extras](docs/setup/optional.md) for fonts and Renovate.
+**[Getting started](docs/setup/getting-started.md)** walks through each step. Once it's running, see [feeds](docs/setup/feeds.md) for adding your own, [configuration](docs/setup/configuration.md) for the knobs and keeping the schedule on time, and [optional extras](docs/setup/optional.md) for fonts and Renovate.
 
 ## Developing
 
@@ -77,7 +71,7 @@ npm ci && node --test 'tests/*.test.js'
 npx wrangler dev -c wrangler.jsonc -c sync/wrangler.jsonc --infer-origin-from-routes=false --port 8788
 ```
 
-More on [running locally](docs/development/local.md), [testing](docs/development/testing.md) (including the browser smoke test and reader fixtures) and [CI/CD](docs/development/ci.md).
+These set up the environment, run the unit tests and serve the site locally. There's more on [running locally](docs/development/local.md), [testing](docs/development/testing.md) (including the browser smoke test and reader fixtures) and [CI/CD](docs/development/ci.md).
 
 ## Built With Claude
 

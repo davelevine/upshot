@@ -4,25 +4,15 @@
 
 ## Layout
 
-The layout follows desktop feed readers such as Feedbin, in three widths.
+The layout follows desktop feed readers such as Feedbin, and changes at two widths:
 
-### Phones (up to 640px)
+- **Phones (up to 640px)** get pages, as in Feedbin's app. Upshot opens on the topics. Picking one opens its list, with a back chevron and its name in the header, and a story covers the list.
+- **641–1023px** docks the reader on the right, as it is from 1024px. The topics and the list become two pages of one left pane, scrolled sideways, as in Feedbin. Upshot opens on the list, and picking a topic slides to its list. The pane narrows (to 280px at 641px) so the article keeps at least 360px.
+- **1024px and up** puts the sidebar, list and reader side by side. Dragging the sidebar's or the list's edge resizes it; the widths are kept in the browser, and a double-click resets them.
 
-Pages, as in Feedbin's app. Upshot opens on the topics. Picking one opens its list, with a back chevron and its name in the header, and a story covers the list.
+On a phone, each page slides over the one before and follows your finger when swiped. Back, the chevron and a swipe right step back through them; a swipe left goes forward again, into the list you just left or the story you just closed. Articles read once are kept for the visit, so reopening one is instant.
 
-Each page slides over the one before and follows your finger when swiped. Back, the chevron and a swipe right step back through them; a swipe left goes forward again, into the list you just left or the story you just closed. Articles read once are kept for the visit, so reopening one is instant.
-
-### 641–1023px
-
-The reader is docked on the right, as it is from 1024px. The topics and the list are two pages of one left pane, scrolled sideways, as in Feedbin. Upshot opens on the list, and picking a topic slides to its list. The pane narrows (to 280px at 641px) so the article keeps at least 360px.
-
-### 1024px and up
-
-Sidebar, list and reader side by side. Dragging the sidebar's or the list's edge resizes it; the widths are kept in the browser, and a double-click resets them.
-
-### From 641px up
-
-There's no full-width header: the logo tops the left pane, and the menu sits at the end of the reader bar. The reader stays docked and the list scrolls on its own. The list also stays live while an article is open, so `j`/`k` and clicks move through it.
+From 641px up there's no full-width header: the logo tops the left pane, and the menu sits at the end of the reader bar. The reader stays docked and the list scrolls on its own. The list also stays live while an article is open, so `j`/`k` and clicks move through it.
 
 ## Lists
 
