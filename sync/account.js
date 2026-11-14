@@ -9,10 +9,14 @@ const keyFor = async s => [...new Uint8Array(await crypto.subtle.digest('SHA-256
 
 const COOKIE = 'upshot_session', COOKIE_AGE = 400 * 86400;  // 400 days, the longest Chrome allows; renewed with use
 const USER = /^[A-Za-z0-9_-]{22}$/, TOKEN = /^[A-Za-z0-9_-]{43}$/;
-const MAX_BODY = 128 * 1024, MAX_MARKS = 2000;
-// What a script could guess at or pile up, rate limited per address: new readers, and codes entered. Not the signed-in
-// calls, such as the device list the "Add a device" view checks every few seconds.
-const LIMITED = new Set(['start', 'link/finish']);
+// A sync takes at most 300 marks, as the page sends them (site/app.js, SYNC_BATCH), each for a story's address: the site's
+// longest is under 200 characters. Both bound what one request can make the Durable Object write and store.
+const MAX_BODY = 128 * 1024, MAX_BATCH = 300, MAX_URL = 512;
+// Rate limited per address. AUTH_LIMIT: what a script could guess at or pile up, new readers and codes entered.
+// SYNC_LIMIT, looser: syncs and live connections, which a few devices behind one home address make in bursts, but which a
+// script could otherwise send without end. Not the rest, such as the device list the "Add a device" view checks every few
+// seconds.
+const LIMITS = { start: 'AUTH_LIMIT', 'link/finish': 'AUTH_LIMIT', sync: 'SYNC_LIMIT', live: 'SYNC_LIMIT' };
 
 const CODE_CHARS = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 // What a reader types: any case, with or without the dash, O for 0 and I or L for 1.
@@ -82,8 +86,8 @@ async function body(request) {
 const isMark = m => Array.isArray(m) && m.length === 3 && (m[0] === 0 || m[0] === 1) && (m[2] === 0 || m[2] === 1)
   && Number.isSafeInteger(m[1]) && m[1] >= 0;
 export const validMarks = marks => !!marks && typeof marks === 'object' && !Array.isArray(marks)
-  && Object.keys(marks).length <= MAX_MARKS
-  && Object.entries(marks).every(([u, m]) => u.length <= 2048 && /^https?:\/\//.test(u) && isMark(m));
+  && Object.keys(marks).length <= MAX_BATCH
+  && Object.entries(marks).every(([u, m]) => u.length <= MAX_URL && /^https?:\/\//.test(u) && isMark(m));
 
 const routes = {
   // Turning sync on: a new reader, with this device as its first.
@@ -126,8 +130,10 @@ const routes = {
     if (me) await readerOf(env, me.user).removeSession(me.hash);  // left only once the new sync has it
     return json({ ok: true }, 200, joined);
   },
+  // This device leaves (Turn off sync on this device), named by its own cookie, so the page needn't have listed the devices
+  // first. Through revoke, which checks the session: a stale cookie can't end a sync it's no longer part of.
   async logout(request, env, me) {
-    if (me) await readerOf(env, me.user).removeSession(me.hash);
+    if (me) await readerOf(env, me.user).revoke(me.hash, me.hash);
     return json({ ok: true }, 200, clearCookie);
   },
   // Signed in or not, and the reader's devices, this one first. The session hashes double as ids; a hash can't be turned
@@ -170,7 +176,7 @@ async function sync(request, env, me) {
 
 export async function account(request, env) {
   if (!env.READER || !env.CODES) return fail(503, 'sync is off');
-  const path = new URL(request.url).pathname, name = path.slice('/api/auth/'.length);
+  const path = new URL(request.url).pathname, name = path === '/api/sync' ? 'sync' : path.slice('/api/auth/'.length);
   const route = path === '/api/sync' ? sync : path.startsWith('/api/auth/') && Object.hasOwn(routes, name) ? routes[name] : null;
   if (!route) return fail(404, 'not found');
   const get = (name === 'me' || name === 'live') && request.method === 'GET';
@@ -182,8 +188,9 @@ export async function account(request, env) {
   // everything) and tests would otherwise share one key and trip a limit meant for one person; Cloudflare never reports a
   // loopback address for a real visitor, so those, and requests with none, aren't limited.
   const ip = request.headers.get('CF-Connecting-IP');
-  if (LIMITED.has(name) && env.AUTH_LIMIT && ip && !/^(127\.|::1$)/.test(ip)) {
-    const { success } = await env.AUTH_LIMIT.limit({ key: ip });
+  const limit = Object.hasOwn(LIMITS, name) && env[LIMITS[name]];
+  if (limit && ip && !/^(127\.|::1$)/.test(ip)) {
+    const { success } = await limit.limit({ key: ip });
     if (!success) return fail(429, 'too many requests');
   }
   // The cookie names the reader and the session; each route has the reader's Durable Object check the session in the same

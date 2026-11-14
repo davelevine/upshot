@@ -40,8 +40,9 @@ test('validMarks takes only http(s) stories with a well-formed mark', () => {
   assert.ok(validMarks({ 'https://x.test/a': [1, Date.now(), 0] }));
   assert.ok(validMarks({}));
   for (const bad of [null, [], { 'javascript:x': [1, 1, 1] }, { 'https://x.test/': [2, 1, 1] }, { 'https://x.test/': [1, -1, 1] },
-    { 'https://x.test/': [1, 1] }, { 'https://x.test/': [1, 1.5, 0] }, { ['https://x.test/' + 'x'.repeat(2048)]: [1, 1, 1] },
-    Object.fromEntries(Array.from({ length: 2001 }, (_, i) => [`https://x.test/${i}`, [1, 1, 1]]))]) assert.equal(validMarks(bad), false);
+    { 'https://x.test/': [1, 1] }, { 'https://x.test/': [1, 1.5, 0] }, { ['https://x.test/' + 'x'.repeat(500)]: [1, 1, 1] },
+    Object.fromEntries(Array.from({ length: 301 }, (_, i) => [`https://x.test/${i}`, [1, 1, 1]]))]) assert.equal(validMarks(bad), false);
+  assert.ok(validMarks(Object.fromEntries(Array.from({ length: 300 }, (_, i) => [`https://x.test/${i}`, [1, 1, 1]]))), 'a full batch from the page');
 });
 
 test('signed out costs no Durable Object call, and sync says so without an error status', async () => {
@@ -73,6 +74,14 @@ test('the auth rate limit answers 429 per address', async () => {
   for (const ip of ['127.0.0.1', '::1'])
     assert.equal((await worker.fetch(new Request(ORIGIN + '/api/auth/link/finish', { method: 'POST', headers: { Origin: ORIGIN, 'CF-Connecting-IP': ip }, body: '{"code":"x"}' }), limited)).status, 200, ip);
   assert.deepEqual(seen, ['203.0.113.9']);
+  // Syncs and live connections go to the looser limit, keyed the same way; a mis-addressed /api/auth/sync is just not found.
+  const sync = [];
+  const both = { ...limited, SYNC_LIMIT: { limit: async ({ key }) => { sync.push(key); return { success: false }; } } };
+  const signed = { Origin: ORIGIN, 'CF-Connecting-IP': '203.0.113.9', Cookie: `upshot_session=${USER}.${TOKEN}` };
+  assert.equal((await worker.fetch(new Request(ORIGIN + '/api/sync', { method: 'POST', headers: signed, body: '{}' }), both)).status, 429);
+  assert.equal((await worker.fetch(new Request(ORIGIN + '/api/auth/live', { headers: { ...signed, Upgrade: 'websocket' } }), both)).status, 429);
+  assert.equal((await worker.fetch(new Request(ORIGIN + '/api/auth/sync', { method: 'POST', headers: signed, body: '{}' }), both)).status, 404);
+  assert.deepEqual(sync, ['203.0.113.9', '203.0.113.9']);
   // Signed-in, routine calls aren't limited either.
   assert.equal((await worker.fetch(new Request(ORIGIN + '/api/auth/me', { headers: { 'CF-Connecting-IP': '203.0.113.9' } }), limited)).status, 200);
   assert.deepEqual(seen, ['203.0.113.9']);
