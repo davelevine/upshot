@@ -73,7 +73,7 @@ Each step in detail, plus adding feeds, the configuration knobs, and keeping the
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt pytest
 .venv/bin/pytest -q
 npm ci && node --test 'tests/*.test.js'
-npx wrangler dev --port 8788
+npx wrangler dev -c wrangler.jsonc -c sync/wrangler.jsonc --infer-origin-from-routes=false --port 8788
 ```
 
 Local runs, the browser smoke test, test fixtures and CI are in **[docs/developing.md](docs/developing.md)**.

@@ -238,7 +238,7 @@ $('search-btn').onclick = () => openPalette();  // phones: the header's own
 addEventListener('scroll', () => { const y = scroller().scrollTop; $('top').hidden = y < 800; $('bar-top').disabled = y < 1; }, { passive: true, capture: true });  // capture: the list's own scrolling doesn't bubble
 $('top').onclick = $('bar-top').onclick = () => scroller().scrollTo({ top: 0, behavior: 'smooth' });
 
-// Read and "new since last visit" state lives only in this browser.
+// Read state lives in this browser, and with sync on (below) in the reader's other browsers too, first-visit cutoff included.
 let weekly = null;
 const readSet = new Set(JSON.parse(localStorage.getItem('read') || '[]'));
 // A first visit starts with only the last day unread, as a feed reader does with a new subscription: older stories count as
@@ -253,16 +253,360 @@ const isRead = url => readSet.has(url) || (older(url) && !kept.has(url) && !pick
 const isUnread = i => !isRead(i.url);
 const saveRead = () => localStorage.setItem('read', JSON.stringify([...readSet]));
 function pruneRead() {
-  const urls = new Set(items.map(i => i.url));
+  const urls = new Set(items.map(i => i.url)), weekAgo = Date.now() - 7 * 864e5;
   for (const u of readSet) if (!urls.has(u)) readSet.delete(u);
   for (const u of kept) if (!urls.has(u)) kept.delete(u);
+  // A synced mark for a story this tab hasn't loaded may be for one a newer build added; it's kept for a week.
+  for (const u in marks) if (!urls.has(u) && marks[u][1] < weekAgo) { delete marks[u]; pending.delete(u); }
+  if (syncOn) fromMarks();  // with sync on, the marks are the read list
+  saveRead(); saveKept(); saveMarks();
+}
+
+// Sync (sync/account.js, sync/worker.js): once this device is syncing, every read or unread is noted as a mark, [read, when,
+// opened], and sent to /api/sync with a cursor; the answer is every change since the cursor, from any device, and the
+// server's version of anything it turned down. The server's merge is the truth: its answer replaces the local mark unless
+// that story changed again here since. The read list is rebuilt from the marks. The session is an HttpOnly cookie, out of
+// this script's reach; `upshot_sync=1` beside it says whether to ask at all, so a browser that cleared its storage (Safari
+// does after a week away) finds itself still syncing and gets its read list back, and other visitors cost no request.
+const SYNC_DELAY = 3000, SYNC_BATCH = 300;  // a batch stays well under the server's size limit
+const stored = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+let syncOn, marks, pending, cursor, pushTimer, syncGen = 0, syncNotice = '';
+const loadSync = () => {
+  syncOn = !!localStorage.getItem('syncOn'); marks = stored('marks', {}); pending = new Set(stored('syncPending', []));
+  cursor = +localStorage.getItem('syncCursor') || 0;
+};
+loadSync();
+const saveMarks = () => {
+  localStorage.setItem('marks', JSON.stringify(marks));
+  localStorage.setItem('syncPending', JSON.stringify([...pending]));
+};
+const maySync = () => syncOn || /(?:^|;\s*)upshot_sync=1/.test(document.cookie);
+// Another tab changed what's stored: take it up, so this tab never writes its older copy back over it.
+addEventListener('storage', e => {
+  if (!['syncOn', 'marks', 'syncPending', 'syncCursor', 'since', 'read', 'kept'].includes(e.key)) return;
+  const was = syncOn;
+  loadSync();
+  if (syncOn !== was) {  // turned on or off in that tab
+    syncOn ? connectLive() : disconnectLive();
+    if ($('sync').open && syncViewName !== 'code') renderSync();
+  }
+  since = localStorage.getItem('since');
+  readSet.clear(); for (const u of stored('read', [])) readSet.add(u);
+  kept.clear(); for (const u of stored('kept', [])) kept.add(u);
+  showSync();
+  if (items.length) { renderFilters(); renderItems(true); }
+});
+function noteMark(url, read, opened) {
+  if (!syncOn) return;
+  marks[url] = [read, Date.now(), opened]; pending.add(url); saveMarks();
+  clearTimeout(pushTimer); pushTimer = setTimeout(syncNow, SYNC_DELAY);  // a burst of marks goes as one request
+}
+// Joining: what this browser already knows goes in as marks older than any real change, so other devices' changes win,
+// and its order holds ("Recently read" lists them in it).
+function seedMarks() {
+  let t = 1;
+  for (const u of readSet) marks[u] ??= [1, t++, 1];
+  for (const u of kept) marks[u] ??= [0, t++, 0];
+  pending = new Set(Object.keys(marks));
+  saveMarks();
+}
+// Read first, by when: stories marked read in bulk go at the oldest end, as markAllRead puts them, so "Recently read" starts with what was opened.
+function fromMarks() {
+  const all = Object.entries(marks);
+  readSet.clear();
+  for (const [u] of all.filter(([, m]) => m[0]).sort(([, a], [, b]) => a[2] - b[2] || a[1] - b[1])) readSet.add(u);
+  kept.clear();
+  for (const [u, m] of all) if (!m[0]) kept.add(u);
   saveRead(); saveKept();
 }
+// Joining or leaving a sync starts over; syncGen tells a sync that was already on its way to drop its answer.
+function signedIn() {
+  syncGen++;
+  syncOn = true; localStorage.setItem('syncOn', 1);
+  marks = {}; cursor = 0; localStorage.setItem('syncCursor', 0);
+  seedMarks();
+  disconnectLive(); setTimeout(connectLive);  // a new session: its own connection, once the cookie is set
+}
+function signedOut(notice = '') {
+  syncGen++;
+  syncOn = false; marks = {}; pending.clear(); cursor = 0; syncedAt = 0;
+  for (const k of ['syncOn', 'marks', 'syncPending', 'syncCursor']) localStorage.removeItem(k);
+  syncNotice = notice;
+  disconnectLive();
+  showSync();  // the cloud goes
+}
+const post = (path, body) => fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+// What the header's cloud shows: 'busy', 'ok' (with when), or 'error'.
+let syncState = 'ok', syncedAt = 0;
+// A cloud, as Google Docs shows saving: a tick when synced, pulsing while it works, struck through when it can't reach Upshot.
+const CLOUD = 'M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z';
+const syncIcon = () => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${CLOUD}"/>${syncState === 'ok' ? '<path d="m9.5 14.5 2 2 3.5-3.5"/>' : syncState === 'error' ? '<path d="m2 2 20 20"/>' : ''}</svg>`;
+const syncLabel = () => syncState === 'busy' ? 'Syncing\u2026' : syncState === 'error' ? 'Not synced: Upshot couldn\u2019t be reached'
+  : `Synced ${syncedAt ? agoText((Date.now() - syncedAt) / 60e3) : ''}`.trim();
+// The header's cloud, as Obsidian shows sync in its status bar: there only while this device syncs, and a way into the sheet.
+function showSync() {
+  const b = $('sync-ind'), label = `${syncLabel()}. Sync your reading`;
+  b.hidden = !syncOn;
+  b.className = `icon-btn sync-ind ${syncState}`;
+  b.innerHTML = syncIcon();
+  b.setAttribute('aria-label', label); b.title = syncLabel();
+}
+function setSync(state) {
+  syncState = state;
+  if (state === 'ok') syncedAt = Date.now();
+  showSync();
+}
+// Whatever the reason (turned off here or elsewhere, removed, the last other device gone), one thing to say.
+const STOPPED = 'Sync is off on this device. It keeps what it has read.';
+let syncing = null;
+async function syncNow() {
+  clearTimeout(pushTimer); pushTimer = null;
+  if (!items.length || !maySync()) return;
+  if (syncing) return syncing.then(syncNow);  // one at a time, so each picks up where the last left off
+  const sendable = u => marks[u] && u.length <= 2048 && /^https?:\/\//.test(u);  // what the server accepts
+  for (const u of pending) if (!sendable(u)) pending.delete(u);
+  const sent = Object.fromEntries([...pending].slice(0, SYNC_BATCH).map(u => [u, marks[u]]));
+  const body = JSON.stringify({ marks: sent, cursor, since }), gen = syncGen;
+  if (syncOn) setSync('busy');
+  // keepalive lets a send finish after the tab is hidden or closed, but only up to 64 KB.
+  syncing = fetch('/api/sync', { method: 'POST', keepalive: body.length < 6e4, headers: { 'Content-Type': 'application/json' }, body })
+    .then(async r => ({ status: r.status, data: r.ok ? await r.json() : null })).catch(() => null);
+  const res = await syncing;
+  syncing = null;
+  if (gen !== syncGen) return;  // this device joined or left a sync meanwhile
+  if (res?.status === 400) { for (const u in sent) pending.delete(u); saveMarks(); }  // malformed: it would never get through
+  if (!res?.data) { if (syncOn) setSync('error'); return; }  // offline: the marks stay pending, sent when it's back
+  if (res.data.signedIn === false) {  // removed elsewhere, or never in
+    if (syncOn) { signedOut(STOPPED); if ($('sync').open && ['in', 'show'].includes(syncViewName)) syncView('out'); }
+    return;
+  }
+  const fresh = !syncOn;
+  if (fresh) signedIn();  // syncing, but no local state: this browser's storage was cleared
+  setSync('ok');
+  for (const [u, m] of Object.entries(sent)) if (marks[u]?.[1] === m[1]) pending.delete(u);  // unless changed again meanwhile
+  let changed = false;
+  for (const [u, m] of Object.entries(res.data.marks)) {
+    if (pending.has(u) || (marks[u] && marks[u].join() === m.join())) continue;
+    marks[u] = m; changed = true;
+  }
+  if (res.data.since && (!since || res.data.since < since)) { localStorage.setItem('since', since = res.data.since); changed = true; }
+  cursor = res.data.cursor; localStorage.setItem('syncCursor', cursor);
+  saveMarks();
+  if (changed) {
+    fromMarks();
+    renderFilters(); renderItems(true);
+    if (readerFor) syncUnread();
+  }
+  if (pending.size && (fresh || Object.keys(sent).length === SYNC_BATCH)) syncNow();  // what this browser had, or the next batch
+}
+// Live updates: while this device syncs and the tab is in view, a WebSocket to its sync's Durable Object, which says when
+// another device changed something, rather than this page asking every few seconds. Quiet, it costs nothing (the object
+// hibernates; Cloudflare bills opening it and the page's messages, and the page sends none). Hiding the tab closes it;
+// showing it reopens it and catches up once. A dropped connection retries, waiting longer each time, up to a minute.
+// Each attempt syncs first: that catches up, and learns whether this device is still syncing at all (removed, or the sync
+// deleted, while the tab was hidden), so a connection is only tried when it can open.
+let live = null, liveWait = 1, liveTimer, liveTry = 0;
+async function connectLive() {
+  clearTimeout(liveTimer);
+  if (live || document.hidden || !maySync()) return;
+  if (!window.WebSocket) return syncNow();  // no live updates here: syncs on load, change and return still work
+  const attempt = ++liveTry;
+  await syncNow();
+  if (attempt !== liveTry || live || !syncOn || document.hidden) return;  // superseded, or no longer syncing
+  const ws = live = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/api/auth/live`);
+  ws.onopen = () => { liveWait = 1; };
+  ws.onmessage = e => {
+    const { t } = JSON.parse(e.data);
+    if (t === 'ended') return liveEnded();
+    if (t === 'marks') syncNow();
+    if (t === 'devices' && $('sync').open) { if (syncViewName === 'in') listDevices(true); if (syncViewName === 'show') checkJoined(); }
+  };
+  ws.onclose = e => {
+    if (live === ws) live = null;
+    if (e.code === 4001) return liveEnded();  // the backup, if the 'ended' message didn't arrive
+    if (syncOn && !document.hidden) liveTimer = setTimeout(connectLive, liveWait * 1000), liveWait = Math.min(liveWait * 2, 60);
+  };
+}
+// This device stopped syncing (sync/worker.js, #drop): say so, and reset an open sheet unless a code is being typed.
+function liveEnded() {
+  if (!syncOn) return;
+  signedOut(STOPPED);
+  if ($('sync').open && syncViewName !== 'code') syncView('out');
+}
+function disconnectLive() {
+  clearTimeout(liveTimer); liveTry++;  // and any attempt still syncing first
+  if (!live) return;
+  live.onclose = null; live.close(1000); live = null;
+}
+// Leaving the tab (a phone may never come back to it): what's waiting goes now, and the connection closes. Coming back:
+// reconnect, which catches up. Back online: the same.
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) return connectLive();
+  disconnectLive();
+  if (pending.size) syncNow();
+});
+addEventListener('online', () => (document.hidden ? syncNow() : connectLive()));
+
+// The sheet: Menu \u203a Sync your reading, one view at a time.
+// News (ok) goes under the title, failures under the buttons; each view starts with neither.
+const sayErr = (msg, ok = false) => {
+  for (const [id, show] of [['sync-msg', ok], ['sync-err', !ok]]) { $(id).textContent = show ? msg : ''; $(id).hidden = !(show && msg); }
+};
+let linkTimer, syncViewName = null;
+// Where focus goes in each view, so it never stays on a control that's just been hidden.
+const VIEW_FOCUS = { out: '#sync-create', code: '#sync-code', in: '#sync-add-device', show: '#sync-show-back' };
+function syncView(name, { justOn = false } = {}) {
+  clearTimeout(linkTimer);
+  syncViewName = name;
+  sayErr('');
+  for (const v of document.querySelectorAll('#sync .sync-view')) v.hidden = v.dataset.view !== name;
+  if (name === 'out' && syncNotice) { sayErr(syncNotice, true); syncNotice = ''; }  // why this device stopped syncing
+  if (name === 'in') {
+    $('sync-last').textContent = `${syncedAt ? `Synced ${agoText((Date.now() - syncedAt) / 60e3)}. ` : ''}To add a device, generate a sync code.`;
+    listDevices();  // kept current while open by the live connection's 'devices' messages
+  }
+  if (name === 'show') { $('sync-show-on').hidden = $('sync-show-other').hidden = !justOn; showBack(!justOn); showLinkCode(); }
+  if (name === 'code') { $('sync-code-switch').hidden = !syncOn; $('sync-code-inapp').hidden = true; }
+  document.querySelector(VIEW_FOCUS[name])?.focus();
+}
+// A request that didn't work: 401 means this device was removed elsewhere meanwhile; otherwise, say what to do.
+const call = (path, body) => post(path, body).then(async r => ({ status: r.status, data: r.ok ? await r.json() : null })).catch(() => ({ status: 0, data: null }));
+function failed(status, what) {
+  if (status === 401) { signedOut(STOPPED); return syncView('out'); }
+  sayErr(status === 429 ? 'Too many tries. Wait a minute, then try again.' : `Couldn\u2019t ${what}. Check the connection and try again.`);
+}
+const renderSync = () => syncView(syncOn ? 'in' : 'out');
+// Under a code: Back to the device list, or (just after turning sync on, when there's nowhere to go back to) Done.
+function showBack(back) {
+  const b = $('sync-show-back');
+  b.textContent = back ? 'Back' : 'Done';
+  b.toggleAttribute('data-close', !back);
+  if (back) b.dataset.to = 'in'; else delete b.dataset.to;
+}
+let shownDevices = '';
+async function listDevices(recheck = false) {
+  const me = await fetch('/api/auth/me').then(r => r.json()).catch(() => null);
+  if (syncViewName !== 'in') return;  // the sheet moved on meanwhile
+  if (me && !me.signedIn) { signedOut(STOPPED); return renderSync(); }
+  if (recheck && (!me || JSON.stringify(me.devices.map(d => d.id)) === shownDevices)) return;  // unchanged: nothing moves under the pointer
+  shownDevices = JSON.stringify((me?.devices || []).map(d => d.id));
+  thisDevice = me?.devices?.find(d => d.current) ?? null;
+  $('sync-devices').replaceChildren(...(me?.devices || []).map(d => {
+    const li = document.createElement('li'), name = document.createElement('span'), when = document.createElement('span'), b = document.createElement('button');
+    name.className = 'sync-dev'; name.textContent = d.label;
+    when.className = 'sync-when'; when.textContent = d.current ? 'This device' : `Last used ${agoText((Date.now() - d.seen) / 60e3)}`;
+    li.insertAdjacentHTML('afterbegin', deviceIcon(d.label));
+    li.append(name, when);
+    if (d.current) return li;  // left with "Stop syncing on this device", as Signal and WhatsApp list linked devices
+    b.type = 'button'; b.textContent = 'Remove'; b.setAttribute('aria-label', `Remove ${d.label}`);
+    b.onclick = () => signOutDevice(d, b);
+    li.append(b);
+    return li;
+  }));
+}
+let thisDevice = null;
+// A phone, tablet or computer outline beside each device, from its label ("Safari on iPhone"), as Google lists your devices.
+const deviceIcon = label => /iPhone|Android/.test(label) ? '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg>'
+  : /iPad/.test(label) ? '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M11 18h2"/></svg>'
+  : '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M2 20h20"/></svg>';
+async function signOutDevice(d, b) {
+  b.disabled = true;
+  const { status, data: res } = await call('/api/auth/devices/revoke', { id: d.id });
+  b.disabled = false;
+  if (!res) return failed(status, d.current ? 'stop syncing' : 'remove that device');
+  if (!d.current && res.left) { await listDevices(); return $('sync-add-device').focus(); }  // its row, and the button in it, are gone
+  signedOut(); syncView('out');  // this device left, or removing the other left it alone: off either way
+  sayErr(STOPPED, true);
+}
+$('sync-leave').onclick = () => thisDevice && signOutDevice(thisDevice, $('sync-leave'));
+// Turning sync on: this device becomes the first, and the sheet goes straight to a code for the next one.
+async function turnOn() {
+  const b = $('sync-create');
+  b.disabled = true;
+  const { status, data } = await call('/api/auth/start', {});
+  b.disabled = false;
+  if (!data) return failed(status, 'generate a sync code');
+  signedIn();  // which connects, syncing first
+  syncView('show', { justOn: true });
+}
+// Adding a device: a code that works once, for ten minutes. Until it's used or expires, the list is checked every few
+// seconds, so this device can say when the other one has joined.
+async function showLinkCode() {
+  $('sync-show-how').hidden = false; $('sync-show').hidden = false;
+  $('sync-show').textContent = '\u2009'; $('sync-note').textContent = 'Generating a sync code\u2026';
+  $('sync-qr').hidden = true;
+  const [{ status, data: res }, before] = await Promise.all([call('/api/auth/link/start', { base: location.origin }), fetch('/api/auth/me').then(r => r.json()).catch(() => null)]);
+  if (syncViewName !== 'show') return;
+  if (status === 401) return failed(status);
+  if (!res) { $('sync-note').textContent = 'Couldn\u2019t generate a sync code. Check the connection and try again.'; return; }
+  $('sync-show').textContent = res.code.slice(0, 4) + '-' + res.code.slice(4);
+  if (res.qr) { $('sync-qr-img').innerHTML = res.qr; $('sync-qr').hidden = false; }  // our own Worker's SVG
+  $('sync-note').textContent = `Works once, until ${new Date(res.expires).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}.`;
+  linkTimer = setTimeout(() => {
+    $('sync-show').hidden = $('sync-show-other').hidden = $('sync-qr').hidden = true;
+    showBack(true);
+    $('sync-note').textContent = 'That sync code has expired. Go back to generate a new one.';
+  }, res.expires - Date.now());
+  knownDevices = before?.devices ? new Set(before.devices.map(d => d.id)) : null;  // null if that failed: the next check sets it
+}
+// The live connection says the device list changed while a code is showing: has a new device joined with it?
+let knownDevices = null;
+async function checkJoined() {
+  const me = await fetch('/api/auth/me').then(r => r.json()).catch(() => null);
+  if (syncViewName !== 'show' || !me?.devices) return;
+  if (!knownDevices) { knownDevices = new Set(me.devices.map(d => d.id)); return; }
+  const added = me.devices.find(d => !knownDevices.has(d.id));
+  if (!added) return;
+  clearTimeout(linkTimer);
+  $('sync-show-how').hidden = $('sync-show').hidden = $('sync-show-other').hidden = $('sync-qr').hidden = true;
+  $('sync-note').textContent = `${added.label} is syncing now.`;
+  linkTimer = setTimeout(() => $('sync').close(), 2000);  // paired: long enough to read, then closed on both devices (cancelled by any change of view)
+}
+// Joining with a code from another device. If this one was already syncing elsewhere, it starts over in the new sync:
+// signedIn() puts what it has read in as marks, so nothing is lost.
+async function joinWithCode() {
+  const code = $('sync-code').value.toUpperCase().replace(/O/g, '0').replace(/[IL]/g, '1').replace(/[^0-9A-Z]/g, ''), b = $('sync-code-go');
+  if (code.length !== 8) { sayErr('A sync code has eight letters and numbers.'); return $('sync-code').focus(); }
+  sayErr(''); b.disabled = true;
+  const { status, data: res } = await call('/api/auth/link/finish', { code });
+  b.disabled = false;
+  if (!res) { failed(status === 401 ? 0 : status, 'reach Upshot'); return $('sync-code').focus(); }
+  if (!res.ok) { sayErr('That sync code didn\u2019t work. Each one works once, for ten minutes.'); return $('sync-code').focus(); }
+  $('sync-code').value = '';
+  signedIn();  // which connects, syncing first
+  $('sync').close();
+  $('status').textContent = 'Syncing on this device';
+}
+// Opening the sheet in a tab that hasn't heard this browser is syncing (joined in another tab while this one was frozen in
+// the background) catches up first, so it never offers to start a sync this browser already has.
+const openSheet = () => { $('sync').showModal(); renderSync(); if (!syncOn && maySync()) syncNow().then(() => { if (syncOn && syncViewName === 'out') renderSync(); }); };
+$('sync-btn').onclick = () => { $('menu').hidePopover(); openSheet(); };
+$('sync-ind').onclick = openSheet;
+setInterval(() => { if (syncOn && !document.hidden) showSync(); }, 60e3);  // "Synced 3m ago" stays true
+$('sync').addEventListener('click', e => {
+  if (e.target === $('sync')) return $('sync').close();  // the backdrop
+  const to = e.target.closest('[data-to]')?.dataset.to;
+  if (to) to === 'home' ? renderSync() : syncView(to);  // home: signed out or syncing, whichever this device is
+  if (e.target.closest('[data-close]')) $('sync').close();
+});
+$('sync').addEventListener('close', () => clearTimeout(linkTimer));
+$('sync-create').onclick = turnOn;
+$('sync-use-code').onclick = () => syncView('code');
+$('sync-code-go').onclick = joinWithCode;
+$('sync-code').addEventListener('keydown', e => { if (e.key === 'Enter') joinWithCode(); });
+// XXXX-XXXX as it's typed or pasted: the dash goes in after the fourth character, and only while adding, so deleting
+// back past it isn't undone.
+$('sync-code').addEventListener('input', e => {
+  const v = e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 8);
+  e.target.value = v.length > 4 || (v.length === 4 && e.inputType?.startsWith('insert')) ? `${v.slice(0, 4)}-${v.slice(4)}` : v;
+});
+$('sync-add-device').onclick = () => syncView('show');
 const cardFor = url => [...document.querySelectorAll('a.card')].find(a => a.getAttribute('href') === url);
 function markRead(url) {
   const was = isRead(url);
   readSet.delete(url); readSet.add(url); saveRead();
   if (kept.delete(url)) saveKept();  // most recent last: the search panel's "Recently read" reads it backwards
+  noteMark(url, 1, 1);
   if (!was) renderFilters();
   const card = cardFor(url);
   card?.classList.add('read');
@@ -277,6 +621,7 @@ function markAllRead(list) {
   for (const u of [...urls, ...rest]) readSet.add(u);
   for (const u of urls) kept.delete(u);
   saveRead(); saveKept();
+  for (const u of urls) noteMark(u, 1, 0);
   renderFilters();
   renderItems(true);
   $('status').textContent = `Marked ${urls.length} ${urls.length === 1 ? 'story' : 'stories'} as read`;
@@ -329,6 +674,7 @@ addEventListener('blur', closeMore);
 function markUnread(url) {
   readSet.delete(url); saveRead();
   if (older(url)) { kept.add(url); saveKept(); }
+  noteMark(url, 0, 0);
   cardFor(url)?.classList.remove('read');
   renderFilters();
 }
@@ -1100,7 +1446,19 @@ document.addEventListener('click', e => {
   document.querySelectorAll('.retry').forEach(b => { b.disabled = true; b.textContent = 'Trying\u2026'; });
   load().catch(loadFailed);
 });
-load().catch(loadFailed);
+// A scanned sync code (/#sync=XXXX-XXXX, from the QR code): out of the address bar at once, then entered. A device already
+// syncing is asked first, since entering it moves the device to that sync.
+const scanned = location.hash.match(/^#sync=([0-9A-Za-z]{4}-?[0-9A-Za-z]{4})$/)?.[1];
+if (scanned) history.replaceState(history.state, '', location.pathname + location.search);
+load().then(() => (document.hidden ? syncNow() : connectLive())).then(() => {  // connectLive syncs first
+  if (!scanned) return;
+  $('sync').showModal(); syncView('code');
+  $('sync-code').value = scanned.toUpperCase().replace(/^(.{4})-?/, '$1-');
+  // An app's built-in browser (the Google app's, opened by a camera's QR scan) keeps its own storage: joining there would
+  // sync it, not the reader's browser. The code stays unused, for the reader to enter in their browser.
+  if (/GSA\/|; wv\)|FBAN|FBAV|Instagram/.test(navigator.userAgent)) { $('sync-code-inapp').hidden = false; return; }
+  joinWithCode();  // scanning is the choice; a device already syncing moves across, bringing what it has read
+}).catch(loadFailed);
 // Builds land every hour: check every 15 min while visible, and when the tab comes back into view.
 const check = () => { if (!document.hidden) return load().catch(() => {}); };
 setInterval(check, 15 * 60e3);

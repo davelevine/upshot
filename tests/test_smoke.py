@@ -42,8 +42,8 @@ def browser():
         b.close()
 
 
-def open_site(browser, patch=None, **context):
-    """The site in a fresh browser, on the All list. `patch` edits data.json on its way in."""
+def open_site(browser, patch=None, url=None, **context):
+    """The site in a fresh browser, on the All list. `patch` edits data.json on its way in; `url` replaces SMOKE_URL."""
     ctx = browser.new_context(**context)
     if patch:
         def patched(route):
@@ -63,7 +63,7 @@ def open_site(browser, patch=None, **context):
         route.fulfill(content_type="application/json",
                       body=json.dumps({"url": url, "frameable": False, "content": f'<img src="{PIXEL}" alt="">{BODY}'}))
     ctx.route("**/api/read?*", stub)
-    pg.goto(URL)
+    pg.goto(url or URL)
     enter_list(pg)
     return pg
 
@@ -1877,3 +1877,668 @@ def test_tab_passes_through_search_and_the_shortcuts_sheet_has_a_close_button(br
     pg.locator("#keys .keys-close").click()
     pg.locator("#keys").wait_for(state="hidden")
     assert pg.problems == []
+
+
+
+
+def until(pg, js, arg=None, timeout=5000):
+    """Waits for a condition in the page. Not wait_for_function: it evaluates a string, which the CSP blocks."""
+    for _ in range(timeout // 100):
+        if pg.evaluate(js, arg):
+            return True
+        pg.wait_for_timeout(100)
+    return False
+
+
+# The session cookie is Secure, which browsers waive only for localhost on plain http, so these tests reach the same server
+# by that name.
+SYNC_URL = (URL or "").replace("127.0.0.1", "localhost")
+
+
+def open_sync(pg):
+    pg.click("#menu-btn")
+    pg.click("#sync-btn")
+    pg.locator("#sync").wait_for()
+
+
+def read_one(pg, n):
+    pg.evaluate("n => openReader(items[n])", n)
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.keyboard.press("Escape")
+    wait_until_closed(pg)
+
+
+def turn_on(pg):
+    """Turns sync on and returns the code the sheet shows for the next device."""
+    open_sync(pg)
+    pg.click("#sync-create")
+    pg.wait_for_selector("#sync-show:text-matches('^[0-9A-Z]{4}-[0-9A-Z]{4}$')")
+    assert pg.is_visible("#sync-show-on"), "says sync is on"
+    return pg.inner_text("#sync-show")
+
+
+def join(pg, code):
+    open_sync(pg)
+    pg.click("#sync-use-code")
+    pg.fill("#sync-code", code)
+    pg.press("#sync-code", "Enter")
+    assert until(pg, "syncOn && !document.getElementById('sync').open"), "joining should close the sheet"
+
+
+def test_sync_by_code_between_devices(browser):
+    """One browser turns sync on and reads a story; a second enters the code it shows (loosely typed) and sees the story
+    read. The first notices it join. Unread carries back, and the device list can sign the other device out."""
+    size = {"viewport": {"width": 1300, "height": 900}}
+    a = open_site(browser, url=SYNC_URL, **size)
+    code = turn_on(a)
+    url = a.evaluate("items[3].url")
+
+    b = open_site(browser, url=SYNC_URL, **size)
+    open_sync(b)
+    b.click("#sync-use-code")
+    b.fill("#sync-code", "zzzz-zzzz")
+    b.click("#sync-code-go")
+    b.wait_for_selector("#sync-err:not([hidden])")
+    ink, ground = b.evaluate("[getComputedStyle(document.getElementById('sync-err')).color, getComputedStyle(document.getElementById('sync')).backgroundColor]")
+    assert ink != ground  # readable, not just present: it once took the Exploited pill's white text colour
+    b.keyboard.press("Escape")
+    join(b, code.lower().replace("-", " "))
+    assert until(a, "/syncing now/.test(document.getElementById('sync-note').textContent)", timeout=8000), "the first device sees it join"
+    a.keyboard.press("Escape")
+
+    read_one(a, 3)
+    a.wait_for_timeout(3500)  # marks go a few seconds after the last one
+    b.evaluate("syncNow()")  # what a return to the tab does
+    assert until(b, "u => isRead(u)", url), "the story read on the first device"
+
+    b.evaluate("u => markUnread(u)", url)
+    b.wait_for_timeout(3500)
+    a.evaluate("syncNow()")
+    assert until(a, "u => !isRead(u)", url), "unread carries back"
+
+    open_sync(a)
+    a.wait_for_selector("#sync-devices li >> nth=1")
+    assert "This device" in a.locator("#sync-devices li").first.inner_text(), "this device first"
+    assert a.problems == [] and b.problems == []
+
+
+def test_sync_survives_cleared_storage_and_deletes(browser):
+    """Safari clears a site's storage after a week away; the session cookie survives, so the read list comes back. Delete
+    removes everything and signs out."""
+    a = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900})
+    turn_on(a)
+    a.keyboard.press("Escape")
+    url = a.evaluate("items[5].url")
+    read_one(a, 5)
+    a.evaluate("syncNow()")
+    assert until(a, "!pending.size")
+    a.evaluate("localStorage.clear()")
+    a.reload()
+    enter_list(a)
+    assert until(a, "syncOn"), "still syncing"
+    assert until(a, "u => readSet.has(u)", url), "the read list comes back"
+    # The header's cloud: there while syncing, saying when it last synced.
+    assert until(a, "/^Synced/.test(document.getElementById('sync-ind').title) && !document.getElementById('sync-ind').hidden")
+
+    open_sync(a)
+    assert a.inner_text("#sync-last").startswith("Synced")
+    a.click("#sync-leave")
+    # The sheet stays open, back at the start, and says what happened.
+    a.wait_for_selector("[data-view=out]:not([hidden])")
+    assert "Sync is off" in a.inner_text("#sync-msg") and a.is_visible("#sync"), "says so, sheet open"
+    assert a.is_hidden("#sync-err"), "news, not an error"
+    assert not a.evaluate("syncOn")
+    assert a.is_hidden("#sync-ind"), "the cloud goes"
+    assert a.evaluate("fetch('/api/auth/me').then(r => r.json()).then(m => m.signedIn)") is False
+    assert a.problems == []
+
+
+def test_signing_out_the_last_device_deletes_the_sync(browser):
+    """With no account to sign back in to, a sync with no devices left could never be reached again, so it goes."""
+    a = open_site(browser, url=SYNC_URL)
+    code = turn_on(a)
+    a.click("#sync-show-back")  # Done
+    assert until(a, "!document.getElementById('sync').open"), "Done closes"
+    open_sync(a)
+    a.wait_for_selector("#sync-devices li")
+    assert a.locator("#sync-devices li").get_by_role("button").count() == 0, "this device's row has no button"
+    a.click("#sync-leave")  # the only device
+    a.wait_for_selector("[data-view=out]:not([hidden])")
+    assert a.is_visible("#sync"), "the sheet stays open"
+    assert "Sync is off" in a.inner_text("#sync-msg")
+    b = open_site(browser, url=SYNC_URL)
+    open_sync(b)
+    b.click("#sync-use-code")
+    b.fill("#sync-code", code)
+    b.click("#sync-code-go")
+    b.wait_for_selector("#sync-err:not([hidden])")  # a code made before the last device left can't bring back an empty sync
+    assert not b.evaluate("syncOn")
+    assert a.problems == [] and b.problems == []
+
+
+def test_simultaneous_syncs_lose_nothing(browser):
+    """Three syncs at once all land. The KV design lost changes this way in production, between Cloudflare locations, which a
+    local server can't reproduce (its KV is consistent); what this guards is the Durable Object's merge staying atomic,
+    e.g. against an await added inside Reader.sync."""
+    a = open_site(browser, url=SYNC_URL)
+    turn_on(a)
+    a.keyboard.press("Escape")
+    got = a.evaluate("""async () => {
+      const send = marks => fetch('/api/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ marks, cursor: 0 }) });
+      const now = Date.now(), batch = n => Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`https://x.test/${n}/${i}`, [1, now, 1]]));
+      await Promise.all([send(batch('a')), send(batch('b')), send(batch('c'))]);
+      const all = await (await send({})).json();
+      return Object.keys(all.marks).filter(u => u.startsWith('https://x.test/')).length;
+    }""")
+    assert got == 60
+    assert a.problems == []
+
+
+
+def test_a_device_that_turned_on_its_own_sync_can_join_another(browser):
+    """Turning sync on on a second device by mistake starts a separate sync; entering the first device's code then moves
+    it across, bringing what it has read, and its own sync, now empty of devices, is gone."""
+    size = {"viewport": {"width": 390, "height": 844}}
+    a = open_site(browser, url=SYNC_URL, **size)
+    code = turn_on(a)
+    a_url = a.evaluate("items[1].url")
+
+    b = open_site(browser, url=SYNC_URL, **size)
+    b_url = b.evaluate("items[4].url")
+    b.evaluate("u => markRead(u)", b_url)
+    turn_on(b)  # the mistake
+    assert b.is_visible("#sync-show-other"), "offers the way out right there"
+    b.click("#sync-show-other button")
+    assert b.is_visible("#sync-code-switch"), "says it will move"
+    b.fill("#sync-code", code)
+    b.click("#sync-code-go")
+    assert until(b, "!document.getElementById('sync').open")
+    assert until(a, "/syncing now/.test(document.getElementById('sync-note').textContent)", timeout=8000), "it joined the first device's sync"
+    a.keyboard.press("Escape")
+
+    a.evaluate("u => markRead(u)", a_url)
+    a.evaluate("syncNow()")
+    assert until(a, "!pending.size")
+    b.evaluate("syncNow()")
+    assert until(b, "u => isRead(u)", a_url), "now shares the first device's reading"
+    a.evaluate("syncNow()")
+    assert until(a, "u => readSet.has(u)", b_url), "and brought its own along"
+    devices = a.evaluate("fetch('/api/auth/me').then(r => r.json()).then(m => m.devices.length)")
+    assert devices == 2
+    # Removing this device, its sync's other device still there: the sheet stays open at the start.
+    open_sync(b)
+    b.wait_for_selector("#sync-devices li >> nth=1")
+    b.click("#sync-leave")
+    b.wait_for_selector("[data-view=out]:not([hidden])")
+    assert "Sync is off on this device" in b.inner_text("#sync-msg") and b.is_visible("#sync")
+    assert until(a, "!syncOn"), "the device left on its own stops syncing too"
+    open_sync(a)
+    assert "Sync is off on this device" in a.inner_text("#sync-msg")
+    assert a.problems == [] and b.problems == []
+
+
+def test_an_expired_sync_code_says_so_and_stops_checking(browser):
+    """A code screen left open stops polling the device list when its code runs out, rather than renewing it forever."""
+    a = open_site(browser, url=SYNC_URL)
+
+    def soon(route):  # the server's ten minutes, cut to a moment
+        data = route.fetch().json()
+        data["expires"] = int(a.evaluate("Date.now()")) + 1500
+        route.fulfill(json=data)
+    a.context.route("**/api/auth/link/start", soon)
+    turn_on(a)
+    polls = []
+    a.on("request", lambda r: polls.append(r.url) if r.url.endswith("/api/auth/me") else None)
+    assert until(a, "/expired/.test(document.getElementById('sync-note').textContent)"), "says it expired"
+    assert a.inner_text("#sync-show-back") == "Back" and not a.is_visible("#sync-show")
+    count = len(polls)
+    a.wait_for_timeout(3500)  # longer than one polling interval
+    assert len(polls) == count, "stopped checking"
+    assert a.problems == []
+
+
+
+def test_sync_code_qr_and_typing(browser):
+    """The code screen shows a QR code of a link that enters the code (not on phones, which have no use for one), and the
+    link joins on its own. Typing a code puts the dash in."""
+    a = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900})
+    code = turn_on(a)
+    a.wait_for_selector("#sync-qr:not([hidden]) svg")
+    assert a.is_visible("#sync-qr")
+    assert a.evaluate("getComputedStyle(document.querySelector('#sync-qr svg')).stroke") == "none"
+
+    phone = open_site(browser, url=SYNC_URL, viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
+    phone.goto("about:blank")
+    phone.goto(f"{SYNC_URL.rstrip('/')}/#sync={code}")  # what scanning the QR code opens
+    assert until(phone, "syncOn && !document.getElementById('sync').open"), "joins from the link"
+    assert "#sync" not in phone.url, "and takes the code out of the address bar"
+    assert until(a, "/syncing now/.test(document.getElementById('sync-note').textContent)", timeout=8000)
+
+    b = open_site(browser, url=SYNC_URL, viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
+    open_sync(b)
+    b.click("#sync-use-code")
+    b.type("#sync-code", "ab12")
+    assert b.input_value("#sync-code") == "AB12-"
+    b.type("#sync-code", "cd")
+    assert b.input_value("#sync-code") == "AB12-CD"
+    b.press("#sync-code", "Backspace")
+    b.press("#sync-code", "Backspace")  # D, then the dash
+    assert b.input_value("#sync-code") == "AB12", "deleting back past the dash isn't undone"
+    b.fill("#sync-code", "")
+    b.locator("#sync-code").press_sequentially("wx yz 9876")  # spaces and all
+    assert b.input_value("#sync-code") == "WXYZ-9876"
+    assert a.problems == [] and phone.problems == [] and b.problems == []
+
+
+# The sync audit's fixes, one check each.
+
+def test_visitors_who_never_sync_make_no_sync_request(browser):
+    """Only a browser that's syncing (or holds the flag cookie) asks /api/sync: every other page view costs nothing extra."""
+    pg = open_site(browser, url=SYNC_URL)
+    calls = []
+    pg.on("request", lambda r: calls.append(r.url) if "/api/" in r.url else None)
+    pg.reload()
+    enter_list(pg)
+    pg.evaluate("document.dispatchEvent(new Event('visibilitychange'))")
+    pg.wait_for_timeout(500)
+    assert calls == []
+    assert pg.problems == []
+
+
+def test_sync_session_and_flag_cookies_renew_on_every_sync(browser):
+    a = open_site(browser, url=SYNC_URL)
+    turn_on(a)
+    a.keyboard.press("Escape")
+    with a.expect_response("**/api/sync") as r:
+        a.evaluate("syncNow()")
+    cookies = r.value.all_headers().get("set-cookie", "")
+    assert "upshot_session=" in cookies and "Max-Age=34560000" in cookies and "upshot_sync=1" in cookies
+    assert a.evaluate("document.cookie").count("upshot_session") == 0, "the session stays out of the page's reach"
+    assert a.problems == []
+
+
+def test_another_tab_cannot_wipe_synced_marks(browser):
+    """A tab opened before sync was on, still holding nothing, used to write that nothing over the synced marks when a new
+    build made it prune. It now takes up the other tab's changes first."""
+    a = open_site(browser, url=SYNC_URL)
+    b = a.context.new_page()
+    b.problems = []
+    b.goto(SYNC_URL)
+    enter_list(b)
+    turn_on(a)
+    a.keyboard.press("Escape")
+    url = a.evaluate("items[2].url")
+    a.evaluate("u => markRead(u)", url)
+    assert until(b, "syncOn"), "the other tab notices sync is on"
+    b.evaluate("pruneRead()")  # what a new build does to it
+    assert a.evaluate("u => !!JSON.parse(localStorage.getItem('marks'))[u]", url), "the mark survives"
+    a.reload()
+    enter_list(a)
+    assert until(a, "u => isRead(u)", url)
+    assert a.problems == [] and b.problems == []
+
+
+def test_a_device_with_a_fast_clock_still_agrees(browser):
+    """A device whose clock runs an hour ahead marks a story read; a correct one then marks it unread. The server's merge
+    wins, so the fast device ends up showing it unread too, rather than trusting its own future timestamp."""
+    size = {"viewport": {"width": 1300, "height": 900}}
+    a = open_site(browser, url=SYNC_URL, **size)
+    code = turn_on(a)
+    a.keyboard.press("Escape")
+    ctx = browser.new_context(**size)
+    ctx.add_init_script("{ const real = Date.now; Date.now = () => real() + 3600e3; }")
+    ctx.add_init_script("try { localStorage.getItem('since') || localStorage.setItem('since', '1970-01-01T00:00:00Z'); } catch {}")
+    fast = ctx.new_page()
+    fast.problems = []
+    fast.on("console", lambda m: fast.problems.append(m.text) if m.type == "error" else None)
+    fast.goto(SYNC_URL)
+    enter_list(fast)
+    join(fast, code)
+    url = fast.evaluate("items[1].url")
+    fast.evaluate("u => markRead(u)", url)
+    fast.evaluate("syncNow()")
+    assert until(fast, "!pending.size")
+    a.evaluate("syncNow()")
+    assert until(a, "u => isRead(u)", url)
+    a.evaluate("u => markUnread(u)", url)
+    a.evaluate("syncNow()")
+    assert until(a, "!pending.size")
+    fast.evaluate("syncNow()")
+    assert until(fast, "u => !isRead(u)", url), "the fast device takes the later real change"
+    assert a.problems == [] and fast.problems == []
+
+
+def test_joined_devices_share_the_earliest_first_visit_cutoff(browser):
+    """A phone visiting for the first time counts older stories as read; joining a sync that started earlier, it adopts that
+    sync's cutoff, so both show the same unread stories."""
+    a = open_site(browser, url=SYNC_URL)  # its cutoff: 1970, everything unread
+    code = turn_on(a)
+    a.keyboard.press("Escape")
+    a.evaluate("syncNow()")
+    b = open_site(browser, url=SYNC_URL)
+    b.evaluate("localStorage.setItem('since', since = new Date(Date.now() - 864e5).toISOString())")  # a first visit today
+    join(b, code)
+    assert until(b, "since === '1970-01-01T00:00:00.000Z' || since === '1970-01-01T00:00:00Z'"), "takes the earlier cutoff"
+    assert b.evaluate("items.filter(isUnread).length") == a.evaluate("items.filter(isUnread).length")
+    assert a.problems == [] and b.problems == []
+
+
+def test_sync_sheet_keeps_focus_on_a_visible_control(browser):
+    a = open_site(browser, url=SYNC_URL)
+    focused = lambda: a.evaluate("(() => { const e = document.activeElement; return e !== document.body && e.offsetParent !== null; })()")
+    open_sync(a)
+    assert focused()
+    a.click("#sync-create")
+    a.wait_for_selector("#sync-show:text-matches('-')")
+    assert focused(), "after generating a code"
+    a.click("#sync-show-back")
+    a.click("#sync-ind")
+    assert until(a, "document.activeElement.id === 'sync-add-device'"), "on opening while syncing"
+    a.click("#sync-add-device")
+    assert focused(), "after generating another code"
+    assert a.problems == []
+
+
+
+
+def test_too_many_code_tries_says_so(browser):
+    b = open_site(browser, url=SYNC_URL)
+    b.context.route("**/api/auth/link/finish", lambda r: r.fulfill(status=429, json={"error": "too many requests"}))
+    open_sync(b)
+    b.click("#sync-use-code")
+    b.fill("#sync-code", "ABCD-EFGH")
+    b.click("#sync-code-go")
+    b.wait_for_selector("#sync-err:not([hidden])")
+    assert "Too many tries" in b.inner_text("#sync-err")
+    b.problems = [p for p in b.problems if "429" not in p]  # the stubbed response itself
+    assert b.problems == []
+
+
+
+def test_an_open_device_list_keeps_up_with_other_devices(browser):
+    """With the sheet open on one device, another device joining, or removing it, shows up there without closing the sheet."""
+    size = {"viewport": {"width": 1300, "height": 900}}
+    a = open_site(browser, url=SYNC_URL, **size)
+    code = turn_on(a)
+    a.click("#sync-show-back")  # Done
+    open_sync(a)  # left open on the device list
+    a.wait_for_selector("#sync-devices li")
+    b = open_site(browser, url=SYNC_URL, **size)
+    join(b, code)
+    assert until(a, "document.querySelectorAll('#sync-devices li').length === 2", timeout=8000), "the new device appears"
+    open_sync(b)
+    b.wait_for_selector("#sync-devices li >> nth=1")
+    b.locator("#sync-devices li", has_not_text="This device").get_by_role("button").click()
+    assert until(a, "!syncOn && document.querySelector('#sync [data-view=out]').hidden === false", timeout=8000), "and its removal"
+    assert "Sync is off on this device" in a.inner_text("#sync-msg")
+    assert a.problems == [] and b.problems == []
+
+
+
+def test_a_code_screen_notices_this_device_was_removed(browser):
+    size = {"viewport": {"width": 1300, "height": 900}}
+    a = open_site(browser, url=SYNC_URL, **size)
+    code = turn_on(a)
+    a.click("#sync-show-back")
+    b = open_site(browser, url=SYNC_URL, **size)
+    join(b, code)
+    open_sync(a)
+    a.click("#sync-add-device")  # left showing a new code
+    a.wait_for_selector("#sync-show:text-matches('-')")
+    open_sync(b)
+    b.wait_for_selector("#sync-devices li >> nth=1")
+    b.locator("#sync-devices li", has_not_text="This device").get_by_role("button").click()
+    assert until(a, "!syncOn && document.querySelector('#sync [data-view=out]').hidden === false", timeout=8000)
+    assert a.problems == [] and b.problems == []
+
+
+def test_an_open_sheet_follows_sync_turned_on_in_another_tab(browser):
+    a = open_site(browser, url=SYNC_URL)
+    b = a.context.new_page()
+    b.problems = []
+    b.goto(SYNC_URL)
+    enter_list(b)
+    open_sync(b)  # open, on the start screen
+    turn_on(a)
+    assert until(b, "document.querySelector('#sync [data-view=in]').hidden === false"), "moves to the device list"
+    assert a.problems == [] and b.problems == []
+
+
+# Live updates: pushed over a WebSocket from the sync's Durable Object, never polled.
+
+def _pair(browser):
+    size = {"viewport": {"width": 1300, "height": 900}}
+    a = open_site(browser, url=SYNC_URL, **size)
+    code = turn_on(a)
+    a.click("#sync-show-back")
+    b = open_site(browser, url=SYNC_URL, **size)
+    join(b, code)
+    assert until(a, "live?.readyState === 1") and until(b, "live?.readyState === 1"), "both connected"
+    return a, b
+
+
+def test_an_open_sheet_makes_no_requests_while_it_waits(browser):
+    a, b = _pair(browser)
+    open_sync(a)
+    a.wait_for_selector("#sync-devices li >> nth=1")
+    calls = []
+    a.on("request", lambda r: calls.append(r.url) if "/api/" in r.url else None)
+    a.wait_for_timeout(7000)  # longer than any old polling interval
+    assert calls == [], "the device list"
+    a.click("#sync-add-device")
+    a.wait_for_selector("#sync-show:text-matches('-')")
+    calls.clear()
+    a.wait_for_timeout(7000)
+    assert calls == [], "a code waiting to be used"
+    assert a.problems == [] and b.problems == []
+
+
+
+
+def test_a_mark_reaches_the_other_open_device_on_its_own(browser):
+    a, b = _pair(browser)
+    url = a.evaluate("items[4].url")
+    a.evaluate("u => markRead(u)", url)
+    assert until(b, "u => isRead(u)", url, timeout=8000), "pushed, then pulled, with nothing done on b"
+    assert a.problems == [] and b.problems == []
+
+
+def test_hiding_the_tab_closes_the_connection_and_showing_it_catches_up(browser):
+    a, b = _pair(browser)
+    hide = "v => { Object.defineProperty(document, 'hidden', { value: v, configurable: true }); document.dispatchEvent(new Event('visibilitychange')); }"
+    b.evaluate(hide, True)
+    assert until(b, "live === null"), "closed while hidden: nothing to wake the object"
+    url = a.evaluate("items[6].url")
+    a.evaluate("u => markRead(u)", url)
+    a.evaluate("syncNow()")
+    assert until(a, "!pending.size")
+    assert not b.evaluate("u => isRead(u)", url)
+    b.evaluate(hide, False)
+    assert until(b, "live?.readyState === 1") and until(b, "u => isRead(u)", url), "back in view: reconnects and catches up"
+    assert a.problems == [] and b.problems == []
+
+
+
+
+
+def test_with_three_devices_removing_one_leaves_the_others_syncing(browser):
+    size = {"viewport": {"width": 1300, "height": 900}}
+    a = open_site(browser, url=SYNC_URL, **size)
+    code = turn_on(a)
+    a.click("#sync-show-back")
+    b = open_site(browser, url=SYNC_URL, **size)
+    join(b, code)
+    open_sync(a)
+    a.click("#sync-add-device")
+    a.wait_for_selector("#sync-show:text-matches('^[0-9A-Z]{4}-[0-9A-Z]{4}$')")
+    c = open_site(browser, url=SYNC_URL, **size)
+    join(c, a.inner_text("#sync-show"))
+    assert until(a, "!document.getElementById('sync').open", timeout=8000), "paired: the sheet closes on its own"
+    open_sync(a)
+    assert until(a, "document.querySelectorAll('#sync-devices li').length === 3", timeout=8000)
+    a.locator("#sync-devices li").nth(2).get_by_role("button").click()
+    assert until(a, "document.querySelectorAll('#sync-devices li').length === 2", timeout=8000)
+    assert a.evaluate("syncOn"), "this device carries on"
+    for _ in range(50):  # the removed one (b or c) drops out; the other carries on
+        if b.evaluate("syncOn") + c.evaluate("syncOn") == 1:
+            break
+        a.wait_for_timeout(100)
+    assert b.evaluate("syncOn") + c.evaluate("syncOn") == 1
+    assert a.problems == [] and b.problems == [] and c.problems == []
+
+
+def test_a_scanned_code_joins_at_once_even_on_a_device_already_syncing(browser):
+    """Scanning is the choice: a device in a sync of its own (or another) moves across at once, bringing what it has read."""
+    size = {"viewport": {"width": 390, "height": 844}, "is_mobile": True, "has_touch": True}
+    laptop = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900})
+    code = turn_on(laptop)
+    phone = open_site(browser, url=SYNC_URL, **size)
+    turn_on(phone)  # a sync of its own, never joined
+    phone.keyboard.press("Escape")
+    phone.goto("about:blank")
+    phone.goto(f"{SYNC_URL.rstrip('/')}/#sync={code}")
+    assert until(phone, "syncOn && !document.getElementById('sync').open", timeout=8000), "joined, no Continue"
+    assert until(laptop, "/syncing now/.test(document.getElementById('sync-note').textContent)", timeout=8000)
+    assert laptop.problems == [] and phone.problems == []
+
+
+
+def test_a_scan_in_an_apps_built_in_browser_leaves_the_code_for_the_real_one(browser):
+    """A camera's QR scan can open in the Google app's own browser, which keeps its own storage. It mustn't spend the code
+    there: it shows it, unused, so the reader can enter it in their browser."""
+    laptop = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900})
+    code = turn_on(laptop)
+    gsa = "Mozilla/5.0 (Linux; Android 15; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/131.0 Mobile Safari/537.36 GSA/15.44"
+    lens = open_site(browser, url=SYNC_URL, user_agent=gsa, viewport={"width": 390, "height": 844}, is_mobile=True)
+    lens.goto("about:blank")
+    lens.goto(f"{SYNC_URL.rstrip('/')}/#sync={code}")
+    lens.wait_for_selector("#sync-code-inapp:not([hidden])")
+    lens.wait_for_timeout(1000)
+    assert not lens.evaluate("syncOn") and lens.input_value("#sync-code") == code, "shown, not used"
+    phone = open_site(browser, url=SYNC_URL, viewport={"width": 390, "height": 844}, is_mobile=True)
+    join(phone, code)  # still good in the real browser
+    assert laptop.problems == [] and lens.problems == [] and phone.problems == []
+
+
+def test_an_older_tab_catches_up_when_its_sheet_opens(browser):
+    """A tab frozen in the background while another tab joined (so it never heard) mustn't offer to start a sync this
+    browser already has: opening the sheet syncs first."""
+    laptop = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900})
+    code = turn_on(laptop)
+    phone = open_site(browser, url=SYNC_URL, viewport={"width": 390, "height": 844}, is_mobile=True)
+    old = phone.context.new_page()
+    old.problems = []
+    old.goto(SYNC_URL)
+    enter_list(old)
+    join(phone, code)
+    old.evaluate("disconnectLive(); syncOn = false; showSync()")  # as if it slept through it
+    open_sync(old)
+    assert until(old, "syncOn && document.querySelector('#sync [data-view=in]').hidden === false"), "catches up"
+    assert laptop.problems == [] and phone.problems == [] and old.problems == []
+
+
+def test_the_device_list_names_brave_and_not_chrome(browser):
+    a = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900})
+    code = turn_on(a)
+    b = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900},
+                  extra_http_headers={"Sec-CH-UA": '"Brave";v="131", "Chromium";v="131", "Not_A Brand";v="24"'})
+    join(b, code)
+    a.click("#sync-show-back")  # Done
+    open_sync(a)
+    a.wait_for_selector("#sync-devices li >> nth=1")
+    assert a.locator("#sync-devices li", has_text="Brave on").count() == 1
+    assert a.problems == [] and b.problems == []
+
+
+
+# Every action, seen from every other device: the whole class of "one device changed something; did the others hear?",
+# checked together rather than one bug at a time. Each other device is checked with its sheet open on the device list and
+# with it closed, and must reach the right state by itself, pushed, within a few seconds.
+
+import pytest
+
+STOP = "Sync is off on this device"
+
+
+def _group(browser, n):
+    size = {"viewport": {"width": 1300, "height": 900}}
+    a = open_site(browser, url=SYNC_URL, **size)
+    devices = [a]
+    code = turn_on(a)
+    for i in range(1, n):
+        if i > 1:
+            open_sync(a)
+            a.click("#sync-add-device")
+            a.wait_for_selector("#sync-show:text-matches('^[0-9A-Z]{4}-[0-9A-Z]{4}$')")
+            code = a.inner_text("#sync-show")
+        d = open_site(browser, url=SYNC_URL, **size)
+        join(d, code)
+        assert until(a, "!document.getElementById('sync').open", timeout=8000), "paired: the sheet closes on both"
+        devices.append(d)
+    for d in devices:
+        assert until(d, "live?.readyState === 1"), "connected"
+    return devices
+
+
+def _off(d, timeout=4000):
+    """Stopped syncing by itself: no cloud, and the reason it'll show (in the sheet now, or the next time it opens)."""
+    assert until(d, "!syncOn && document.getElementById('sync-ind').hidden", timeout=timeout), "stops by itself"
+    return d.evaluate("syncNotice || document.getElementById('sync-msg').textContent")
+
+
+@pytest.mark.parametrize("sheet", ["open", "closed"])
+@pytest.mark.parametrize("n,action", [(2, "remove"), (2, "leave"), (3, "remove"), (3, "leave")])
+def test_every_action_reaches_every_other_device(browser, n, action, sheet):
+    devices = _group(browser, n)
+    actor, others = devices[0], devices[1:]
+    if sheet == "open":  # the watchers' sheets left open on the device list
+        for d in others:
+            open_sync(d)
+            d.wait_for_selector(f"#sync-devices li >> nth={n - 1}")
+    open_sync(actor)
+    actor.wait_for_selector(f"#sync-devices li >> nth={n - 1}")
+    if action == "remove":  # the device listed last, whichever that is
+        actor.locator("#sync-devices li").nth(n - 1).get_by_role("button").click()
+        for _ in range(60):
+            removed = [d for d in others if not d.evaluate("syncOn")]
+            if removed:
+                break
+            actor.wait_for_timeout(100)
+        assert len(removed) == 1, "exactly one device was removed"
+        assert STOP in _off(removed[0])
+        staying = [d for d in others if d is not removed[0]]
+    else:
+        actor.click("#sync-leave")
+        staying = others if n > 2 else []
+        if n == 2:  # the device left on its own: the sync ends
+            assert STOP in _off(others[0])
+
+    for d in others:
+        if d in staying:
+            assert d.evaluate("syncOn"), "carries on"
+            if sheet == "open":
+                assert until(d, "document.querySelectorAll('#sync-devices li').length === 2", timeout=4000), "its open list updates"
+        elif sheet == "open":
+            assert d.evaluate("document.querySelector('#sync [data-view=out]').hidden === false"), "its open sheet resets"
+    # The actor: still syncing only if it removed one of three.
+    assert until(actor, "on => syncOn === on", action == "remove" and n == 3), "the actor's own state"
+    if action == "remove" and n == 2:
+        assert STOP in actor.inner_text("#sync-msg")
+    for d in devices:
+        assert d.problems == [], d.problems
+
+
+def test_a_device_in_the_background_catches_up_when_shown(browser):
+    a, b = _group(browser, 2)
+    hide = "v => { Object.defineProperty(document, 'hidden', { value: v, configurable: true }); document.dispatchEvent(new Event('visibilitychange')); }"
+    b.evaluate(hide, True)
+    assert until(b, "live === null")
+    open_sync(a)
+    a.click("#sync-leave")  # leaves b alone: its sync ends
+    b.wait_for_timeout(1000)
+    assert b.evaluate("syncOn"), "hidden: it hasn't heard (its connection is closed, at no cost)"
+    b.evaluate(hide, False)
+    assert until(b, "!syncOn && document.getElementById('sync-ind').hidden", timeout=5000), "shown: it finds out"
+    open_sync(b)
+    assert "Sync is off on this device" in b.inner_text("#sync-msg")
+    assert a.problems == [] and b.problems == []

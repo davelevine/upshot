@@ -15,6 +15,9 @@
   },
   // The reader's stored articles. The Worker only reads them, so Previews safely share the namespace.
   "kv_namespaces": [{ "binding": "ARTICLES", "id": "1bba8ed2e55040b1b00a7f32be0ea5d3" }],
+  // Read-state sync: its own Worker, upshot-sync (sync/), since Cloudflare makes no preview URLs for a Worker that defines
+  // a Durable Object. Previews reach the same one; cookies belong to a host, so a preview's syncs are its own.
+  "services": [{ "binding": "SYNC", "service": "upshot-sync" }],
   // The licensed fonts (worker.js). A private bucket of its own (docs/setup.md): a binding can read and
   // write its whole bucket, so this one holds nothing else. Previews read the same files.
   "r2_buckets": [{ "binding": "FONTS", "bucket_name": "upshot-fonts" }],
@@ -31,6 +34,7 @@
   "vars": { "BUILD_REPO": "davelevine/upshot" },
   "previews": {
     "kv_namespaces": [{ "binding": "ARTICLES", "id": "1bba8ed2e55040b1b00a7f32be0ea5d3" }],
+    "services": [{ "binding": "SYNC", "service": "upshot-sync" }],
     "r2_buckets": [{ "binding": "FONTS", "bucket_name": "upshot-fonts" }]
   }
 }

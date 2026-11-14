@@ -15,8 +15,12 @@ Then serve the site. The reader needs the Workers runtime, so use Wrangler rathe
 ```bash
 npm ci
 node --test 'tests/*.test.js'
-npx wrangler dev --port 8788
+npx wrangler dev -c wrangler.jsonc -c sync/wrangler.jsonc --infer-origin-from-routes=false --port 8788
 ```
+
+The two `-c` flags run the site's Worker and `upshot-sync` (`sync/`, read-state sync) together, connected as they are when deployed. `--infer-origin-from-routes=false` lets the Worker see the address you opened rather than the live domain, which its same-origin check needs. Sync's session cookie is `Secure`, which browsers waive only for `localhost`: an IP address such as `127.0.0.1`, or a plain-HTTP Tailscale address, serves the site but can't turn sync on.
+
+To try sync on a phone, serve it over HTTPS on your tailnet. Run the dev server with HTTPS too, adding `--local-protocol https --upstream-protocol https`, then `tailscale serve --bg --https=10443 https+insecure://localhost:8788`; it's at `https://<machine>.<tailnet>.ts.net:10443`, reachable only from your tailnet (HTTPS certificates must be enabled for it). `tailscale serve --https=10443 off` stops it.
 
 The site's fonts, Söhne, Mercury Text and Mercury Display, are licensed and aren't in the repo; the Worker serves them from R2 (see [architecture](architecture.md#the-reader-and-what-it-does-with-your-data)). `wrangler dev` uses a local, empty copy of the bucket, so the site shows the system fonts until you load the fonts into it once, if you have them:
 
@@ -28,14 +32,14 @@ They stay in `.wrangler/state`. A second server started with its own `--persist-
 
 ## The browser smoke test
 
-With `npx wrangler dev --port 8788` running:
+With `npx wrangler dev -c wrangler.jsonc -c sync/wrangler.jsonc --infer-origin-from-routes=false --port 8788` running:
 
 ```bash
 .venv/bin/pip install playwright axe-playwright-python && .venv/bin/python -m playwright install chromium
 SMOKE_URL=http://127.0.0.1:8788 .venv/bin/pytest -q tests/test_smoke.py
 ```
 
-It loads the site in Chromium under its real CSP and checks the feed, reader, search palette, swipe-back and WCAG 2.2 AA (axe). It fails on any CSP violation, console error or page error. It doesn't need the licensed fonts: it serves Public Sans's bytes (from `fonts/`) in their place, which is enough to check which face each weight and theme loads, and that no article downloads a font again.
+It loads the site in Chromium under its real CSP and checks the feed, reader, search palette, swipe-back, sync (two browsers joined by code, on `localhost`) and WCAG 2.2 AA (axe). It fails on any CSP violation, console error or page error. It doesn't need the licensed fonts: it serves Public Sans's bytes (from `fonts/`) in their place, which is enough to check which face each weight and theme loads, and that no article downloads a font again.
 
 ## Things to know when changing the code
 
