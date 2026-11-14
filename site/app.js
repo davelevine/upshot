@@ -253,6 +253,7 @@ const isRead = url => readSet.has(url) || (older(url) && !kept.has(url) && !pick
 const isUnread = i => !isRead(i.url);
 const saveRead = () => localStorage.setItem('read', JSON.stringify([...readSet]));
 function pruneRead() {
+  loadSync();  // the marks as stored: see loadSync
   const urls = new Set(items.map(i => i.url)), weekAgo = Date.now() - 7 * 864e5;
   for (const u of readSet) if (!urls.has(u)) readSet.delete(u);
   for (const u of kept) if (!urls.has(u)) kept.delete(u);
@@ -271,9 +272,16 @@ function pruneRead() {
 const SYNC_DELAY = 3000, SYNC_BATCH = 300;  // a batch stays well under the server's size limit
 const stored = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
 let syncOn, marks, pending, cursor, takeSince, pushTimer, syncGen = 0, syncNotice = '';
+// Every tab shares what's stored, and storage events tell a tab of another's writes only after a moment (much later for a
+// tab frozen in the background). So a tab rereads before it changes the marks, rather than writing back its own older copy
+// over another tab's newer marks, or its unsent ones. Finding sync turned on or off that way, it acts on it here.
 const loadSync = () => {
+  const was = syncOn;
   syncOn = !!localStorage.getItem('syncOn'); marks = stored('marks', {}); pending = new Set(stored('syncPending', []));
   cursor = +localStorage.getItem('syncCursor') || 0; takeSince = !!localStorage.getItem('syncTakeSince');
+  if (was === undefined || syncOn === was) return;  // undefined: loading the page
+  syncOn ? setTimeout(connectLive) : disconnectLive();  // later: this may be partway through a sync
+  if ($('sync').open && syncViewName !== 'code') renderSync();
 };
 loadSync();
 const saveMarks = () => {
@@ -284,12 +292,7 @@ const maySync = () => syncOn || /(?:^|;\s*)upshot_sync=1/.test(document.cookie);
 // Another tab changed what's stored: take it up, so this tab never writes its older copy back over it.
 addEventListener('storage', e => {
   if (!['syncOn', 'marks', 'syncPending', 'syncCursor', 'syncTakeSince', 'since', 'read', 'kept'].includes(e.key)) return;
-  const was = syncOn;
   loadSync();
-  if (syncOn !== was) {  // turned on or off in that tab
-    syncOn ? connectLive() : disconnectLive();
-    if ($('sync').open && syncViewName !== 'code') renderSync();
-  }
   since = localStorage.getItem('since');
   readSet.clear(); for (const u of stored('read', [])) readSet.add(u);
   kept.clear(); for (const u of stored('kept', [])) kept.add(u);
@@ -297,6 +300,7 @@ addEventListener('storage', e => {
   if (items.length) { renderFilters(); renderItems(true); }
 });
 function noteMark(url, read, opened) {
+  loadSync();
   if (!syncOn) return;
   marks[url] = [read, Date.now(), opened]; pending.add(url); saveMarks();
   clearTimeout(pushTimer); pushTimer = setTimeout(syncNow, SYNC_DELAY);  // a burst of marks goes as one request
@@ -369,6 +373,7 @@ async function syncNow() {
   if (!items.length || !maySync()) return;
   if (syncing) return syncing.then(syncNow);  // one at a time, so each picks up where the last left off
   const sendable = u => marks[u] && u.length <= 2048 && /^https?:\/\//.test(u);  // what the server accepts
+  loadSync();
   for (const u of pending) if (!sendable(u)) pending.delete(u);
   const sent = Object.fromEntries([...pending].slice(0, SYNC_BATCH).map(u => [u, marks[u]]));
   const body = JSON.stringify({ marks: sent, cursor, since: takeSince ? null : since }), gen = syncGen;
@@ -379,6 +384,7 @@ async function syncNow() {
   const res = await syncing;
   syncing = null;
   if (gen !== syncGen) return;  // this device joined or left a sync meanwhile
+  loadSync();  // another tab may have written meanwhile
   if (res?.status === 400) { for (const u in sent) pending.delete(u); saveMarks(); }  // malformed: it would never get through
   if (!res?.data) { if (syncOn) setSync('error'); return; }  // offline: the marks stay pending, sent when it's back
   if (res.data.signedIn === false) {  // removed elsewhere, or never in
@@ -386,7 +392,7 @@ async function syncNow() {
     return;
   }
   const fresh = !syncOn;
-  if (fresh) signedIn();  // syncing, but no local state: this browser's storage was cleared
+  if (fresh) signedIn();  // syncing, but nothing stored says so: this browser's storage was cleared
   setSync('ok');
   for (const [u, m] of Object.entries(sent)) if (marks[u]?.[1] === m[1]) pending.delete(u);  // unless changed again meanwhile
   let changed = false;
