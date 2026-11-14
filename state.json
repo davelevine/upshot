@@ -1,6 +1,8 @@
 {
  "claims_backfilled": true,
- "failing_since": {},
+ "failing_since": {
+  "https://blog.google/rss/": "2026-11-14"
+ },
  "seen": {
   "http://muratbuffalo.blogspot.com/2026/11/writing-as-thinking-tool.html": "2026-11-08",
   "https://8rank.ai/game/apple-intelligence-personal-knowledge-graph": "2026-11-07",
@@ -572,6 +574,7 @@
   "https://github.com/PrivSec-dev/banking-apps-compat-report/issues/105": "2026-11-06",
   "https://github.com/anthropics/claude-code/issues/107757": "2026-11-05",
   "https://github.com/aws/aws-emulator": "2026-11-11",
+  "https://github.com/ggml-org/ggml/releases/tag/v1.0.0": "2026-11-13",
   "https://github.com/hyperionaidev/smolmaxxing/": "2026-11-12",
   "https://github.com/janestreet/agent_skills/blob/master/socratic-tutor/SKILL.md": "2026-11-10",
   "https://github.com/ppmpreetham/BUI": "2026-11-06",
@@ -937,6 +940,7 @@
   "https://thehackernews.com/2026/11/apt29-linked-hackers-hijack-web.html": "2026-11-04",
   "https://thehackernews.com/2026/11/attackers-exploit-ahsaycbs-flaws-to.html": "2026-11-10",
   "https://thehackernews.com/2026/11/attackers-exploit-critical-siemens.html": "2026-11-03",
+  "https://thehackernews.com/2026/11/attackers-exploit-unrealircd-flaw-that.html": "2026-11-14",
   "https://thehackernews.com/2026/11/attackers-pose-as-it-support-on.html": "2026-11-02",
   "https://thehackernews.com/2026/11/attackers-target-unpatched.html": "2026-11-03",
   "https://thehackernews.com/2026/11/backdoored-docker-image-for-artex-ai.html": "2026-11-05",
@@ -1491,6 +1495,7 @@
   "https://www.infoq.com/presentations/scaling-multi-agent-llm-batch/": "2026-11-10",
   "https://www.infoq.com/presentations/sociotechnical-staff-engineer-architecture/": "2026-11-06",
   "https://www.infoq.com/presentations/zero-trust-ai-agents-production-security/": "2026-11-05",
+  "https://www.joshka.net/cell-borders/": "2026-11-13",
   "https://www.mcmillen.dev/sigbovik/": "2026-11-11",
   "https://www.microsoft.com/en-us/security/blog/2026/10/29/idc-marketscape-names-microsoft-a-leader-in-the-2026-worldwide-modern-endpoint-security-for-enterprises-vendor-assessment/": "2026-10-29",
   "https://www.microsoft.com/en-us/security/blog/2026/10/29/tracking-ai-adoption-in-north-korean-threat-actor-tradecraft/": "2026-10-29",

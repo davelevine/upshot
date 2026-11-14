@@ -205,6 +205,25 @@
   },
   {
    "date": "2026-11-13",
+   "published": "2026-11-14T02:28:29+00:00",
+   "title": "Ggml v1.0.0",
+   "url": "https://github.com/ggml-org/ggml/releases/tag/v1.0.0",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "ai",
+   "summary": "The ggml project released v1.0.0, its first stable version, a tensor library used for running local ML models.",
+   "relevance": 7,
+   "added": "2026-11-14T13:18:21+00:00",
+   "minutes": 9,
+   "tldr": [
+    "ggml 1.0.0 removes the deprecated public API and the DIAG_MASK_INF/DIAG_MASK_ZERO ops, and the RPC protocol now rejects incompatible peers.",
+    "Code calling the removed ops needs updating; the changelog shows examples adapted to the removal of ggml_diag_mask_inf.",
+    "Adds ggml_rope_set_truncate and ggml_rope_get_truncate for YaRN correction-bound rounding, plus OCP FP8 support on CUDA.",
+    "Broad performance work lands across CUDA, Metal, Vulkan, SYCL, OpenCL, WebGPU, Hexagon and CPU backends."
+   ]
+  },
+  {
+   "date": "2026-11-13",
    "published": "2026-11-13T13:47:42+00:00",
    "title": "Microsoft Struggles to Restore Email and Other Services in a Global Outage",
    "url": "https://www.securityweek.com/microsoft-struggles-to-restore-email-and-other-services-in-a-global-outage/",
@@ -3625,7 +3644,7 @@
    }
   ]
  },
- "generated_at": "2026-11-14T12:18:00+00:00",
+ "generated_at": "2026-11-14T13:18:29+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
