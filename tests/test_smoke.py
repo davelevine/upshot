@@ -1779,7 +1779,9 @@ def test_coming_back_after_a_while_plays_the_pass_again(browser):
     pg.evaluate(away, True)
     pg.clock.run_for(20 * 60_000)
     pg.evaluate(away, False)  # back after a while: an opening, so one pass, after the wordmark's moment
-    pg.wait_for_timeout(300)
+    # Coming back fetches the news first (check), then schedules the pass: wait for that, not a fixed time, which a busy
+    # machine's fetch can outlast.
+    assert until(pg, "tickTimers.length > 0"), "the pass is scheduled once the news is in"
     pg.clock.run_for(1300)
     assert ticking()
 
