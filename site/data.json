@@ -236,6 +236,19 @@
   },
   {
    "date": "2026-11-13",
+   "published": "2026-11-13T15:08:44+00:00",
+   "title": "Jonathan Blow – If AI solved coding, why is my software still the same? [video]",
+   "url": "https://www.youtube.com/watch?v=IRK8h67ol7Q",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Jonathan Blow's video questions why software hasn't visibly improved if AI has solved coding; it drew 305 points and 388 comments on Hacker News.",
+   "relevance": 6,
+   "added": "2026-11-14T11:18:19+00:00",
+   "minutes": 0
+  },
+  {
+   "date": "2026-11-13",
    "published": "2026-11-13T06:15:00+00:00",
    "title": "Dropbox Shares How Its In-House Cookie Auditor Tests Consent Behaviour Across 200+ Web Surfaces",
    "url": "https://www.infoq.com/news/2026/11/dropbox-cookie-auditor/",
@@ -3612,7 +3625,7 @@
    }
   ]
  },
- "generated_at": "2026-11-14T10:18:01+00:00",
+ "generated_at": "2026-11-14T11:18:20+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
