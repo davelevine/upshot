@@ -24,7 +24,7 @@ Everything runs on the free tiers of GitHub Actions and Cloudflare Workers. The 
 
 4. **Connect Cloudflare Workers.** In [`wrangler.jsonc`](../wrangler.jsonc), change `routes` to your own domain, or delete it and set `workers_dev` to `true` to use the `workers.dev` address.
 
-   The site's Worker binds to a second one, `upshot-sync` ([`sync/`](../sync/), read-state sync), so set that up first. In Cloudflare, go to **Workers & Pages → Create → Import a repository**, pick your fork, and name the Worker `upshot-sync`. Set the deploy command to `npx wrangler deploy -c sync/wrangler.jsonc`, clear the preview command, and under **Settings → Build** turn off builds for non-production branches and set the build watch paths to `sync/*`, `package.json` and `package-lock.json`, so only changes to it deploy it.
+   The site's Worker binds to a second one, `upshot-sync` ([`sync/`](../sync/), read-state sync), so set that up first. It deploys from GitHub Actions ([Deploy sync](../.github/workflows/deploy-sync.yml)) whenever a push to `main` changes `sync/` or the npm packages. In Cloudflare, create an API token with only the **Account › Workers Scripts › Edit** permission and add it as the repository secret `CF_WORKERS_DEPLOY_TOKEN` (`CF_ACCOUNT_ID` is already there from step 3). Then run **Actions → Deploy sync → Run workflow** once, so `upshot-sync` exists before the site's Worker deploys.
 
    Then import the repository again and name this Worker `upshot`; it must match `name` in `wrangler.jsonc`. Leave the build command empty and the deploy and preview commands at their defaults.
 
@@ -92,9 +92,9 @@ The build flags a story **Exploited** or **Compromised** from CISA's catalog or 
 
 ## Read-state sync
 
-Readers can turn on sync to keep what they've read in step across devices, joining each device with a short code ([architecture](architecture.md#syncing-what-youve-read)). It runs on the Free plan: SQLite-backed Durable Objects and a rate limit, both in [`sync/wrangler.jsonc`](../sync/wrangler.jsonc), need no setup beyond deploying `upshot-sync` (step 4).
+Readers can turn on sync to keep what they've read in step across devices, joining each device with a short code ([architecture](architecture.md#syncing-what-youve-read)). It runs on the Free plan: SQLite-backed Durable Objects and a rate limit, both in [`sync/wrangler.jsonc`](../sync/wrangler.jsonc), need no setup beyond deploying `upshot-sync` (step 4). It isn't a Workers Builds project because OpenTofu can't manage those, and Worker scripts here deploy from their own repository.
 
-- **Previews.** PR previews of the site reach the same `upshot-sync`. Session cookies belong to the host that set them, so a preview's syncs are separate from the live site's, and can't see its data. Changes to `sync/` itself deploy only from `main`; try them locally first ([developing](developing.md#running-locally)).
+- **Previews.** PR previews of the site reach the same `upshot-sync`. Session cookies belong to the host that set them, so a preview's syncs are separate from the live site's, and can't see its data. Changes to `sync/` itself deploy only from `main`, through Deploy sync; try them locally first ([developing](developing.md#running-locally)).
 - **Changing the storage.** The Durable Objects' tables are created in their constructors (`CREATE TABLE IF NOT EXISTS`). A new column needs an `ALTER TABLE` there as well; a new Durable Object class needs a new entry in `migrations`.
 
 ## Optional: the fonts
