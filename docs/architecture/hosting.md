@@ -23,8 +23,6 @@ Cloudflare Workers Builds deploys every push to `main` with `npx wrangler deploy
 
 ## It looks after itself
 
-I don't want to check on this every day, so the build tells me when something's wrong.
-
 - **Feed health.** A feed that has failed for two weeks, gone quiet or moved lands in a single "Feed health" issue that closes itself once it's fixed. For failing and quiet feeds it suggests any feeds the publisher's homepage advertises.
 - **The LLM is down.** A run where every LLM call fails exits with an error, so GitHub emails you.
 - **KV is down.** The stories are still published (the reader shows a fallback until a later build stores their text) and the run is marked failed after committing, so you hear about it without losing the build.

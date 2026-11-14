@@ -1,8 +1,8 @@
 # Running your own copy
 
-Upshot is built to be cheap to run. Everything sits on the free tiers of GitHub Actions and Cloudflare Workers, and the only paid piece is a Claude subscription (Pro or Max). The build uses that subscription through the Claude Code CLI, so there's no API key to manage and no per-token bill to watch.
+Everything runs on the free tiers of GitHub Actions and Cloudflare Workers. The only paid piece is a Claude subscription (Pro or Max), which the build uses through the Claude Code CLI, so there's no API key or per-token bill.
 
-Setup takes about fifteen minutes. Once it's done, the build runs itself every hour and you mostly won't have to think about it.
+Setup takes about fifteen minutes. After that, the build runs every hour on its own.
 
 ## Setup
 

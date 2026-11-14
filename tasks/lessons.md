@@ -222,3 +222,12 @@
 - Before calling a voice pass done, grep the result for those phrases, and read it next to one of his posts (portfolio-v2 `secrets-at-deploy-time.md`). Voice comes from first person and his reasons, not from colourful wording.
 - A voice pass covers every file in scope, including the README. Don't treat a file as finished just because it was already close.
 - Never describe the work as being "in the author's voice" (or similar) in commits, PRs or docs. Describe what changed.
+
+## 2026-11-14 — Docs aren't blog posts: borrow the voice, not the register
+
+**Mistake:** After being asked for Dave's voice, the README and docs were written like his blog posts: hook openings ("the one kind of story you shouldn't have to go looking for"), asides ("which was a big part of the appeal for me", "I'd rather look at those myself") and chatty pointers ("If you'd like your own…"). He said the README read like a blog post, and that these are not blog posts.
+
+**Rules:**
+- In a README or reference doc, voice means plain words and his punctuation, not his blog's register. Lead with what the page covers, in one or two sentences. Use lists and numbered steps where the content is a list or a sequence.
+- Use first person only for a decision and its reason (a design set aside, why the build does the parsing). Leave out feelings, preferences and hooks.
+- A README is a summary that links to the docs: what it is, its features, how it works in a few steps, where to go next.

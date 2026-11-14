@@ -1,6 +1,6 @@
 # Syncing what you've read
 
-Sync keeps what you've read the same on every device, with no account, email or password. You make a short code on one device and enter it on another, and that's the whole sign-up. This page covers how pairing works, how the server keeps devices in agreement, what it costs, and the designs I tried before landing here.
+Sync keeps what you've read the same on every device, with no account, email or password. You make a short code on one device and enter it on another. This page covers pairing, how the server keeps devices in agreement, abuse limits, and the designs I tried first.
 
 ## Pairing devices
 
@@ -24,7 +24,7 @@ Signal and WhatsApp link devices the same way. When the new device joins, the on
 
 ## Where it runs
 
-Sync runs in a second Worker, `upshot-sync` ([`sync/`](../../sync/)), which the site's Worker reaches over a service binding for `/api/auth/*` and `/api/sync`. It's separate because Cloudflare makes no preview URLs for a Worker that defines a Durable Object, and I didn't want to lose previews for the whole site.
+Sync runs in a second Worker, `upshot-sync` ([`sync/`](../../sync/)), which the site's Worker reaches over a service binding for `/api/auth/*` and `/api/sync`. It's separate because Cloudflare makes no preview URLs for a Worker that defines a Durable Object, and keeping it apart keeps previews for the rest of the site.
 
 ## How it works
 
@@ -95,7 +95,7 @@ On the Free plan, a limit reached makes further calls fail until 00:00 UTC rathe
 - **Storage is capped.** A reader keeps at most 2,000 marks, and marks untouched for 120 days (stories leave after 90) are dropped, by the next sync or, for a reader nobody syncs any more, by its alarm.
 - **Each sync reads only the rows it needs:** indexes on the marks it looks up by change number, age and last touch, and a stored count, rather than a scan of every mark, since Durable Objects bill each row read.
 
-That said, it isn't airtight, and I don't want to pretend otherwise. A determined script with a session can use up the day's 100,000 rows written, and sync stops until midnight UTC. Bounding that would take a write budget per reader, which isn't worth it for a site this size.
+It isn't airtight. A determined script with a session can use up the day's 100,000 rows written, and sync stops until midnight UTC. Bounding that would take a write budget per reader, which isn't worth it for a site this size.
 
 ## Designs I set aside
 

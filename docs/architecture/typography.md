@@ -1,6 +1,6 @@
 # Typography
 
-Upshot uses two type families, and which one you're reading tells you whose words they are. This page covers the split, how the fonts were tuned, and how they get to the page without sitting in a public repo.
+Upshot uses two type families: Mercury for the publisher's words, Söhne for Upshot's own. This page covers the split, how the fonts are tuned, and how they're served without being in this public repo.
 
 ## Whose words they are
 
@@ -32,6 +32,6 @@ H&Co's Mercury files are cleaned before upload:
 
 ## Getting fonts into the reader
 
-The reader is a sandboxed frame, which the browser caches apart each time. Fonts loaded there by URL were downloaded again for every article, which wasn't great.
+The reader is a sandboxed frame, which the browser caches apart each time. Fonts loaded there by URL were downloaded again for every article.
 
 Instead, the page fetches each font once in the background after the list loads, cached as usual, and hands it to every frame inline as a `data:` URL. The page's CSP allows `data:` fonts for this.

@@ -1,6 +1,6 @@
 # Feeds
 
-The feed list is the one part of Upshot you'll probably keep changing. This page covers adding a feed (and proving the reader works on it), backfilling its older posts, and what to do when the build flags a story as exploited when it shouldn't have.
+This page covers adding a feed (and proving the reader works on it), backfilling its older posts, and what to do when the build flags a story as exploited when it shouldn't have.
 
 ## Adding a feed
 

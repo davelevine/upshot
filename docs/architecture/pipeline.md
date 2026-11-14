@@ -1,10 +1,10 @@
 # The pipeline
 
-Every hour the Build workflow runs [`build.py`](../../build.py). It takes the feeds, keeps the handful of stories worth reading, and publishes them. This page walks through each step in order.
+Every hour the Build workflow runs [`build.py`](../../build.py). These are its steps, in order.
 
 ## 1. Fetch
 
-The build reads every feed in [`feeds.opml`](../../feeds.opml). A broken feed is skipped, never fatal; one publisher having a bad day shouldn't take the whole build down with it.
+The build reads every feed in [`feeds.opml`](../../feeds.opml). A broken feed is skipped, never fatal.
 
 ## 2. Filter
 
@@ -12,7 +12,7 @@ It keeps dated entries from the last few days that haven't been seen before, cap
 
 ## 3. Score
 
-Each new story goes to Claude Haiku (`claude-haiku-5-5`) on its own, through the Claude Code CLI on a Claude subscription. I send them one at a time on purpose, so a story's score never depends on what it was batched with.
+Each new story goes to Claude Haiku (`claude-haiku-5-5`) on its own, through the Claude Code CLI on a Claude subscription. Stories are sent one at a time so a story's score never depends on what it was batched with.
 
 For each story, the model returns:
 
@@ -35,11 +35,11 @@ Nothing published is ever taken down. There's a 20-story daily cap, but it exist
 
 ## 5. Drop repeats
 
-The model flags a story that's already on the site from the past week (the same launch from another outlet, say). I don't take the model's word for it; the code checks that claim, so one copy always survives.
+The model flags a story that's already on the site from the past week (the same launch from another outlet, say). The code checks that claim, so one copy always survives.
 
 ## 6. Flag exploited flaws
 
-Stories about a flaw under active attack, or a supply-chain compromise, get flagged. There's enough to this step that it has [its own page](exploited-flags.md).
+Stories about a flaw under active attack, or a supply-chain compromise, get flagged. See [Exploited flags](exploited-flags.md).
 
 ## 7. Pick the essentials
 

@@ -1,6 +1,6 @@
 # The reader, and what it does with your data
 
-Articles open in Upshot's own pane, in its own type and theme, starting with the upshot. This page covers how the text gets there, and the rules that keep a publisher's page from doing anything it shouldn't.
+Articles open in Upshot's own pane, in its own type and theme, starting with the upshot. This page covers how the text is extracted and stored, and the rules that keep a publisher's page from running anything.
 
 ## How articles are extracted
 

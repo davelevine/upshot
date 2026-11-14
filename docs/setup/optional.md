@@ -1,6 +1,6 @@
 # Optional extras
 
-None of this is needed to run Upshot. The site works fine without the licensed fonts, Renovate is a convenience, and read-state sync needs no setup beyond what [Getting started](getting-started.md) already covers. This page is for when you want the rest.
+None of this is needed to run Upshot. The site works without the licensed fonts, Renovate is optional, and read-state sync needs no setup beyond [Getting started](getting-started.md).
 
 ## The fonts
 
@@ -32,7 +32,7 @@ It keeps every pin current: the GitHub Actions (pinned to commit digests), `feed
 
 - **New releases wait three days** before an update is proposed.
 - **Patch, digest and minor updates merge themselves** once CI passes, including the browser smoke test.
-- **Major versions and the Claude Code CLI wait for review**, arriving together on the 1st of each month. PR checks can't fully test the CLI, since they don't run the real build, so I'd rather look at those myself.
+- **Major versions and the Claude Code CLI wait for review**, arriving together on the 1st of each month. PR checks can't fully test the CLI, since they don't run the real build.
 
 ## Read-state sync
 
