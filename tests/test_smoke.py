@@ -73,6 +73,8 @@ def enter_list(pg):
     pg.wait_for_selector("a.card", state="attached")
     if pg.evaluate("document.body.classList.contains('home') && matchMedia('(max-width: 640px)').matches"):
         pg.evaluate("document.querySelector(\"#filters [data-f='all']\").click()")
+        # The page slides in and the header crossfades; a check mid-fade (axe's contrast, say) sees half-transparent text.
+        assert until(pg, "!document.getAnimations().some(a => a instanceof CSSTransition)"), "the slide settles"
     pg.wait_for_selector("a.card")
 
 
