@@ -1980,6 +1980,23 @@ def test_sync_by_code_between_devices(browser):
     assert a.problems == [] and b.problems == []
 
 
+def test_the_sync_button_leaves_the_readers_controls_clear(browser):
+    """On wide screens the menu button floats at the end of the reader bar, and while syncing the sync button joins it:
+    the bar keeps room for both, so neither covers the story's own buttons."""
+    a = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900})
+    turn_on(a)
+    a.keyboard.press("Escape")
+    a.evaluate("openReader(items[0])")
+    a.wait_for_selector("#reader-body iframe:not(.loading)")
+    overlap = a.evaluate("""() => {
+      const left = document.getElementById('sync-ind').getBoundingClientRect().left;
+      return [...document.querySelectorAll('.reader-bar .icon-btn')].filter(b => b.checkVisibility())
+        .map(b => [b.id || b.className, b.getBoundingClientRect().right]).filter(([, r]) => r > left);
+    }""")
+    assert overlap == [], "reader buttons under the sync button"
+    assert a.problems == []
+
+
 def test_sync_survives_cleared_storage_and_deletes(browser):
     """Safari clears a site's storage after a week away; the session cookie survives, so the read list comes back. Delete
     removes everything and signs out."""
