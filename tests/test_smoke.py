@@ -1980,6 +1980,41 @@ def test_sync_by_code_between_devices(browser):
     assert a.problems == [] and b.problems == []
 
 
+def test_the_sync_button_leaves_the_readers_controls_clear(browser):
+    """On wide screens the menu button floats at the end of the reader bar, and while syncing the sync button joins it:
+    the bar keeps room for both, so neither covers the story's own buttons, and they're spaced as one row."""
+    a = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900})
+    turn_on(a)
+    a.keyboard.press("Escape")
+    a.evaluate("openReader(items[0])")
+    a.wait_for_selector("#reader-body iframe:not(.loading)")
+    # Gaps between the visible buttons right of the reader bar's spacer (the story's) and the floating ones, in order.
+    gaps = """() => {
+      const from = document.querySelector('.reader-bar .reader-spacer').getBoundingClientRect().right;
+      const r = [...document.querySelectorAll('.reader-bar .icon-btn, .controls > .icon-btn')].filter(b => b.checkVisibility())
+        .map(b => b.getBoundingClientRect()).filter(x => x.left >= from).sort((x, y) => x.left - y.left);
+      return r.slice(1).map((x, i) => x.left - r[i].right);
+    }"""
+    spaced = a.evaluate(gaps)
+    assert len(spaced) >= 3 and set(spaced) == {8}, f"the story's buttons, the sync button and the menu, evenly spaced: {spaced}"
+    a.evaluate("document.getElementById('sync-ind').hidden = true")
+    assert set(a.evaluate(gaps)) == {8}, f"and with sync off: {a.evaluate(gaps)}"
+    assert a.problems == []
+
+
+def test_the_sync_arrows_match_the_search_icon_on_phones(browser):
+    """On a phone the sync button sits beside search: the arrows are drawn as large as the magnifier, at the same 2px stroke."""
+    a = open_site(browser, url=SYNC_URL, viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
+    turn_on(a)
+    a.keyboard.press("Escape")
+    ink = a.evaluate("""() => ['search-btn', 'sync-ind'].map(id => {
+      const g = document.querySelector(`#${id} svg`), k = g.getBoundingClientRect().width / g.viewBox.baseVal.width, b = g.getBBox();
+      return [Math.round(b.width * k * 10) / 10, Math.round(b.height * k * 10) / 10, Math.round(parseFloat(getComputedStyle(g).strokeWidth) * k * 10) / 10];
+    })""")
+    assert ink[0] == ink[1] == [16, 16, 2], f"search, then sync: width, height, stroke in px: {ink}"
+    assert a.problems == []
+
+
 def test_sync_survives_cleared_storage_and_deletes(browser):
     """Safari clears a site's storage after a week away; the session cookie survives, so the read list comes back. Delete
     removes everything and signs out."""
@@ -1995,7 +2030,7 @@ def test_sync_survives_cleared_storage_and_deletes(browser):
     enter_list(a)
     assert until(a, "syncOn"), "still syncing"
     assert until(a, "u => readSet.has(u)", url), "the read list comes back"
-    # The header's cloud: there while syncing, saying when it last synced.
+    # The header's sync button: there while syncing, saying when it last synced.
     assert until(a, "/^Synced/.test(document.getElementById('sync-ind').title) && !document.getElementById('sync-ind').hidden")
 
     open_sync(a)
@@ -2006,7 +2041,7 @@ def test_sync_survives_cleared_storage_and_deletes(browser):
     assert "Sync is off" in a.inner_text("#sync-msg") and a.is_visible("#sync"), "says so, sheet open"
     assert a.is_hidden("#sync-err"), "news, not an error"
     assert not a.evaluate("syncOn")
-    assert a.is_hidden("#sync-ind"), "the cloud goes"
+    assert a.is_hidden("#sync-ind"), "the sync button goes"
     assert a.evaluate("fetch('/api/auth/me').then(r => r.json()).then(m => m.signedIn)") is False
     assert a.problems == []
 
@@ -2517,7 +2552,7 @@ def _group(browser, n):
 
 
 def _off(d, timeout=4000):
-    """Stopped syncing by itself: no cloud, and the reason it'll show (in the sheet now, or the next time it opens)."""
+    """Stopped syncing by itself: no sync button, and the reason it'll show (in the sheet now, or the next time it opens)."""
     assert until(d, "!syncOn && document.getElementById('sync-ind').hidden", timeout=timeout), "stops by itself"
     return d.evaluate("syncNotice || document.getElementById('sync-msg').textContent")
 

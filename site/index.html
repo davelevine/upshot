@@ -159,7 +159,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   .sync .sync-err { margin: 12px 0 0; color: var(--exploited-ink); }
   .sync .sync-msg { color: var(--text); }  /* news, first thing under the title; failures stay by the buttons, in red */
   /* The header's sync button, while this device syncs: pulsing while it works, the warning colour when it can't. */
-  .sync-ind.busy svg { animation: pulse 1s ease-in-out infinite; }
+  .sync-ind.busy svg { animation: spin 1s linear infinite; }
   .sync-ind.error { color: var(--exploited-ink); }
   .sync-input { box-sizing: border-box; width: 100%; min-height: 44px; margin: 0 0 14px; padding: 0 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
     background: var(--bg); color: var(--text); font: 1.125rem ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; }
@@ -379,6 +379,9 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
     .filters .f-head { margin-top: 12px; }
     .icon-btn { width: 44px; height: 44px; }
     .icon-btn svg { width: 24px; height: 24px; }
+    /* The sync arrows fill 18 of their 24 units, search 16: drawn as large as search beside them, with a stroke still 2px. On
+       wider screens they sit beside the reader's unread circle, which also fills 18, so they keep the common size there. */
+    .sync-ind svg { width: calc(24px * 16 / 18); height: calc(24px * 16 / 18); stroke-width: 2.25; }
     .palette-list li { min-height: 44px; }
     .items { padding-left: 6px; padding-right: 6px; }
     .card { gap: 10px; }
@@ -435,8 +438,9 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
     html { overflow: hidden; scrollbar-gutter: auto; }  /* the list scrolls itself, so its scrollbar sits beside it, not at the window's edge */
     .col { height: 100dvh; overflow-y: auto; overscroll-behavior: contain; scroll-padding-top: 12px; }
     header { position: fixed; inset: 0 auto auto 0; border-bottom: 0; border-right: 1px solid var(--border); background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
-    .controls { position: fixed; top: 8px; right: 12px; z-index: 101; }  /* fixed to the window: the header no longer reaches here */
-    .reader .reader-bar { padding-right: 64px; }  /* room for the menu button */
+    .controls { position: fixed; top: 8px; right: 12px; z-index: 101; gap: 8px; }  /* fixed to the window: the header no longer reaches here. The reader bar's gap, so they read as one row */
+    .reader .reader-bar { padding-right: 56px; }  /* room for the menu button: 12px from the edge, 36px, and the bar's 8px gap */
+    body:has(#sync-ind:not([hidden])) .reader .reader-bar { padding-right: 100px; }  /* and the sync button beside it: 36px and another 8px */
     .reader { top: 0; width: auto; z-index: 98; border-left: 1px solid var(--border); box-shadow: none; transform: none !important; visibility: visible; pointer-events: auto; transition: none; }
     .reader-backdrop { display: none; }
     body.reading { overflow: visible; }
@@ -552,7 +556,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
       <span class="menu-label only-light">Dark mode</span><span class="menu-label only-dark">Light mode</span>
     </button>
     <button class="icon-btn" id="sync-btn" type="button" aria-haspopup="dialog">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg><!-- the header's sync cloud (site/app.js, CLOUD), without its status mark -->
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg><!-- the header's sync button's arrows (site/app.js, SYNC_ARROWS) -->
       <span class="menu-label">Sync your reading</span>
     </button>
     </div>
