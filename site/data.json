@@ -19,6 +19,44 @@
    ]
   },
   {
+   "date": "2026-11-14",
+   "published": "2026-11-14T08:03:00+00:00",
+   "title": "Node.js Brings Debounce, Throttle, and PKCS#12 Parsing Into Core Modules",
+   "url": "https://www.infoq.com/news/2026/11/nodejs-debounce-throttle/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Node.js 26.10.0 adds util.debounce, util.throttle, util.markPromiseAsHandled, crypto.parsePKCS12, and node:ffi VFS support; Node 26 becomes Active LTS.",
+   "relevance": 6,
+   "added": "2026-11-14T08:18:19+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Node.js 26.10.0 adds util.debounce() and util.throttle() to node:util, plus crypto.parsePKCS12() for extracting keys and certificates from .p12 and .pfx bundles.",
+    "The release also lets node:ffi load libraries from the experimental Virtual File System, and fixes a dlopen bug that broke addon loading.",
+    "Node.js 26 is now Active LTS under the codename Lithium, with support through April 2029.",
+    "Installers for all major platforms are available at nodejs.org/en/download."
+   ]
+  },
+  {
+   "date": "2026-11-14",
+   "published": "2026-11-14T07:27:00+00:00",
+   "title": "Google Cloud Moves the Compute Engine API to Immutable Date-Based Versions",
+   "url": "https://www.infoq.com/news/2026/11/compute-engine-api-versioning/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Google Cloud made date-based immutable versioning of the Compute Engine API generally available, replacing the mutable /v1 surface with dated snapshots.",
+   "relevance": 6,
+   "added": "2026-11-14T08:18:19+00:00",
+   "minutes": 3,
+   "tldr": [
+    "Google Cloud made multi-versioning of the Compute Engine API generally available, adding immutable date-stamped versions beside /v1, starting with 2026-09-01.",
+    "Date-based versions return AggregatedList partial results by default and use structured google.rpc.ErrorInfo error bodies, which changes behavior for callers.",
+    "Callers can pin a version with the X-Goog-Api-Version header or $apiVersion query parameter; SDKs, gcloud and Terraform also bind to a bundled version.",
+    "Requests that name no version still reach /v1, and Google has given no end-of-life date for it."
+   ]
+  },
+  {
    "date": "2026-11-13",
    "published": "2026-11-14T01:50:00+00:00",
    "title": "Attackers use Crypto Exchange Names to Disguise Unauthorized Sessions on 100+ ScreenConnect Servers",
@@ -3574,7 +3612,7 @@
    }
   ]
  },
- "generated_at": "2026-11-14T07:18:26+00:00",
+ "generated_at": "2026-11-14T08:18:29+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
