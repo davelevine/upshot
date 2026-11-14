@@ -936,8 +936,9 @@ def test_reader_and_frame_relay_run_under_csp(browser):
     frame = pg.frame_locator("#reader-body iframe:not(.loading)")
     assert frame.locator("h1").inner_text() == title
     assert frame.locator("h1 a").get_attribute("href") == card.get_attribute("href")
-    frame.locator("p").nth(29).wait_for()  # the card shows first, then the article replaces it
-    assert frame.locator("p").count() == 30
+    article = frame.locator("p", has_text="of the stub article")  # the article's own; a story can bring more (an exploited flaw's note)
+    article.nth(29).wait_for()  # the card shows first, then the article replaces it
+    assert article.count() == 30
     # Escape pressed inside the article only reaches the page through the frame's relay script,
     # so closing proves the CSP lets that hashed script run.
     frame.locator("p").first.click()
