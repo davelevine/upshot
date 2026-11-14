@@ -35,9 +35,11 @@ They stay in `.wrangler/state`. A second server started with its own `--persist-
 With `npx wrangler dev -c wrangler.jsonc -c sync/wrangler.jsonc --infer-origin-from-routes=false --port 8788` running:
 
 ```bash
-.venv/bin/pip install playwright axe-playwright-python && .venv/bin/python -m playwright install chromium
-SMOKE_URL=http://127.0.0.1:8788 .venv/bin/pytest -q tests/test_smoke.py
+.venv/bin/pip install playwright axe-playwright-python pytest-xdist && .venv/bin/python -m playwright install chromium
+SMOKE_URL=http://127.0.0.1:8788 .venv/bin/pytest -q -n auto tests/test_smoke.py
 ```
+
+`-n auto` runs a worker per core, as CI does (four there); drop it to run one test at a time, as when debugging one.
 
 It loads the site in Chromium under its real CSP and checks the feed, reader, search palette, swipe-back, sync (two browsers joined by code, on `localhost`) and WCAG 2.2 AA (axe). It fails on any CSP violation, console error or page error. It doesn't need the licensed fonts: it serves Public Sans's bytes (from `fonts/`) in their place, which is enough to check which face each weight and theme loads, and that no article downloads a font again.
 
