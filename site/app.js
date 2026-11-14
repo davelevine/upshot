@@ -270,10 +270,10 @@ function pruneRead() {
 // does after a week away) finds itself still syncing and gets its read list back, and other visitors cost no request.
 const SYNC_DELAY = 3000, SYNC_BATCH = 300;  // a batch stays well under the server's size limit
 const stored = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
-let syncOn, marks, pending, cursor, pushTimer, syncGen = 0, syncNotice = '';
+let syncOn, marks, pending, cursor, takeSince, pushTimer, syncGen = 0, syncNotice = '';
 const loadSync = () => {
   syncOn = !!localStorage.getItem('syncOn'); marks = stored('marks', {}); pending = new Set(stored('syncPending', []));
-  cursor = +localStorage.getItem('syncCursor') || 0;
+  cursor = +localStorage.getItem('syncCursor') || 0; takeSince = !!localStorage.getItem('syncTakeSince');
 };
 loadSync();
 const saveMarks = () => {
@@ -283,7 +283,7 @@ const saveMarks = () => {
 const maySync = () => syncOn || /(?:^|;\s*)upshot_sync=1/.test(document.cookie);
 // Another tab changed what's stored: take it up, so this tab never writes its older copy back over it.
 addEventListener('storage', e => {
-  if (!['syncOn', 'marks', 'syncPending', 'syncCursor', 'since', 'read', 'kept'].includes(e.key)) return;
+  if (!['syncOn', 'marks', 'syncPending', 'syncCursor', 'syncTakeSince', 'since', 'read', 'kept'].includes(e.key)) return;
   const was = syncOn;
   loadSync();
   if (syncOn !== was) {  // turned on or off in that tab
@@ -301,8 +301,8 @@ function noteMark(url, read, opened) {
   marks[url] = [read, Date.now(), opened]; pending.add(url); saveMarks();
   clearTimeout(pushTimer); pushTimer = setTimeout(syncNow, SYNC_DELAY);  // a burst of marks goes as one request
 }
-// Joining: what this browser already knows goes in as marks older than any real change, so other devices' changes win,
-// and its order holds ("Recently read" lists them in it).
+// Turning sync on (or finding this browser's storage cleared): what it already knows goes in as marks older than any real
+// change, so other devices' changes win, and its order holds ("Recently read" lists them in it). Joining by code doesn't.
 function seedMarks() {
   let t = 1;
   for (const u of readSet) marks[u] ??= [1, t++, 1];
@@ -320,17 +320,21 @@ function fromMarks() {
   saveRead(); saveKept();
 }
 // Joining or leaving a sync starts over; syncGen tells a sync that was already on its way to drop its answer.
-function signedIn() {
+// `joined` (by a code): the sync's state replaces this device's, as a feed reader's account does on a new device. Its reads
+// and cutoff stay here, unsent: an unread story is only the absence of a mark, so anything sent would win against it.
+// The first sync takes the sync's cutoff and rebuilds the read list from its marks (syncNow); until then the old list shows.
+function signedIn(joined = false) {
   syncGen++;
   syncOn = true; localStorage.setItem('syncOn', 1);
   marks = {}; cursor = 0; localStorage.setItem('syncCursor', 0);
-  seedMarks();
+  if (joined) { pending = new Set(); saveMarks(); } else seedMarks();
+  takeSince = joined; joined ? localStorage.setItem('syncTakeSince', 1) : localStorage.removeItem('syncTakeSince');  // stored: another tab, or a reload, mustn't send the old cutoff either
   disconnectLive(); setTimeout(connectLive);  // a new session: its own connection, once the cookie is set
 }
 function signedOut(notice = '') {
   syncGen++;
-  syncOn = false; marks = {}; pending.clear(); cursor = 0; syncedAt = 0;
-  for (const k of ['syncOn', 'marks', 'syncPending', 'syncCursor']) localStorage.removeItem(k);
+  syncOn = false; marks = {}; pending.clear(); cursor = 0; syncedAt = 0; takeSince = false;
+  for (const k of ['syncOn', 'marks', 'syncPending', 'syncCursor', 'syncTakeSince']) localStorage.removeItem(k);
   syncNotice = notice;
   disconnectLive();
   showSync();  // the cloud goes
@@ -366,7 +370,7 @@ async function syncNow() {
   const sendable = u => marks[u] && u.length <= 2048 && /^https?:\/\//.test(u);  // what the server accepts
   for (const u of pending) if (!sendable(u)) pending.delete(u);
   const sent = Object.fromEntries([...pending].slice(0, SYNC_BATCH).map(u => [u, marks[u]]));
-  const body = JSON.stringify({ marks: sent, cursor, since }), gen = syncGen;
+  const body = JSON.stringify({ marks: sent, cursor, since: takeSince ? null : since }), gen = syncGen;
   if (syncOn) setSync('busy');
   // keepalive lets a send finish after the tab is hidden or closed, but only up to 64 KB.
   syncing = fetch('/api/sync', { method: 'POST', keepalive: body.length < 6e4, headers: { 'Content-Type': 'application/json' }, body })
@@ -389,7 +393,8 @@ async function syncNow() {
     if (pending.has(u) || (marks[u] && marks[u].join() === m.join())) continue;
     marks[u] = m; changed = true;
   }
-  if (res.data.since && (!since || res.data.since < since)) { localStorage.setItem('since', since = res.data.since); changed = true; }
+  if (res.data.since && (takeSince || !since || res.data.since < since)) { localStorage.setItem('since', since = res.data.since); changed = true; }
+  if (takeSince) { takeSince = false; localStorage.removeItem('syncTakeSince'); changed = true; }  // joined: the read list is the sync's, even with nothing in it
   cursor = res.data.cursor; localStorage.setItem('syncCursor', cursor);
   saveMarks();
   if (changed) {
@@ -562,8 +567,7 @@ async function checkJoined() {
   $('sync-note').textContent = `${added.label} is syncing now.`;
   linkTimer = setTimeout(() => $('sync').close(), 2000);  // paired: long enough to read, then closed on both devices (cancelled by any change of view)
 }
-// Joining with a code from another device. If this one was already syncing elsewhere, it starts over in the new sync:
-// signedIn() puts what it has read in as marks, so nothing is lost.
+// Joining with a code from another device: this one takes the sync's reading, leaving any sync it was in.
 async function joinWithCode() {
   const code = $('sync-code').value.toUpperCase().replace(/O/g, '0').replace(/[IL]/g, '1').replace(/[^0-9A-Z]/g, ''), b = $('sync-code-go');
   if (code.length !== 8) { sayErr('A sync code has eight letters and numbers.'); return $('sync-code').focus(); }
@@ -573,7 +577,7 @@ async function joinWithCode() {
   if (!res) { failed(status === 401 ? 0 : status, 'reach Upshot'); return $('sync-code').focus(); }
   if (!res.ok) { sayErr('That sync code didn\u2019t work. Each one works once, for ten minutes.'); return $('sync-code').focus(); }
   $('sync-code').value = '';
-  signedIn();  // which connects, syncing first
+  signedIn(true);  // which connects, syncing first
   $('sync').close();
   $('status').textContent = 'Syncing on this device';
 }
@@ -1450,7 +1454,7 @@ load().then(() => (document.hidden ? syncNow() : connectLive())).then(() => {  /
   // An app's built-in browser (the Google app's, opened by a camera's QR scan) keeps its own storage: joining there would
   // sync it, not the reader's browser. The code stays unused, for the reader to enter in their browser.
   if (/GSA\/|; wv\)|FBAN|FBAV|Instagram/.test(navigator.userAgent)) { $('sync-code-inapp').hidden = false; return; }
-  joinWithCode();  // scanning is the choice; a device already syncing moves across, bringing what it has read
+  joinWithCode();  // scanning is the choice; a device already syncing moves across
 }).catch(loadFailed);
 // Builds land every hour: check every 15 min while visible, and when the tab comes back into view.
 const check = () => { if (!document.hidden) return load().catch(() => {}); };
