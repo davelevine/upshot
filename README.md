@@ -34,7 +34,7 @@ The week’s tech news, minus the noise.
 
 Upshot is a news digest for AI, security, infrastructure, software engineering and tech regulation. It reads a curated list of feeds, has an LLM keep only the stories worth your time, writes each one up in a sentence, and picks five weekly essentials with what to do about each. It's inspired by [watch.edebost.com](https://watch.edebost.com/).
 
-There's no server or database to look after. A scheduled GitHub Actions job commits a small JSON file; a static page renders it. It runs on the free tiers of GitHub Actions and Cloudflare Workers, plus a Claude subscription.
+There's no server or database to look after. A scheduled GitHub Actions job commits a small JSON file, and a static page renders it. It runs on the free tiers of GitHub Actions and Cloudflare Workers, plus a Claude subscription.
 
 ## What you get
 
@@ -52,7 +52,7 @@ Every hour, [`build.py`](build.py) fetches the feeds in [`feeds.opml`](feeds.opm
 
 The front end is [`site/index.html`](site/index.html) and [`site/app.js`](site/app.js): no framework, no build step. A Cloudflare Worker serves it and answers the reader's requests; a second one, in [`sync/`](sync/), keeps read state in step across a reader's devices.
 
-For the full pipeline, the reader's security model, and how the build looks after itself, see **[docs/architecture.md](docs/architecture.md)**.
+That's the short version. The [docs](docs/README.md) go deeper: start with the **[overview](docs/architecture/overview.md)**, or jump to the [pipeline](docs/architecture/pipeline.md), the [reader and its security model](docs/architecture/reader.md), or [sync](docs/architecture/sync.md).
 
 ## Run your own copy
 
@@ -66,7 +66,7 @@ Setup takes about fifteen minutes. The only paid piece is a Claude subscription 
 6. **Make it yours:** links and `og:url` in `site/index.html`, the badges above, and your feeds.
 7. **Run the first build** from **Actions → Build → Run workflow**, with `backfill_days` set to `30` to fill in the last month.
 
-Each step in detail, plus adding feeds, the configuration knobs, and keeping the schedule on time: **[docs/setup.md](docs/setup.md)**.
+Each step is covered in detail in **[getting started](docs/setup/getting-started.md)**. Once it's running, see [feeds](docs/setup/feeds.md) for adding your own, [configuration](docs/setup/configuration.md) for the knobs and keeping the schedule on time, and [optional extras](docs/setup/optional.md) for fonts and Renovate.
 
 ## Developing
 
@@ -77,7 +77,7 @@ npm ci && node --test 'tests/*.test.js'
 npx wrangler dev -c wrangler.jsonc -c sync/wrangler.jsonc --infer-origin-from-routes=false --port 8788
 ```
 
-Local runs, the browser smoke test, test fixtures and CI are in **[docs/developing.md](docs/developing.md)**.
+More on [running locally](docs/development/local.md), [testing](docs/development/testing.md) (including the browser smoke test and reader fixtures) and [CI/CD](docs/development/ci.md).
 
 ## Built With Claude
 
