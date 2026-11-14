@@ -18,13 +18,13 @@ Everything runs on the free tiers of GitHub Actions and Cloudflare Workers. The 
 
 3. **Give the reader somewhere to keep articles.** Do this before connecting Cloudflare, or the first deploy points at someone else's namespace.
 
-   In Cloudflare, create a Workers KV namespace and put its ID in both `kv_namespaces` entries in [`wrangler.jsonc`](../wrangler.jsonc). The namespace ID isn't a secret. Then create an API token with only the **Workers KV Storage: Edit** permission, and add `CF_API_TOKEN`, `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID` as repository secrets.
+   In Cloudflare, create a Workers KV namespace and put its ID in both `kv_namespaces` entries in [`wrangler.jsonc`](../wrangler.jsonc). The namespace ID isn't a secret. Then create an API token with the **Workers KV Storage: Edit** and **Workers Scripts: Edit** permissions (the first stores articles; the second deploys `upshot-sync`, step 4), and add `CF_API_TOKEN`, `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID` as repository secrets.
 
    Without these the digest still works, but the reader only shows each story's summary.
 
 4. **Connect Cloudflare Workers.** In [`wrangler.jsonc`](../wrangler.jsonc), change `routes` to your own domain, or delete it and set `workers_dev` to `true` to use the `workers.dev` address.
 
-   The site's Worker binds to a second one, `upshot-sync` ([`sync/`](../sync/), read-state sync), so set that up first. It deploys from GitHub Actions ([Deploy sync](../.github/workflows/deploy-sync.yml)) whenever a push to `main` changes `sync/` or the npm packages. In Cloudflare, create an API token with only the **Account › Workers Scripts › Edit** permission and add it as the repository secret `CF_WORKERS_DEPLOY_TOKEN` (`CF_ACCOUNT_ID` is already there from step 3). Then run **Actions → Deploy sync → Run workflow** once, so `upshot-sync` exists before the site's Worker deploys.
+   The site's Worker binds to a second one, `upshot-sync` ([`sync/`](../sync/), read-state sync), so set that up first. It deploys from GitHub Actions ([Deploy sync](../.github/workflows/deploy-sync.yml)) whenever a push to `main` changes `sync/` or the npm packages. It uses the `CF_API_TOKEN` and `CF_ACCOUNT_ID` secrets from step 3. Run **Actions → Deploy sync → Run workflow** once, so `upshot-sync` exists before the site's Worker deploys.
 
    Then import the repository again and name this Worker `upshot`; it must match `name` in `wrangler.jsonc`. Leave the build command empty and the deploy and preview commands at their defaults.
 

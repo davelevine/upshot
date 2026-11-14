@@ -53,7 +53,7 @@ It loads the site in Chromium under its real CSP and checks the feed, reader, se
 | -------- | -------- | :-: | :----: | :-------: | ------- |
 | [Build](../.github/workflows/build.yml) | Fetch, score, publish | ✓ | ✓ | ✓ | Every hour at :17 UTC, started by the Worker's cron; GitHub's own schedule is the fallback and skips an hour the Worker already started. On PRs it runs the Python and JavaScript tests only. Manual runs take an optional `backfill_days`. |
 | [Build › smoke](../.github/workflows/build.yml) | Browser smoke test | ✓ | | | The test above, against `wrangler dev` in the workflow. |
-| [Deploy sync](../.github/workflows/deploy-sync.yml) | Deploy `upshot-sync` | | ✓ | | On every push to `main` that changes `sync/` or the npm packages: runs sync's unit tests, then `wrangler deploy -c sync/wrangler.jsonc`. Needs the `CF_WORKERS_DEPLOY_TOKEN` secret ([setup](setup.md#setup), step 4). |
+| [Deploy sync](../.github/workflows/deploy-sync.yml) | Deploy `upshot-sync` | | ✓ | | On every push to `main` that changes `sync/` or the npm packages: runs sync's unit tests, then `wrangler deploy -c sync/wrangler.jsonc`. Uses the `CF_API_TOKEN` secret, which needs **Workers Scripts: Edit** ([setup](setup.md#setup), step 3). |
 
 Cloudflare Workers Builds deploys every push to `main` with `npx wrangler deploy`, including the bot's data commits, and builds a Preview for every other branch with its URL posted on the PR.
 

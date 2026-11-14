@@ -1,7 +1,7 @@
 # Deploys upshot-sync (sync/), read-state sync's Worker, when a push to main changes it. The site's own Worker deploys
 # through Cloudflare Workers Builds; this one deploys from here because OpenTofu (homelab-iac) can't manage a Workers
 # Builds project, and that repo deploys Worker scripts from their own repos (its ADR-0080).
-# Secrets: CF_WORKERS_DEPLOY_TOKEN (a Cloudflare API token with Account › Workers Scripts › Edit only) and CF_ACCOUNT_ID.
+# Secrets: CF_API_TOKEN (the Build workflow's, which also needs Account › Workers Scripts › Edit) and CF_ACCOUNT_ID.
 name: Deploy sync
 
 on:
@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CF_WORKERS_DEPLOY_TOKEN }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
