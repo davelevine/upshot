@@ -1,0 +1,40 @@
+# Deploys upshot-sync (sync/), read-state sync's Worker, when a push to main changes it. The site's own Worker deploys
+# through Cloudflare Workers Builds; this one deploys from here because OpenTofu (homelab-iac) can't manage a Workers
+# Builds project, and that repo deploys Worker scripts from their own repos (its ADR-0080).
+# Secrets: CF_API_TOKEN (the Build workflow's, which also needs Account › Workers Scripts › Edit) and CF_ACCOUNT_ID.
+name: Deploy sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "sync/**"
+      - "package.json"
+      - "package-lock.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-sync
+  cancel-in-progress: false  # a deploy finishes; the next one queues behind it
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 26
+          cache: npm
+      - run: npm ci
+      - run: node --test tests/reader.test.js tests/sync.test.js  # nothing deploys that its own tests fail
+      - name: Deploy
+        if: env.CLOUDFLARE_API_TOKEN != ''  # a fork without the token skips it
+        run: npx wrangler deploy -c sync/wrangler.jsonc
