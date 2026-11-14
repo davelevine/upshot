@@ -99,3 +99,14 @@ test('sync: the newest change wins, refused changes come back, numbers are never
   assert.equal(r.sync('a', {}, 0, null).since, '2026-10-01T00:00:00.000Z');
   assert.equal(r.sync('nobody', {}, 0, null), null, 'only for a device of this sync');
 });
+
+test('the device list says when each device last synced, to the minute', () => {
+  const r = reader();
+  r.addSession('a', 'Firefox on Mac');
+  r.addSession('b', 'Safari on iPhone');
+  now += 10 * MIN;
+  r.sync('b', {}, 0, null);
+  now += 5 * MIN;
+  r.sync('b', {}, 0, null);  // within the hour checkSession waits between writes
+  assert.equal(r.devices('a').find(d => d.hash === 'b').seen, now);
+});

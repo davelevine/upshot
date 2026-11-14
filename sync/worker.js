@@ -66,7 +66,7 @@ export class Reader extends DurableObject {
     this.#tell('devices', hash);
     return true;
   }
-  // Whether a session is valid, noting when it was last used (at most hourly, to spare writes).
+  // Whether a session is valid, noting when it was last used (at most hourly, to spare writes; sync() notes every sync).
   checkSession(hash) {
     const row = this.sql.exec('SELECT seen FROM sessions WHERE hash = ?', hash).toArray()[0];
     if (!row) return false;
@@ -107,6 +107,7 @@ export class Reader extends DurableObject {
   sync(hash, changes, cursor, since) {
     if (!this.checkSession(hash)) return null;
     const now = Date.now();
+    this.sql.exec('UPDATE sessions SET seen = ? WHERE hash = ?', now, hash);  // every sync, for the device list's "Last synced"
     let seq = this.#get('seq') ?? 0;
     if (cursor > seq) cursor = 0;  // a cursor from before the reader's data was deleted: start over
     const refused = [];
