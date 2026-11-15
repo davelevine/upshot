@@ -5045,10 +5045,10 @@
         <path data-edge-from="repo" data-edge-to="worker" data-edge-label="deploy" data-edge-key="5" data-edge-id="repo-worker" data-composition-points="382.5,404;382.5,480" d="M 382.5 404 L 382.5 480" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <path data-edge-from="kv" data-edge-to="worker" data-edge-label="/api/read" data-edge-key="6" data-edge-id="kv-worker" data-composition-points="215,512;295,512" d="M 215 512 L 295 512" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="worker" data-edge-to="page" data-edge-label="↓ HTTPS" data-edge-key="7" data-edge-id="worker-page" data-composition-points="382.5,544;382.5,620" d="M 382.5 544 L 382.5 620" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path data-edge-from="page" data-edge-to="worker" data-edge-label="↑ read marks" data-edge-key="8" data-edge-id="page-worker" data-composition-points="382.5,620;382.5,544" d="M 382.5 620 L 382.5 544" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="worker" data-edge-to="sync" data-edge-label="read marks" data-edge-key="9" data-edge-id="worker-sync" data-composition-points="470,512;550,512" d="M 470 512 L 550 512" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="page" data-edge-to="worker" data-edge-label="↑ read state" data-edge-key="8" data-edge-id="page-worker" data-composition-points="382.5,620;382.5,544" d="M 382.5 620 L 382.5 544" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="worker" data-edge-to="sync" data-edge-label="read state" data-edge-key="9" data-edge-id="worker-sync" data-composition-points="470,512;550,512" d="M 470 512 L 550 512" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="sync" data-edge-to="devices" data-edge-label="WebSocket push" data-edge-key="10" data-edge-id="sync-devices" data-composition-points="637.5,544;637.5,620" d="M 637.5 544 L 637.5 620" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="page" data-edge-to="storage" data-edge-label="read marks" data-edge-key="11" data-edge-id="page-storage" data-composition-points="295,652;215,652" d="M 295 652 L 215 652" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="page" data-edge-to="storage" data-edge-label="read state" data-edge-key="11" data-edge-id="page-storage" data-composition-points="295,652;215,652" d="M 295 652 L 215 652" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
 
         <!-- Components -->
         <g id="node-feeds" data-node-id="feeds" data-node-label="Publisher feeds" tabindex="0" role="button" aria-label="Focus Publisher feeds, 67 feeds · feeds.opml, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="67 feeds · feeds.opml" data-node-context="Architecture component">
@@ -5188,8 +5188,8 @@
         <text data-detail="context" x="382.5" y="666" class="t-muted" font-size="9" text-anchor="middle">index.html · app.js</text>
         </g>
 
-        <g id="node-devices" data-node-id="devices" data-node-label="Your other devices" tabindex="0" role="button" aria-label="Focus Your other devices, same marks, live, Browser" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="same marks, live" data-node-context="Browser">
-          <title>Your other devices · same marks, live · Browser</title>
+        <g id="node-devices" data-node-id="devices" data-node-label="Your other devices" tabindex="0" role="button" aria-label="Focus Your other devices, same read state, live, Browser" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="same read state, live" data-node-context="Browser">
+          <title>Your other devices · same read state, live · Browser</title>
           <rect x="550" y="620" width="175" height="64" rx="6" class="c-mask"/>
           <rect x="550" y="620" width="175" height="64" rx="6" class="c-frontend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(556 626) scale(0.6875)">
@@ -5199,11 +5199,11 @@
             <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="637.5" y="650" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Your other devices</text>
-        <text data-detail="context" x="637.5" y="666" class="t-muted" font-size="9" text-anchor="middle">same marks, live</text>
+        <text data-detail="context" x="637.5" y="666" class="t-muted" font-size="9" text-anchor="middle">same read state, live</text>
         </g>
 
-        <g id="node-storage" data-node-id="storage" data-node-label="Local storage" tabindex="0" role="button" aria-label="Focus Local storage, read marks · this device, Browser" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="read marks · this device" data-node-context="Browser">
-          <title>Local storage · read marks · this device · Browser</title>
+        <g id="node-storage" data-node-id="storage" data-node-label="Local storage" tabindex="0" role="button" aria-label="Focus Local storage, read state · this device, Browser" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="read state · this device" data-node-context="Browser">
+          <title>Local storage · read state · this device · Browser</title>
           <rect x="40" y="620" width="175" height="64" rx="6" class="c-mask"/>
           <rect x="40" y="620" width="175" height="64" rx="6" class="c-frontend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="frontend" class="semantic-sigil s-frontend" transform="translate(46 626) scale(0.6875)">
@@ -5213,7 +5213,7 @@
             <circle cx="6.3" cy="4.8" r=".7" class="sigil-fill"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="127.5" y="650" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Local storage</text>
-        <text data-detail="context" x="127.5" y="666" class="t-muted" font-size="9" text-anchor="middle">read marks · this device</text>
+        <text data-detail="context" x="127.5" y="666" class="t-muted" font-size="9" text-anchor="middle">read state · this device</text>
         </g>
 
         <!-- Connection labels -->
@@ -5249,21 +5249,21 @@
           <rect x="401.7" y="572" width="43.6" height="14" rx="3" class="c-mask"/>
           <text x="423.5" y="582" class="t-backend" font-size="8" text-anchor="middle">↓ HTTPS</text>
         </g>
-        <g data-detail="context" data-edge-from="page" data-edge-to="worker" data-edge-label="↑ read marks" data-edge-key="8" data-edge-id="page-worker">
+        <g data-detail="context" data-edge-from="page" data-edge-to="worker" data-edge-label="↑ read state" data-edge-key="8" data-edge-id="page-worker">
           <rect x="309.7" y="572" width="67.6" height="14" rx="3" class="c-mask"/>
-          <text x="343.5" y="582" class="t-muted" font-size="8" text-anchor="middle">↑ read marks</text>
+          <text x="343.5" y="582" class="t-muted" font-size="8" text-anchor="middle">↑ read state</text>
         </g>
-        <g data-detail="context" data-edge-from="worker" data-edge-to="sync" data-edge-label="read marks" data-edge-key="9" data-edge-id="worker-sync">
+        <g data-detail="context" data-edge-from="worker" data-edge-to="sync" data-edge-label="read state" data-edge-key="9" data-edge-id="worker-sync">
           <rect x="481" y="488" width="58" height="14" rx="3" class="c-mask"/>
-          <text x="510" y="498" class="t-muted" font-size="8" text-anchor="middle">read marks</text>
+          <text x="510" y="498" class="t-muted" font-size="8" text-anchor="middle">read state</text>
         </g>
         <g data-detail="context" data-edge-from="sync" data-edge-to="devices" data-edge-label="WebSocket push" data-edge-key="10" data-edge-id="sync-devices">
           <rect x="598.4" y="572" width="77.2" height="14" rx="3" class="c-mask"/>
           <text x="637" y="582" class="t-muted" font-size="8" text-anchor="middle">WebSocket push</text>
         </g>
-        <g data-detail="context" data-edge-from="page" data-edge-to="storage" data-edge-label="read marks" data-edge-key="11" data-edge-id="page-storage">
+        <g data-detail="context" data-edge-from="page" data-edge-to="storage" data-edge-label="read state" data-edge-key="11" data-edge-id="page-storage">
           <rect x="226" y="628" width="58" height="14" rx="3" class="c-mask"/>
-          <text x="255" y="638" class="t-muted" font-size="8" text-anchor="middle">read marks</text>
+          <text x="255" y="638" class="t-muted" font-size="8" text-anchor="middle">read state</text>
         </g>
 
         <!-- Boundary labels (foreground masks keep routes out of titles) -->

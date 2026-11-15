@@ -167,7 +167,7 @@
       "id": "devices",
       "type": "frontend",
       "label": "Your other devices",
-      "sublabel": "same marks, live",
+      "sublabel": "same read state, live",
       "pos": [
         550,
         620
@@ -181,7 +181,7 @@
       "id": "storage",
       "type": "frontend",
       "label": "Local storage",
-      "sublabel": "read marks · this device",
+      "sublabel": "read state · this device",
       "pos": [
         40,
         620
@@ -314,7 +314,7 @@
       "id": "page-worker",
       "from": "page",
       "to": "worker",
-      "label": "↑ read marks",
+      "label": "↑ read state",
       "labelAt": [
         343.5,
         582
@@ -324,7 +324,7 @@
       "id": "worker-sync",
       "from": "worker",
       "to": "sync",
-      "label": "read marks",
+      "label": "read state",
       "labelAt": [
         510,
         498
@@ -344,7 +344,7 @@
       "id": "page-storage",
       "from": "page",
       "to": "storage",
-      "label": "read marks",
+      "label": "read state",
       "labelAt": [
         255,
         638
