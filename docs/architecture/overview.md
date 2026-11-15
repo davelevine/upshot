@@ -4,14 +4,9 @@ These pages cover how a story gets from a publisher's feed to the page, and what
 
 ## How it fits together
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="diagram/architecture-dark.png">
-  <img src="diagram/architecture-light.png" alt="Upshot's architecture: publisher feeds and CISA's catalog feed the build on GitHub Actions, which scores stories with Claude Haiku, commits data.json to the repository and stores article text in Workers KV. The repository deploys the Site Worker, which serves the browser, reads KV and R2, and reaches the upshot-sync Worker and its Durable Objects over a service binding.">
-</picture>
+<a href="diagram/upshot-architecture.html" target="_blank" rel="noopener" title="Open the interactive diagram"><img src="diagram/upshot-architecture.svg" alt="Upshot's architecture in four regions. Sources: CISA's Known Exploited Vulnerabilities catalog, 67 publisher feeds from feeds.opml, and Claude Haiku (claude-haiku-5-5) through the Claude Code CLI. GitHub: the Build workflow (build.yml, dispatched by the Worker's cron) runs build.py, which fetches the feeds, reads the KEV catalog, makes one Claude call per story, and scores, dedupes, flags and picks essentials. build.py hands new stories to extract.mjs (Readability and linkedom), reports failing feeds to a self-closing Feed health issue, and commits data.json, rss.xml and state.json to the repository. A push that changes sync/ runs Deploy sync. Cloudflare: Workers Builds deploys every push to main, with PR previews, as the Site Worker (worker.js, cron at :17). extract.mjs stores article text in Workers KV (ARTICLES, 100-day TTL), which the Site Worker reads for /api/read. The Site Worker serves licensed fonts from the upshot-fonts R2 bucket, and reaches upshot-sync (/api/auth, /api/sync, rate limits) over the SYNC service binding and a WebSocket. upshot-sync keeps marks and devices in a per-reader SQLite Durable Object and one-time codes, good for 10 minutes, in a Codes Durable Object. Browser: the page (index.html, app.js) gets assets and data.json from the Site Worker, keeps read marks in local storage with no account, and renders articles in a sandboxed reader frame with a nonce-admitted relay script."></a>
 
-<!-- Source: diagram/upshot.architecture.json. Regenerate with Archify: archify deliver architecture upshot.architecture.json upshot-architecture.html --quality showcase -->
-
-The diagram leaves out one link: the Site Worker's cron starts the build every hour, with GitHub's own schedule as the fallback.
+How it's built and regenerated is in [diagram/README.md](diagram/README.md).
 
 There's no server or database to look after. Upshot has three pieces:
 
