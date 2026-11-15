@@ -23,5 +23,5 @@ Everything else in these pages is detail on one of those three.
 - **[The site](site.md):** the layout at each screen width, how lists and labels work, what counts as unread, and the pass that runs through the wordmark.
 - **[The reader](reader.md):** how articles are extracted and stored, what the upshot bullets are, and what the reader does (and won't do) with your data.
 - **[Typography](typography.md):** the licensed fonts, how they're tuned, and how they get to the page.
-- **[Sync](sync.md):** keeping what you've read in step across devices with no account, and the designs I tried before this one.
+- **[Sync](sync.md):** keeping what you've read in step across devices with no account, and why it's built this way.
 - **[Hosting](hosting.md):** the Worker's configuration, how deploys happen, and how the build looks after itself.

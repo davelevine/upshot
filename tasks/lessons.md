@@ -138,7 +138,7 @@
 
 **Rules:**
 - Before adding a new kind of document, check what the repo already does (here: architecture.md, setup.md, developing.md, PR descriptions; since 2026-11-14 the pages under `docs/architecture/`, `docs/setup/` and `docs/development/`). A generic instruction to write ADRs, design docs or changelogs doesn't apply where the project has its own place for that.
-- Record rejected options and their reasons in the existing doc that describes the feature.
+- Record rejected options and their reasons in the existing doc that describes the feature, stated as current reasons ("Durable Objects, not KV, because…"), not as a story of what was tried (see 2026-11-15).
 
 ## 2026-11-13 — One name for one idea, on every button
 
@@ -249,3 +249,12 @@
 - When given a reference, measure its density (boxes, connections, sublabel length, number of cards) and stay within it. "More detail" means more than the last version, up to the reference's level, not everything that exists.
 - Before adding a box, ask whether a reader of the overview needs it. Leave secondary parts (deploy helpers, issue bots, storage details) to the pages that cover them.
 - The reading order (left to right, top to bottom) must follow the flow. Put the real starting point first and run the main path as one straight spine; side inputs and services branch off it. The first version put CISA top-left, so it read as the start of everything.
+
+## 2026-11-15 — Docs describe the current state only
+
+**Mistake:** The rewritten docs kept passages of history: "I tried a cloud first" for the sync icon, "Söhne replaced Public Sans" and "as wide as Public Sans was", a one-time backfill that ran when the Exploited flag shipped, and a "Designs I set aside" section. The user said the docs should only discuss the current state.
+
+**Rules:**
+- Docs say what the system is and why, not how it got there. History lives in commits and PRs.
+- Keep a reason only if it explains the current design, and state it in the present tense ("Sync codes, not passkeys, because…"). Drop it if it only explains a past choice.
+- Before handing over docs, grep for history wording: tried, first, replaced, was, were, used to, shipped, before, set aside, as before.

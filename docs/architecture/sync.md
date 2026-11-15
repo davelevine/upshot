@@ -1,6 +1,6 @@
 # Syncing what you've read
 
-Sync keeps what you've read the same on every device, with no account, email or password. You make a short code on one device and enter it on another. This page covers pairing, how the server keeps devices in agreement, abuse limits, and the designs I tried first.
+Sync keeps what you've read the same on every device, with no account, email or password. You make a short code on one device and enter it on another. This page covers pairing, how the server keeps devices in agreement, abuse limits, and why it's built this way.
 
 ## Pairing devices
 
@@ -39,7 +39,7 @@ Sync runs in a second Worker, `upshot-sync` ([`sync/`](../../sync/)), which the 
 - **Clocks can't win an argument.** The page takes the server's answer over its own unless that story changed again locally since, so a device whose clock is off still ends up agreeing. A clock running ahead is also held to the server's time.
 - **Marks for stories a tab hasn't loaded yet are kept,** so a sync that lands before a new build doesn't drop them.
 - **When it syncs.** The page syncs on load, a few seconds after a change, when the tab is hidden or shown again, when another device changes something (below), and when the connection comes back.
-- **A device that joins takes the sync's reading.** Entering a code replaces the device's read list with the sync's, the way a new device in a feed reader starts from the account. Anything it read beforehand stays unsent. That's deliberate: an unread story is only the absence of a mark, so a read sent on joining would always win, and a laptop's unread stories would go read the moment a phone joined. The first device's reading, and a browser's whose storage was cleared, are uploaded as before.
+- **A device that joins takes the sync's reading.** Entering a code replaces the device's read list with the sync's, the way a new device in a feed reader starts from the account. Anything it read beforehand stays unsent. That's deliberate: an unread story is only the absence of a mark, so a read sent on joining would always win, and a laptop's unread stories would go read the moment a phone joined. The first device's reading is uploaded, and so is the reading of a browser whose storage was cleared.
 - **Every device counts the same older stories as read.** A browser's first visit treats stories from before the last day as read (`since` in site/app.js). Synced devices share the earliest such cutoff, so a phone that joins a laptop's sync shows the same unread stories, not just the same marks. A joining device takes the sync's cutoff rather than offering its own, so one that first visited long ago doesn't bring back stories the others count as read.
 - **Tabs stay in step.** A tab takes up another tab's changes to what's stored (the `storage` event). That event can arrive late (a tab frozen in the background hears nothing until it wakes), so a tab also rereads what's stored before it changes the marks. That way it never writes an older copy back over another tab's marks, and a sync from a tab that hadn't yet heard sync was on can't take it for a browser whose storage was cleared and start over.
 
@@ -70,8 +70,6 @@ Once a device syncs, a sync button sits in the header beside the menu, the way O
 - **Every sync shows.** Tapped or not, every sync turns the arrows at least once round and stops on a whole turn, so even a quick one is visible.
 - **Sync settings** in the menu is where devices, codes and turning sync off live. When Upshot can't be reached it says so ("Couldn't reach Upshot. Last synced 5m ago.") with **Try again**.
 
-I tried a cloud first, but its wide, short shape looked small beside the reader's round unread button. The icon also stays away from "Updated 1h ago" and the late bar's single-arrow **Check again**, which are about new stories, not sync.
-
 ## Managing devices
 
 - **Any device can be removed from any other.** The sheet lists devices by browser and system ("Safari on iPhone") and when each last synced. Browsers that send Chrome's user agent word for word, such as Brave, are named from their client hints (`Sec-CH-UA`), and an app's built-in browser is named as such ("Google app on Android"), so you can tell which of your browsers is syncing.
@@ -97,10 +95,9 @@ On the Free plan, a limit reached makes further calls fail until 00:00 UTC rathe
 
 It isn't airtight. A determined script with a session can use up the day's 100,000 rows written, and sync stops until midnight UTC. Bounding that would take a write budget per reader, which isn't worth it for a site this size.
 
-## Designs I set aside
+## Why it's built this way
 
-I tried three other designs before this one:
-
-- **A random key kept in KV, shared by link.** KV is eventually consistent, so two devices syncing through different Cloudflare locations within about a minute could overwrite each other's changes. The key also lived in local storage, which Safari clears.
-- **Cloudflare Access.** Real identity with almost no code, but only for allowlisted emails.
-- **Passkeys.** Creating and using one differed by platform and password manager: a passkey in a Mac's own store wasn't visible to a phone using Bitwarden. Adding a device needed a code anyway, so the code became the whole design.
+- **Durable Objects, not KV.** KV is eventually consistent, so two devices syncing through different Cloudflare locations within about a minute could overwrite each other's changes. A Durable Object handles one call at a time, so they can't.
+- **A session cookie, not a key in local storage.** Safari clears a site's script storage after a week away, which would lose a key kept there. A cookie set by the server survives it.
+- **Sync codes, not accounts.** Cloudflare Access gives real identity with almost no code, but only for allowlisted emails, so it can't serve readers at large.
+- **Sync codes, not passkeys.** Creating and using a passkey differs by platform and password manager: a passkey in a Mac's own store isn't visible to a phone using Bitwarden. Adding a device would need a code anyway, so the code is the whole design.

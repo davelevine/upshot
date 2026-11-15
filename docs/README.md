@@ -10,7 +10,7 @@ These pages cover how Upshot works, how to run your own copy, and how to work on
 - **[The site](architecture/site.md):** the layout at each screen width, what the labels mean, how unread works, and the pass the wordmark makes on open.
 - **[The reader](architecture/reader.md):** how articles are extracted and shown, and what it does (and doesn't do) with your data.
 - **[Typography](architecture/typography.md):** the licensed fonts, how they're tuned, and how they get to the page.
-- **[Sync](architecture/sync.md):** keeping what you've read the same across devices with a sync code, and the designs I tried first.
+- **[Sync](architecture/sync.md):** keeping what you've read the same across devices with a sync code, and why it's built this way.
 - **[Hosting](architecture/hosting.md):** the Worker, how deploys happen, and how the build looks after itself.
 
 ## Running your own copy
