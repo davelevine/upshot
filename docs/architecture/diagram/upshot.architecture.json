@@ -162,6 +162,20 @@
         175,
         64
       ]
+    },
+    {
+      "id": "devices",
+      "type": "frontend",
+      "label": "Your other devices",
+      "sublabel": "same marks, live",
+      "pos": [
+        550,
+        620
+      ],
+      "size": [
+        175,
+        64
+      ]
     }
   ],
   "boundaries": [
@@ -188,7 +202,8 @@
       "kind": "region",
       "label": "Browser",
       "wraps": [
-        "page"
+        "page",
+        "devices"
       ],
       "pad": 18
     }
@@ -273,12 +288,21 @@
       "id": "worker-page",
       "from": "worker",
       "to": "page",
-      "label": "HTTPS",
+      "label": "HTTPS · read marks",
       "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top",
       "labelAt": [
-        382,
+        447.5,
         582
       ]
+    },
+    {
+      "id": "page-worker",
+      "from": "page",
+      "to": "worker",
+      "fromSide": "top",
+      "toSide": "bottom"
     },
     {
       "id": "worker-sync",
@@ -288,6 +312,16 @@
       "labelAt": [
         510,
         498
+      ]
+    },
+    {
+      "id": "sync-devices",
+      "from": "sync",
+      "to": "devices",
+      "label": "WebSocket push",
+      "labelAt": [
+        637,
+        582
       ]
     }
   ],
@@ -313,7 +347,7 @@
       "title": "Sync",
       "items": [
         "Optional · no account, email or password",
-        "Marks sync through one Durable Object per reader"
+        "A device joins with a sync code or QR code"
       ]
     }
   ]
