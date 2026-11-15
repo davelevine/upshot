@@ -4,6 +4,15 @@ These pages cover how a story gets from a publisher's feed to the page, and what
 
 ## How it fits together
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="diagram/architecture-dark.png">
+  <img src="diagram/architecture-light.png" alt="Upshot's architecture: publisher feeds and CISA's catalog feed the build on GitHub Actions, which scores stories with Claude Haiku, commits data.json to the repository and stores article text in Workers KV. The repository deploys the Site Worker, which serves the browser, reads KV and R2, and reaches the upshot-sync Worker and its Durable Objects over a service binding.">
+</picture>
+
+<!-- Source: diagram/upshot.architecture.json. Regenerate with Archify: archify deliver architecture upshot.architecture.json upshot-architecture.html --quality showcase -->
+
+The diagram leaves out one link: the Site Worker's cron starts the build every hour, with GitHub's own schedule as the fallback.
+
 There's no server or database to look after. Upshot has three pieces:
 
 1. **The build.** Every hour, a GitHub Actions job runs [`build.py`](../../build.py). It reads the feeds, has Claude Haiku score each new story, and keeps only the ones worth reading. It also extracts each article's text into Cloudflare KV for the reader. Then it commits a small JSON file and an RSS feed back to the repo.

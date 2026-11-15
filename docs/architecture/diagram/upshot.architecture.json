@@ -1,0 +1,273 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Upshot architecture",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1270,
+      660
+    ]
+  },
+  "components": [
+    {
+      "id": "claude",
+      "type": "external",
+      "label": "Claude Haiku",
+      "sublabel": "Claude Code CLI",
+      "brand": "claude",
+      "pos": [
+        300,
+        70
+      ],
+      "size": [
+        150,
+        68
+      ]
+    },
+    {
+      "id": "r2",
+      "type": "database",
+      "label": "R2 bucket",
+      "sublabel": "Licensed fonts",
+      "brand": "cloudflare",
+      "pos": [
+        820,
+        70
+      ],
+      "size": [
+        150,
+        68
+      ]
+    },
+    {
+      "id": "feeds",
+      "type": "external",
+      "label": "Publisher feeds",
+      "sublabel": "feeds.opml",
+      "pos": [
+        40,
+        300
+      ],
+      "size": [
+        150,
+        68
+      ]
+    },
+    {
+      "id": "build",
+      "type": "backend",
+      "label": "Build",
+      "sublabel": "build.py on Actions",
+      "brand": "github",
+      "pos": [
+        300,
+        300
+      ],
+      "size": [
+        150,
+        68
+      ]
+    },
+    {
+      "id": "repo",
+      "type": "database",
+      "label": "Repository",
+      "sublabel": "data.json, rss.xml",
+      "brand": "github",
+      "pos": [
+        560,
+        300
+      ],
+      "size": [
+        150,
+        68
+      ]
+    },
+    {
+      "id": "worker",
+      "type": "cloud",
+      "label": "Site Worker",
+      "sublabel": "worker.js",
+      "brand": "cloudflare",
+      "pos": [
+        820,
+        300
+      ],
+      "size": [
+        150,
+        68
+      ]
+    },
+    {
+      "id": "browser",
+      "type": "frontend",
+      "label": "Browser",
+      "sublabel": "index.html, app.js",
+      "pos": [
+        1080,
+        300
+      ],
+      "size": [
+        150,
+        68
+      ]
+    },
+    {
+      "id": "cisa",
+      "type": "external",
+      "label": "CISA KEV",
+      "sublabel": "Exploited CVEs",
+      "pos": [
+        300,
+        530
+      ],
+      "size": [
+        150,
+        68
+      ]
+    },
+    {
+      "id": "kv",
+      "type": "database",
+      "label": "Workers KV",
+      "sublabel": "Article text",
+      "brand": "cloudflare",
+      "pos": [
+        560,
+        530
+      ],
+      "size": [
+        150,
+        68
+      ]
+    },
+    {
+      "id": "sync",
+      "type": "cloud",
+      "label": "upshot-sync",
+      "sublabel": "Sync Worker",
+      "brand": "cloudflare",
+      "pos": [
+        820,
+        530
+      ],
+      "size": [
+        150,
+        68
+      ]
+    },
+    {
+      "id": "dobj",
+      "type": "database",
+      "label": "Durable Objects",
+      "sublabel": "Per-reader SQLite",
+      "pos": [
+        1080,
+        530
+      ],
+      "size": [
+        150,
+        68
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "feeds-build",
+      "from": "feeds",
+      "to": "build",
+      "label": "hourly fetch",
+      "variant": "emphasis"
+    },
+    {
+      "id": "build-claude",
+      "from": "build",
+      "to": "claude",
+      "label": "score, summarize"
+    },
+    {
+      "id": "cisa-build",
+      "from": "cisa",
+      "to": "build",
+      "label": "catalog"
+    },
+    {
+      "id": "build-repo",
+      "from": "build",
+      "to": "repo",
+      "label": "commit",
+      "variant": "emphasis"
+    },
+    {
+      "id": "repo-worker",
+      "from": "repo",
+      "to": "worker",
+      "label": "deploy",
+      "variant": "emphasis"
+    },
+    {
+      "id": "worker-browser",
+      "from": "worker",
+      "to": "browser",
+      "label": "HTTPS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "build-kv",
+      "from": "build",
+      "to": "kv",
+      "label": "extract.mjs"
+    },
+    {
+      "id": "worker-kv",
+      "from": "worker",
+      "to": "kv",
+      "label": "/api/read"
+    },
+    {
+      "id": "r2-worker",
+      "from": "r2",
+      "to": "worker",
+      "label": "/fonts/licensed",
+      "labelAt": [
+        895,
+        219
+      ]
+    },
+    {
+      "id": "worker-sync",
+      "from": "worker",
+      "to": "sync",
+      "label": "service binding",
+      "labelAt": [
+        895,
+        449
+      ]
+    },
+    {
+      "id": "sync-dobj",
+      "from": "sync",
+      "to": "dobj",
+      "label": "marks, devices"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Every hour",
+      "items": [
+        "The Site Worker's cron starts the build; GitHub's schedule is the fallback",
+        "The build commits data.json, and Workers Builds deploys the push"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "No server, no database",
+      "items": [
+        "Article text is extracted at build time, so nothing fetches from publishers",
+        "Sync is optional and runs in its own Worker with a Durable Object per reader"
+      ]
+    }
+  ]
+}
