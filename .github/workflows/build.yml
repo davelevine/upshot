@@ -136,7 +136,7 @@ jobs:
           python-version: "3.15"
           cache: pip
       - run: npm ci
-      - run: pip install pytest pytest-xdist==3.8.0 playwright==1.65.0 axe-playwright-python==0.1.8  # no browser download: the tests use the runner's Chrome
+      - run: pip install pytest pytest-xdist==3.8.0 playwright==1.65.1 axe-playwright-python==0.1.8  # no browser download: the tests use the runner's Chrome
       - name: Start the site
         run: |
           # The site's Worker and upshot-sync (sync/), as deployed. The Worker sees the address it was asked for, not the

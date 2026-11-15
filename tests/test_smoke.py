@@ -1504,6 +1504,9 @@ def test_a_row_shows_one_label_the_one_that_matters_most(browser):
     def both(data):
         flag_some(data)
         data["weekly"]["items"][0]["url"] = data["flagged"][0]  # exploited and essential
+        # Essential only: the newest unflagged story, so its row is among the first rendered whatever the week's picks are
+        fresh = max((i for i in data["items"] if "exploited" not in i), key=lambda i: i.get("published") or i["date"])
+        data["weekly"]["items"][1]["url"] = fresh["url"]
     pg = open_site(browser, patch=both, viewport={"width": 390, "height": 800}, has_touch=True, is_mobile=True)
     sec = pg.evaluate("fetch('/data.json').then(r => r.json()).then(d => d.flagged[0])")
     meta = lambda u: pg.locator(f'a.card[href="{u}"] .card-meta > :not(.card-src)')
@@ -1575,8 +1578,13 @@ def test_a_first_visit_counts_only_the_last_day_as_unread(browser):
     pg.goto(URL)
     enter_list(pg)
     count = lambda: pg.locator("#filters .filter-btn[data-f='all'] .f-count").text_content()
-    # The essentials count too, however old: they're the stories not to miss.
-    fresh = pg.evaluate("items.filter(i => Date.parse(i.added || i.published || i.date) > Date.parse(generatedAt) - 864e5 || picks.has(i.url)).length")
+    # The last day, or the newest five when the last day holds fewer (a quiet stretch, such as a weekend). The essentials
+    # count too, however old: they're the stories not to miss.
+    fresh = pg.evaluate("""(() => {
+      const at = i => Date.parse(i.added || i.published || i.date), times = items.map(at).sort((a, b) => b - a);
+      const cut = Math.min(Date.parse(generatedAt) - 864e5, (times[4] ?? Infinity) - 1);
+      return items.filter(i => at(i) > cut || picks.has(i.url)).length;
+    })()""")
     assert 0 < fresh < pg.evaluate("items.length") and count() == f"{fresh} unread"
     assert pg.evaluate("picks.size > 0 && [...picks.keys()].every(u => !isRead(u))")
     # Older stories show as read, and one marked unread by hand stays unread.
