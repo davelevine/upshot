@@ -1,6 +1,6 @@
 # The pipeline
 
-Every hour the Build workflow runs [`build.py`](../../build.py). The schedule is in [Configuration](../setup/configuration.md).
+The pipeline is everything the hourly build does to turn the feeds into the handful of stories the site shows. The Build workflow runs [`build.py`](../../build.py) every hour; the schedule is in [Configuration](../setup/configuration.md).
 
 ## Steps
 

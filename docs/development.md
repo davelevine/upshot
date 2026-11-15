@@ -1,6 +1,6 @@
 # Development
 
-Deploys and CI are in [Hosting](architecture/hosting.md).
+This page is for working on Upshot's code: running the build and the site locally, running the tests, and the conventions to follow when you change things. Deploys and CI are in [Hosting](architecture/hosting.md).
 
 ## Setup
 

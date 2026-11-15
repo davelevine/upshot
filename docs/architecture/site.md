@@ -1,6 +1,6 @@
 # The site
 
-[`site/index.html`](../../site/index.html) and [`site/app.js`](../../site/app.js) are the whole front end, with no framework and no build step.
+The site is what a reader sees: the topics, the story list and the reader pane. [`site/index.html`](../../site/index.html) and [`site/app.js`](../../site/app.js) are the whole front end, with no framework and no build step.
 
 ## Layout
 

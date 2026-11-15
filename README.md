@@ -34,8 +34,6 @@ The week’s tech news, minus the noise.
 
 Upshot is a news digest for AI, security, infrastructure, software engineering and tech regulation. I wanted to keep up with all of it without reading every feed myself, so I built something that does the first pass for me. It reads a curated list of feeds, keeps only the stories worth reading, sums each one up in a sentence, and picks five weekly essentials with what to do about each. It's inspired by [watch.edebost.com](https://watch.edebost.com/).
 
-It runs on the free tiers of GitHub Actions and Cloudflare Workers, plus a Claude subscription. The [architecture overview](docs/architecture/overview.md) explains how it works.
-
 ## Features
 
 - **Only what matters.** A handful of stories on a big day, none on a slow one, each with a one-line summary.
@@ -45,9 +43,13 @@ It runs on the free tiers of GitHub Actions and Cloudflare Workers, plus a Claud
 - **Read state and sync.** Read stories are dimmed, and sync keeps them the same across your devices with a code. No account.
 - **Phone and desktop.** Install it as an app on a phone; `⌘K` search and `j`/`k` navigation on a desktop. Light and dark themes, and an RSS feed.
 
+## How it works
+
+Every hour, a GitHub Actions job runs [`build.py`](build.py), which fetches the feeds in [`feeds.opml`](feeds.opml) and has Claude Haiku score and summarize each new story. The stories that clear the bar are committed to the repository as a small JSON file, and each article's text is stored in Cloudflare KV. A Cloudflare Worker serves the static front end and that stored text, so the reader never fetches from publishers. There's no server or database to look after; the [architecture overview](docs/architecture/overview.md) has a diagram and the details.
+
 ## Running your own copy
 
-See [getting started](docs/setup/getting-started.md).
+You'll need a GitHub account, a Cloudflare account and a Claude Pro or Max subscription. Everything else runs on the free tiers of GitHub Actions and Cloudflare Workers, and setup takes about fifteen minutes. [Getting started](docs/setup/getting-started.md) walks through it.
 
 ## Developing
 

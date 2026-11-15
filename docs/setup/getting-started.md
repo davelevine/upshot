@@ -1,6 +1,14 @@
 # Running your own copy
 
-You need a Claude subscription (Pro or Max); the build uses it through the Claude Code CLI, so there's no API key. Setup takes about fifteen minutes.
+This guide sets up your own copy of Upshot: a fork that builds every hour on GitHub Actions and serves from Cloudflare Workers.
+
+## Before you start
+
+- **A GitHub account**, to fork the repository and run the build.
+- **A Cloudflare account.** The Workers, KV namespace and Durable Objects Upshot uses fit in the free plan.
+- **A Claude Pro or Max subscription.** The build calls Claude through the Claude Code CLI with a token from your subscription, so there's no API key or per-token bill.
+- **The Claude Code CLI**, signed in to that subscription, to create the token in step 2.
+- **About fifteen minutes.**
 
 ## Setup
 
@@ -27,6 +35,12 @@ You need a Claude subscription (Pro or Max); the build uses it through the Claud
 6. **Make it yours:** the GitHub links and `og:url` in `site/index.html`, the README badges, and [`feeds.opml`](../../feeds.opml).
 
 7. **Run the first build** from **Actions → Build → Run workflow** on `main`, with `backfill_days` set to `30` to fill in the last month (as far back as each feed still lists). Cloudflare deploys a minute after the build commits.
+
+## Check that it worked
+
+- The Build run finishes and commits `site/data.json` and `site/rss.xml` to `main`.
+- About a minute later, your site loads with the last month's stories.
+- Opening a story shows the article in the reader. If it shows only the summary, check the three `CF_` secrets from step 3.
 
 ## Next
 

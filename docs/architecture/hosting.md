@@ -1,5 +1,7 @@
 # Hosting
 
+Upshot is served by Cloudflare Workers and built and deployed from GitHub. This page explains how the site's Worker is set up, how a change reaches production, and how failures show up.
+
 ## The Worker
 
 [`worker.js`](../../worker.js) serves the static files from `site/`, answers `/api/read` from KV, passes `/api/sync` and `/api/auth/*` to `upshot-sync`, and starts the build on a cron trigger ([Configuration](../setup/configuration.md)). Pages get a per-request CSP nonce. [`wrangler.jsonc`](../../wrangler.jsonc) sets the `ARTICLES` KV binding, the `FONTS` R2 binding, the `SYNC` service binding, the custom domain, and Workers Logs.
@@ -19,7 +21,7 @@
 
 ## Secrets
 
-Repository secrets: `CLAUDE_CODE_OAUTH_TOKEN` (from `claude setup-token`, good for about a year), and `CF_API_TOKEN`, `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID` for storing articles and deploying sync. [Getting started](../setup/getting-started.md) covers creating them.
+Repository secrets: `CLAUDE_CODE_OAUTH_TOKEN` for scoring with Claude, and `CF_API_TOKEN`, `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID` for storing articles and deploying sync. [Getting started](../setup/getting-started.md) covers creating and renewing them.
 
 ## When something breaks
 

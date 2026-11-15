@@ -1,5 +1,7 @@
 # Configuration
 
+A fork runs fine on the defaults. This page is for changing them: how many stories get through, when the build runs, which feeds it reads, and the optional fonts and Renovate.
+
 ## Settings
 
 Constants at the top of [`build.py`](../../build.py); the defaults are what the live site runs. "env" means an environment variable can override it.
