@@ -176,6 +176,20 @@
         175,
         64
       ]
+    },
+    {
+      "id": "storage",
+      "type": "frontend",
+      "label": "Local storage",
+      "sublabel": "read marks · this device",
+      "pos": [
+        40,
+        620
+      ],
+      "size": [
+        175,
+        64
+      ]
     }
   ],
   "boundaries": [
@@ -202,6 +216,7 @@
       "kind": "region",
       "label": "Browser",
       "wraps": [
+        "storage",
         "page",
         "devices"
       ],
@@ -288,12 +303,10 @@
       "id": "worker-page",
       "from": "worker",
       "to": "page",
-      "label": "HTTPS · read marks",
+      "label": "↓ HTTPS",
       "variant": "emphasis",
-      "fromSide": "bottom",
-      "toSide": "top",
       "labelAt": [
-        447.5,
+        423.5,
         582
       ]
     },
@@ -301,8 +314,11 @@
       "id": "page-worker",
       "from": "page",
       "to": "worker",
-      "fromSide": "top",
-      "toSide": "bottom"
+      "label": "↑ read marks",
+      "labelAt": [
+        343.5,
+        582
+      ]
     },
     {
       "id": "worker-sync",
@@ -322,6 +338,16 @@
       "labelAt": [
         637,
         582
+      ]
+    },
+    {
+      "id": "page-storage",
+      "from": "page",
+      "to": "storage",
+      "label": "read marks",
+      "labelAt": [
+        255,
+        638
       ]
     }
   ],
