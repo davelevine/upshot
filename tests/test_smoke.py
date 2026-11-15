@@ -1578,8 +1578,13 @@ def test_a_first_visit_counts_only_the_last_day_as_unread(browser):
     pg.goto(URL)
     enter_list(pg)
     count = lambda: pg.locator("#filters .filter-btn[data-f='all'] .f-count").text_content()
-    # The essentials count too, however old: they're the stories not to miss.
-    fresh = pg.evaluate("items.filter(i => Date.parse(i.added || i.published || i.date) > Date.parse(generatedAt) - 864e5 || picks.has(i.url)).length")
+    # The last day, or the newest five when the last day holds fewer (a quiet stretch, such as a weekend). The essentials
+    # count too, however old: they're the stories not to miss.
+    fresh = pg.evaluate("""(() => {
+      const at = i => Date.parse(i.added || i.published || i.date), times = items.map(at).sort((a, b) => b - a);
+      const cut = Math.min(Date.parse(generatedAt) - 864e5, (times[4] ?? Infinity) - 1);
+      return items.filter(i => at(i) > cut || picks.has(i.url)).length;
+    })()""")
     assert 0 < fresh < pg.evaluate("items.length") and count() == f"{fresh} unread"
     assert pg.evaluate("picks.size > 0 && [...picks.keys()].every(u => !isRead(u))")
     # Older stories show as read, and one marked unread by hand stays unread.
