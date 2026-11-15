@@ -1,6 +1,8 @@
 # Architecture diagram
 
-The diagram on the [overview](../overview.md) is built with [Archify](https://github.com/tt-a1i/archify) from `upshot.architecture.json`. The SVG is what the overview shows, and the HTML is the interactive version it links to (pan, zoom, search, focus).
+The diagram on the [overview](../overview.md) is built with [Archify](https://github.com/tt-a1i/archify) from `upshot.architecture.json`. The SVG is what the overview shows.
+
+Archify also makes an interactive HTML version (pan, zoom, search, focus). It isn't committed, because it rebuilds exactly from the JSON: rendering the same source with the same Archify version (2.17.0-dev.1 here) produces the same file, byte for byte.
 
 ## Regenerating it
 
@@ -12,10 +14,10 @@ After editing `upshot.architecture.json`:
    archify validate architecture upshot.architecture.json --quality standard
    ```
 
-2. Render the interactive HTML:
+2. Render the interactive HTML somewhere outside the repo:
 
    ```bash
-   archify render architecture upshot.architecture.json upshot-architecture.html --quality standard
+   archify render architecture upshot.architecture.json /tmp/upshot-architecture.html --quality standard
    ```
 
 3. Open the HTML, use **Export → SVG**, and save it over `upshot-architecture.svg`.
