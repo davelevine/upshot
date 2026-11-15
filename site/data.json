@@ -3643,32 +3643,32 @@
   }
  ],
  "weekly": {
-  "window_start": "2026-11-08",
-  "window_end": "2026-11-14",
+  "window_start": "2026-11-09",
+  "window_end": "2026-11-15",
   "items": [
    {
-    "url": "https://www.bleepingcomputer.com/news/security/check-point-patches-zero-day-that-lets-hackers-get-root-access/",
-    "why": "Apply the emergency hotfix now; attackers have had root access since late October."
-   },
-   {
-    "url": "https://thehackernews.com/2026/11/hackers-exploit-n-central-flaws-to.html",
-    "why": "Assume compromise and hunt for miners; 19 of 21 infected servers ran Hotfix 2."
-   },
-   {
     "url": "https://www.aikido.dev/blog/compromised-github-accounts-push-ci-secret-stealer-to-tens-of-thousands-of-repositories",
-    "why": "Rotate CI secrets in any repo touched by compromised accounts; check the affected list."
+    "why": "Audit CI workflows and rotate any secrets exposed in pipelines of affected repos now."
+   },
+   {
+    "url": "https://www.bleepingcomputer.com/news/security/cursor-confirms-security-breach-led-to-malicious-claude-code-extension/",
+    "why": "Remove recently installed Cursor marketplace extensions and rotate secrets if you installed the malicious one."
    },
    {
     "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-november-2026-patch-tuesday-fixes-1-235-flaws-outlook-zero-day/",
-    "why": "Patch the exploited Outlook zero-day first, then expect update-related printing and activation issues."
+    "why": "Prioritize this month's patches; the Outlook zero-day is already being exploited."
    },
    {
-    "url": "https://www.wordfence.com/blog/2026/11/cve-2026-119618-apache-http2/",
-    "why": "Upgrade to the fixed Apache release; check if HTTP/2 is enabled on your servers."
+    "url": "https://www.bleepingcomputer.com/news/security/check-point-patches-zero-day-that-lets-hackers-get-root-access/",
+    "why": "Patch Check Point gateways now; assume compromise if exposed since late October."
+   },
+   {
+    "url": "https://thehackernews.com/2026/11/hackers-exploit-n-central-flaws-to.html",
+    "why": "Check N-central servers for compromise and expect restricted features until N-able finishes remediation."
    }
   ]
  },
- "generated_at": "2026-11-15T04:18:06+00:00",
+ "generated_at": "2026-11-15T05:18:10+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
