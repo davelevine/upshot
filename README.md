@@ -34,7 +34,7 @@ The week’s tech news, minus the noise.
 
 Upshot is a news digest for AI, security, infrastructure, software engineering and tech regulation. I wanted to keep up with all of it without reading every feed myself, so I built something that does the first pass for me. It reads a curated list of feeds, keeps only the stories worth reading, sums each one up in a sentence, and picks five weekly essentials with what to do about each. It's inspired by [watch.edebost.com](https://watch.edebost.com/).
 
-There's no server or database. A scheduled GitHub Actions job commits a small JSON file, and a static page renders it. It runs on the free tiers of GitHub Actions and Cloudflare Workers, plus a Claude subscription.
+It runs on the free tiers of GitHub Actions and Cloudflare Workers, plus a Claude subscription. The [architecture overview](docs/architecture/overview.md) explains how it works.
 
 ## Features
 
@@ -45,13 +45,9 @@ There's no server or database. A scheduled GitHub Actions job commits a small JS
 - **Read state and sync.** Read stories are dimmed, and sync keeps them the same across your devices with a code. No account.
 - **Phone and desktop.** Install it as an app on a phone; `⌘K` search and `j`/`k` navigation on a desktop. Light and dark themes, and an RSS feed.
 
-## How it works
-
-Every hour, [`build.py`](build.py) fetches the feeds in [`feeds.opml`](feeds.opml), has Claude Haiku score and summarize each new story, and commits the ones that clear the bar. A Cloudflare Worker serves the static front end ([`site/`](site/)) and the article text the build stored. The [architecture overview](docs/architecture/overview.md) has a diagram and the details.
-
 ## Running your own copy
 
-Setup takes about fifteen minutes; see [getting started](docs/setup/getting-started.md). The only paid piece is a Claude subscription (Pro or Max), used through the Claude Code CLI, so there's no API key or per-token bill.
+See [getting started](docs/setup/getting-started.md).
 
 ## Developing
 

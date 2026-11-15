@@ -258,3 +258,13 @@
 - Docs say what the system is and why, not how it got there. History lives in commits and PRs.
 - Keep a reason only if it explains the current design, and state it in the present tense ("Sync codes, not passkeys, because…"). Drop it if it only explains a past choice.
 - Before handing over docs, grep for history wording: tried, first, replaced, was, were, used to, shipped, before, set aside, as before.
+
+## 2026-11-15 — Each fact lives on one page
+
+**Mistake:** After the docs were cut down, they still said the same things in several places: the diagram's own README repeated the overview, the README and getting-started both stated the cost, the overview re-described what each page opens with, the pipeline repeated the configuration table's score bars, and page openings ("This page covers…") repeated the index. A keyword check by topic missed most of it.
+
+**Rules:**
+- Give each fact one owner page. Anywhere else, link to it; don't summarize it again.
+- An index lists topics, and a page doesn't announce its own contents. Overview and summary pages point; they don't re-explain.
+- Check for repetition at the sentence level, not by topic keywords: run `/tmp/docscheck/repeats.py` (sentences on different pages sharing a six-word run) and resolve every hit or confirm it's a coincidence.
+- Before adding a new doc file, ask whether its content already has an owner page.

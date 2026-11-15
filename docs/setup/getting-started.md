@@ -1,6 +1,6 @@
 # Running your own copy
 
-Everything runs on the free tiers of GitHub Actions and Cloudflare Workers. The only paid piece is a Claude subscription (Pro or Max), which the build uses through the Claude Code CLI, so there's no API key or per-token bill. Setup takes about fifteen minutes.
+You need a Claude subscription (Pro or Max); the build uses it through the Claude Code CLI, so there's no API key. Setup takes about fifteen minutes.
 
 ## Setup
 

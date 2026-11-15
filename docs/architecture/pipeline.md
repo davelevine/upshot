@@ -7,7 +7,7 @@ Every hour the Build workflow runs [`build.py`](../../build.py). The schedule is
 1. **Fetch.** It reads every feed in [`feeds.opml`](../../feeds.opml). A broken feed is skipped, never fatal.
 2. **Filter.** It keeps dated entries from the last few days that it hasn't seen before, capped per feed.
 3. **Score.** Each new story goes to Claude Haiku (`claude-haiku-5-5`) on its own, through the Claude Code CLI, so its score never depends on what it was batched with. The model returns a category, a 1–10 relevance score within that category, a one-sentence summary, and whether the story reports an exploited flaw.
-4. **Keep the notable ones.** A story is published if it clears its category's bar (8 for Security and Regulation, 7 for AI and Other, 6 for Infrastructure and Engineering) and isn't a repeat. There are no quotas, so a big security day shows as one and a slow day stays short. A 20-story daily cap exists only to catch a malfunction. Nothing published is taken down.
+4. **Keep the notable ones.** A story is published if it clears its category's bar (`MIN_RELEVANCE` in [Configuration](../setup/configuration.md)) and isn't a repeat. There are no quotas, so a big security day shows as one and a slow day stays short. A 20-story daily cap exists only to catch a malfunction. Nothing published is taken down.
 5. **Drop repeats.** The model flags a story already on the site from the past week, such as the same launch from another outlet. The code checks the claim, so one copy always survives.
 6. **Flag exploited flaws.** See below.
 7. **Pick the essentials.** Once a day, the model chooses the week's five essentials.

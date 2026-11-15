@@ -1,6 +1,6 @@
 # The site
 
-[`site/index.html`](../../site/index.html) and [`site/app.js`](../../site/app.js) are the whole front end, with no framework and no build step. This page covers the layout, lists and labels, the reader, and the fonts.
+[`site/index.html`](../../site/index.html) and [`site/app.js`](../../site/app.js) are the whole front end, with no framework and no build step.
 
 ## Layout
 

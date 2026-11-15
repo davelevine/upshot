@@ -1,7 +1,5 @@
 # Hosting
 
-Upshot runs on two Cloudflare Workers and GitHub Actions. This page covers the Worker, deploys, workflows, secrets, and what happens when something breaks.
-
 ## The Worker
 
 [`worker.js`](../../worker.js) serves the static files from `site/`, answers `/api/read` from KV, passes `/api/sync` and `/api/auth/*` to `upshot-sync`, and starts the build on a cron trigger ([Configuration](../setup/configuration.md)). Pages get a per-request CSP nonce. [`wrangler.jsonc`](../../wrangler.jsonc) sets the `ARTICLES` KV binding, the `FONTS` R2 binding, the `SYNC` service binding, the custom domain, and Workers Logs.
