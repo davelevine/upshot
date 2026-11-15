@@ -40,7 +40,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
     --header-bg: rgba(227, 230, 236, .88); --tag-text: #0a5652;
     --exploited: #b3261e; --exploited-text: #fff; --exploited-ink: #b3261e;  /* the Exploited pill: a true red, darker and less pink than the wordmark's dot */
     --caution-ink: #7a5c00;  /* Compromised: Carbon's "regular warning" yellow, darkened past its Yellow 60 to reach 4.5:1 here */
-    /* Category dots: one lightness and chroma per theme, hues spread to stay apart with red-green colour blindness. Dots need 3:1, not text contrast. */
+    /* Category dots: one lightness and chroma per theme, hues spread to stay apart with red-green color blindness. Dots need 3:1, not text contrast. */
     --cat-security: #ce5978; --cat-ai: #ad65be; --cat-infrastructure: #168dd9; --cat-engineering: #409d48; --cat-regulation: #c9690c; --cat-other: #5d646f;
     --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --read: 860px;
   }
@@ -56,7 +56,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   * { box-sizing: border-box; margin: 0; }
   [hidden] { display: none !important; }
   .noscript { max-width: var(--read); margin: 24px auto; padding: 0 24px; }
-  .keys { margin: auto; padding: 18px 20px 20px;  /* the reset above removes the margin a dialog centres with */ border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-card); color: var(--text); width: min(420px, calc(100vw - 24px)); }
+  .keys { margin: auto; padding: 18px 20px 20px;  /* the reset above removes the margin a dialog centers with */ border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-card); color: var(--text); width: min(420px, calc(100vw - 24px)); }
   .keys:focus-visible { outline: none; }  /* it focuses itself on open; the ring is for controls, not the whole sheet */
   .keys::backdrop { background: rgba(0, 0, 0, .5); }
   .keys h2 { margin: 0 0 12px; font-size: 1rem; }
@@ -128,7 +128,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   @keyframes spin { to { transform: rotate(360deg); } }
   body:has(#stale:not([hidden])) .col { padding-bottom: 56px; }  /* the list's end stays clear of it */
   body:has(#stale:not([hidden])) .back-to-top { bottom: 68px; }
-  /* The toolbar, after Feedbin's: two buttons, each centred in half the bar, icon over label. At the sidebar's foot from 1024px,
+  /* The toolbar, after Feedbin's: two buttons, each centered in half the bar, icon over label. At the sidebar's foot from 1024px,
      the pane's below that, and a phone list's bottom bar, where Back to top takes the left half (dimmed at the top, as
      Feedbin dims Edit) and Shortcuts, which needs a keyboard, steps aside. */
   .list-bar { position: fixed; left: 0; bottom: 0; z-index: 90; display: grid; grid-template-columns: 1fr 1fr; place-items: center; width: var(--side-w); height: 60px;
@@ -143,7 +143,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   #bar-top { display: none; }
   .bar-status { display: none; color: var(--text-muted); font-size: .8125rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
   /* Feedbin's "…" on the selected story: a sibling of its row (a button can't sit inside a link), drawn over the row's corner. */
-  .more-wrap { position: relative; z-index: 2; align-self: flex-end; margin: -39px 6px 3px 0; }  /* centred on the row's age line, taking no room */
+  .more-wrap { position: relative; z-index: 2; align-self: flex-end; margin: -39px 6px 3px 0; }  /* centered on the row's age line, taking no room */
   .more-wrap > .icon-btn[aria-expanded="true"] { background: var(--bg-card-hover); color: var(--text); }
   .popover.more-pop { white-space: nowrap; }
   .confirm h2 { margin-bottom: 18px; font-weight: 600; line-height: 1.4; }
@@ -158,7 +158,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   .sync .sync-fine { margin: 14px 0 0; font-size: .8125rem; }
   .sync .sync-err { margin: 12px 0 0; color: var(--exploited-ink); }
   .sync .sync-msg { color: var(--text); }  /* news, first thing under the title; failures stay by the buttons, in red */
-  /* The header's sync button, while this device syncs: pulsing while it works, the warning colour when it can't. */
+  /* The header's sync button, while this device syncs: pulsing while it works, the warning color when it can't. */
   .sync-ind.busy svg { animation: spin 1s linear infinite; }
   .sync-ind.error { color: var(--exploited-ink); }
   .sync-input { box-sizing: border-box; width: 100%; min-height: 44px; margin: 0 0 14px; padding: 0 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
@@ -254,7 +254,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   .card-title { font-size: 1rem; font-weight: 600; line-height: 1.35; }
   .card-meta { display: flex; align-items: center; gap: 6px; min-width: 0; margin-top: 3px; color: var(--text); font-size: .875rem; }
   .card-src { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .card-meta > :not(.card-src, .exploited) { flex: none; color: var(--text-muted); }  /* the Exploited label sets its own colours */
+  .card-meta > :not(.card-src, .exploited) { flex: none; color: var(--text-muted); }  /* the Exploited label sets its own colors */
   .card-sum { margin-top: 4px; color: var(--text-muted); font-size: .875rem; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .card-sum.full { display: block; }  /* what to do: the whole point, never cut short */
   .card-sum b { color: var(--accent); font-weight: 600; }
@@ -274,15 +274,15 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   /* An actively exploited flaw (build.py: in CISA's catalog, or a checked claim). */
   /* The row's label, in the same quiet type as Essential: Exploited, then its remedy in CISA's terms. "No patch yet" is the
      one filled mark on a row, red with Exploited, only while there's nothing to apply; "Patch available" in the accent;
-     "Mitigation only" with no colour. A supply-chain attack says "Compromised", with no patch to report. */
+     "Mitigation only" with no color. A supply-chain attack says "Compromised", with no patch to report. */
   .exploited { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; font-size: .75rem; font-weight: 600; white-space: nowrap; }
-  .exploited .x-word { color: var(--text); }  /* leads, in the row's own ink: no colour, but never fainter than what qualifies it */
+  .exploited .x-word { color: var(--text); }  /* leads, in the row's own ink: no color, but never fainter than what qualifies it */
   .exploited:has(.no-patch) .x-word { color: var(--exploited-ink); }  /* red only while there's nothing to apply: rare, and worth it */
   .exploited .x-word.compromised { color: var(--caution-ink); }  /* a supply-chain attack: a warning (yellow), not danger (red) */
   .exploited .fix-pill { padding: 0 7px; border-radius: 999px; font-weight: 700; }
   .exploited .no-patch { background: var(--exploited); color: var(--exploited-text); }
   .exploited .patch-out { padding: 0; color: var(--accent); font-weight: 600; }  /* the good news, in the accent, as Essential is */
-  .exploited .mitigation { padding: 0; color: var(--text-muted); font-weight: 500; }  /* a workaround only: no colour, no alarm */
+  .exploited .mitigation { padding: 0; color: var(--text-muted); font-weight: 500; }  /* a workaround only: no color, no alarm */
   .exploited :is(.patch-out, .mitigation)::before { content: "· "; color: var(--text-muted); }
   .f-open { flex: none; color: var(--exploited-ink); font-size: .75rem; font-weight: 600; }  /* exploited flaws with no fix yet */
   .skeleton { pointer-events: none; animation: skeleton-in .2s ease .4s both; }  /* held back: a normal load lands first, and a flash of placeholders is just noise */
@@ -427,7 +427,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
       transform: translateX(calc(var(--pd, 0) * 100%)); transition: transform var(--slide-in) var(--ease-in), box-shadow var(--slide-in) var(--ease-in); }
     body.home .col { transform: translateX(calc(var(--pd, 1) * 100%)); }
     html:has(body.home) { overflow: hidden; }  /* the list keeps its place, off to the right */
-    body.home:not(.paging) .col { box-shadow: none; }  /* parked off the right edge, its shadow showed as a grey strip over the topics */
+    body.home:not(.paging) .col { box-shadow: none; }  /* parked off the right edge, its shadow showed as a gray strip over the topics */
     body.paging .col, body.paging .side > * { transition: none; }
   }
   /* Past phone widths: the reader docked beside the list for good, with no backdrop, and the list stays live while it's open. */
@@ -444,7 +444,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
     .reader { top: 0; width: auto; z-index: 98; border-left: 1px solid var(--border); box-shadow: none; transform: none !important; visibility: visible; pointer-events: auto; transition: none; }
     .reader-backdrop { display: none; }
     body.reading { overflow: visible; }
-    /* Nothing open: the site's mark, faint and centred, as Feedbin does with its own. */
+    /* Nothing open: the site's mark, faint and centered, as Feedbin does with its own. */
     .reader-body:empty::before { content: ""; position: absolute; inset: 0; margin: auto; width: 96px; height: 96px; background: var(--border-strong);
       -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M16 16v17a10 10 0 0 0 20 0V16M36 16v31' fill='none' stroke='%23000' stroke-width='9'/%3E%3Ccircle cx='49' cy='42' r='5'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M16 16v17a10 10 0 0 0 20 0V16M36 16v31' fill='none' stroke='%23000' stroke-width='9'/%3E%3Ccircle cx='49' cy='42' r='5'/%3E%3C/svg%3E") center / contain no-repeat; }
     body:not(.reading) .reader-bar > :not(.reader-spacer) { visibility: hidden; }  /* nothing open: no controls for it */
@@ -502,7 +502,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   .size-pop button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
   .size-pop [data-size="0"] { font-size: 13px; } .size-pop [data-size="1"] { font-size: 16px; } .size-pop [data-size="2"] { font-size: 20px; } .size-pop [data-size="3"] { font-size: 24px; }
   .reader-icon { width: 22px; height: 22px; margin-top: 0; }
-  /* Single-colour artwork on transparency would vanish against a background of its own tone, so it's inverted there. */
+  /* Single-color artwork on transparency would vanish against a background of its own tone, so it's inverted there. */
   [data-theme="dark"] .src-icon[data-art="dark"], [data-theme="light"] .src-icon[data-art="light"] { filter: invert(1); }
   #reader:focus { outline: none; }  /* focused on a tap open, so no ring appears on the close button */
   .close-back, .reader-nav { display: none; }

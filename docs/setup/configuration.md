@@ -1,6 +1,6 @@
 # Configuration
 
-Most of Upshot's behaviour is set by constants at the top of `build.py`; the defaults are what the live site runs. This page also covers the Worker's cron, which keeps the hourly build on time because GitHub's scheduler runs late or skips slots.
+Most of Upshot's behavior is set by constants at the top of `build.py`; the defaults are what the live site runs. This page also covers the Worker's cron, which keeps the hourly build on time because GitHub's scheduler runs late or skips slots.
 
 ## Settings
 

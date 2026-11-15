@@ -26,8 +26,8 @@ A row carries at most one label, the one that matters most, and it's the same in
 
 - **Exploited**, with its remedy:
   - **"No patch yet"** is red, with the word. It's the only filled mark on a row, and it stays that way while there's nothing to apply.
-  - **"Patch available"** is in the accent colour.
-  - **"Mitigation only"** has no colour.
+  - **"Patch available"** is in the accent color.
+  - **"Mitigation only"** has no color.
   - Nothing at all when the story doesn't say.
 - **Compromised**, for a supply-chain attack, is yellow: a warning rather than a danger.
 - **Essential** otherwise, which the Essentials list leaves off its own rows.
@@ -44,7 +44,7 @@ Unread titles are bold, so nothing else marks new stories. The sidebar counts un
 
 ## The toolbar
 
-A toolbar modelled on Feedbin's holds two buttons, each centred in half of it:
+A toolbar modeled on Feedbin's holds two buttons, each centered in half of it:
 
 - **From 1024px**, at the sidebar's foot (the pane's below that): **Shortcuts** and **Read**.
 - **On a phone**, a list's bottom bar: **Top** (back to the top, dimmed when you're already there) and **Read**.

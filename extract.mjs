@@ -366,7 +366,7 @@ export function kvClient({ CF_API_TOKEN, CF_ACCOUNT_ID, CF_KV_NAMESPACE_ID }) {
   };
 }
 
-// An article's text, plain, for the build to summarise.
+// An article's text, plain, for the build to summarize.
 export const plainText = html => (parseHTML(`<!doctype html><html><body>${html
   .replace(/<\/(p|div|li|h[1-6]|tr|td|th|pre|blockquote|figcaption|section|ul|ol|dd|dt)>/gi, '$& ').replace(/<br\s*\/?>/gi, ' ')}</body></html>`).document.body.textContent || '')
   .replace(/\s+/g, ' ').trim().slice(0, MAX_TEXT);

@@ -484,7 +484,7 @@ def test_reader_keeps_the_card_when_the_article_is_blocked(browser):
     assert frame.locator("h1").inner_text() == title and frame.locator(".todo").count() == 1
     assert frame.locator("a.pill").get_attribute("href") == url
     assert frame.locator(".late").count() == 0  # no second hold-back once it's the final state
-    # Pinned to the top of the pane, not centred in it.
+    # Pinned to the top of the pane, not centered in it.
     assert frame.locator("h1").bounding_box()["y"] < 120
 
 
@@ -1341,7 +1341,7 @@ def test_the_reader_marks_a_story_unread_and_read_again(browser):
 
 
 def test_read_marks_the_list_read_once_confirmed(browser):
-    # Feedbin's toolbar at the sidebar's foot, Shortcuts and Read each centred in half of it. Read asks first, and marks only
+    # Feedbin's toolbar at the sidebar's foot, Shortcuts and Read each centered in half of it. Read asks first, and marks only
     # the list that's showing.
     pg = open_site(browser, viewport={"width": 1440, "height": 900})
     count = lambda f: pg.locator(f"#filters .filter-btn[data-f='{f}'] .f-count")
@@ -1354,8 +1354,8 @@ def test_read_marks_the_list_read_once_confirmed(browser):
     assert bar["x"] == 0 and bar["width"] == side["width"] and bar["y"] + bar["height"] == 900  # the sidebar's foot
     assert pg.locator("a.card").first.bounding_box()["y"] < 20 and col["y"] == 0  # the list runs to the top
     keys, read = pg.locator("#bar-keys").bounding_box(), pg.locator("#read-all").bounding_box()
-    centre = lambda b: b["x"] + b["width"] / 2
-    assert abs(centre(keys) - bar["width"] / 4) <= 1 and abs(centre(read) - bar["width"] * 3 / 4) <= 1  # balanced halves
+    center = lambda b: b["x"] + b["width"] / 2
+    assert abs(center(keys) - bar["width"] / 4) <= 1 and abs(center(read) - bar["width"] * 3 / 4) <= 1  # balanced halves
     assert pg.locator("#bar-top").is_hidden()
     pg.click("#bar-keys")
     assert pg.locator("#keys").is_visible()
@@ -1417,7 +1417,7 @@ def test_mark_above_and_below_as_read(browser):
 
 
 def test_phones_get_feedbins_toolbar_and_keep_the_closed_story_selected(browser):
-    # As in Feedbin's app: a bottom bar, two buttons each centred in half of it. Back to top takes the left, dimmed at the top
+    # As in Feedbin's app: a bottom bar, two buttons each centered in half of it. Back to top takes the left, dimmed at the top
     # as Feedbin dims Edit; Read the right.
     pg = open_site(browser, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
     bar, top, read = (pg.locator(s).bounding_box() for s in ("#list-bar", "#bar-top", "#read-all"))
@@ -1960,7 +1960,7 @@ def test_sync_by_code_between_devices(browser):
     b.click("#sync-code-go")
     b.wait_for_selector("#sync-err:not([hidden])")
     ink, ground = b.evaluate("[getComputedStyle(document.getElementById('sync-err')).color, getComputedStyle(document.getElementById('sync')).backgroundColor]")
-    assert ink != ground  # readable, not just present: it once took the Exploited pill's white text colour
+    assert ink != ground  # readable, not just present: it once took the Exploited pill's white text color
     b.keyboard.press("Escape")
     join(b, code.lower().replace("-", " "))
     assert until(a, "/syncing now/.test(document.getElementById('sync-note').textContent)", timeout=8000), "the first device sees it join"

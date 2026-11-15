@@ -30,7 +30,7 @@ function toSync(request, env) {
 // no extension, so the Worker runs for them (run_worker_first in wrangler.jsonc); the bucket's keys are the file names,
 // with .woff2.
 const FONT_PREFIX = '/fonts/licensed/';
-// The licences ask that the fonts serve only to style text: no hotlinking (the CORS header below) and no direct download.
+// The licenses ask that the fonts serve only to style text: no hotlinking (the CORS header below) and no direct download.
 // Browsers say what a request is for, so a font opened as a page, from the address bar or a link, gets nothing; the
 // page's @font-face and preload ask for a font, and its fetch for the reader frame for nothing in particular ("empty").
 // A client that doesn't say (curl, older browsers) is let through: refusing it would stop no one and break the fonts.

@@ -24,7 +24,7 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).parent
 SITE = ROOT / "site"
 STATE = ROOT / "state.json"
-# Stories are dated, and days labelled, in one time zone, so "Today" means the same thing on every device.
+# Stories are dated, and days labeled, in one time zone, so "Today" means the same thing on every device.
 SITE_TZ = ZoneInfo(os.environ.get("SITE_TZ") or "America/New_York")
 SITE_URL = (os.environ.get("SITE_URL") or "https://upshot.levine.io").rstrip("/")  # forks set the SITE_URL repo variable
 MODEL = os.environ.get("UPSHOT_MODEL", "claude-haiku-5-5")
@@ -176,7 +176,7 @@ CLASSIFY_PROMPT = f"""You curate a tech news digest for a senior infrastructure/
 interested in AI, security, infrastructure, software engineering and tech regulation.
 For each item return:
 - category: one of {", ".join(CATEGORIES)}.
-  infrastructure: the systems software runs on. Cloud, networking, data centres, distributed systems, storage,
+  infrastructure: the systems software runs on. Cloud, networking, data centers, distributed systems, storage,
   databases, reliability at scale, and architecture decisions about those systems.
   engineering: how software gets built and shipped. Languages, tooling, CI/CD, testing, code review, release
   practice, developer platforms, team process.
@@ -257,7 +257,7 @@ def classify(item):
 
 def score_each(items):
     """Scores every story in its own call, in parallel. Scored in a batch, the model rationed high
-    scores across the batch, so a story's score depended on its neighbours. Returns {url: result or None}."""
+    scores across the batch, so a story's score depended on its neighbors. Returns {url: result or None}."""
     def one(item):
         for attempt in range(3):
             try:
@@ -338,7 +338,7 @@ def exploited(item, r, kev):
     quote = verified_claim(r, item) if r.get("category") == "security" else None
     if not hits and not quote:
         return None
-    kind = "compromise" if r.get("kind") == "compromise" and not hits else "flaw"  # a catalogued CVE is a flaw
+    kind = "compromise" if r.get("kind") == "compromise" and not hits else "flaw"  # a cataloged CVE is a flaw
     claimed = verified_fix(r, item) if kind == "flaw" else None
     fix = kev_fix(claimed) if hits else claimed
     return ({"kev": hits, "at": now().isoformat(timespec="seconds"), "kind": kind} | ({"quote": quote} if quote else {})
@@ -597,13 +597,13 @@ def fetch_icons(publishers):
 
 
 def icon_art(path):
-    """"dark" or "light" for single-colour artwork on a transparent background, which would vanish against a background
-    of the same tone: the reader inverts it there. Coloured icons, and ones on their own solid tile, get None."""
+    """"dark" or "light" for single-color artwork on a transparent background, which would vanish against a background
+    of the same tone: the reader inverts it there. Colored icons, and ones on their own solid tile, get None."""
     img = Image.open(path).convert("RGBA")
     ink = [(r, g, b) for r, g, b, a in img.get_flattened_data() if a > 128]
     if not ink or len(ink) > 64 * 64 * 0.9:
         return None
-    if sum(max(p) - min(p) for p in ink) / len(ink) > 40:  # coloured: inverting would wreck it
+    if sum(max(p) - min(p) for p in ink) / len(ink) > 40:  # colored: inverting would wreck it
         return None
     light = sum(0.2126 * r + 0.7152 * g + 0.0722 * b for r, g, b in ink) / len(ink)
     return "dark" if light < 80 else "light" if light > 200 else None
@@ -779,7 +779,7 @@ TLDR_FIX_SCHEMA = {
 
 
 # A flaw flagged after it was published (CISA listed it later, or it predates the flag) never went through the checks that
-# read its remedy: those run when a story is scored and summarised. Its upshot, written and checked from the whole article,
+# read its remedy: those run when a story is scored and summarized. Its upshot, written and checked from the whole article,
 # usually says: read it there, once.
 UPSHOT_FIX_PROMPT = """You read the summary of a news story about an exploited security flaw. Say what it says is out for the
 flaw: fix is "patch" (a vendor patch, update or fixed version), "mitigation" (only a mitigation or workaround, no patch

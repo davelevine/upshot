@@ -86,7 +86,7 @@ def test_stories_are_dated_in_the_site_time_zone():
     assert item["published"] == "2026-11-07T01:00:00+00:00"  # the exact time too, for "5h ago" on the page
 
 
-def test_icon_art_flags_only_single_colour_artwork_on_transparency(tmp_path):
+def test_icon_art_flags_only_single_color_artwork_on_transparency(tmp_path):
     from PIL import Image, ImageDraw
     def icon(name, fill, bg=(0, 0, 0, 0)):
         img = Image.new("RGBA", (64, 64), bg)
@@ -95,7 +95,7 @@ def test_icon_art_flags_only_single_colour_artwork_on_transparency(tmp_path):
         return tmp_path / name
     assert build.icon_art(icon("octocat.png", (20, 20, 20, 255))) == "dark"
     assert build.icon_art(icon("white.png", (250, 250, 250, 255))) == "light"
-    assert build.icon_art(icon("red.png", (150, 20, 30, 255))) is None            # coloured: left alone
+    assert build.icon_art(icon("red.png", (150, 20, 30, 255))) is None            # colored: left alone
     assert build.icon_art(icon("tile.png", (20, 20, 20, 255), (255, 255, 255, 255))) is None  # on its own tile
 
 
