@@ -1,4 +1,4 @@
-<svg data-theme="dark" viewBox="0 0 1020 784" role="img" lang="en" aria-labelledby="archify-diagram-title archify-diagram-description" data-preset="signal-flow" data-quality-profile="standard" style="" width="1020" height="784" xmlns="http://www.w3.org/2000/svg"><style>@font-face { font-family: 'JetBrains Mono'; font-weight: 400; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
+<svg data-theme="dark" viewBox="0 0 765 784" role="img" lang="en" aria-labelledby="archify-diagram-title archify-diagram-description" data-preset="signal-flow" data-quality-profile="standard" style="" width="765" height="784" xmlns="http://www.w3.org/2000/svg"><style>@font-face { font-family: 'JetBrains Mono'; font-weight: 400; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
 @font-face { font-family: 'JetBrains Mono'; font-weight: 500; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
 @font-face { font-family: 'JetBrains Mono'; font-weight: 600; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
 @font-face { font-family: 'JetBrains Mono'; font-weight: 700; src: local('JetBrains Mono'), local('JetBrainsMono-Regular'); }
@@ -310,42 +310,26 @@ rect.c-bg-rect { fill: var(--bg); }
         <rect width="100%" height="100%" fill="url(#grid)"/>
 
         <!-- Boundaries (behind everything) -->
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="0" data-composition-frame-label="Sources" x="277" y="36" width="466" height="108" rx="12" class="c-region" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="0" data-composition-frame-label="GitHub" x="277" y="176" width="211" height="248" rx="12" class="c-region" stroke-width="1"/>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="1" data-composition-frame-label="GitHub" x="22" y="176" width="466" height="248" rx="12" class="c-region" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="1" data-composition-frame-label="Cloudflare" x="22" y="456" width="721" height="108" rx="12" class="c-region" stroke-width="1"/>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="2" data-composition-frame-label="Cloudflare" x="22" y="456" width="976" height="108" rx="12" class="c-region" stroke-width="1"/>
-
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="3" data-composition-frame-label="Browser" x="277" y="596" width="211" height="108" rx="12" class="c-region" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="2" data-composition-frame-label="Browser" x="277" y="596" width="211" height="108" rx="12" class="c-region" stroke-width="1"/>
 
         <!-- Connection paths (before components for correct z-order) -->
-        <path data-edge-from="feeds" data-edge-to="buildpy" data-edge-label="fetch" data-edge-key="0" data-edge-id="feeds-buildpy" data-composition-points="382.5,124;382.5,200" d="M 382.5 124 L 382.5 200" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path data-edge-from="cisa" data-edge-to="buildpy" data-edge-label="KEV catalog" data-edge-key="1" data-edge-id="cisa-buildpy" data-composition-points="637.5,124;637.5,162;382.5,162;382.5,200" d="M 637.5 124 L 637.5 154 Q 637.5 162 629.5 162 L 390.5 162 Q 382.5 162 382.5 170 L 382.5 200" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="buildpy" data-edge-to="claude" data-edge-label="scores stories" data-edge-key="2" data-edge-id="buildpy-claude" data-composition-points="470,232;550,232" d="M 470 232 L 550 232" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="buildpy" data-edge-to="extract" data-edge-label="new stories" data-edge-key="3" data-edge-id="buildpy-extract" data-composition-points="295,232;255,232;255,372;215,372" d="M 295 232 L 263 232 Q 255 232 255 240 L 255 364 Q 255 372 247 372 L 215 372" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="extract" data-edge-to="kv" data-edge-label="article text" data-edge-key="4" data-edge-id="extract-kv" data-composition-points="127.5,404;127.5,480" d="M 127.5 404 L 127.5 480" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="buildpy" data-edge-to="repo" data-edge-label="commit" data-edge-key="5" data-edge-id="buildpy-repo" data-composition-points="382.5,264;382.5,340" d="M 382.5 264 L 382.5 340" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path data-edge-from="repo" data-edge-to="worker" data-edge-label="Workers Builds" data-edge-key="6" data-edge-id="repo-worker" data-composition-points="382.5,404;382.5,480" d="M 382.5 404 L 382.5 480" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path data-edge-from="worker" data-edge-to="kv" data-edge-label="/api/read" data-edge-key="7" data-edge-id="worker-kv" data-composition-points="295,512;215,512" d="M 295 512 L 215 512" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="worker" data-edge-to="sync" data-edge-label="service binding" data-edge-key="8" data-edge-id="worker-sync" data-composition-points="470,512;550,512" d="M 470 512 L 550 512" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="sync" data-edge-to="dos" data-edge-label="marks" data-edge-key="9" data-edge-id="sync-dos" data-composition-points="725,512;805,512" d="M 725 512 L 805 512" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-        <path data-edge-from="worker" data-edge-to="page" data-edge-label="HTTPS" data-edge-key="10" data-edge-id="worker-page" data-composition-points="382.5,544;382.5,620" d="M 382.5 544 L 382.5 620" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path data-edge-from="feeds" data-edge-to="build" data-edge-label="stories" data-edge-key="0" data-edge-id="feeds-build" data-composition-points="382.5,124;382.5,200" d="M 382.5 124 L 382.5 200" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path data-edge-from="cisa" data-edge-to="build" data-edge-label="CVE list" data-edge-key="1" data-edge-id="cisa-build" data-composition-points="215,232;295,232" d="M 215 232 L 295 232" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="claude" data-edge-to="build" data-edge-label="scores" data-edge-key="2" data-edge-id="claude-build" data-composition-points="550,232;470,232" d="M 550 232 L 470 232" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="build" data-edge-to="repo" data-edge-label="commit" data-edge-key="3" data-edge-id="build-repo" data-composition-points="382.5,264;382.5,340" d="M 382.5 264 L 382.5 340" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path data-edge-from="build" data-edge-to="kv" data-edge-label="article text" data-edge-key="4" data-edge-id="build-kv" data-composition-points="382.5,264;382.5,288;127.5,288;127.5,480" d="M 382.5 264 L 382.5 280 Q 382.5 288 374.5 288 L 135.5 288 Q 127.5 288 127.5 296 L 127.5 480" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="repo" data-edge-to="worker" data-edge-label="deploy" data-edge-key="5" data-edge-id="repo-worker" data-composition-points="382.5,404;382.5,480" d="M 382.5 404 L 382.5 480" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path data-edge-from="kv" data-edge-to="worker" data-edge-label="/api/read" data-edge-key="6" data-edge-id="kv-worker" data-composition-points="215,512;295,512" d="M 215 512 L 295 512" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+        <path data-edge-from="worker" data-edge-to="page" data-edge-label="HTTPS" data-edge-key="7" data-edge-id="worker-page" data-composition-points="382.5,544;382.5,620" d="M 382.5 544 L 382.5 620" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path data-edge-from="worker" data-edge-to="sync" data-edge-label="read marks" data-edge-key="8" data-edge-id="worker-sync" data-composition-points="470,512;550,512" d="M 470 512 L 550 512" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
 
         <!-- Components -->
-        <g id="node-cisa" data-node-id="cisa" data-node-label="CISA KEV" tabindex="0" role="button" aria-label="Focus CISA KEV, exploited CVEs, Sources" aria-pressed="false" data-node-kind="external" data-node-sublabel="exploited CVEs" data-node-context="Sources">
-          <title>CISA KEV · exploited CVEs · Sources</title>
-          <rect x="550" y="60" width="175" height="64" rx="6" class="c-mask"/>
-          <rect x="550" y="60" width="175" height="64" rx="6" class="c-external" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(556 66) scale(0.6875)">
-            <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
-            <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
-          </g>
-          <text data-node-label="" x="637.5" y="90" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">CISA KEV</text>
-        <text x="637.5" y="106" class="t-muted" font-size="9" text-anchor="middle">exploited CVEs</text>
-        </g>
-
-        <g id="node-feeds" data-node-id="feeds" data-node-label="Publisher feeds" tabindex="0" role="button" aria-label="Focus Publisher feeds, 67 feeds · feeds.opml, Sources" aria-pressed="false" data-node-kind="external" data-node-sublabel="67 feeds · feeds.opml" data-node-context="Sources">
-          <title>Publisher feeds · 67 feeds · feeds.opml · Sources</title>
+        <g id="node-feeds" data-node-id="feeds" data-node-label="Publisher feeds" tabindex="0" role="button" aria-label="Focus Publisher feeds, 67 feeds · feeds.opml, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="67 feeds · feeds.opml" data-node-context="Architecture component">
+          <title>Publisher feeds · 67 feeds · feeds.opml · Architecture component</title>
           <rect x="295" y="60" width="175" height="64" rx="6" class="c-mask"/>
           <rect x="295" y="60" width="175" height="64" rx="6" class="c-external" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(301 66) scale(0.6875)">
@@ -356,25 +340,20 @@ rect.c-bg-rect { fill: var(--bg); }
         <text x="382.5" y="106" class="t-muted" font-size="9" text-anchor="middle">67 feeds · feeds.opml</text>
         </g>
 
-        <g id="node-claude" data-node-id="claude" data-node-label="Claude Haiku" tabindex="0" role="button" aria-label="Focus Claude Haiku, Claude Code CLI, Architecture component, Claude" aria-pressed="false" data-node-kind="external" data-node-sublabel="Claude Code CLI" data-node-context="Architecture component" data-node-brand="Claude" data-node-brand-id="claude" data-node-brand-status="preset" data-node-brand-source="https://claude.ai">
-          <title>Claude Haiku · Claude Code CLI · Architecture component · Claude</title>
-          <rect x="550" y="200" width="175" height="64" rx="6" class="c-mask"/>
-          <rect x="550" y="200" width="175" height="64" rx="6" class="c-external" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(556 206) scale(0.6875)">
+        <g id="node-cisa" data-node-id="cisa" data-node-label="CISA KEV" tabindex="0" role="button" aria-label="Focus CISA KEV, exploited CVEs, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="exploited CVEs" data-node-context="Architecture component">
+          <title>CISA KEV · exploited CVEs · Architecture component</title>
+          <rect x="40" y="200" width="175" height="64" rx="6" class="c-mask"/>
+          <rect x="40" y="200" width="175" height="64" rx="6" class="c-external" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(46 206) scale(0.6875)">
             <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
-          <g aria-hidden="true" data-brand-mark="claude" data-brand-title="Claude" data-brand-status="preset" data-brand-source="https://claude.ai" class="brand-mark" transform="translate(703 206)">
-            <rect width="16" height="16" rx="4" class="brand-mark-badge"/>
-            <path d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z" transform="translate(3 3) scale(0.4166666666666667)" fill="#D97757"/>
-            <rect width="16" height="16" rx="4" class="brand-mark-frame"/>
-          </g>
-          <text data-node-label="" x="637.5" y="230" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Claude Haiku</text>
-        <text x="637.5" y="246" class="t-muted" font-size="9" text-anchor="middle">Claude Code CLI</text>
+          <text data-node-label="" x="127.5" y="230" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">CISA KEV</text>
+        <text x="127.5" y="246" class="t-muted" font-size="9" text-anchor="middle">exploited CVEs</text>
         </g>
 
-        <g id="node-buildpy" data-node-id="buildpy" data-node-label="build.py" tabindex="0" role="button" aria-label="Focus build.py, hourly · score · dedupe · flag, GitHub, GitHub" aria-pressed="false" data-node-kind="backend" data-node-sublabel="hourly · score · dedupe · flag" data-node-context="GitHub" data-node-brand="GitHub" data-node-brand-id="github" data-node-brand-status="preset" data-node-brand-source="https://github.com/logos">
-          <title>build.py · hourly · score · dedupe · flag · GitHub · GitHub</title>
+        <g id="node-build" data-node-id="build" data-node-label="Build" tabindex="0" role="button" aria-label="Focus Build, build.py · extract.mjs · hourly, GitHub, GitHub" aria-pressed="false" data-node-kind="backend" data-node-sublabel="build.py · extract.mjs · hourly" data-node-context="GitHub" data-node-brand="GitHub" data-node-brand-id="github" data-node-brand-status="preset" data-node-brand-source="https://github.com/logos">
+          <title>Build · build.py · extract.mjs · hourly · GitHub · GitHub</title>
           <rect x="295" y="200" width="175" height="64" rx="6" class="c-mask"/>
           <rect x="295" y="200" width="175" height="64" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(301 206) scale(0.6875)">
@@ -385,28 +364,35 @@ rect.c-bg-rect { fill: var(--bg); }
             <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" transform="translate(3 3) scale(0.4166666666666667)" fill="#181717"/>
             <rect width="16" height="16" rx="4" class="brand-mark-frame"/>
           </g>
-          <text data-node-label="" x="382.5" y="230" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">build.py</text>
-        <text x="382.5" y="246" class="t-muted" font-size="9" text-anchor="middle">hourly · score · dedupe · flag</text>
+          <text data-node-label="" x="382.5" y="230" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Build</text>
+        <text x="382.5" y="246" class="t-muted" font-size="8.9" text-anchor="middle">build.py · extract.mjs · hourly</text>
         </g>
 
-        <g id="node-extract" data-node-id="extract" data-node-label="extract.mjs" tabindex="0" role="button" aria-label="Focus extract.mjs, Readability, GitHub" aria-pressed="false" data-node-kind="backend" data-node-sublabel="Readability" data-node-context="GitHub">
-          <title>extract.mjs · Readability · GitHub</title>
-          <rect x="40" y="340" width="175" height="64" rx="6" class="c-mask"/>
-          <rect x="40" y="340" width="175" height="64" rx="6" class="c-backend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(46 346) scale(0.6875)">
-            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+        <g id="node-claude" data-node-id="claude" data-node-label="Claude Haiku" tabindex="0" role="button" aria-label="Focus Claude Haiku, Claude Code CLI, Architecture component, Claude" aria-pressed="false" data-node-kind="messagebus" data-node-sublabel="Claude Code CLI" data-node-context="Architecture component" data-node-brand="Claude" data-node-brand-id="claude" data-node-brand-status="preset" data-node-brand-source="https://claude.ai">
+          <title>Claude Haiku · Claude Code CLI · Architecture component · Claude</title>
+          <rect x="550" y="200" width="175" height="64" rx="6" class="c-mask"/>
+          <rect x="550" y="200" width="175" height="64" rx="6" class="c-messagebus" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="messagebus" class="semantic-sigil s-messagebus" transform="translate(556 206) scale(0.6875)">
+            <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>
+            <circle cx="5" cy="4.5" r="1" class="sigil-fill"/>
+            <circle cx="10.5" cy="8" r="1" class="sigil-fill"/>
+            <circle cx="7" cy="11.5" r="1" class="sigil-fill"/>
           </g>
-          <text data-node-label="" x="127.5" y="370" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">extract.mjs</text>
-        <text x="127.5" y="386" class="t-muted" font-size="9" text-anchor="middle">Readability</text>
+          <g aria-hidden="true" data-brand-mark="claude" data-brand-title="Claude" data-brand-status="preset" data-brand-source="https://claude.ai" class="brand-mark" transform="translate(703 206)">
+            <rect width="16" height="16" rx="4" class="brand-mark-badge"/>
+            <path d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z" transform="translate(3 3) scale(0.4166666666666667)" fill="#D97757"/>
+            <rect width="16" height="16" rx="4" class="brand-mark-frame"/>
+          </g>
+          <text data-node-label="" x="637.5" y="230" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Claude Haiku</text>
+        <text x="637.5" y="246" class="t-muted" font-size="9" text-anchor="middle">Claude Code CLI</text>
         </g>
 
-        <g id="node-repo" data-node-id="repo" data-node-label="Repository" tabindex="0" role="button" aria-label="Focus Repository, data.json · rss.xml, GitHub, GitHub" aria-pressed="false" data-node-kind="database" data-node-sublabel="data.json · rss.xml" data-node-context="GitHub" data-node-brand="GitHub" data-node-brand-id="github" data-node-brand-status="preset" data-node-brand-source="https://github.com/logos">
+        <g id="node-repo" data-node-id="repo" data-node-label="Repository" tabindex="0" role="button" aria-label="Focus Repository, data.json · rss.xml, GitHub, GitHub" aria-pressed="false" data-node-kind="backend" data-node-sublabel="data.json · rss.xml" data-node-context="GitHub" data-node-brand="GitHub" data-node-brand-id="github" data-node-brand-status="preset" data-node-brand-source="https://github.com/logos">
           <title>Repository · data.json · rss.xml · GitHub · GitHub</title>
           <rect x="295" y="340" width="175" height="64" rx="6" class="c-mask"/>
-          <rect x="295" y="340" width="175" height="64" rx="6" class="c-database" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(301 346) scale(0.6875)">
-            <ellipse cx="8" cy="4" rx="5" ry="2"/>
-            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
+          <rect x="295" y="340" width="175" height="64" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(301 346) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
           <g aria-hidden="true" data-brand-mark="github" data-brand-title="GitHub" data-brand-status="preset" data-brand-source="https://github.com/logos" class="brand-mark" transform="translate(448 346)">
             <rect width="16" height="16" rx="4" class="brand-mark-badge"/>
@@ -417,13 +403,12 @@ rect.c-bg-rect { fill: var(--bg); }
         <text x="382.5" y="386" class="t-muted" font-size="9" text-anchor="middle">data.json · rss.xml</text>
         </g>
 
-        <g id="node-kv" data-node-id="kv" data-node-label="Workers KV" tabindex="0" role="button" aria-label="Focus Workers KV, article text · 100 days, Cloudflare, Cloudflare" aria-pressed="false" data-node-kind="database" data-node-sublabel="article text · 100 days" data-node-context="Cloudflare" data-node-brand="Cloudflare" data-node-brand-id="cloudflare" data-node-brand-status="preset" data-node-brand-source="https://www.cloudflare.com/logo/">
+        <g id="node-kv" data-node-id="kv" data-node-label="Workers KV" tabindex="0" role="button" aria-label="Focus Workers KV, article text · 100 days, Cloudflare, Cloudflare" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="article text · 100 days" data-node-context="Cloudflare" data-node-brand="Cloudflare" data-node-brand-id="cloudflare" data-node-brand-status="preset" data-node-brand-source="https://www.cloudflare.com/logo/">
           <title>Workers KV · article text · 100 days · Cloudflare · Cloudflare</title>
           <rect x="40" y="480" width="175" height="64" rx="6" class="c-mask"/>
-          <rect x="40" y="480" width="175" height="64" rx="6" class="c-database" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(46 486) scale(0.6875)">
-            <ellipse cx="8" cy="4" rx="5" ry="2"/>
-            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
+          <rect x="40" y="480" width="175" height="64" rx="6" class="c-cloud" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(46 486) scale(0.6875)">
+            <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
           </g>
           <g aria-hidden="true" data-brand-mark="cloudflare" data-brand-title="Cloudflare" data-brand-status="preset" data-brand-source="https://www.cloudflare.com/logo/" class="brand-mark" transform="translate(193 486)">
             <rect width="16" height="16" rx="4" class="brand-mark-badge"/>
@@ -434,8 +419,8 @@ rect.c-bg-rect { fill: var(--bg); }
         <text x="127.5" y="526" class="t-muted" font-size="9" text-anchor="middle">article text · 100 days</text>
         </g>
 
-        <g id="node-worker" data-node-id="worker" data-node-label="Site Worker" tabindex="0" role="button" aria-label="Focus Site Worker, static site · /api/read, Cloudflare, Cloudflare" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="static site · /api/read" data-node-context="Cloudflare" data-node-brand="Cloudflare" data-node-brand-id="cloudflare" data-node-brand-status="preset" data-node-brand-source="https://www.cloudflare.com/logo/">
-          <title>Site Worker · static site · /api/read · Cloudflare · Cloudflare</title>
+        <g id="node-worker" data-node-id="worker" data-node-label="Site Worker" tabindex="0" role="button" aria-label="Focus Site Worker, worker.js · cron at :17, Cloudflare, Cloudflare" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="worker.js · cron at :17" data-node-context="Cloudflare" data-node-brand="Cloudflare" data-node-brand-id="cloudflare" data-node-brand-status="preset" data-node-brand-source="https://www.cloudflare.com/logo/">
+          <title>Site Worker · worker.js · cron at :17 · Cloudflare · Cloudflare</title>
           <rect x="295" y="480" width="175" height="64" rx="6" class="c-mask"/>
           <rect x="295" y="480" width="175" height="64" rx="6" class="c-cloud" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(301 486) scale(0.6875)">
@@ -447,11 +432,11 @@ rect.c-bg-rect { fill: var(--bg); }
             <rect width="16" height="16" rx="4" class="brand-mark-frame"/>
           </g>
           <text data-node-label="" x="382.5" y="510" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Site Worker</text>
-        <text x="382.5" y="526" class="t-muted" font-size="9" text-anchor="middle">static site · /api/read</text>
+        <text x="382.5" y="526" class="t-muted" font-size="9" text-anchor="middle">worker.js · cron at :17</text>
         </g>
 
-        <g id="node-sync" data-node-id="sync" data-node-label="upshot-sync" tabindex="0" role="button" aria-label="Focus upshot-sync, read-state sync, Cloudflare, Cloudflare" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="read-state sync" data-node-context="Cloudflare" data-node-brand="Cloudflare" data-node-brand-id="cloudflare" data-node-brand-status="preset" data-node-brand-source="https://www.cloudflare.com/logo/">
-          <title>upshot-sync · read-state sync · Cloudflare · Cloudflare</title>
+        <g id="node-sync" data-node-id="sync" data-node-label="upshot-sync" tabindex="0" role="button" aria-label="Focus upshot-sync, Durable Object per reader, Cloudflare, Cloudflare" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="Durable Object per reader" data-node-context="Cloudflare" data-node-brand="Cloudflare" data-node-brand-id="cloudflare" data-node-brand-status="preset" data-node-brand-source="https://www.cloudflare.com/logo/">
+          <title>upshot-sync · Durable Object per reader · Cloudflare · Cloudflare</title>
           <rect x="550" y="480" width="175" height="64" rx="6" class="c-mask"/>
           <rect x="550" y="480" width="175" height="64" rx="6" class="c-cloud" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(556 486) scale(0.6875)">
@@ -463,24 +448,7 @@ rect.c-bg-rect { fill: var(--bg); }
             <rect width="16" height="16" rx="4" class="brand-mark-frame"/>
           </g>
           <text data-node-label="" x="637.5" y="510" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">upshot-sync</text>
-        <text x="637.5" y="526" class="t-muted" font-size="9" text-anchor="middle">read-state sync</text>
-        </g>
-
-        <g id="node-dos" data-node-id="dos" data-node-label="Durable Objects" tabindex="0" role="button" aria-label="Focus Durable Objects, per-reader SQLite, Cloudflare, Cloudflare" aria-pressed="false" data-node-kind="database" data-node-sublabel="per-reader SQLite" data-node-context="Cloudflare" data-node-brand="Cloudflare" data-node-brand-id="cloudflare" data-node-brand-status="preset" data-node-brand-source="https://www.cloudflare.com/logo/">
-          <title>Durable Objects · per-reader SQLite · Cloudflare · Cloudflare</title>
-          <rect x="805" y="480" width="175" height="64" rx="6" class="c-mask"/>
-          <rect x="805" y="480" width="175" height="64" rx="6" class="c-database" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="database" class="semantic-sigil s-database" transform="translate(811 486) scale(0.6875)">
-            <ellipse cx="8" cy="4" rx="5" ry="2"/>
-            <path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/>
-          </g>
-          <g aria-hidden="true" data-brand-mark="cloudflare" data-brand-title="Cloudflare" data-brand-status="preset" data-brand-source="https://www.cloudflare.com/logo/" class="brand-mark" transform="translate(958 486)">
-            <rect width="16" height="16" rx="4" class="brand-mark-badge"/>
-            <path d="M16.5088 16.8447c.1475-.5068.0908-.9707-.1553-1.3154-.2246-.3164-.6045-.499-1.0615-.5205l-8.6592-.1123a.1559.1559 0 0 1-.1333-.0713c-.0283-.042-.0351-.0986-.021-.1553.0278-.084.1123-.1484.2036-.1562l8.7359-.1123c1.0351-.0489 2.1601-.8868 2.5537-1.9136l.499-1.3013c.0215-.0561.0293-.1128.0147-.168-.5625-2.5463-2.835-4.4453-5.5499-4.4453-2.5039 0-4.6284 1.6177-5.3876 3.8614-.4927-.3658-1.1187-.5625-1.794-.499-1.2026.119-2.1665 1.083-2.2861 2.2856-.0283.31-.0069.6128.0635.894C1.5683 13.171 0 14.7754 0 16.752c0 .1748.0142.3515.0352.5273.0141.083.0844.1475.1689.1475h15.9814c.0909 0 .1758-.0645.2032-.1553l.12-.4268zm2.7568-5.5634c-.0771 0-.1611 0-.2383.0112-.0566 0-.1054.0415-.127.0976l-.3378 1.1744c-.1475.5068-.0918.9707.1543 1.3164.2256.3164.6055.498 1.0625.5195l1.8437.1133c.0557 0 .1055.0263.1329.0703.0283.043.0351.1074.0214.1562-.0283.084-.1132.1485-.204.1553l-1.921.1123c-1.041.0488-2.1582.8867-2.5527 1.914l-.1406.3585c-.0283.0713.0215.1416.0986.1416h6.5977c.0771 0 .1474-.0489.169-.126.1122-.4082.1757-.837.1757-1.2803 0-2.6025-2.125-4.727-4.7344-4.727" transform="translate(3 3) scale(0.4166666666666667)" fill="#F38020"/>
-            <rect width="16" height="16" rx="4" class="brand-mark-frame"/>
-          </g>
-          <text data-node-label="" x="892.5" y="510" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Durable Objects</text>
-        <text x="892.5" y="526" class="t-muted" font-size="9" text-anchor="middle">per-reader SQLite</text>
+        <text x="637.5" y="526" class="t-muted" font-size="9" text-anchor="middle">Durable Object per reader</text>
         </g>
 
         <g id="node-page" data-node-id="page" data-node-label="Page" tabindex="0" role="button" aria-label="Focus Page, index.html · app.js, Browser" aria-pressed="false" data-node-kind="frontend" data-node-sublabel="index.html · app.js" data-node-context="Browser">
@@ -498,68 +466,55 @@ rect.c-bg-rect { fill: var(--bg); }
         </g>
 
         <!-- Connection labels -->
-        <g data-edge-from="feeds" data-edge-to="buildpy" data-edge-label="fetch" data-edge-key="0" data-edge-id="feeds-buildpy">
-          <rect x="365" y="123" width="34" height="14" rx="3" class="c-mask"/>
-          <text x="382" y="133" class="t-backend" font-size="8" text-anchor="middle">fetch</text>
+        <g data-edge-from="feeds" data-edge-to="build" data-edge-label="stories" data-edge-key="0" data-edge-id="feeds-build">
+          <rect x="360.2" y="152" width="43.6" height="14" rx="3" class="c-mask"/>
+          <text x="382" y="162" class="t-backend" font-size="8" text-anchor="middle">stories</text>
         </g>
-        <g data-edge-from="cisa" data-edge-to="buildpy" data-edge-label="KEV catalog" data-edge-key="1" data-edge-id="cisa-buildpy">
-          <rect x="478.6" y="142" width="62.8" height="14" rx="3" class="c-mask"/>
-          <text x="510" y="152" class="t-muted" font-size="8" text-anchor="middle">KEV catalog</text>
+        <g data-edge-from="cisa" data-edge-to="build" data-edge-label="CVE list" data-edge-key="1" data-edge-id="cisa-build">
+          <rect x="230.8" y="208" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="255" y="218" class="t-muted" font-size="8" text-anchor="middle">CVE list</text>
         </g>
-        <g data-edge-from="buildpy" data-edge-to="claude" data-edge-label="scores stories" data-edge-key="2" data-edge-id="buildpy-claude">
-          <rect x="471.4" y="208" width="77.2" height="14" rx="3" class="c-mask"/>
-          <text x="510" y="218" class="t-muted" font-size="8" text-anchor="middle">scores stories</text>
+        <g data-edge-from="claude" data-edge-to="build" data-edge-label="scores" data-edge-key="2" data-edge-id="claude-build">
+          <rect x="490.6" y="208" width="38.8" height="14" rx="3" class="c-mask"/>
+          <text x="510" y="218" class="t-muted" font-size="8" text-anchor="middle">scores</text>
         </g>
-        <g data-edge-from="buildpy" data-edge-to="extract" data-edge-label="new stories" data-edge-key="3" data-edge-id="buildpy-extract">
-          <rect x="223.6" y="282" width="62.8" height="14" rx="3" class="c-mask"/>
-          <text x="255" y="292" class="t-muted" font-size="8" text-anchor="middle">new stories</text>
-        </g>
-        <g data-edge-from="extract" data-edge-to="kv" data-edge-label="article text" data-edge-key="4" data-edge-id="extract-kv">
-          <rect x="93.2" y="432" width="67.6" height="14" rx="3" class="c-mask"/>
-          <text x="127" y="442" class="t-muted" font-size="8" text-anchor="middle">article text</text>
-        </g>
-        <g data-edge-from="buildpy" data-edge-to="repo" data-edge-label="commit" data-edge-key="5" data-edge-id="buildpy-repo">
+        <g data-edge-from="build" data-edge-to="repo" data-edge-label="commit" data-edge-key="3" data-edge-id="build-repo">
           <rect x="362.6" y="292" width="38.8" height="14" rx="3" class="c-mask"/>
           <text x="382" y="302" class="t-backend" font-size="8" text-anchor="middle">commit</text>
         </g>
-        <g data-edge-from="repo" data-edge-to="worker" data-edge-label="Workers Builds" data-edge-key="6" data-edge-id="repo-worker">
-          <rect x="343.4" y="432" width="77.2" height="14" rx="3" class="c-mask"/>
-          <text x="382" y="442" class="t-backend" font-size="8" text-anchor="middle">Workers Builds</text>
+        <g data-edge-from="build" data-edge-to="kv" data-edge-label="article text" data-edge-key="4" data-edge-id="build-kv">
+          <rect x="93.2" y="382" width="67.6" height="14" rx="3" class="c-mask"/>
+          <text x="127" y="392" class="t-muted" font-size="8" text-anchor="middle">article text</text>
         </g>
-        <g data-edge-from="worker" data-edge-to="kv" data-edge-label="/api/read" data-edge-key="7" data-edge-id="worker-kv">
+        <g data-edge-from="repo" data-edge-to="worker" data-edge-label="deploy" data-edge-key="5" data-edge-id="repo-worker">
+          <rect x="362.6" y="432" width="38.8" height="14" rx="3" class="c-mask"/>
+          <text x="382" y="442" class="t-backend" font-size="8" text-anchor="middle">deploy</text>
+        </g>
+        <g data-edge-from="kv" data-edge-to="worker" data-edge-label="/api/read" data-edge-key="6" data-edge-id="kv-worker">
           <rect x="228.4" y="488" width="53.199999999999996" height="14" rx="3" class="c-mask"/>
           <text x="255" y="498" class="t-muted" font-size="8" text-anchor="middle">/api/read</text>
         </g>
-        <g data-edge-from="worker" data-edge-to="sync" data-edge-label="service binding" data-edge-key="8" data-edge-id="worker-sync">
-          <rect x="469" y="488" width="82" height="14" rx="3" class="c-mask"/>
-          <text x="510" y="498" class="t-muted" font-size="8" text-anchor="middle">service binding</text>
-        </g>
-        <g data-edge-from="sync" data-edge-to="dos" data-edge-label="marks" data-edge-key="9" data-edge-id="sync-dos">
-          <rect x="748" y="488" width="34" height="14" rx="3" class="c-mask"/>
-          <text x="765" y="498" class="t-muted" font-size="8" text-anchor="middle">marks</text>
-        </g>
-        <g data-edge-from="worker" data-edge-to="page" data-edge-label="HTTPS" data-edge-key="10" data-edge-id="worker-page">
+        <g data-edge-from="worker" data-edge-to="page" data-edge-label="HTTPS" data-edge-key="7" data-edge-id="worker-page">
           <rect x="365" y="572" width="34" height="14" rx="3" class="c-mask"/>
           <text x="382" y="582" class="t-backend" font-size="8" text-anchor="middle">HTTPS</text>
         </g>
+        <g data-edge-from="worker" data-edge-to="sync" data-edge-label="read marks" data-edge-key="8" data-edge-id="worker-sync">
+          <rect x="481" y="488" width="58" height="14" rx="3" class="c-mask"/>
+          <text x="510" y="498" class="t-muted" font-size="8" text-anchor="middle">read marks</text>
+        </g>
 
         <!-- Boundary labels (foreground masks keep routes out of titles) -->
-        <g data-graph-role="structural-frame-label" data-composition-frame-id="0" data-composition-frame-kind="region" data-composition-frame-label="Sources">
-          <rect data-graph-role="structural-frame-label-mask" x="281" y="40" width="47.8" height="16" rx="3" class="c-mask"/>
-          <text data-boundary-label="" x="285" y="53" class="t-cloud" font-size="9" font-weight="600">Sources</text>
+        <g data-graph-role="structural-frame-label" data-composition-frame-id="0" data-composition-frame-kind="region" data-composition-frame-label="GitHub">
+          <rect data-graph-role="structural-frame-label-mask" x="281" y="180" width="42.4" height="16" rx="3" class="c-mask"/>
+          <text data-boundary-label="" x="285" y="193" class="t-cloud" font-size="9" font-weight="600">GitHub</text>
         </g>
 
-        <g data-graph-role="structural-frame-label" data-composition-frame-id="1" data-composition-frame-kind="region" data-composition-frame-label="GitHub">
-          <rect data-graph-role="structural-frame-label-mask" x="26" y="180" width="42.4" height="16" rx="3" class="c-mask"/>
-          <text data-boundary-label="" x="30" y="193" class="t-cloud" font-size="9" font-weight="600">GitHub</text>
-        </g>
-
-        <g data-graph-role="structural-frame-label" data-composition-frame-id="2" data-composition-frame-kind="region" data-composition-frame-label="Cloudflare">
+        <g data-graph-role="structural-frame-label" data-composition-frame-id="1" data-composition-frame-kind="region" data-composition-frame-label="Cloudflare">
           <rect data-graph-role="structural-frame-label-mask" x="26" y="460" width="64" height="16" rx="3" class="c-mask"/>
           <text data-boundary-label="" x="30" y="473" class="t-cloud" font-size="9" font-weight="600">Cloudflare</text>
         </g>
 
-        <g data-graph-role="structural-frame-label" data-composition-frame-id="3" data-composition-frame-kind="region" data-composition-frame-label="Browser">
+        <g data-graph-role="structural-frame-label" data-composition-frame-id="2" data-composition-frame-kind="region" data-composition-frame-label="Browser">
           <rect data-graph-role="structural-frame-label-mask" x="281" y="600" width="47.8" height="16" rx="3" class="c-mask"/>
           <text data-boundary-label="" x="285" y="613" class="t-cloud" font-size="9" font-weight="600">Browser</text>
         </g>
@@ -571,21 +526,21 @@ rect.c-bg-rect { fill: var(--bg); }
             <rect x="40" y="759" width="16" height="10" rx="2.5" class="c-frontend" stroke-width="1"/>
             <text x="62" y="768" class="t-muted" font-size="10" font-weight="500">Browser</text>
           </g>
-          <g data-legend-semantic-kind="backend" data-legend-x="140" data-legend-baseline="768" data-legend-width="113">
+          <g data-legend-semantic-kind="backend" data-legend-x="140" data-legend-baseline="768" data-legend-width="73">
             <rect x="140" y="759" width="16" height="10" rx="2.5" class="c-backend" stroke-width="1"/>
-            <text x="162" y="768" class="t-muted" font-size="10" font-weight="500">GitHub Actions</text>
+            <text x="162" y="768" class="t-muted" font-size="10" font-weight="500">GitHub</text>
           </g>
-          <g data-legend-semantic-kind="database" data-legend-x="275" data-legend-baseline="768" data-legend-width="98">
-            <rect x="275" y="759" width="16" height="10" rx="2.5" class="c-database" stroke-width="1"/>
-            <text x="297" y="768" class="t-muted" font-size="10" font-weight="500">Stored data</text>
+          <g data-legend-semantic-kind="cloud" data-legend-x="235" data-legend-baseline="768" data-legend-width="93">
+            <rect x="235" y="759" width="16" height="10" rx="2.5" class="c-cloud" stroke-width="1"/>
+            <text x="257" y="768" class="t-muted" font-size="10" font-weight="500">Cloudflare</text>
           </g>
-          <g data-legend-semantic-kind="cloud" data-legend-x="395" data-legend-baseline="768" data-legend-width="133">
-            <rect x="395" y="759" width="16" height="10" rx="2.5" class="c-cloud" stroke-width="1"/>
-            <text x="417" y="768" class="t-muted" font-size="10" font-weight="500">Cloudflare Workers</text>
+          <g data-legend-semantic-kind="messagebus" data-legend-x="350" data-legend-baseline="768" data-legend-width="88">
+            <rect x="350" y="759" width="16" height="10" rx="2.5" class="c-messagebus" stroke-width="1"/>
+            <text x="372" y="768" class="t-muted" font-size="10" font-weight="500">Anthropic</text>
           </g>
-          <g data-legend-semantic-kind="external" data-legend-x="550" data-legend-baseline="768" data-legend-width="143">
-            <rect x="550" y="759" width="16" height="10" rx="2.5" class="c-external" stroke-width="1"/>
-            <text x="572" y="768" class="t-muted" font-size="10" font-weight="500">Sources and services</text>
+          <g data-legend-semantic-kind="external" data-legend-x="460" data-legend-baseline="768" data-legend-width="78">
+            <rect x="460" y="759" width="16" height="10" rx="2.5" class="c-external" stroke-width="1"/>
+            <text x="482" y="768" class="t-muted" font-size="10" font-weight="500">Sources</text>
           </g>
         </g>
       </svg>

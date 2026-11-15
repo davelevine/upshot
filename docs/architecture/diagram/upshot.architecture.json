@@ -6,23 +6,23 @@
     "visual_preset": "signal-flow",
     "quality_profile": "standard",
     "viewBox": [
-      1020,
+      765,
       784
     ],
     "legend": {
       "mode": "auto",
       "entries": {
         "external": {
-          "label": "Sources and services"
+          "label": "Sources"
+        },
+        "messagebus": {
+          "label": "Anthropic"
         },
         "backend": {
-          "label": "GitHub Actions"
-        },
-        "database": {
-          "label": "Stored data"
+          "label": "GitHub"
         },
         "cloud": {
-          "label": "Cloudflare Workers"
+          "label": "Cloudflare"
         },
         "frontend": {
           "label": "Browser"
@@ -31,20 +31,6 @@
     }
   },
   "components": [
-    {
-      "id": "cisa",
-      "type": "external",
-      "label": "CISA KEV",
-      "sublabel": "exploited CVEs",
-      "pos": [
-        550,
-        60
-      ],
-      "size": [
-        175,
-        64
-      ]
-    },
     {
       "id": "feeds",
       "type": "external",
@@ -60,8 +46,37 @@
       ]
     },
     {
-      "id": "claude",
+      "id": "cisa",
       "type": "external",
+      "label": "CISA KEV",
+      "sublabel": "exploited CVEs",
+      "pos": [
+        40,
+        200
+      ],
+      "size": [
+        175,
+        64
+      ]
+    },
+    {
+      "id": "build",
+      "type": "backend",
+      "label": "Build",
+      "sublabel": "build.py · extract.mjs · hourly",
+      "pos": [
+        295,
+        200
+      ],
+      "size": [
+        175,
+        64
+      ],
+      "brand": "github"
+    },
+    {
+      "id": "claude",
+      "type": "messagebus",
       "label": "Claude Haiku",
       "sublabel": "Claude Code CLI",
       "pos": [
@@ -75,37 +90,8 @@
       "brand": "claude"
     },
     {
-      "id": "buildpy",
-      "type": "backend",
-      "label": "build.py",
-      "sublabel": "hourly · score · dedupe · flag",
-      "pos": [
-        295,
-        200
-      ],
-      "size": [
-        175,
-        64
-      ],
-      "brand": "github"
-    },
-    {
-      "id": "extract",
-      "type": "backend",
-      "label": "extract.mjs",
-      "sublabel": "Readability",
-      "pos": [
-        40,
-        340
-      ],
-      "size": [
-        175,
-        64
-      ]
-    },
-    {
       "id": "repo",
-      "type": "database",
+      "type": "backend",
       "label": "Repository",
       "sublabel": "data.json · rss.xml",
       "pos": [
@@ -120,7 +106,7 @@
     },
     {
       "id": "kv",
-      "type": "database",
+      "type": "cloud",
       "label": "Workers KV",
       "sublabel": "article text · 100 days",
       "pos": [
@@ -137,7 +123,7 @@
       "id": "worker",
       "type": "cloud",
       "label": "Site Worker",
-      "sublabel": "static site · /api/read",
+      "sublabel": "worker.js · cron at :17",
       "pos": [
         295,
         480
@@ -152,24 +138,9 @@
       "id": "sync",
       "type": "cloud",
       "label": "upshot-sync",
-      "sublabel": "read-state sync",
+      "sublabel": "Durable Object per reader",
       "pos": [
         550,
-        480
-      ],
-      "size": [
-        175,
-        64
-      ],
-      "brand": "cloudflare"
-    },
-    {
-      "id": "dos",
-      "type": "database",
-      "label": "Durable Objects",
-      "sublabel": "per-reader SQLite",
-      "pos": [
-        805,
         480
       ],
       "size": [
@@ -196,19 +167,9 @@
   "boundaries": [
     {
       "kind": "region",
-      "label": "Sources",
-      "wraps": [
-        "feeds",
-        "cisa"
-      ],
-      "pad": 18
-    },
-    {
-      "kind": "region",
       "label": "GitHub",
       "wraps": [
-        "buildpy",
-        "extract",
+        "build",
         "repo"
       ],
       "pad": 18
@@ -219,8 +180,7 @@
       "wraps": [
         "kv",
         "worker",
-        "sync",
-        "dos"
+        "sync"
       ],
       "pad": 18
     },
@@ -235,53 +195,39 @@
   ],
   "connections": [
     {
-      "id": "feeds-buildpy",
+      "id": "feeds-build",
       "from": "feeds",
-      "to": "buildpy",
-      "label": "fetch",
+      "to": "build",
+      "label": "stories",
       "variant": "emphasis",
       "labelAt": [
         382,
-        133
+        162
       ]
     },
     {
-      "id": "cisa-buildpy",
+      "id": "cisa-build",
       "from": "cisa",
-      "to": "buildpy",
-      "label": "KEV catalog",
-      "fromSide": "bottom",
-      "toSide": "top"
+      "to": "build",
+      "label": "CVE list",
+      "labelAt": [
+        255,
+        218
+      ]
     },
     {
-      "id": "buildpy-claude",
-      "from": "buildpy",
-      "to": "claude",
-      "label": "scores stories",
+      "id": "claude-build",
+      "from": "claude",
+      "to": "build",
+      "label": "scores",
       "labelAt": [
         510,
         218
       ]
     },
     {
-      "id": "buildpy-extract",
-      "from": "buildpy",
-      "to": "extract",
-      "label": "new stories"
-    },
-    {
-      "id": "extract-kv",
-      "from": "extract",
-      "to": "kv",
-      "label": "article text",
-      "labelAt": [
-        127,
-        442
-      ]
-    },
-    {
-      "id": "buildpy-repo",
-      "from": "buildpy",
+      "id": "build-repo",
+      "from": "build",
       "to": "repo",
       "label": "commit",
       "variant": "emphasis",
@@ -291,10 +237,22 @@
       ]
     },
     {
+      "id": "build-kv",
+      "from": "build",
+      "to": "kv",
+      "label": "article text",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        127,
+        392
+      ]
+    },
+    {
       "id": "repo-worker",
       "from": "repo",
       "to": "worker",
-      "label": "Workers Builds",
+      "label": "deploy",
       "variant": "emphasis",
       "labelAt": [
         382,
@@ -302,32 +260,12 @@
       ]
     },
     {
-      "id": "worker-kv",
-      "from": "worker",
-      "to": "kv",
+      "id": "kv-worker",
+      "from": "kv",
+      "to": "worker",
       "label": "/api/read",
       "labelAt": [
         255,
-        498
-      ]
-    },
-    {
-      "id": "worker-sync",
-      "from": "worker",
-      "to": "sync",
-      "label": "service binding",
-      "labelAt": [
-        510,
-        498
-      ]
-    },
-    {
-      "id": "sync-dos",
-      "from": "sync",
-      "to": "dos",
-      "label": "marks",
-      "labelAt": [
-        765,
         498
       ]
     },
@@ -340,6 +278,16 @@
       "labelAt": [
         382,
         582
+      ]
+    },
+    {
+      "id": "worker-sync",
+      "from": "worker",
+      "to": "sync",
+      "label": "read marks",
+      "labelAt": [
+        510,
+        498
       ]
     }
   ],
@@ -365,7 +313,7 @@
       "title": "Sync",
       "items": [
         "Optional · no account, email or password",
-        "One Durable Object per reader"
+        "Marks sync through one Durable Object per reader"
       ]
     }
   ]
