@@ -1504,6 +1504,9 @@ def test_a_row_shows_one_label_the_one_that_matters_most(browser):
     def both(data):
         flag_some(data)
         data["weekly"]["items"][0]["url"] = data["flagged"][0]  # exploited and essential
+        # Essential only: the newest unflagged story, so its row is among the first rendered whatever the week's picks are
+        fresh = max((i for i in data["items"] if "exploited" not in i), key=lambda i: i.get("published") or i["date"])
+        data["weekly"]["items"][1]["url"] = fresh["url"]
     pg = open_site(browser, patch=both, viewport={"width": 390, "height": 800}, has_touch=True, is_mobile=True)
     sec = pg.evaluate("fetch('/data.json').then(r => r.json()).then(d => d.flagged[0])")
     meta = lambda u: pg.locator(f'a.card[href="{u}"] .card-meta > :not(.card-src)')
