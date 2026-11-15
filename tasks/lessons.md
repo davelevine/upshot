@@ -240,3 +240,11 @@
 - Write American English in every file: docs, comments, test names, commit messages, PR text and diagrams (color, behavior, center, labeled, canceled, summarize, license as a noun).
 - A spelling already in the repo isn't a style guide. If it's British, fix it; don't copy it.
 - Leave API names as they are: GitHub Actions' `cancelled()`, `aria-labelledby`, and quoted third-party text in test fixtures.
+
+## 2026-11-14 — Match a reference's level of detail, not just its look
+
+**Mistake:** Asked for more detail in the architecture diagram, and pointed at homelab-iac for reference, I copied homelab-iac's style but went to 19 boxes and 20 connections. Its diagrams are about 14 boxes and 10 connections, and its README says the scope is deliberately small. The user said it was now too much.
+
+**Rules:**
+- When given a reference, measure its density (boxes, connections, sublabel length, number of cards) and stay within it. "More detail" means more than the last version, up to the reference's level, not everything that exists.
+- Before adding a box, ask whether a reader of the overview needs it. Leave secondary parts (deploy helpers, issue bots, storage details) to the pages that cover them.

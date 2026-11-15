@@ -7,7 +7,7 @@
     "quality_profile": "standard",
     "viewBox": [
       1020,
-      924
+      784
     ],
     "legend": {
       "mode": "auto",
@@ -32,19 +32,18 @@
   },
   "components": [
     {
-      "id": "claude",
+      "id": "cisa",
       "type": "external",
-      "label": "Claude Haiku",
-      "sublabel": "claude-haiku-5-5 · Claude Code CLI",
+      "label": "CISA KEV",
+      "sublabel": "exploited CVEs",
       "pos": [
-        550,
+        40,
         60
       ],
       "size": [
         175,
         64
-      ],
-      "brand": "claude"
+      ]
     },
     {
       "id": "feeds",
@@ -61,56 +60,28 @@
       ]
     },
     {
-      "id": "cisa",
+      "id": "claude",
       "type": "external",
-      "label": "CISA KEV",
-      "sublabel": "Known exploited CVEs",
+      "label": "Claude Haiku",
+      "sublabel": "Claude Code CLI",
       "pos": [
-        40,
+        550,
         60
       ],
       "size": [
         175,
         64
-      ]
-    },
-    {
-      "id": "workflow",
-      "type": "backend",
-      "label": "Build workflow",
-      "sublabel": "build.yml · Worker cron",
-      "pos": [
-        805,
-        200
       ],
-      "size": [
-        175,
-        64
-      ],
-      "brand": "github"
+      "brand": "claude"
     },
     {
       "id": "buildpy",
       "type": "backend",
       "label": "build.py",
-      "sublabel": "score · dedupe · flag · essentials",
+      "sublabel": "hourly · score · dedupe · flag",
       "pos": [
         295,
         200
-      ],
-      "size": [
-        175,
-        64
-      ]
-    },
-    {
-      "id": "health",
-      "type": "backend",
-      "label": "Feed health issue",
-      "sublabel": "opens and closes itself",
-      "pos": [
-        805,
-        340
       ],
       "size": [
         175,
@@ -122,7 +93,7 @@
       "id": "extract",
       "type": "backend",
       "label": "extract.mjs",
-      "sublabel": "Readability + linkedom",
+      "sublabel": "Readability",
       "pos": [
         40,
         340
@@ -136,24 +107,9 @@
       "id": "repo",
       "type": "database",
       "label": "Repository",
-      "sublabel": "data.json · rss.xml · state.json",
+      "sublabel": "data.json · rss.xml",
       "pos": [
         295,
-        340
-      ],
-      "size": [
-        175,
-        64
-      ],
-      "brand": "github"
-    },
-    {
-      "id": "deploysync",
-      "type": "backend",
-      "label": "Deploy sync",
-      "sublabel": "deploy-sync.yml · on sync/ changes",
-      "pos": [
-        550,
         340
       ],
       "size": [
@@ -166,7 +122,7 @@
       "id": "kv",
       "type": "database",
       "label": "Workers KV",
-      "sublabel": "ARTICLES · 100-day TTL",
+      "sublabel": "article text · 100 days",
       "pos": [
         40,
         480
@@ -178,10 +134,10 @@
       "brand": "cloudflare"
     },
     {
-      "id": "wbuilds",
+      "id": "worker",
       "type": "cloud",
-      "label": "Workers Builds",
-      "sublabel": "deploys main · PR previews",
+      "label": "Site Worker",
+      "sublabel": "static site · /api/read",
       "pos": [
         295,
         480
@@ -196,7 +152,7 @@
       "id": "sync",
       "type": "cloud",
       "label": "upshot-sync",
-      "sublabel": "/api/auth · /api/sync · rate limits",
+      "sublabel": "read-state sync",
       "pos": [
         550,
         480
@@ -208,78 +164,19 @@
       "brand": "cloudflare"
     },
     {
-      "id": "codes",
+      "id": "dos",
       "type": "database",
-      "label": "Codes DO",
-      "sublabel": "one-time codes · 10 min",
+      "label": "Durable Objects",
+      "sublabel": "per-reader SQLite",
       "pos": [
         805,
-        620
+        480
       ],
       "size": [
         175,
         64
       ],
       "brand": "cloudflare"
-    },
-    {
-      "id": "worker",
-      "type": "cloud",
-      "label": "Site Worker",
-      "sublabel": "worker.js · cron at :17",
-      "pos": [
-        295,
-        620
-      ],
-      "size": [
-        175,
-        64
-      ],
-      "brand": "cloudflare"
-    },
-    {
-      "id": "readerdo",
-      "type": "database",
-      "label": "Reader DO",
-      "sublabel": "per-reader SQLite · marks, devices",
-      "pos": [
-        550,
-        620
-      ],
-      "size": [
-        175,
-        64
-      ],
-      "brand": "cloudflare"
-    },
-    {
-      "id": "r2",
-      "type": "database",
-      "label": "R2: upshot-fonts",
-      "sublabel": "licensed fonts · /fonts/licensed",
-      "pos": [
-        40,
-        620
-      ],
-      "size": [
-        175,
-        64
-      ],
-      "brand": "cloudflare"
-    },
-    {
-      "id": "storage",
-      "type": "database",
-      "label": "Local storage",
-      "sublabel": "read marks · no account",
-      "pos": [
-        40,
-        760
-      ],
-      "size": [
-        175,
-        64
-      ]
     },
     {
       "id": "page",
@@ -288,21 +185,7 @@
       "sublabel": "index.html · app.js",
       "pos": [
         295,
-        760
-      ],
-      "size": [
-        175,
-        64
-      ]
-    },
-    {
-      "id": "frame",
-      "type": "frontend",
-      "label": "Reader frame",
-      "sublabel": "sandboxed · nonce relay",
-      "pos": [
-        550,
-        760
+        620
       ],
       "size": [
         175,
@@ -315,9 +198,9 @@
       "kind": "region",
       "label": "Sources",
       "wraps": [
-        "claude",
+        "cisa",
         "feeds",
-        "cisa"
+        "claude"
       ],
       "pad": 18
     },
@@ -325,12 +208,9 @@
       "kind": "region",
       "label": "GitHub",
       "wraps": [
-        "workflow",
         "buildpy",
-        "health",
         "extract",
-        "repo",
-        "deploysync"
+        "repo"
       ],
       "pad": 18
     },
@@ -339,12 +219,9 @@
       "label": "Cloudflare",
       "wraps": [
         "kv",
-        "wbuilds",
-        "sync",
-        "codes",
         "worker",
-        "readerdo",
-        "r2"
+        "sync",
+        "dos"
       ],
       "pad": 18
     },
@@ -352,20 +229,12 @@
       "kind": "region",
       "label": "Browser",
       "wraps": [
-        "storage",
-        "page",
-        "frame"
+        "page"
       ],
       "pad": 18
     }
   ],
   "connections": [
-    {
-      "id": "workflow-buildpy",
-      "from": "workflow",
-      "to": "buildpy",
-      "label": "runs"
-    },
     {
       "id": "feeds-buildpy",
       "from": "feeds",
@@ -388,7 +257,7 @@
       "id": "buildpy-claude",
       "from": "buildpy",
       "to": "claude",
-      "label": "one call per story",
+      "label": "score each story",
       "labelDy": 18
     },
     {
@@ -408,13 +277,6 @@
       ]
     },
     {
-      "id": "buildpy-health",
-      "from": "buildpy",
-      "to": "health",
-      "label": "feed failures",
-      "variant": "dashed"
-    },
-    {
       "id": "buildpy-repo",
       "from": "buildpy",
       "to": "repo",
@@ -426,44 +288,13 @@
       ]
     },
     {
-      "id": "repo-wbuilds",
+      "id": "repo-worker",
       "from": "repo",
-      "to": "wbuilds",
-      "label": "push to main",
-      "variant": "emphasis",
-      "labelAt": [
-        382,
-        442
-      ]
-    },
-    {
-      "id": "wbuilds-worker",
-      "from": "wbuilds",
       "to": "worker",
-      "label": "wrangler deploy",
+      "label": "Workers Builds",
       "variant": "emphasis",
       "labelAt": [
         382,
-        582
-      ]
-    },
-    {
-      "id": "repo-deploysync",
-      "from": "repo",
-      "to": "deploysync",
-      "label": "sync/ changed",
-      "labelAt": [
-        510,
-        358
-      ]
-    },
-    {
-      "id": "deploysync-sync",
-      "from": "deploysync",
-      "to": "sync",
-      "label": "wrangler deploy",
-      "labelAt": [
-        637,
         442
       ]
     },
@@ -471,65 +302,42 @@
       "id": "worker-kv",
       "from": "worker",
       "to": "kv",
-      "label": "/api/read"
-    },
-    {
-      "id": "r2-worker",
-      "from": "r2",
-      "to": "worker"
-    },
-    {
-      "id": "worker-page",
-      "from": "worker",
-      "to": "page",
-      "label": "assets · data.json",
-      "variant": "emphasis",
-      "labelAt": [
-        382,
-        722
-      ]
-    },
-    {
-      "id": "page-frame",
-      "from": "page",
-      "to": "frame",
-      "label": "article HTML",
-      "labelAt": [
-        510,
-        778
-      ]
-    },
-    {
-      "id": "page-storage",
-      "from": "page",
-      "to": "storage",
-      "label": "marks",
+      "label": "/api/read",
       "labelAt": [
         255,
-        778
+        498
       ]
     },
     {
       "id": "worker-sync",
       "from": "worker",
       "to": "sync",
-      "label": "SYNC binding · WebSocket"
-    },
-    {
-      "id": "sync-readerdo",
-      "from": "sync",
-      "to": "readerdo",
-      "label": "marks · devices",
+      "label": "service binding",
       "labelAt": [
-        637,
-        582
+        510,
+        498
       ]
     },
     {
-      "id": "sync-codes",
+      "id": "sync-dos",
       "from": "sync",
-      "to": "codes",
-      "label": "codes"
+      "to": "dos",
+      "label": "marks",
+      "labelAt": [
+        765,
+        498
+      ]
+    },
+    {
+      "id": "worker-page",
+      "from": "worker",
+      "to": "page",
+      "label": "HTTPS",
+      "variant": "emphasis",
+      "labelAt": [
+        382,
+        582
+      ]
     }
   ],
   "cards": [
@@ -537,25 +345,24 @@
       "dot": "cyan",
       "title": "Schedule",
       "items": [
-        "Worker cron 17 * * * * dispatches the build; GitHub's schedule is the fallback",
-        "Bars: 8 Security, Regulation · 7 AI, Other · 6 Infrastructure, Engineering",
-        "Stories and seen URLs pruned after 90 days"
+        "The Worker's cron starts the build at :17; GitHub's schedule is the fallback",
+        "Stories are pruned after 90 days"
       ]
     },
     {
       "dot": "amber",
       "title": "Reader",
       "items": [
-        "Text extracted at build time; the Worker never fetches from publishers",
-        "Scripts, frames and handlers stripped; only the site's relay runs, by nonce"
+        "Article text is extracted at build time, so nothing fetches from publishers",
+        "Articles render in a sandboxed frame"
       ]
     },
     {
       "dot": "violet",
       "title": "Sync",
       "items": [
-        "Off until a reader turns it on · no account, email or password",
-        "One Durable Object per reader; changes pushed over a hibernating WebSocket"
+        "Optional · no account, email or password",
+        "One Durable Object per reader"
       ]
     }
   ]
