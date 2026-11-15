@@ -270,3 +270,11 @@
 - Before adding a new doc file, ask whether its content already has an owner page.
 - **Amended the same day: don't over-apply this.** The next pass removed orientation along with the copies: the README lost "How it works" and its prerequisites, pages lost their introductions, the index became keyword fragments, and the user said the docs got worse. The rule is about **specifics** (values, limits, schedules, commands, file layouts), which drift when copied. **Orientation repeats on purpose**, shorter at each level: the README summarizes in a few sentences, the overview in a paragraph per piece, and the page has the detail. Every page opens with a sentence or two on what it's for, and a how-to lists its own prerequisites (Diátaxis, the Google developer documentation style guide, standard README sections).
 - When the user gives a rule, apply it with judgment against established practice, and say where the line falls before applying it everywhere.
+
+## 2026-11-15 — Docs cover the project, not the tools around it
+
+**Mistake:** `development.md` carried a section on regenerating the architecture diagram with Archify: render HTML, export an SVG, lock it to dark. The user pointed out it has nothing to do with Upshot itself.
+
+**Rules:**
+- Document how the project works and how to run or change it. A third-party tool's workflow (diagram generators, editors, formatters) doesn't belong in the docs; the committed source file is enough.
+- Before adding a section, ask whether a reader working on the project would need it, or only someone repeating a task I just did.
