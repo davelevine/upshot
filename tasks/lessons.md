@@ -248,3 +248,4 @@
 **Rules:**
 - When given a reference, measure its density (boxes, connections, sublabel length, number of cards) and stay within it. "More detail" means more than the last version, up to the reference's level, not everything that exists.
 - Before adding a box, ask whether a reader of the overview needs it. Leave secondary parts (deploy helpers, issue bots, storage details) to the pages that cover them.
+- The reading order (left to right, top to bottom) must follow the flow. Put the real starting point first and run the main path as one straight spine; side inputs and services branch off it. The first version put CISA top-left, so it read as the start of everything.
