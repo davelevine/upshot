@@ -70,7 +70,7 @@ It loads the site in Chromium under its real CSP and checks the feed, the reader
 
 ## The architecture diagram
 
-The diagram in the [overview](architecture/overview.md) is made with [Archify](https://github.com/tt-a1i/archify) from `docs/architecture/diagram/upshot.architecture.json`. After editing the JSON, validate it, render it outside the repo, open the HTML, and use **Export → SVG** to save over `upshot-architecture.svg`:
+The diagram in the [overview](architecture/overview.md) is made with [Archify](https://github.com/tt-a1i/archify) from `docs/architecture/diagram/upshot.architecture.json`. Archify exports an SVG only from its interactive HTML viewer, so the HTML is a throwaway step: after editing the JSON, validate it, render the HTML to a temporary file, open it, and use **Export → SVG** to save over `upshot-architecture.svg`:
 
 ```bash
 archify validate architecture upshot.architecture.json --quality standard
