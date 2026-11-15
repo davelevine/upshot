@@ -25,7 +25,7 @@ function toSync(request, env) {
 }
 
 // The site's fonts (Söhne, Mercury Text and Mercury Display) are licensed, so they can't be in this public repo with the
-// rest of site/. They live in a private R2 bucket (upshot-fonts; docs/setup/optional.md) and are served from here, on the site's
+// rest of site/. They live in a private R2 bucket (upshot-fonts; docs/setup/configuration.md) and are served from here, on the site's
 // own origin. A week's cache: a replaced file reaches browsers within that, or at once under a new name. The URLs have
 // no extension, so the Worker runs for them (run_worker_first in wrangler.jsonc); the bucket's keys are the file names,
 // with .woff2.
