@@ -1,6 +1,25 @@
 {
  "items": [
   {
+   "date": "2026-11-15",
+   "published": "2026-11-15T09:55:00+00:00",
+   "title": "Anthropic Outlines Its AI-Powered Code Review Process for Claude Code",
+   "url": "https://www.infoq.com/news/2026/11/claude-code-review/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Anthropic describes how the Claude Code team reviews code as AI agents contribute more, using layered automated checks, AI reviews, and risk-based human approval.",
+   "relevance": 6,
+   "added": "2026-11-15T10:18:12+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Anthropic detailed how its Claude Code team reviews code as AI agents contribute more changes to the codebase.",
+    "Merged pull requests more than doubled between June and September, while the share of changes requiring a revert fell by over 40%.",
+    "Low-risk changes may need no human approval, medium-risk changes need one approver, and high-risk changes need two.",
+    "Changes to sensitive areas such as CI workflows always require human oversight, and automated review cycles are capped at three rounds."
+   ]
+  },
+  {
    "date": "2026-11-14",
    "published": "2026-11-14T17:27:25+00:00",
    "title": "Cursor confirms security breach led to malicious Claude Code extension",
@@ -3668,7 +3687,7 @@
    }
   ]
  },
- "generated_at": "2026-11-15T09:18:19+00:00",
+ "generated_at": "2026-11-15T10:18:19+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
