@@ -1,0 +1,380 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Upshot architecture",
+    "visual_preset": "signal-flow",
+    "quality_profile": "standard",
+    "viewBox": [
+      765,
+      784
+    ],
+    "legend": {
+      "mode": "auto",
+      "entries": {
+        "external": {
+          "label": "Sources"
+        },
+        "messagebus": {
+          "label": "Anthropic"
+        },
+        "backend": {
+          "label": "GitHub"
+        },
+        "cloud": {
+          "label": "Cloudflare"
+        },
+        "frontend": {
+          "label": "Browser"
+        }
+      }
+    }
+  },
+  "components": [
+    {
+      "id": "feeds",
+      "type": "external",
+      "label": "Publisher feeds",
+      "sublabel": "67 feeds · feeds.opml",
+      "pos": [
+        295,
+        60
+      ],
+      "size": [
+        175,
+        64
+      ]
+    },
+    {
+      "id": "cisa",
+      "type": "external",
+      "label": "CISA KEV",
+      "sublabel": "exploited CVEs",
+      "pos": [
+        40,
+        200
+      ],
+      "size": [
+        175,
+        64
+      ]
+    },
+    {
+      "id": "build",
+      "type": "backend",
+      "label": "Build",
+      "sublabel": "build.py · extract.mjs · hourly",
+      "pos": [
+        295,
+        200
+      ],
+      "size": [
+        175,
+        64
+      ],
+      "brand": "github"
+    },
+    {
+      "id": "claude",
+      "type": "messagebus",
+      "label": "Claude Haiku",
+      "sublabel": "Claude Code CLI",
+      "pos": [
+        550,
+        200
+      ],
+      "size": [
+        175,
+        64
+      ],
+      "brand": "claude"
+    },
+    {
+      "id": "repo",
+      "type": "backend",
+      "label": "Repository",
+      "sublabel": "data.json · rss.xml",
+      "pos": [
+        295,
+        340
+      ],
+      "size": [
+        175,
+        64
+      ],
+      "brand": "github"
+    },
+    {
+      "id": "kv",
+      "type": "cloud",
+      "label": "Workers KV",
+      "sublabel": "article text · 100 days",
+      "pos": [
+        40,
+        480
+      ],
+      "size": [
+        175,
+        64
+      ],
+      "brand": "cloudflare"
+    },
+    {
+      "id": "worker",
+      "type": "cloud",
+      "label": "Site Worker",
+      "sublabel": "worker.js · cron at :17",
+      "pos": [
+        295,
+        480
+      ],
+      "size": [
+        175,
+        64
+      ],
+      "brand": "cloudflare"
+    },
+    {
+      "id": "sync",
+      "type": "cloud",
+      "label": "upshot-sync",
+      "sublabel": "Durable Object per reader",
+      "pos": [
+        550,
+        480
+      ],
+      "size": [
+        175,
+        64
+      ],
+      "brand": "cloudflare"
+    },
+    {
+      "id": "page",
+      "type": "frontend",
+      "label": "Page",
+      "sublabel": "index.html · app.js",
+      "pos": [
+        295,
+        620
+      ],
+      "size": [
+        175,
+        64
+      ]
+    },
+    {
+      "id": "devices",
+      "type": "frontend",
+      "label": "Your other devices",
+      "sublabel": "same read state, live",
+      "pos": [
+        550,
+        620
+      ],
+      "size": [
+        175,
+        64
+      ]
+    },
+    {
+      "id": "storage",
+      "type": "frontend",
+      "label": "Local storage",
+      "sublabel": "read state · this device",
+      "pos": [
+        40,
+        620
+      ],
+      "size": [
+        175,
+        64
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "GitHub",
+      "wraps": [
+        "build",
+        "repo"
+      ],
+      "pad": 18
+    },
+    {
+      "kind": "region",
+      "label": "Cloudflare",
+      "wraps": [
+        "kv",
+        "worker",
+        "sync"
+      ],
+      "pad": 18
+    },
+    {
+      "kind": "region",
+      "label": "Browser",
+      "wraps": [
+        "storage",
+        "page",
+        "devices"
+      ],
+      "pad": 18
+    }
+  ],
+  "connections": [
+    {
+      "id": "feeds-build",
+      "from": "feeds",
+      "to": "build",
+      "label": "stories",
+      "variant": "emphasis",
+      "labelAt": [
+        382,
+        162
+      ]
+    },
+    {
+      "id": "cisa-build",
+      "from": "cisa",
+      "to": "build",
+      "label": "CVE list",
+      "labelAt": [
+        255,
+        218
+      ]
+    },
+    {
+      "id": "claude-build",
+      "from": "claude",
+      "to": "build",
+      "label": "scores",
+      "labelAt": [
+        510,
+        218
+      ]
+    },
+    {
+      "id": "build-repo",
+      "from": "build",
+      "to": "repo",
+      "label": "commit",
+      "variant": "emphasis",
+      "labelAt": [
+        382,
+        302
+      ]
+    },
+    {
+      "id": "build-kv",
+      "from": "build",
+      "to": "kv",
+      "label": "article text",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        127,
+        392
+      ]
+    },
+    {
+      "id": "repo-worker",
+      "from": "repo",
+      "to": "worker",
+      "label": "deploy",
+      "variant": "emphasis",
+      "labelAt": [
+        382,
+        442
+      ]
+    },
+    {
+      "id": "kv-worker",
+      "from": "kv",
+      "to": "worker",
+      "label": "/api/read",
+      "labelAt": [
+        255,
+        498
+      ]
+    },
+    {
+      "id": "worker-page",
+      "from": "worker",
+      "to": "page",
+      "label": "↓ HTTPS",
+      "variant": "emphasis",
+      "labelAt": [
+        423.5,
+        582
+      ]
+    },
+    {
+      "id": "page-worker",
+      "from": "page",
+      "to": "worker",
+      "label": "↑ read state",
+      "labelAt": [
+        343.5,
+        582
+      ]
+    },
+    {
+      "id": "worker-sync",
+      "from": "worker",
+      "to": "sync",
+      "label": "read state",
+      "labelAt": [
+        510,
+        498
+      ]
+    },
+    {
+      "id": "sync-devices",
+      "from": "sync",
+      "to": "devices",
+      "label": "WebSocket push",
+      "labelAt": [
+        637,
+        582
+      ]
+    },
+    {
+      "id": "page-storage",
+      "from": "page",
+      "to": "storage",
+      "label": "read state",
+      "labelAt": [
+        255,
+        638
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Schedule",
+      "items": [
+        "The Worker's cron starts the build at :17; GitHub's schedule is the fallback",
+        "Stories are pruned after 90 days"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Reader",
+      "items": [
+        "Article text is extracted at build time, so nothing fetches from publishers",
+        "Articles render in a sandboxed frame"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Sync",
+      "items": [
+        "Optional · no account, email or password",
+        "A device joins with a sync code or QR code"
+      ]
+    }
+  ]
+}

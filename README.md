@@ -32,41 +32,24 @@ The week’s tech news, minus the noise.
 
 </div>
 
-Upshot is a news digest for AI, security, infrastructure, software engineering and tech regulation. It reads a curated list of feeds, has an LLM keep only the stories worth your time, writes each one up in a sentence, and picks five weekly essentials with what to do about each. It's inspired by [watch.edebost.com](https://watch.edebost.com/).
+Upshot is a news digest for AI, security, infrastructure, software engineering and tech regulation. I wanted to keep up with all of it without reading every feed myself, so I built something that does the first pass for me. It reads a curated list of feeds, keeps only the stories worth reading, sums each one up in a sentence, and picks five weekly essentials with what to do about each. It's inspired by [watch.edebost.com](https://watch.edebost.com/).
 
-There's no server or database to look after. A scheduled GitHub Actions job commits a small JSON file; a static page renders it. It runs on the free tiers of GitHub Actions and Cloudflare Workers, plus a Claude subscription.
+## Features
 
-## What you get
-
-- **A calm feed.** A handful of stories on a big day and none on a slow one. Each shows its source's icon, a one-line summary and how long ago it was published, with topics in a sidebar and search.
-- **Exploited flaws first.** A story about a flaw under active attack, confirmed by CISA's catalog or by the article itself, is tagged **Exploited** where it falls in the feed, with whether a patch is out (a supply-chain attack is tagged **Compromised**), and the last week's are listed under the essentials.
-- **The week's essentials.** Five picks from the last seven days, each with what to do about it, under their own entry beside the topics and marked where they appear in the feed.
-- **A built-in reader.** Articles open in a clean pane that starts with the upshot: a few bullets on what happened, who's affected and what to do. On wide screens the pane sits beside the list, as in a desktop feed reader.
-- **It remembers where you were.** Unread stories stand out, read ones are dimmed, and none of that leaves your browser unless you turn on sync. As in Feedbin, a toolbar's **Read** marks a whole list read (after asking), and the selected story's `…` marks everything above or below it.
-- **Syncs across your devices, if you want.** Generate a sync code on one device and enter it on another, or scan its QR code with your phone, and what you've read stays the same on both. No account, email or password, and changes arrive as they happen.
-- **Works everywhere.** Swipe and install as an app on a phone; `⌘K` search and `j`/`k` navigation on a desktop (`?` lists the shortcuts). Light and dark themes, and an RSS feed.
+- **Only what matters.** A handful of stories on a big day, none on a slow one, each with a one-line summary.
+- **Exploited flaws flagged.** Flaws under active attack are tagged **Exploited**, with whether a patch is out; supply-chain attacks are tagged **Compromised**.
+- **Weekly essentials.** Five picks from the last seven days, each with what to do about it.
+- **Built-in reader.** Articles open in a clean pane that starts with the upshot: what happened, who's affected and what to do.
+- **Read state and sync.** Read stories are dimmed, and sync keeps them the same across your devices with a code. No account.
+- **Phone and desktop.** Install it as an app on a phone; `⌘K` search and `j`/`k` navigation on a desktop. Light and dark themes, and an RSS feed.
 
 ## How it works
 
-Every hour, [`build.py`](build.py) fetches the feeds in [`feeds.opml`](feeds.opml) and sends each new story to Claude Haiku on its own, which gives it a category, a relevance score and a one-sentence summary. Stories that clear their category's bar and aren't repeats are published; once a day the model picks the week's five essentials. The build also extracts each article's text with Mozilla's Readability and stores it in Cloudflare KV, so the reader never fetches from publishers and nothing runs from the source page.
+Every hour, a GitHub Actions job runs [`build.py`](build.py), which fetches the feeds in [`feeds.opml`](feeds.opml) and has Claude Haiku score and summarize each new story. The stories that clear the bar are committed to the repository as a small JSON file, and each article's text is stored in Cloudflare KV. A Cloudflare Worker serves the static front end and that stored text, so the reader never fetches from publishers. There's no server or database to look after; the [architecture overview](docs/architecture/overview.md) has a diagram and the details.
 
-The front end is [`site/index.html`](site/index.html) and [`site/app.js`](site/app.js): no framework, no build step. A Cloudflare Worker serves it and answers the reader's requests; a second one, in [`sync/`](sync/), keeps read state in step across a reader's devices.
+## Running your own copy
 
-For the full pipeline, the reader's security model, and how the build looks after itself, see **[docs/architecture.md](docs/architecture.md)**.
-
-## Run your own copy
-
-Setup takes about fifteen minutes. The only paid piece is a Claude subscription (Pro or Max); the build uses it through the Claude Code CLI, so there's no API key.
-
-1. **Fork the repository** and enable workflows in the fork's **Actions** tab.
-2. **Create the Claude token.** Run `claude setup-token` where you're signed in to Claude Code, and save the result as a repository secret named `CLAUDE_CODE_OAUTH_TOKEN`.
-3. **Create a Cloudflare KV namespace** for article text. Put its ID in both `kv_namespaces` entries in [`wrangler.jsonc`](wrangler.jsonc), and add `CF_API_TOKEN` (with Workers KV Storage and Workers Scripts edit permissions), `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID` as secrets.
-4. **Deploy sync, then connect Cloudflare Workers.** Run **Actions → Deploy sync → Run workflow** once, then import the fork in Cloudflare (**Workers & Pages → Create → Import a repository**), naming the Worker `upshot`. Set `routes` in `wrangler.jsonc` to your domain, or use `workers_dev`.
-5. **Add a `SITE_URL` variable** with your site's address.
-6. **Make it yours:** links and `og:url` in `site/index.html`, the badges above, and your feeds.
-7. **Run the first build** from **Actions → Build → Run workflow**, with `backfill_days` set to `30` to fill in the last month.
-
-Each step in detail, plus adding feeds, the configuration knobs, and keeping the schedule on time: **[docs/setup.md](docs/setup.md)**.
+You'll need a GitHub account, a Cloudflare account and a Claude Pro or Max subscription. Everything else runs on the free tiers of GitHub Actions and Cloudflare Workers, and setup takes about fifteen minutes. [Getting started](docs/setup/getting-started.md) walks through it.
 
 ## Developing
 
@@ -77,7 +60,7 @@ npm ci && node --test 'tests/*.test.js'
 npx wrangler dev -c wrangler.jsonc -c sync/wrangler.jsonc --infer-origin-from-routes=false --port 8788
 ```
 
-Local runs, the browser smoke test, test fixtures and CI are in **[docs/developing.md](docs/developing.md)**.
+More in [development](docs/development.md).
 
 ## Built With Claude
 

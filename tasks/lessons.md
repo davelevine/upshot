@@ -5,7 +5,7 @@
 **Mistake:** Ported Feedbin's bottom toolbar for Mark all as read, but Upshot has none of Feedbin's other toolbar buttons (Edit, Add), so it became a single button stranded at the end of an otherwise empty bar. The screenshots were checked against the reference ("Read is on the right, like Feedbin") instead of judged on their own, and the result was called right.
 
 **Rules:**
-- When adopting a pattern from another app, list what made it work there (neighbouring controls, balance, density). If Upshot lacks those, adapt the pattern; don't copy its placement.
+- When adopting a pattern from another app, list what made it work there (neighboring controls, balance, density). If Upshot lacks those, adapt the pattern; don't copy its placement.
 - Judge screenshots as a designer seeing them cold: does every element earn its space, and does any control look orphaned? Matching the reference is not the bar.
 - When an option has a known weakness (here, "Upshot has no Edit"), resolve it in the design before building, rather than leaving it in the option's fine print.
 - Before saying a UI looks good, name at least one weakness. If none comes to mind, look again.
@@ -55,7 +55,7 @@
 
 ## 2026-11-12 — Evaluate every path a record can take, not just the new-arrival one
 
-**Mistake:** The Exploited flag's remedy was evaluated only for stories as they arrive (scored, then summarised). Stories flagged later, by a CISA listing after publication, which was every flag on the first live build, never went through either check, so they showed no remedy even when their own upshot named the patch. The user caught it on the live site.
+**Mistake:** The Exploited flag's remedy was evaluated only for stories as they arrive (scored, then summarized). Stories flagged later, by a CISA listing after publication, which was every flag on the first live build, never went through either check, so they showed no remedy even when their own upshot named the patch. The user caught it on the live site.
 
 **Rules:**
 - For any per-record state, list every way a record can reach it (on arrival, on a later build, by a backfill, via another record) and check that each path fills every field, before calling the evaluation done.
@@ -109,13 +109,13 @@
 **Mistake:** The sync prototype read a reader's state from KV, merged, and wrote it back. KV is eventually consistent across locations (up to a minute), so two devices syncing through different locations could overwrite each other, and the losing device never resent its changes. Tests ran against a local, fully consistent KV and passed. The user's sense that it "didn't feel robust" was what prompted a closer look.
 
 **Rules:**
-- Before any get → change → put, write down the store's consistency and concurrency guarantees, and what happens when two writers interleave. If it's eventually consistent or has no compare-and-set, use a store that serialises writes (a Durable Object, D1) instead.
+- Before any get → change → put, write down the store's consistency and concurrency guarantees, and what happens when two writers interleave. If it's eventually consistent or has no compare-and-set, use a store that serializes writes (a Durable Object, D1) instead.
 - A local emulator is usually more consistent than production; a test passing locally says nothing about cross-location races. Name that gap in the test or PR rather than implying coverage.
 - When a user says a design feels fragile without naming why, list every caveat accumulated so far; a growing list of patches is the signal to revisit the foundation.
 
 ## 2026-11-13 — Judge a sign-in prompt as a wary stranger, and give it one shape
 
-**Mistake:** The first passkey sheet asked "Create a passkey or Sign in?" before saying what either was for, listed Face ID, Touch ID and Windows Hello by name, and said "No password or email" without saying what Upshot keeps. The user said they'd avoid it on any site. The rewrite then mixed three alignments in one box (left text, right-floated button, centred footer), which the user also rejected.
+**Mistake:** The first passkey sheet asked "Create a passkey or Sign in?" before saying what either was for, listed Face ID, Touch ID and Windows Hello by name, and said "No password or email" without saying what Upshot keeps. The user said they'd avoid it on any site. The rewrite then mixed three alignments in one box (left text, right-floated button, centered footer), which the user also rejected.
 
 **Rules:**
 - Before showing any sign-in, permission or data prompt, read it as someone who has never seen the site: what do I get, what do they keep, what am I agreeing to? Answer those before asking for a decision. Check copy against established guidance (FIDO Alliance, Google's passkey UX) rather than writing from first principles.
@@ -137,8 +137,8 @@
 **Mistake:** Wrote `docs/adr/0001-…` for the sync decision because the global CLAUDE.md says to propose ADRs. This repo has never had ADRs; its decisions live in `docs/architecture.md`. The user said so.
 
 **Rules:**
-- Before adding a new kind of document, check what the repo already does (here: architecture.md, setup.md, developing.md, PR descriptions). A generic instruction to write ADRs, design docs or changelogs doesn't apply where the project has its own place for that.
-- Record rejected options and their reasons in the existing doc that describes the feature.
+- Before adding a new kind of document, check what the repo already does (here: architecture.md, setup.md, developing.md, PR descriptions; since 2026-11-14 the pages under `docs/architecture/` and `docs/setup/`, and `docs/development.md`). A generic instruction to write ADRs, design docs or changelogs doesn't apply where the project has its own place for that.
+- Record rejected options and their reasons in the existing doc that describes the feature, stated as current reasons ("Durable Objects, not KV, because…"), not as a story of what was tried (see 2026-11-15).
 
 ## 2026-11-13 — One name for one idea, on every button
 
@@ -155,7 +155,7 @@
 
 **Rules:**
 - After an action that changes state but leaves more to do (stop syncing, delete), keep the sheet open on the view that comes next, with a short neutral line saying what happened. Close only when the task is finished (joining, Done).
-- A button labelled Done closes; Back navigates. Check each button's label against what it does.
+- A button labeled Done closes; Back navigates. Check each button's label against what it does.
 - When a status lives in a slot that another state can replace (the late bar replacing "Updated…"), show it in every variant of that slot.
 
 ## 2026-11-13 — Put a status where its subject is, not where there's room
@@ -173,7 +173,7 @@
 **Rules:**
 - In any list of sessions, devices or members, mark the current one and keep its leave action separate and explicitly worded ("Stop syncing on this device"), as Signal, WhatsApp and Google do.
 - After a destructive action, say what happened to everything else it touched ("your other devices keep syncing" / "it was the last one").
-- When a user reports impossible-seeming behaviour, check the server's actual state and reproduce each reading of their steps before changing anything.
+- When a user reports impossible-seeming behavior, check the server's actual state and reproduce each reading of their steps before changing anything.
 
 ## 2026-11-13 — Audit the whole feature before handing it over, not the latest fix
 
@@ -201,7 +201,7 @@
 
 **Rules:**
 - Climb the ponytail ladder before adding UI states: can an existing message, action or rule cover this case? One message for every way sync stops beat four precise ones.
-- When a fix adds a branch, name the simpler behaviour it replaces and ask whether that would do (e.g. "scanning always joins").
+- When a fix adds a branch, name the simpler behavior it replaces and ask whether that would do (e.g. "scanning always joins").
 - Count a feature's states, not just its lines. If a sheet has more views than the task has steps, cut views.
 
 ## 2026-11-14 — A control should do what it looks like it does
@@ -212,3 +212,69 @@
 - Weigh what users expect a familiar icon to do above whether the action is technically redundant. A redundant action that confirms "it's synced" still has value; a button that does something other than its icon suggests doesn't.
 - When two entry points open the same place, treat that as a sign one of them should have a different job.
 - When a control's job changes, check the labels around it still describe theirs.
+
+## 2026-11-14 — Writing in Dave's voice means no stock AI phrasing
+
+**Mistake:** The docs rewrite was meant to read in Dave's voice, but it leaned on stock phrases: "knobs" for settings, "crying wolf", "guardrail", "escape hatch", "That's really it", "That's the whole point, really", "the short version". The README was only lightly edited, so it still read in the old impersonal style, not his. The PR title also described the work as a rewrite "in the author's voice".
+
+**Rules:**
+- Name things plainly: settings, not knobs or levers; "how a wrong flag gets retracted", not an escape hatch. No idioms used as filler (crying wolf, heavy lifting, under the hood), and no throwaway closers ("That's really it", "the whole point, really", "In short").
+- Before calling a voice pass done, grep the result for those phrases, and read it next to one of his posts (portfolio-v2 `secrets-at-deploy-time.md`). Voice comes from first person and his reasons, not from colorful wording.
+- A voice pass covers every file in scope, including the README. Don't treat a file as finished just because it was already close.
+- Never describe the work as being "in the author's voice" (or similar) in commits, PRs or docs. Describe what changed.
+
+## 2026-11-14 — Docs aren't blog posts: borrow the voice, not the register
+
+**Mistake:** After being asked for Dave's voice, the README and docs were written like his blog posts: hook openings ("the one kind of story you shouldn't have to go looking for"), asides ("which was a big part of the appeal for me", "I'd rather look at those myself") and chatty pointers ("If you'd like your own…"). He said the README read like a blog post, and that these are not blog posts.
+
+**Rules:**
+- In a README or reference doc, voice means plain words and his punctuation, not his blog's register. Lead with what the page covers, in one or two sentences. Use lists and numbered steps where the content is a list or a sequence.
+- Use first person only for a decision and its reason (a design set aside, why the build does the parsing). Leave out feelings, preferences and hooks.
+- A README is a summary that links to the docs: what it is, its features, how it works in a few steps, where to go next.
+
+## 2026-11-14 — American English everywhere
+
+**Mistake:** The docs, code comments and lessons had British spellings (colour, behaviour, centred, labelled, summarise). When "colour" turned up in the old docs, I took it as the house style and wrote "summarise" into the architecture diagram to match. The user stopped the work: nothing should use British English.
+
+**Rules:**
+- Write American English in every file: docs, comments, test names, commit messages, PR text and diagrams (color, behavior, center, labeled, canceled, summarize, license as a noun).
+- A spelling already in the repo isn't a style guide. If it's British, fix it; don't copy it.
+- Leave API names as they are: GitHub Actions' `cancelled()`, `aria-labelledby`, and quoted third-party text in test fixtures.
+
+## 2026-11-14 — Match a reference's level of detail, not just its look
+
+**Mistake:** Asked for more detail in the architecture diagram, and pointed at homelab-iac for reference, I copied homelab-iac's style but went to 19 boxes and 20 connections. Its diagrams are about 14 boxes and 10 connections, and its README says the scope is deliberately small. The user said it was now too much.
+
+**Rules:**
+- When given a reference, measure its density (boxes, connections, sublabel length, number of cards) and stay within it. "More detail" means more than the last version, up to the reference's level, not everything that exists.
+- Before adding a box, ask whether a reader of the overview needs it. Leave secondary parts (deploy helpers, issue bots, storage details) to the pages that cover them.
+- The reading order (left to right, top to bottom) must follow the flow. Put the real starting point first and run the main path as one straight spine; side inputs and services branch off it. The first version put CISA top-left, so it read as the start of everything.
+
+## 2026-11-15 — Docs describe the current state only
+
+**Mistake:** The rewritten docs kept passages of history: "I tried a cloud first" for the sync icon, "Söhne replaced Public Sans" and "as wide as Public Sans was", a one-time backfill that ran when the Exploited flag shipped, and a "Designs I set aside" section. The user said the docs should only discuss the current state.
+
+**Rules:**
+- Docs say what the system is and why, not how it got there. History lives in commits and PRs.
+- Keep a reason only if it explains the current design, and state it in the present tense ("Sync codes, not passkeys, because…"). Drop it if it only explains a past choice.
+- Before handing over docs, grep for history wording: tried, first, replaced, was, were, used to, shipped, before, set aside, as before.
+
+## 2026-11-15 — Each fact lives on one page
+
+**Mistake:** After the docs were cut down, they still said the same things in several places: the diagram's own README repeated the overview, the README and getting-started both stated the cost, the overview re-described what each page opens with, the pipeline repeated the configuration table's score bars, and page openings ("This page covers…") repeated the index. A keyword check by topic missed most of it.
+
+**Rules:**
+- Give each fact one owner page. Anywhere else, link to it; don't summarize it again.
+- An index lists topics, and a page doesn't announce its own contents. Overview and summary pages point; they don't re-explain.
+- Check for repetition at the sentence level, not by topic keywords: run `/tmp/docscheck/repeats.py` (sentences on different pages sharing a six-word run) and resolve every hit or confirm it's a coincidence.
+- Before adding a new doc file, ask whether its content already has an owner page.
+- **Amended the same day: don't over-apply this.** The next pass removed orientation along with the copies: the README lost "How it works" and its prerequisites, pages lost their introductions, the index became keyword fragments, and the user said the docs got worse. The rule is about **specifics** (values, limits, schedules, commands, file layouts), which drift when copied. **Orientation repeats on purpose**, shorter at each level: the README summarizes in a few sentences, the overview in a paragraph per piece, and the page has the detail. Every page opens with a sentence or two on what it's for, and a how-to lists its own prerequisites (Diátaxis, the Google developer documentation style guide, standard README sections).
+- When the user gives a rule, apply it with judgment against established practice, and say where the line falls before applying it everywhere.
+
+## 2026-11-15 — Docs cover the project, not the tools around it
+
+**Mistake:** `development.md` carried a section on regenerating the architecture diagram with Archify: render HTML, export an SVG, lock it to dark. The user pointed out it has nothing to do with Upshot itself.
+
+**Rules:**
+- Document how the project works and how to run or change it. A third-party tool's workflow (diagram generators, editors, formatters) doesn't belong in the docs; the committed source file is enough.
+- Before adding a section, ask whether a reader working on the project would need it, or only someone repeating a task I just did.

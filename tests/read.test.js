@@ -23,7 +23,7 @@ test('clean keeps adjacent metadata spans apart, but not code tokens', () => {
 const page = (status, headers, body = '') => ({ status, ok: status >= 200 && status < 300, url: 'https://x.test/a', headers: new Headers({ 'content-type': 'text/html', ...headers }), text: async () => body });
 const words = n => 'word '.repeat(n);
 
-test('classify recognises blocks by status and header, not by what an article says', () => {
+test('classify recognizes blocks by status and header, not by what an article says', () => {
   assert.equal(classify(page(403, {}), ''), 'challenge');
   assert.equal(classify(page(202, {}), ''), 'challenge');
   assert.equal(classify(page(200, { 'cf-mitigated': 'challenge' }), ''), 'challenge');
@@ -153,7 +153,7 @@ test('tidy drops a newsletter pitch and whatever follows it', () => {
   assert.ok(!out.includes('newsletter')); assert.ok(!out.includes('biweekly'));
 });
 
-test('tidy drops what follows the article, labelled as a heading or not', () => {
+test('tidy drops what follows the article, labeled as a heading or not', () => {
   const prose = 'A real sentence of the article, with enough words to count as prose. '.repeat(6);
   const after = [
     '<div>Keep Reading</div><p>Another story</p>', '<h2>About the Author</h2><p>A bio of them.</p>', '<h2>Written by</h2><p>A bio of them.</p>',
