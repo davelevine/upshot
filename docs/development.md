@@ -25,15 +25,7 @@ npx wrangler dev -c wrangler.jsonc -c sync/wrangler.jsonc --infer-origin-from-ro
 
 The two `-c` flags run the site's Worker and `upshot-sync` together, bound as they are when deployed. `--infer-origin-from-routes=false` lets the Worker see the address you opened, which its same-origin check needs.
 
-Sync's session cookie is `Secure`, which browsers waive only for `localhost`. An IP address or a plain-HTTP Tailscale address serves the site but can't turn sync on.
-
-**Sync on a phone.** Add `--local-protocol https --upstream-protocol https` to the command above, then:
-
-```bash
-tailscale serve --bg --https=10443 https+insecure://localhost:8788
-```
-
-It's at `https://<machine>.<tailnet>.ts.net:10443`, reachable only from your tailnet (HTTPS certificates must be enabled). `tailscale serve --https=10443 off` stops it.
+Sync's session cookie is `Secure`, which browsers waive only for `localhost`. To try sync on another device, serve the site over HTTPS (add `--local-protocol https --upstream-protocol https`) at an address that device can reach.
 
 **Fonts.** `wrangler dev` uses an empty local copy of the R2 bucket, so the site shows system fonts. If you have the licensed fonts, load them once:
 

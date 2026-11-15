@@ -11,7 +11,7 @@
 ## Running your own copy
 
 - **[Getting started](setup/getting-started.md):** set up your own copy, step by step.
-- **[Configuration](setup/configuration.md):** tune a fork once it's running: score bars, schedule, feeds, fonts and Renovate.
+- **[Configuration](setup/configuration.md):** tune a fork once it's running: score bars, schedule, feeds and fonts.
 
 ## Working on the code
 

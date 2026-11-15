@@ -44,5 +44,5 @@ This guide sets up your own copy of Upshot: a fork that builds every hour on Git
 
 ## Next
 
-- [Configuration](configuration.md): settings, keeping the hourly schedule on time, feeds, fonts and Renovate.
+- [Configuration](configuration.md): settings, keeping the hourly schedule on time, feeds and fonts.
 - [Hosting](../architecture/hosting.md): deploys, workflows and secrets.

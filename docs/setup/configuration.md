@@ -1,6 +1,6 @@
 # Configuration
 
-A fork runs fine on the defaults. This page is for changing them: how many stories get through, when the build runs, which feeds it reads, and the optional fonts and Renovate.
+A fork runs fine on the defaults. This page is for changing them: how many stories get through, when the build runs, which feeds it reads, and the optional fonts.
 
 ## Settings
 
@@ -61,9 +61,3 @@ To use them, create a private R2 bucket named `upshot-fonts`, used for nothing e
 ```bash
 for f in Sohne-*.woff2 Mercury-*.woff2; do npx wrangler r2 object put "upshot-fonts/$f" --file "$f" --content-type font/woff2 --remote; done
 ```
-
-Clean H&Co's Mercury files first: remove Mercury Text's CFF hints, which Firefox's font sanitizer rejects, and drop the ffi and ffl ligatures at U+2248 and U+221A, so ≈ and √ fall back to a font that has them.
-
-## Renovate
-
-Install the [Renovate app](https://github.com/apps/renovate); [`renovate.json`](../../renovate.json) is already set up. Patch, digest and minor updates merge themselves once CI passes; majors and the Claude Code CLI wait for review on the 1st of the month.
