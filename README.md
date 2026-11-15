@@ -38,33 +38,20 @@ There's no server or database. A scheduled GitHub Actions job commits a small JS
 
 ## Features
 
-- **Only what matters.** A handful of stories on a big day, none on a slow one. Each shows its source, a one-line summary and its age, with topics in a sidebar and search.
-- **Exploited flaws flagged.** Flaws under active attack are tagged **Exploited**, with whether a patch is out; supply-chain attacks are tagged **Compromised**. Each flag is confirmed by CISA's catalog or by the article itself.
+- **Only what matters.** A handful of stories on a big day, none on a slow one, each with a one-line summary.
+- **Exploited flaws flagged.** Flaws under active attack are tagged **Exploited**, with whether a patch is out; supply-chain attacks are tagged **Compromised**.
 - **Weekly essentials.** Five picks from the last seven days, each with what to do about it.
 - **Built-in reader.** Articles open in a clean pane that starts with the upshot: what happened, who's affected and what to do.
-- **Read state.** Unread stories stand out and read ones are dimmed. Mark a whole list read, or everything above or below a story. It stays in your browser unless you turn on sync.
-- **Sync.** Pair devices with a sync code or QR code. No account, email or password.
-- **Phone and desktop.** Swipe navigation and install as an app on a phone; `⌘K` search and `j`/`k` navigation on a desktop. Light and dark themes, and an RSS feed.
+- **Read state and sync.** Read stories are dimmed, and sync keeps them the same across your devices with a code. No account.
+- **Phone and desktop.** Install it as an app on a phone; `⌘K` search and `j`/`k` navigation on a desktop. Light and dark themes, and an RSS feed.
 
 ## How it works
 
-1. Every hour, [`build.py`](build.py) fetches the feeds in [`feeds.opml`](feeds.opml).
-2. Each new story goes to Claude Haiku on its own (so its score never depends on what it was batched with) for a category, a relevance score and a one-sentence summary.
-3. Stories that clear their category's bar and aren't repeats are published. Once a day, the model picks the week's five essentials.
-4. Each article's text is extracted with Mozilla's Readability and stored in Cloudflare KV, so the reader never fetches from publishers and nothing from the source page runs.
-
-The front end is [`site/index.html`](site/index.html) and [`site/app.js`](site/app.js), with no framework or build step. A Cloudflare Worker serves it and answers the reader's requests; a second Worker, in [`sync/`](sync/), handles sync.
-
-See the [docs](docs/README.md) for the rest, starting with the [overview](docs/architecture/overview.md).
+Every hour, [`build.py`](build.py) fetches the feeds in [`feeds.opml`](feeds.opml), has Claude Haiku score and summarize each new story, and commits the ones that clear the bar. A Cloudflare Worker serves the static front end ([`site/`](site/)) and the article text the build stored. The [architecture overview](docs/architecture/overview.md) has a diagram and the details.
 
 ## Running your own copy
 
-Setup takes about fifteen minutes. The only paid piece is a Claude subscription (Pro or Max), used through the Claude Code CLI, so there's no API key or per-token bill.
-
-- [Getting started](docs/setup/getting-started.md): fork, add the secrets, connect Cloudflare and run the first build
-- [Feeds](docs/setup/feeds.md): adding feeds and backfilling
-- [Configuration](docs/setup/configuration.md): settings and the build schedule
-- [Optional extras](docs/setup/optional.md): fonts and Renovate
+Setup takes about fifteen minutes; see [getting started](docs/setup/getting-started.md). The only paid piece is a Claude subscription (Pro or Max), used through the Claude Code CLI, so there's no API key or per-token bill.
 
 ## Developing
 
@@ -75,7 +62,7 @@ npm ci && node --test 'tests/*.test.js'
 npx wrangler dev -c wrangler.jsonc -c sync/wrangler.jsonc --infer-origin-from-routes=false --port 8788
 ```
 
-More in [running locally](docs/development/local.md), [testing](docs/development/testing.md) and [CI/CD](docs/development/ci.md).
+More in [development](docs/development.md).
 
 ## Built With Claude
 

@@ -1,72 +1,51 @@
 # The site
 
-[`site/index.html`](../../site/index.html) and [`site/app.js`](../../site/app.js) are the whole front end: no framework, no build step. This page covers how the layout adapts to each screen, how lists and labels behave, what counts as unread, and the short pass that runs through the wordmark when you open it.
+[`site/index.html`](../../site/index.html) and [`site/app.js`](../../site/app.js) are the whole front end, with no framework and no build step. This page covers the layout, lists and labels, the reader, and the fonts.
 
 ## Layout
 
-The layout follows desktop feed readers such as Feedbin, and changes at two widths:
+The layout follows desktop feed readers such as Feedbin:
 
-- **Phones (up to 640px)** get pages, as in Feedbin's app. Upshot opens on the topics. Picking one opens its list, with a back chevron and its name in the header, and a story covers the list.
-- **641–1023px** docks the reader on the right, as it is from 1024px. The topics and the list become two pages of one left pane, scrolled sideways, as in Feedbin. Upshot opens on the list, and picking a topic slides to its list. The pane narrows (to 280px at 641px) so the article keeps at least 360px.
-- **1024px and up** puts the sidebar, list and reader side by side. Dragging the sidebar's or the list's edge resizes it; the widths are kept in the browser, and a double-click resets them.
+- **Phones (up to 640px)** use pages. Upshot opens on the topics, a topic opens its list, and a story covers the list. Pages slide and follow a swipe; Back, the chevron and a swipe right step back.
+- **641–1023px** docks the reader on the right, with the topics and the list as two pages of one left pane.
+- **1024px and up** puts the sidebar, list and reader side by side. Dragging an edge resizes a column, and a double-click resets it.
 
-On a phone, each page slides over the one before and follows your finger when swiped. Back, the chevron and a swipe right step back through them; a swipe left goes forward again, into the list you just left or the story you just closed. Articles read once are kept for the visit, so reopening one is instant.
+From 641px up, the list stays live while an article is open, so `j`/`k` and clicks move through it.
 
-From 641px up there's no full-width header: the logo tops the left pane, and the menu sits at the end of the reader bar. The reader stays docked and the list scrolls on its own. The list also stays live while an article is open, so `j`/`k` and clicks move through it.
+## Lists and labels
 
-## Lists
+Lists run newest first; stories of the same age keep the build's order, most relevant first. The essentials are an entry in the topics, so no story is listed twice.
 
-The essentials are an entry in the topics, not a separate section, so no story is listed twice.
+A row carries at most one label, the same in every list:
 
-Lists run newest first, by the age each row shows. Stories of the same age keep the build's order, most relevant first.
+- **Exploited**, with its remedy: "No patch yet" in red (the only filled mark on a row), "Patch available" in the accent color, or "Mitigation only" with no color.
+- **Compromised** in yellow, for a supply-chain attack.
+- **Essential**, left off rows in the Essentials list itself.
 
-## Labels
-
-A row carries at most one label, the one that matters most, and it's the same in every list:
-
-- **Exploited**, with its remedy:
-  - **"No patch yet"** is red, with the word. It's the only filled mark on a row, and it stays that way while there's nothing to apply.
-  - **"Patch available"** is in the accent color.
-  - **"Mitigation only"** has no color.
-  - Nothing at all when the story doesn't say.
-- **Compromised**, for a supply-chain attack, is yellow: a warning rather than a danger.
-- **Essential** otherwise, which the Essentials list leaves off its own rows.
-
-The last seven days' exploited flaws are listed in their own entry under the essentials, which shows only when there are any. While any of them has no fix, that entry shows "N unpatched" in place of its unread count. The reader shows the same label, and "confirmed by CISA" when the catalog lists it. [Exploited flags](exploited-flags.md) covers how the labels are decided.
+The last seven days' exploited flaws get their own entry under the essentials, showing "N unpatched" while any has no fix. [The pipeline](pipeline.md) covers how flags are set.
 
 ## Unread
 
-Unread titles are bold, so nothing else marks new stories. The sidebar counts unread stories, as a feed reader does.
+Unread titles are bold, and the sidebar counts unread stories. A first visit starts with the last day's stories unread (or the newest five after a quiet stretch). The week's essentials stay unread until opened.
 
-- **A first visit** starts with the last day's stories unread, or the newest five after a quiet stretch, and older ones show as read. After that, anything added since counts.
-- **The week's essentials** count as unread until opened, however old.
-- **An older story marked unread by hand** stays unread.
+A toolbar after Feedbin's holds **Read**, which marks the list showing as read after you confirm (`Shift A` too), beside **Shortcuts** on a desktop or **Top** on a phone. The `…` on the selected story marks everything above or below it.
 
-## The toolbar
+## The wordmark pass
 
-A toolbar modeled on Feedbin's holds two buttons, each centered in half of it:
+When Upshot opens, or returns after 15 minutes away, the wordmark's spot runs once through the date, when the news last updated and when the next build is due, then settles back, after Kagi News. It takes under five seconds, and a tap ends it.
 
-- **From 1024px**, at the sidebar's foot (the pane's below that): **Shortcuts** and **Read**.
-- **On a phone**, a list's bottom bar: **Top** (back to the top, dimmed when you're already there) and **Read**.
+## The reader
 
-**Read** marks the list that's showing as read once you confirm (`Shift A` does the same). The `…` on the selected story (the one open, or on a phone the one just closed) marks the stories above or below it.
+Each build extracts new stories with Mozilla's [Readability](https://github.com/mozilla/readability) and stores the text in Cloudflare KV. Opening an article calls `/api/read`, which the Worker answers from KV. Parsing happens in the build because it costs more CPU than the Worker gets per request on the free plan.
 
-Bulk marks go in at the oldest end of the read list, so the search panel's "Recently read" still starts with what you actually opened.
+- **It opens with the upshot.** Two to four bullets written by the build from the article. A bullet with a figure (a CVE, version, date or count) that isn't in the article word for word is dropped.
+- **It isn't a proxy.** The Worker never fetches anything; it returns only what the build stored. A story without stored text shows its summary and a link to the original.
+- **Nothing from the source runs.** Extracted HTML is stripped of scripts, frames, styles and event handlers, then shown in a sandboxed frame. The only script inside is the site's own relay, admitted by a per-render nonce.
+- **A strict Content-Security-Policy** in [`site/_headers`](../../site/_headers) backs this up. A test keeps its script hashes in step with the code.
+- **No login, no tracking.** What you've read stays in your browser's local storage unless you turn on [sync](sync.md).
 
-## The pass through the wordmark
+Stored text expires after 100 days, shortly after a story leaves the site.
 
-I borrowed this from Kagi News. Each time Upshot opens, or comes back after 15 minutes away, the wordmark shows for a moment. Then its spot runs once through:
+## Typography
 
-1. the date
-2. when the news last updated
-3. when the next build is due, from the build's schedule (`17 * * * *` UTC), and left out when a build is late
-
-Then it settles back on the wordmark. It doesn't run on a refresh, or on a new tab within 15 minutes of the last pass.
-
-After that, the sidebar's foot keeps saying it: "Updated 1h ago" just above the toolbar (on a phone, a thin strip over a list's bottom bar). When a build is late, that gives way to the late bar, in the same place.
-
-The pass takes under five seconds, so it needs no pause control under WCAG 2.2.2, and a tap ends it.
-
-## Security headers
-
-[`site/_headers`](../../site/_headers) sets the Content-Security-Policy. [The reader](reader.md) covers what it allows and why.
+Articles are set in Mercury, the publisher's words; everything else is in Söhne, Upshot's own. Both are licensed, so they live in a private R2 bucket, `upshot-fonts`, and the Worker serves them from `/fonts/licensed/`. The page fetches each font once and hands it to the sandboxed reader frame as a `data:` URL, so articles don't download fonts again. Without the bucket, as in a fork, the site uses system fonts; [Configuration](../setup/configuration.md) covers adding them.

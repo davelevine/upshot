@@ -1,58 +1,67 @@
 # Configuration
 
-Most of Upshot's behavior is set by constants at the top of `build.py`; the defaults are what the live site runs. This page also covers the Worker's cron, which keeps the hourly build on time because GitHub's scheduler runs late or skips slots.
-
 ## Settings
 
-The settings live at the top of [`build.py`](../../build.py):
+Constants at the top of [`build.py`](../../build.py); the defaults are what the live site runs. "env" means an environment variable can override it.
 
 | Setting | Default | What it does |
 | ------- | ------- | ------------ |
-| `MIN_RELEVANCE` | 8 for Security and Regulation, 7 for AI and Other, 6 for Infrastructure and Engineering | Score a story needs to be published; the bars differ only to match how Haiku scores each category |
-| `NEWS_SOURCES` | Six outlets | Lose ties to, and get replaced by, the original source |
-| `DAILY_MAX` | 20 | Most stories a day can show: above the busiest real day, so it only trips on a malfunction |
-| `DEDUPE_DAYS` | 7 | How far back to look for repeat coverage |
-| `FRESH_DAYS` | 3 | Ignore feed entries older than this (env-overridable) |
-| `PER_FEED` | 10 | Newest entries taken per feed per run (env-overridable) |
-| `KEEP_DAYS` | 90 | Prune articles and seen URLs older than this |
+| `MIN_RELEVANCE` | 8 for Security and Regulation, 7 for AI and Other, 6 for Infrastructure and Engineering | Score a story needs to be published |
+| `NEWS_SOURCES` | Six outlets | Lose ties to the original source |
+| `DAILY_MAX` | 20 | Daily cap, set to catch a malfunction |
+| `DEDUPE_DAYS` | 7 | Days to look back for repeats |
+| `FRESH_DAYS` | 3 | Ignore older entries (env) |
+| `PER_FEED` | 10 | Entries per feed per run (env) |
+| `KEEP_DAYS` | 90 | Days before pruning |
 | `DEAD_AFTER_DAYS` | 14 | Days of failures before a feed is reported |
-| `UPSHOT_MODEL` | `claude-haiku-5-5` | Model used for scoring, repeats and the weekly picks (env). The build fails if the CLI answers with a different model |
+| `UPSHOT_MODEL` | `claude-haiku-5-5` | Model for all calls (env); the build fails if the CLI answers with another |
 | `CLAUDE_BIN` | `claude` | Path to the Claude Code CLI (env) |
-| `SITE_TZ` | `America/New_York` | The time zone stories are dated in and "Today" means, on every device (env; set as a repo variable in forks) |
-| `SITE_URL` | `https://upshot.levine.io` | The site's address, for the feed's links (env; set as a repo variable in forks) |
+| `SITE_TZ` | `America/New_York` | Time zone for dates and "Today" (env) |
+| `SITE_URL` | `https://upshot.levine.io` | The site's address (env) |
 
-How often it runs is the `cron` line in [`build.yml`](../../.github/workflows/build.yml) and in [`wrangler.jsonc`](../../wrangler.jsonc), which is covered next.
+## Schedule
 
-## Keeping the schedule on time
-
-GitHub's scheduler often starts the workflow late and sometimes skips a slot entirely. For a site that promises hourly news, that wasn't good enough, so the Worker starts the build instead. A Cloudflare cron trigger in [`wrangler.jsonc`](../../wrangler.jsonc) fires at the same times and dispatches the workflow on `main`.
+GitHub's scheduler runs late and skips slots, so a cron trigger in [`wrangler.jsonc`](../../wrangler.jsonc) dispatches the Build workflow instead. GitHub's schedule stays as a fallback and skips an hour the Worker already started (the `gate` job in `build.yml`).
 
 To turn it on in a fork:
 
-1. Create a fine-grained personal access token limited to the fork, with **Actions: read and write**.
+1. Create a fine-grained personal access token for the fork with **Actions: read and write**.
 2. Set `BUILD_REPO` in `wrangler.jsonc` to `<you>/upshot`.
-3. Store the token as a Worker secret:
+3. Store the token: `npx wrangler secret put GITHUB_DISPATCH_TOKEN`. In the dashboard, add it under **Settings → Variables and secrets** as a **Secret** for **Production** only; the cron never runs on a Preview.
 
-   ```bash
-   npx wrangler secret put GITHUB_DISPATCH_TOKEN
-   ```
+Without the secret the cron silently does nothing (Workers Logs still say `ok`). Check that `npx wrangler secret list` lists `GITHUB_DISPATCH_TOKEN` and that a `workflow_dispatch` run appears within seconds of the cron.
 
-   If you'd rather use the dashboard, add it under **Settings → Variables and secrets** as a **Secret** for **Production** only. The cron never runs on a Preview, so a token saved there (or as a build variable) never reaches it.
+To change the schedule, change it in three places: the `cron` in `build.yml`, the cron in `wrangler.jsonc`, and `BUILD_EVERY_HOURS`/`BUILD_AT_MINUTE` in [`site/app.js`](../../site/app.js), with `STALE_MINUTES` there, which marks a build as late.
 
-### Checking it works
+## Feeds
 
-Here's the catch: without the secret, the cron does nothing, silently. Workers Logs still show each run as `ok`. So check it directly:
+Each feed is one `<outline>` line in [`feeds.opml`](../../feeds.opml); its `text` is the publisher name shown on the site. Publishers without RSS come from community feeds or the Hacker News 300+ feed.
 
-- `npx wrangler secret list` should list `GITHUB_DISPATCH_TOKEN`.
-- A build should appear as a `workflow_dispatch` run within seconds of the cron.
-- A failed dispatch shows as an error in Workers Logs.
+CI fails until a new feed has a test page proving the reader works on it:
 
-The built-in GitHub schedule stays in place as a fallback, and skips an hour the Worker already started (the `gate` job in `build.yml`). So the site builds once an hour either way, and a fork without the token still builds on GitHub's schedule.
+```bash
+node tests/fixtures/fetch.mjs "Publisher name"              # the name from feeds.opml
+UPDATE_EXPECTED=1 node --test tests/fixtures.test.js        # records what the reader makes of it
+```
 
-### Changing the schedule
+The saved page's text is scrambled. Check the diff of `tests/fixtures/expected.json` and commit both.
 
-If you change the schedule, change it in all three places:
+**Backfilling.** Builds look back three days. To pull in a new feed's older posts, or a new fork's history, run **Actions → Build → Run workflow** with `backfill_days` set to `30`. Only unseen stories are scored, so it's safe to rerun.
 
-- `build.yml`
-- `wrangler.jsonc`
-- `BUILD_EVERY_HOURS`/`BUILD_AT_MINUTE` in [`site/app.js`](../../site/app.js), along with `STALE_MINUTES` there, which marks a build as late.
+**Retracting a wrong flag.** Add the story's URL to [`not-exploited.txt`](../../not-exploited.txt), one per line. The next build drops its Exploited or Compromised flag and never sets it again. How flags are set is in [The pipeline](../architecture/pipeline.md).
+
+## Fonts
+
+Söhne, Mercury Text and Mercury Display are licensed, so a fork shows system fonts.
+
+To use them, create a private R2 bucket named `upshot-fonts`, used for nothing else (the Worker's binding can write to all of it). Upload the `.woff2` files at the top level: `Sohne-Buch`, `Sohne-Kraftig`, `Sohne-Halbfett`, `Mercury-DisplaySemibold`, and the twelve `Mercury-TextG1…`/`Mercury-TextG2…` faces.
+
+```bash
+for f in Sohne-*.woff2 Mercury-*.woff2; do npx wrangler r2 object put "upshot-fonts/$f" --file "$f" --content-type font/woff2 --remote; done
+```
+
+Clean H&Co's Mercury files first: remove Mercury Text's CFF hints, which Firefox's font sanitizer rejects, and drop the ffi and ffl ligatures at U+2248 and U+221A, so ≈ and √ fall back to a font that has them.
+
+## Renovate
+
+Install the [Renovate app](https://github.com/apps/renovate); [`renovate.json`](../../renovate.json) is already set up. Patch, digest and minor updates merge themselves once CI passes; majors and the Claude Code CLI wait for review on the 1st of the month.

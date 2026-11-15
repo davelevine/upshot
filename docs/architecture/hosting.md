@@ -1,29 +1,31 @@
 # Hosting
 
-Upshot runs on two Cloudflare Workers and a GitHub Actions job. This page covers how the site's Worker is configured, how each piece gets deployed, and what happens when something breaks.
+Upshot runs on two Cloudflare Workers and GitHub Actions. This page covers the Worker, deploys, workflows, secrets, and what happens when something breaks.
 
 ## The Worker
 
-[`worker.js`](../../worker.js) serves the static files and answers `/api/read` for the reader. On a cron trigger it also starts the Build workflow, since GitHub's scheduler runs late or skips slots. [Configuration](../setup/configuration.md) covers turning that on in a fork.
-
-[`wrangler.jsonc`](../../wrangler.jsonc) holds the Worker's config:
-
-- **Static assets** from `site/`, with `404.html` for unknown paths.
-- **Code runs only where it's needed:** for `/api/read`, for `/api/sync` and `/api/auth/*` (passed to `upshot-sync`), and for pages, which get a per-request CSP nonce so Cloudflare's Bot Fight Mode script can run.
-- **The `ARTICLES` KV binding**, where the reader's article text lives.
-- **The `SYNC` service binding** to `upshot-sync` ([Sync](sync.md)).
-- **The custom domain**, and **preview URLs** for PRs.
-- **Workers Logs**, which keep a few days of the Worker's requests and errors.
+[`worker.js`](../../worker.js) serves the static files from `site/`, answers `/api/read` from KV, passes `/api/sync` and `/api/auth/*` to `upshot-sync`, and starts the build on a cron trigger ([Configuration](../setup/configuration.md)). Pages get a per-request CSP nonce. [`wrangler.jsonc`](../../wrangler.jsonc) sets the `ARTICLES` KV binding, the `FONTS` R2 binding, the `SYNC` service binding, the custom domain, and Workers Logs.
 
 ## Deploys
 
-Cloudflare Workers Builds deploys every push to `main` with `npx wrangler deploy`, including the bot's data commits. It also builds a Preview for every other branch, with its URL posted on the PR.
+- **The site.** Cloudflare Workers Builds deploys every push to `main`, including the build's data commits, and builds a preview for every other branch, with its URL on the PR.
+- **`upshot-sync`.** Deployed by GitHub Actions when a push to `main` changes `sync/` or the npm packages, after sync's unit tests pass. Cloudflare makes no previews for a Worker with a Durable Object, which is why sync is a separate Worker. Previews share the live `upshot-sync`, but session cookies belong to the host that set them, so a preview's syncs stay apart from the live site's.
 
-`upshot-sync` deploys separately, from GitHub Actions ([Deploy sync](../../.github/workflows/deploy-sync.yml)), when a push to `main` changes `sync/` or the npm packages, once sync's own unit tests pass. [CI/CD](../development/ci.md) has the full list of workflows.
+## Workflows
 
-## It looks after itself
+| Workflow | Runs on | What it does |
+| -------- | ------- | ------------ |
+| [Build](../../.github/workflows/build.yml) | Hourly, manual, PRs | Fetches, scores and publishes. On PRs it runs the Python and JavaScript tests only. Manual runs take an optional `backfill_days`. |
+| Build › smoke | PRs | The browser smoke test against `wrangler dev` ([Development](../development.md)). |
+| [Deploy sync](../../.github/workflows/deploy-sync.yml) | Push to `main`, manual | Runs sync's unit tests, then `wrangler deploy -c sync/wrangler.jsonc`. |
 
-- **Feed health.** A feed that has failed for two weeks, gone quiet or moved lands in a single "Feed health" issue that closes itself once it's fixed. For failing and quiet feeds it suggests any feeds the publisher's homepage advertises.
-- **The LLM is down.** A run where every LLM call fails exits with an error, so GitHub emails you.
-- **KV is down.** The stories are still published (the reader shows a fallback until a later build stores their text) and the run is marked failed after committing, so you hear about it without losing the build.
-- **The build is late.** When the data is more than 105 minutes old (a build due every hour is running at least 45 minutes late), a bar at the foot of the list says when it last updated, with a "Check again" button that fetches the data at once. Failed runs already email the repo's owner, so the bar is for readers and doesn't link to the build.
+## Secrets
+
+Repository secrets: `CLAUDE_CODE_OAUTH_TOKEN` (from `claude setup-token`, good for about a year), and `CF_API_TOKEN`, `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID` for storing articles and deploying sync. [Getting started](../setup/getting-started.md) covers creating them.
+
+## When something breaks
+
+- **A feed fails** for two weeks, goes quiet or moves: it lands in a single "Feed health" issue that closes itself once fixed, with any feeds the publisher's homepage advertises.
+- **Every LLM call fails:** the run exits with an error, so GitHub emails you.
+- **KV is down:** stories still publish (the reader shows a fallback until a later build stores their text), and the run is marked failed after committing.
+- **The build is late:** when the data is over 105 minutes old, a bar at the foot of the list says when it last updated, with **Check again**.

@@ -137,7 +137,7 @@
 **Mistake:** Wrote `docs/adr/0001-…` for the sync decision because the global CLAUDE.md says to propose ADRs. This repo has never had ADRs; its decisions live in `docs/architecture.md`. The user said so.
 
 **Rules:**
-- Before adding a new kind of document, check what the repo already does (here: architecture.md, setup.md, developing.md, PR descriptions; since 2026-11-14 the pages under `docs/architecture/`, `docs/setup/` and `docs/development/`). A generic instruction to write ADRs, design docs or changelogs doesn't apply where the project has its own place for that.
+- Before adding a new kind of document, check what the repo already does (here: architecture.md, setup.md, developing.md, PR descriptions; since 2026-11-14 the pages under `docs/architecture/` and `docs/setup/`, and `docs/development.md`). A generic instruction to write ADRs, design docs or changelogs doesn't apply where the project has its own place for that.
 - Record rejected options and their reasons in the existing doc that describes the feature, stated as current reasons ("Durable Objects, not KV, because…"), not as a story of what was tried (see 2026-11-15).
 
 ## 2026-11-13 — One name for one idea, on every button

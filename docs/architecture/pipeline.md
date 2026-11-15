@@ -1,58 +1,36 @@
 # The pipeline
 
-Every hour the Build workflow runs [`build.py`](../../build.py). These are its steps, in order.
+Every hour the Build workflow runs [`build.py`](../../build.py). The schedule is in [Configuration](../setup/configuration.md).
 
-## 1. Fetch
+## Steps
 
-The build reads every feed in [`feeds.opml`](../../feeds.opml). A broken feed is skipped, never fatal.
+1. **Fetch.** It reads every feed in [`feeds.opml`](../../feeds.opml). A broken feed is skipped, never fatal.
+2. **Filter.** It keeps dated entries from the last few days that it hasn't seen before, capped per feed.
+3. **Score.** Each new story goes to Claude Haiku (`claude-haiku-5-5`) on its own, through the Claude Code CLI, so its score never depends on what it was batched with. The model returns a category, a 1–10 relevance score within that category, a one-sentence summary, and whether the story reports an exploited flaw.
+4. **Keep the notable ones.** A story is published if it clears its category's bar (8 for Security and Regulation, 7 for AI and Other, 6 for Infrastructure and Engineering) and isn't a repeat. There are no quotas, so a big security day shows as one and a slow day stays short. A 20-story daily cap exists only to catch a malfunction. Nothing published is taken down.
+5. **Drop repeats.** The model flags a story already on the site from the past week, such as the same launch from another outlet. The code checks the claim, so one copy always survives.
+6. **Flag exploited flaws.** See below.
+7. **Pick the essentials.** Once a day, the model chooses the week's five essentials.
+8. **Extract.** [`extract.mjs`](../../extract.mjs) stores each new story's text in Cloudflare KV for the reader, described in [The site](site.md).
+9. **Publish.** The build writes [`site/data.json`](../../site/data.json) and [`site/rss.xml`](../../site/rss.xml), records seen URLs in `state.json`, and commits. Cloudflare deploys the push.
 
-## 2. Filter
+Anything older than 90 days is pruned.
 
-It keeps dated entries from the last few days that haven't been seen before, capped per feed.
+## Exploited flags
 
-## 3. Score
+A story about a flaw under active attack is tagged **Exploited**, with its remedy. An active supply-chain attack is tagged **Compromised**.
 
-Each new story goes to Claude Haiku (`claude-haiku-5-5`) on its own, through the Claude Code CLI on a Claude subscription. Stories are sent one at a time so a story's score never depends on what it was batched with.
+A story is flagged in one of two ways:
 
-For each story, the model returns:
+- **CISA lists it.** A CVE the story names is in CISA's [Known Exploited Vulnerabilities](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) catalog.
+- **The story says so, and the quote checks out.** The model says a security story reports exploitation, a zero-day, an emergency patch or a supply-chain compromise, and quotes the words that say so. The code checks the quote is really in the story before trusting it, since a model can read a trend piece as an attack.
 
-- a category
-- a 1-10 relevance score, judged within its category
-- a one-sentence summary
-- whether it reports an exploited flaw, with the words that say so
+CVEs are taken from a story's title, excerpt, summary and upshot, never from the rest of the article, which often cites older flaws for background.
 
-## 4. Keep the notable ones
+**Remedies** use CISA's terms: patch, mitigation only, or no patch yet. A CISA listing rules out "no patch yet", since the catalog only takes flaws with a remedy. Only an exploited flaw with no patch yet may publish below its category's bar.
 
-A story is published if it clears its category's bar and isn't a repeat, or if it reports an exploited flaw (see [Exploited flags](exploited-flags.md)). The bars are:
+**Compromised** follows GitHub and OSV, which keep malware apart from vulnerabilities. It has no patch status; what to do is in the upshot.
 
-- **8** for Security and Regulation
-- **7** for AI and Other
-- **6** for Infrastructure and Engineering
+Later builds flag stories whose CVEs CISA lists afterward, and a repeat hands its flag to the copy on the site. RSS titles carry the label as a prefix ("Exploited: ", "Exploited, no patch yet: ", "Compromised: "), and each run summary counts the flags. If the catalog can't be read, the build carries on with the checked claims alone.
 
-There are no per-category quotas, so a big security day shows as one and a slow day stays short.
-
-Nothing published is ever taken down. There's a 20-story daily cap, but it exists only to catch a malfunction, like a broken feed.
-
-## 5. Drop repeats
-
-The model flags a story that's already on the site from the past week (the same launch from another outlet, say). The code checks that claim, so one copy always survives.
-
-## 6. Flag exploited flaws
-
-Stories about a flaw under active attack, or a supply-chain compromise, get flagged. See [Exploited flags](exploited-flags.md).
-
-## 7. Pick the essentials
-
-Once a day, the model chooses the week's five essentials.
-
-## 8. Extract
-
-[`extract.mjs`](../../extract.mjs) pulls each new story's text into Cloudflare KV for the reader. [The reader](reader.md) covers how that works.
-
-## 9. Publish
-
-The build writes [`site/data.json`](../../site/data.json) and [`site/rss.xml`](../../site/rss.xml), remembers the URLs it's seen in `state.json`, and commits. Cloudflare deploys the Worker on the push.
-
-## Pruning
-
-Everything older than 90 days is pruned, so the data stays small.
+A URL in [`not-exploited.txt`](../../not-exploited.txt) is never flagged. That's how a wrong flag is retracted; see [Configuration](../setup/configuration.md).
