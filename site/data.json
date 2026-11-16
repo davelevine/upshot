@@ -3662,32 +3662,32 @@
   }
  ],
  "weekly": {
-  "window_start": "2026-11-09",
-  "window_end": "2026-11-15",
+  "window_start": "2026-11-10",
+  "window_end": "2026-11-16",
   "items": [
    {
     "url": "https://www.aikido.dev/blog/compromised-github-accounts-push-ci-secret-stealer-to-tens-of-thousands-of-repositories",
-    "why": "Audit CI workflows and rotate any secrets exposed in pipelines of affected repos now."
-   },
-   {
-    "url": "https://www.bleepingcomputer.com/news/security/cursor-confirms-security-breach-led-to-malicious-claude-code-extension/",
-    "why": "Remove recently installed Cursor marketplace extensions and rotate secrets if you installed the malicious one."
-   },
-   {
-    "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-november-2026-patch-tuesday-fixes-1-235-flaws-outlook-zero-day/",
-    "why": "Prioritize this month's patches; the Outlook zero-day is already being exploited."
-   },
-   {
-    "url": "https://www.bleepingcomputer.com/news/security/check-point-patches-zero-day-that-lets-hackers-get-root-access/",
-    "why": "Patch Check Point gateways now; assume compromise if exposed since late October."
+    "why": "Rotate CI secrets and audit workflows for the stealer if your repositories were touched."
    },
    {
     "url": "https://thehackernews.com/2026/11/hackers-exploit-n-central-flaws-to.html",
-    "why": "Check N-central servers for compromise and expect restricted features until N-able finishes remediation."
+    "why": "Patch N-central immediately; exploits came within hours of PoC, and N-able is restricting features meanwhile."
+   },
+   {
+    "url": "https://www.wordfence.com/blog/2026/11/cve-2026-119618-apache-http2/",
+    "why": "Patch Apache HTTP Server now; this critical HTTP/2 flaw can enable remote code execution."
+   },
+   {
+    "url": "https://www.bleepingcomputer.com/news/security/cursor-confirms-security-breach-led-to-malicious-claude-code-extension/",
+    "why": "Audit Claude Code extensions you installed from Cursor's marketplace and remove any suspicious ones."
+   },
+   {
+    "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-november-2026-patch-tuesday-fixes-1-235-flaws-outlook-zero-day/",
+    "why": "Prioritize this month's patches; the record batch includes an Outlook zero-day already exploited."
    }
   ]
  },
- "generated_at": "2026-11-16T04:18:03+00:00",
+ "generated_at": "2026-11-16T05:18:30+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
