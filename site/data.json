@@ -20,6 +20,24 @@
    ]
   },
   {
+   "date": "2026-11-16",
+   "published": "2026-11-16T11:00:00+00:00",
+   "title": "Anthropic’s Claude Fable 5.2 blocks fewer security tasks, while Mythos gets better at finding bugs",
+   "url": "https://www.bleepingcomputer.com/news/artificial-intelligence/anthropics-claude-fable-52-blocks-fewer-security-tasks-while-mythos-gets-better-at-finding-bugs/",
+   "publisher": "BleepingComputer",
+   "cves": [],
+   "category": "ai",
+   "summary": "Anthropic rolled out Claude Mythos 5.2 to selected partners and Fable 5.2 to regular users, with coding and reasoning gains and changed cybersecurity behavior.",
+   "relevance": 7,
+   "added": "2026-11-16T11:18:22+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Anthropic released Mythos 5.2 to selected partners and Fable 5.2 to regular users, with Mythos 5.2 now ahead on security research.",
+    "Fable 5.2 blocks high-risk tasks like penetration testing and exploit generation, switching them to Opus 4.8; unnecessary blocks fell about 60% from Fable 5.1.",
+    "Mythos 5.2 is built for organizations doing advanced security work, and Anthropic says it detects 10.2% more vulnerabilities than Claude Opus 5.5."
+   ]
+  },
+  {
    "date": "2026-11-15",
    "published": "2026-11-16T02:14:44+00:00",
    "title": "Qwen4-Max",
@@ -3738,7 +3756,7 @@
    }
   ]
  },
- "generated_at": "2026-11-16T10:18:25+00:00",
+ "generated_at": "2026-11-16T11:18:34+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
