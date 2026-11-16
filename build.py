@@ -194,6 +194,8 @@ For each item return:
   1-3 = marketing, hiring, events, webinars, customer stories, off-topic.
   Most items are 4-7; reserve 8+ for roughly the top tenth of a day's news.
 - summary: one plain factual sentence (max 30 words) saying what happened. No hype, no "this article".
+  Describe the story, never the input: no mention of the excerpt, what it leaves out, or Hacker News points
+  and comments. With little to go on, say less: "Customers reported outages at Chase and Zelle." is complete.
 - exploited: true only if the item says a security flaw is being exploited in the wild, is a zero-day, or gets an
   emergency or out-of-band patch; or that software people run is compromised in an active supply-chain attack
   (malicious package versions, a hijacked update channel, compromised accounts pushing code). Not for a flaw that
@@ -729,7 +731,7 @@ def add_reading_times(items, articles=None, texts=None):
 TLDR_LIMIT = 60  # summaries written per build; a backlog (a backfill, a redo) spreads over later builds
 TLDR_PROMPT = """You write the TL;DR at the top of a tech news article, for a senior engineer who wants to act on it
 straight away. Return 2 to 4 bullets, each under 25 words. Lead with what happened, then who or what is affected,
-then the fix or action if the article gives one (if it gives none, leave action out rather than saying so). If the
+then the fix or action if the article gives one (if it gives none, leave action out: never write that it gives none). If the
 article identifies the flaw it reports by CVE ID, name it (at most two), not CVEs it cites for background. Use only facts stated in the article: never add a version, CVE,
 number, date or name that isn't in the text, and copy any you use exactly. No hype, no speculation, no
 "this article" framing. Plain sentences, no markdown."""

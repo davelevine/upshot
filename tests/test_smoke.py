@@ -1109,6 +1109,18 @@ def test_search_highlight_never_splits_an_entity(browser):
     assert pg.problems == []
 
 
+@pytest.mark.parametrize("scheme", ["light", "dark"])
+def test_the_selected_search_result_keeps_its_highlight(browser, scheme):
+    # The selected row is tinted with the highlight's own color; the match on it needs a stronger one to show.
+    pg = open_site(browser, viewport={"width": 1300, "height": 900}, color_scheme=scheme)
+    pg.keyboard.press("/")
+    pg.locator("#palette-q").fill(pg.evaluate("items[0].title.split(' ')[0]"))
+    row = pg.locator('#palette-list li[aria-selected="true"]')
+    bg = lambda loc: loc.evaluate("e => getComputedStyle(e).backgroundColor")
+    assert row.locator("mark").count() >= 1 and bg(row.locator("mark").first) != bg(row)
+    assert pg.problems == []
+
+
 def test_page_keys_stay_out_of_the_open_search_panel(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 900})
     pg.locator("a.card").first.click()
@@ -1466,6 +1478,10 @@ def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, sc
     label = lambda u: (card(u).locator(".x-word").count(), card(u).locator(".fix-pill").text_content())
     assert label(sec) == (1, "Patch available") and label(infra) == (1, "No patch yet")  # Exploited, then its remedy
     word = lambda u: card(u).locator(".x-word").evaluate("e => getComputedStyle(e).color")
+    # The dot between them sits midway: the label's gap before it, the same space after.
+    gap, after = card(sec).locator(".exploited").evaluate(
+        "e => [parseFloat(getComputedStyle(e).columnGap), parseFloat(getComputedStyle(e.querySelector('.patch-out'), '::before').marginRight)]")
+    assert gap == after > 0
     assert word(sec) != word(infra)  # red only while there's no fix: the usual case is quiet
     assert pg.evaluate("u => items.find(i => i.url === u).exploited && !listed(items.find(i => i.url === u))", old)  # tagged, but too old to list
     entry = pg.locator("#filters [data-f='exploited']")
