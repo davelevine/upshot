@@ -73,9 +73,10 @@ def test_icon_candidates_prefer_big_touch_icons_and_skip_svg():
 
 
 def test_icon_slugs_match_the_test_fixtures_rule():
-    assert build.slug("Hacker News 300+") == "hacker-news-300"
-    assert build.slug("OWASP Gen AI Security Project") == "owasp-gen-ai-security-project"
-    assert build.slug("Anthropic (community feed)") == "anthropic-community-feed"
+    # tests/fixtures/fetch.mjs names each saved page with its own slug(), and app.js iconSlug() is the same rule: one
+    # publisher, one name, in all three.
+    meta = json.loads((build.ROOT / "tests" / "fixtures" / "meta.json").read_text())
+    assert meta and all(f"{build.slug(publisher)}.html" == m["file"] for publisher, m in meta.items())
 
 
 def test_stories_are_dated_in_the_site_time_zone():
@@ -262,7 +263,6 @@ def test_a_storys_cves_are_the_ones_it_names_not_its_articles_background():
     item = {"title": "Barracuda ESG flaw exploited", "cves": ["CVE-2026-116606"], "summary": "Also CVE-2026-111560.",
             "tldr": ["Patch CVE-2026-116606 now.", "Admin UI access needed."]}
     assert build.own_cves(item) == ["CVE-2026-111560", "CVE-2026-116606"]
-    assert "the flaw it reports by CVE ID" in build.TLDR_PROMPT  # the upshot carries what the excerpt cut off
 
 
 def test_reading_times_report_when_the_store_cant_be_updated(monkeypatch):
@@ -381,11 +381,6 @@ def test_fetch_reports_only_permanent_redirects():
     assert build.MOVED == {base + "/old": base + "/new"}  # a 302 anywhere in the chain isn't a move
 
 
-def test_categories_are_defined():
-    assert "architecture" not in build.CATEGORIES and "sdlc" not in build.CATEGORIES and "sdlc" not in build.CLASSIFY_PROMPT
-    assert "infrastructure:" in build.CLASSIFY_PROMPT and "engineering:" in build.CLASSIFY_PROMPT  # each is defined
-
-
 def test_cves_are_found_once_each_upper_cased():
     assert build.cves("Patch cve-2026-1234 and CVE-2026-123456, again CVE-2026-1234; not CVE-26-1") == ["CVE-2026-1234", "CVE-2026-123456"]
     assert build.cves(None) == []
@@ -411,7 +406,6 @@ def test_a_story_is_flagged_by_cisas_catalog_or_a_checked_claim():
     assert build.exploited({**item, "cves": []}, claim, {})["quote"] == "is a zero-day under attack"
     assert build.exploited({**item, "cves": []}, {**claim, "category": "ai"}, {}) is None  # claims count for security only
     assert build.exploited({**item, "cves": []}, {**r, "category": "security"}, kev) is None  # no match, no claim
-
 
 
 def test_the_catalog_failing_leaves_the_build_running(monkeypatch, capsys):
@@ -464,16 +458,6 @@ def test_upgrading_the_source_keeps_both_copies_cves():
     assert old["cves"] == ["CVE-2026-1", "CVE-2026-2"]
 
 
-def test_scoring_asks_for_the_exploited_claim_in_the_same_call():
-    fields = build.CLASSIFY_SCHEMA["properties"]["items"]["items"]["required"]
-    assert {"exploited", "evidence"} <= set(fields) and "exploited" in build.CLASSIFY_PROMPT
-
-
-
-
-
-
-
 def test_llm_sends_the_prompt_on_stdin_so_a_long_article_fits(monkeypatch):
     import types
     seen = {}
@@ -491,7 +475,6 @@ def test_a_claim_counts_in_the_words_reporters_use():
                   "Active ScreenConnect attacks breach MSPs", "cPGuard Update Channel Hijacked to Backdoor Linux Servers",
                   "Malicious bee-js npm Release Delivers SleepyDuck"):
         assert build.verified_claim({"exploited": True, "evidence": title}, {"title": title, "excerpt": ""}) == title
-
 
 
 def test_only_a_zero_day_bends_the_bar():

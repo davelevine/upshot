@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { classify, clean, extract, kvClient, linkShare, readArticle, run, tidy } from '../extract.mjs';
+import { MAX_WRITES, classify, clean, extract, kvClient, linkShare, readArticle, run, tidy } from '../extract.mjs';
 import worker, { dispatchBuild, keyFor } from '../worker.js';
 
 test('clean strips active content and makes links absolute', () => {
@@ -131,7 +131,7 @@ test('tidy removes furniture by what it is, and leaves the article', () => {
   const { content: out, skipped } = tidy({ content, title: 'The Title', byline: 'Kush Pandya', publishedTime: '2026-11-06T17:00:00Z' }, 'https://x.test/a');
   assert.equal(skipped, false);
   for (const gone of ['Kush Pandya', 'min read</span>', 'Table of Contents', 'href="#', 'Related posts', 'Another story', '<h1', '>Share<', 'The Title']) assert.ok(!out.includes(gone), gone);
-  for (const kept of ['a jump', 'a real link', 'print', '<td>Nov 6, 2026</td>', '<figure>', '<h2 id="one"'.slice(0, 3)]) assert.ok(out.includes(kept), kept);
+  for (const kept of ['a jump', 'a real link', 'print', '<td>Nov 6, 2026</td>', '<figure>', 'id="one"']) assert.ok(out.includes(kept), kept);
 });
 
 test('tidy drops a newsletter pitch and whatever follows it', () => {
@@ -234,14 +234,14 @@ test('kvClient reports keys the bulk write rejected, even on a 200', async () =>
 });
 
 test('run writes at most MAX_WRITES articles a build, newest first', async () => {
-  const items = Array.from({ length: 120 }, (_, n) => ({ url: `https://x.test/${n}`, publisher: 'P' }));
+  const items = Array.from({ length: MAX_WRITES + 20 }, (_, n) => ({ url: `https://x.test/${n}`, publisher: 'P' }));
   const routes = Object.fromEntries(items.map(i => [i.url, page(200, {}, article)]));
   const kv = fakeKv();
   const out = await withFetch(routes, () => run({ items, feeds: {} }, kv));
-  assert.equal(kv.puts.length, 100);
+  assert.equal(kv.puts.length, MAX_WRITES);
   assert.equal(out.deferred, 20);
   const written = new Set(kv.puts.map(e => e.key));
-  assert.ok(written.has(await keyFor(items[0].url)) && !written.has(await keyFor(items[119].url)));  // newest kept
+  assert.ok(written.has(await keyFor(items[0].url)) && !written.has(await keyFor(items.at(-1).url)));  // newest kept
 });
 
 test('the reader function stays a lookup: no libraries, so no parsing against the CPU limit', async () => {

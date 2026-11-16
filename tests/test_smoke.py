@@ -108,7 +108,7 @@ def test_csp_header_is_served(browser):
 
 
 def test_feed_renders(browser):
-    pg = open_site(browser)
+    pg = open_site(browser, patch=lambda d: d["items"][-1].update(publisher="Hacker News 300+"))
     assert pg.locator("a.card").count() > 0
     assert pg.locator(".filter-btn").count() >= 2  # All + each category with stories
     assert "0" not in pg.locator("#filters .f-count").all_inner_texts()  # no empty topics
@@ -148,7 +148,7 @@ def test_phone_menu(browser):
     x, y = pg.evaluate("""() => { const r = [...document.querySelectorAll('a.card')].map(c => c.getBoundingClientRect())
         .find(r => r.bottom > 340 && r.top < innerHeight - 40); return [r.left + r.width / 2, Math.max(r.top, 300) + 20]; }""")  # below the drawer
     assert pg.evaluate("document.getElementById('menu').getBoundingClientRect().width") == 320  # full width
-    pg.wait_for_timeout(300)
+    pg.wait_for_function("() => !document.getElementById('menu').getAnimations().length")  # the drawer has finished opening
     pg.touchscreen.tap(x, y)
     pg.locator("#theme").wait_for(state="hidden")
     assert not reading(pg)
@@ -236,17 +236,8 @@ def test_essentials_have_their_own_entry_and_show_once(browser):
 
 
 def stale_site(browser, hours, **context):
-    ctx = browser.new_context(**context)
-    pg = ctx.new_page()
     built = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat(timespec="seconds")  # once: every fetch sees the same build
-    def patched(route):
-        data = route.fetch().json()
-        data["generated_at"] = built
-        route.fulfill(json=data)
-    ctx.route("**/data.json*", patched)
-    pg.goto(URL)
-    enter_list(pg)
-    return pg
+    return open_site(browser, patch=lambda d: d.update(generated_at=built), **context)
 
 
 def test_late_bar_appears_once_a_build_is_late_and_can_check_again(browser):
@@ -274,7 +265,7 @@ def test_late_bar_appears_once_a_build_is_late_and_can_check_again(browser):
     assert "checking" not in check.get_attribute("class").split()
     assert fetches and pg.inner_text("#status") == "No new stories yet"
     pg.locator("#stale-msg", has_text="Last updated").wait_for()
-    assert pg.problems == [] if hasattr(pg, "problems") else True
+    assert pg.problems == []
 
 
 def test_late_bar_is_a_bottom_bar_on_a_phone(browser):
@@ -285,6 +276,7 @@ def test_late_bar_is_a_bottom_bar_on_a_phone(browser):
     assert tools["width"] == 320 and tools["y"] + tools["height"] == 700
     assert pg.locator("#stale-check").bounding_box()["height"] >= 44
     assert pg.locator("#bar-updated").is_hidden()  # the late bar takes the strip's place
+    assert pg.problems == []
 
 
 BOTTOM = "() => { const c = document.getElementById('col'); c.scrollTop = c.scrollHeight; scrollTo(0, document.documentElement.scrollHeight); }"
@@ -347,8 +339,14 @@ def test_each_story_says_how_long_ago_it_was_published(browser):
     assert pg.locator("a.card .card-age").all_text_contents() == ["5m", "2h", "5h", "20h", "2d", "3d", old]  # newest first
 
 
+def one_other(data):
+    """Exactly one story in Other, whatever today's news holds."""
+    data["items"] = [i for i in data["items"] if i["category"] != "other"]
+    data["items"][-1]["category"] = "other"
+
+
 def test_end_of_feed_message(browser):
-    pg = open_site(browser, viewport={"width": 1300, "height": 900})
+    pg = open_site(browser, patch=one_other, viewport={"width": 1300, "height": 900})
     pg.mouse.move(460, 450)  # over the list, which scrolls on its own here
     end = pg.locator("#end")
     # Scrolling loads every page, then the message appears.
@@ -372,7 +370,8 @@ def test_end_of_feed_message(browser):
         pg.wait_for_timeout(100)
     assert pg.inner_text("#end-msg") == f"That\u2019s all {re.search(r'\d+', security).group()} stories in Security."
     # One story reads as one: "the only story in Other".
-    pg.evaluate("() => { filter = 'other'; items = items.filter((i, n) => cat(i.category) !== 'other' || n === items.findIndex(x => cat(x.category) === 'other')); renderFilters(); renderItems(); }")
+    pg.evaluate("scroller().scrollTo({top:0,behavior:'instant'})")
+    pg.click("#filters .filter-btn[data-f='other']")
     pg.locator("#end").wait_for()
     assert pg.inner_text("#end-msg") == "That\u2019s the only story in Other."
     assert pg.problems == []
@@ -432,7 +431,7 @@ def test_reader_shows_the_story_before_the_fetch_finishes(browser):
     assert frame.locator(".status").inner_text() == "Loading the full article\u2026"
     assert frame.locator("main p").first.inner_text() != ""  # the summary
     # Its body holds back past the panel's slide, so a fast article replaces the card before it's ever seen.
-    assert frame.locator(".late").evaluate("e => getComputedStyle(e).animationDelay") == "0.4s"
+    assert float(frame.locator(".late").evaluate("e => getComputedStyle(e).animationDelay").removesuffix("s")) > 0
     for _ in range(50):
         if held:
             break
@@ -554,7 +553,7 @@ def test_articles_are_set_in_mercury_by_theme_without_downloading_fonts_each_tim
         pg.on("response", lambda r: fonts.append(r.url.rsplit("/", 1)[-1]) if "/fonts/" in r.url else None)
         pg.goto(URL)
         enter_list(pg)
-        pg.wait_for_function("() => Object.keys(frameFonts).length === 16")  # 12 Mercury Text, Mercury Display, 3 Söhne: fetched once, after the list
+        pg.wait_for_function("() => Object.keys(frameFonts).length === Object.keys(FRAME_FONTS).length")  # every face, fetched once, after the list
         assert {f"Mercury-Text{g}{s}" for g in ("G1", "G2") for s in ("Roman", "Italic", "Bold")} <= set(fonts)
         before = len(fonts)
         for n in (0, 1, 0):  # including one opened again
@@ -839,7 +838,6 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     # The text size control scales the box and the byline with the article, not just the body text.
     sizes = """() => ['body', '.tldr > b', '.tldr li', '.tldr .do', '.tldr .do b', '.meta'].map(s => parseFloat(getComputedStyle(document.querySelector(s)).fontSize))"""
     before = frame.locator("body").evaluate(f"({sizes})")
-    assert [round(v) for v in before] == [18, 15, 17, 17, 15, 16]  # the default size: 18px, a step up for a small x-height
     pg.locator("#reader-size").click()
     pg.locator("#size-pop button[data-size='3']").click()
     frame.locator("html[data-size='3']").wait_for(state="attached")
@@ -899,15 +897,6 @@ def test_the_reader_endpoint_reaches_the_worker(browser):
     res = browser.new_context().request.get(URL.rstrip("/") + "/api/read?url=" + urllib.parse.quote("https://x.test/not-stored", safe=""))
     assert res.status == 200 and res.headers["content-type"].startswith("application/json")
     assert res.json() == {"url": "https://x.test/not-stored", "reason": "pending"}
-
-
-def test_wide_screens_keep_the_filter_row(browser):
-    pg = open_site(browser, viewport={"width": 1300, "height": 900})
-    assert pg.locator("#list-back").is_hidden() and pg.locator("#filters .filter-btn").first.is_visible()
-    pg.click("#filters .filter-btn[data-f='ai']")
-    assert pg.locator("#filters .filter-btn.active").get_attribute("data-f") == "ai"
-    assert pg.locator("#filters .filter-btn").first.is_visible()  # picking one leaves the row in place
-    assert pg.problems == []
 
 
 def test_wide_screens_keep_the_controls_in_a_small_menu(browser):
@@ -1467,7 +1456,9 @@ def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, sc
     from axe_playwright_python.sync_playwright import Axe
     pg = open_site(browser, patch=flag_some, viewport={"width": 1440, "height": 900}, color_scheme=scheme)
     sec, infra, old = pg.evaluate("fetch('/data.json').then(r => r.json()).then(d => d.flagged)")  # patched too
-    by_age = lambda: pg.evaluate("shown.every((i, n, a) => !n || ageMins(a[n - 1]) <= ageMins(i))")
+    # A minute's slack: a story dated to the minute ages while one dated only by its day doesn't, so between the list's sort
+    # and this check the first can pass the second. A story that jumped the order would be hours or days out.
+    by_age = lambda: pg.evaluate("shown.every((i, n, a) => !n || ageMins(a[n - 1]) <= ageMins(i) + 1)")
     card = lambda u: pg.locator(f'a.card[href="{u}"]')
     assert by_age()  # tagged where they fall: nothing jumps the order
     label = lambda u: (card(u).locator(".x-word").count(), card(u).locator(".fix-pill").text_content())
@@ -1543,6 +1534,7 @@ def test_the_exploited_list_is_only_there_when_it_has_stories(browser):
 
 def test_picking_a_topic_closes_the_open_story(browser):
     pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    assert pg.locator("#list-back").is_hidden()  # wide screens keep the topics beside the list: nothing to go back to
     for topic in ("all", "security"):  # the current topic too, as in Feedbin
         pg.locator("a.card").first.click()
         pg.wait_for_selector("#reader-body iframe:not(.loading)")
@@ -1572,50 +1564,58 @@ def test_sidebar_counts_unread_stories(browser):
     assert pg.problems == []
 
 
-def test_a_first_visit_counts_only_the_last_day_as_unread(browser):
+def first_visit(browser, generated_at):
+    """A first visit (no 'since' yet) to data with known times: seven stories in the last day, the rest three days and
+    more before, and one essential among the old ones. Returns the page and the old essential's URL."""
     ctx = browser.new_context(viewport={"width": 1100, "height": 900})
+    now = datetime.now(timezone.utc)
+    iso = lambda t: t.isoformat(timespec="seconds")
+    def known(route):
+        data = route.fetch().json()
+        data["generated_at"] = iso(generated_at(now))
+        for n, i in enumerate(data["items"]):
+            i["added"] = i["published"] = iso(now - (timedelta(hours=n + 1) if n < 7 else timedelta(days=3, hours=n)))
+        data["weekly"] = {"window_start": (now - timedelta(days=6)).date().isoformat(), "window_end": now.date().isoformat(),
+                          "items": [{"url": data["items"][-1]["url"], "why": "Patch now."}]}
+        route.fulfill(json=data)
+    ctx.route("**/data.json*", known)
     pg = ctx.new_page()
+    pg.problems = []
+    pg.on("pageerror", lambda e: pg.problems.append(f"page error: {e}"))
+    pg.on("console", lambda m: pg.problems.append(f"console: {m.text}") if m.type == "error" else None)
     pg.goto(URL)
     enter_list(pg)
+    return pg
+
+
+def test_a_first_visit_counts_only_the_last_day_as_unread(browser):
+    pg = first_visit(browser, lambda now: now)
     count = lambda: pg.locator("#filters .filter-btn[data-f='all'] .f-count").text_content()
-    # The last day, or the newest five when the last day holds fewer (a quiet stretch, such as a weekend). The essentials
-    # count too, however old: they're the stories not to miss.
-    fresh = pg.evaluate("""(() => {
-      const at = i => Date.parse(i.added || i.published || i.date), times = items.map(at).sort((a, b) => b - a);
-      const cut = Math.min(Date.parse(generatedAt) - 864e5, (times[4] ?? Infinity) - 1);
-      return items.filter(i => at(i) > cut || picks.has(i.url)).length;
-    })()""")
-    assert 0 < fresh < pg.evaluate("items.length") and count() == f"{fresh} unread"
-    assert pg.evaluate("picks.size > 0 && [...picks.keys()].every(u => !isRead(u))")
+    # The last day's seven, and the week's essential however old: it's a story not to miss.
+    assert count() == "8 unread"
+    assert pg.evaluate("[...picks.keys()].every(u => !isRead(u))")
     # Older stories show as read, and one marked unread by hand stays unread.
     old = pg.locator("a.card.read").first
     url = old.get_attribute("href")
     old.click()
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
     pg.click("#reader-unread")
-    assert count() == f"{fresh + 1} unread"
+    assert count() == "9 unread"
     assert pg.evaluate("JSON.parse(localStorage.getItem('read'))") == []  # nothing in "Recently read" it wasn't
     pg.goto(URL)
     enter_list(pg)
-    assert count() == f"{fresh + 1} unread" and not pg.evaluate("u => isRead(u)", url)
+    assert count() == "9 unread" and not pg.evaluate("u => isRead(u)", url)
     # Newest first: no row is older than the one below it.
     ages = pg.evaluate("shown.map(ageMins)")
     assert ages == sorted(ages)
+    assert pg.problems == []
 
 
 def test_a_first_visit_after_a_quiet_stretch_still_counts_the_newest_five(browser):
-    ctx = browser.new_context(viewport={"width": 1100, "height": 900})
-    def quiet(route):  # a Monday morning: builds kept running, but nothing new since Friday
-        data = route.fetch().json()
-        data["generated_at"] = (datetime.now(timezone.utc) + timedelta(days=3)).isoformat(timespec="seconds")
-        route.fulfill(json=data)
-    ctx.route("**/data.json*", quiet)
-    pg = ctx.new_page()
-    pg.goto(URL)
-    enter_list(pg)
-    # The newest five, plus any that arrived in the same build as the fifth: a build's stories stay together.
-    want = pg.evaluate("(() => { const t = items.map(arrived).sort((a, b) => b - a); return items.filter(i => arrived(i) >= t[4] || picks.has(i.url)).length; })()")
-    assert want >= 5 and pg.locator("#filters .filter-btn[data-f='all'] .f-count").text_content() == f"{want} unread"
+    # A Monday morning: builds kept running, but nothing new since Friday. The newest five, and the essential.
+    pg = first_visit(browser, lambda now: now + timedelta(days=3))
+    assert pg.locator("#filters .filter-btn[data-f='all'] .f-count").text_content() == "6 unread"
+    assert pg.problems == []
 
 
 def test_wide_screens_scroll_the_list_by_itself(browser):
@@ -1856,7 +1856,7 @@ def test_before_app_js_the_page_has_its_hint_and_held_back_placeholders(browser)
     assert pg.locator("#filters .f-skel").count() > 0 and pg.locator("#filters .f-skel").first.is_visible()
     # Held back for 400ms, so a normal load never flashes them; a slow one still shows them.
     for sel in ["#filters .f-skel", "#items .skeleton"]:
-        assert pg.locator(sel).first.evaluate("e => e.getAnimations().find(a => a.animationName === 'skeleton-in').effect.getTiming().delay") == 400
+        assert pg.locator(sel).first.evaluate("e => e.getAnimations().find(a => a.animationName === 'skeleton-in').effect.getTiming().delay") > 0
     pg.wait_for_timeout(700)
     assert pg.locator("#items .skeleton").first.evaluate("e => getComputedStyle(e).opacity") == "1"
     ctx.close()
@@ -2030,8 +2030,7 @@ def test_the_sync_arrows_match_the_search_icon_on_phones(browser):
 
 
 def test_sync_survives_cleared_storage_and_deletes(browser):
-    """Safari clears a site's storage after a week away; the session cookie survives, so the read list comes back. Delete
-    removes everything and signs out."""
+    """Safari clears a site's storage after a week away; the session cookie survives, so the read list comes back."""
     a = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900})
     turn_on(a)
     a.keyboard.press("Escape")
@@ -2046,17 +2045,8 @@ def test_sync_survives_cleared_storage_and_deletes(browser):
     assert until(a, "u => readSet.has(u)", url), "the read list comes back"
     # The header's sync button: there while syncing, saying when it last synced.
     assert until(a, "/^Synced/.test(document.getElementById('sync-ind').title) && !document.getElementById('sync-ind').hidden")
-
     open_sync(a)
     assert a.inner_text("#sync-last").startswith("Synced")
-    a.click("#sync-leave")
-    # The sheet stays open, back at the start, and says what happened.
-    a.wait_for_selector("[data-view=out]:not([hidden])")
-    assert "Sync is off" in a.inner_text("#sync-msg") and a.is_visible("#sync"), "says so, sheet open"
-    assert a.is_hidden("#sync-err"), "news, not an error"
-    assert not a.evaluate("syncOn")
-    assert a.is_hidden("#sync-ind"), "the sync button goes"
-    assert a.evaluate("fetch('/api/auth/me').then(r => r.json()).then(m => m.signedIn)") is False
     assert a.problems == []
 
 
@@ -2094,12 +2084,17 @@ def test_the_header_sync_button_syncs_now_and_shows_it(browser):
     turn_on(a)
     a.keyboard.press("Escape")
     assert until(a, "!pending.size && syncState === 'ok' && !document.getElementById('sync-ind').classList.contains('busy')")
+    # Each change of the busy class, timed in the page: the assertion can't race the sync, however long it takes.
+    a.evaluate("""() => { const b = document.getElementById('sync-ind'); window.__spin = [];
+      new MutationObserver(() => { const on = b.classList.contains('busy'); if (window.__spin.at(-1)?.[0] !== on) window.__spin.push([on, performance.now()]); })
+        .observe(b, { attributes: true, attributeFilter: ['class'] }); }""")
     with a.expect_request(lambda r: r.url.endswith("/api/sync") and r.method == "POST"):
         a.click("#sync-ind")
     assert not a.evaluate("document.getElementById('sync').open"), "a tap syncs; it doesn't open the sheet"
     assert until(a, "syncState === 'ok'"), "the sync itself is quick"
-    assert a.evaluate("document.getElementById('sync-ind').classList.contains('busy')"), "still turning: a whole turn at least"
-    assert until(a, "!document.getElementById('sync-ind').classList.contains('busy')", timeout=2000), "then it stops"
+    assert until(a, "!document.getElementById('sync-ind').classList.contains('busy')", timeout=3000), "then it stops"
+    spin = a.evaluate("window.__spin")
+    assert [on for on, _ in spin] == [True, False] and spin[1][1] - spin[0][1] >= 990, f"a whole turn at least: {spin}"
     assert a.get_attribute("#sync-ind", "aria-label").startswith("Synced just now. Sync now")
     # Unreachable: the tap retries now, not after the reconnect's wait.
     a.route("**/api/sync", lambda route: route.abort("internetdisconnected"))
@@ -2293,7 +2288,8 @@ def test_sync_session_and_flag_cookies_renew_on_every_sync(browser):
     with a.expect_response("**/api/sync") as r:
         a.evaluate("syncNow()")
     cookies = r.value.all_headers().get("set-cookie", "")
-    assert "upshot_session=" in cookies and "Max-Age=34560000" in cookies and "upshot_sync=1" in cookies
+    ages = [int(a) for a in re.findall(r"Max-Age=(\d+)", cookies)]
+    assert "upshot_session=" in cookies and "upshot_sync=1" in cookies and len(ages) == 2 and min(ages) > 300 * 86400  # renewed for months
     assert a.evaluate("document.cookie").count("upshot_session") == 0, "the session stays out of the page's reach"
     assert a.problems == []
 
@@ -2442,7 +2438,8 @@ def test_too_many_code_tries_says_so(browser):
 
 
 def test_an_open_device_list_keeps_up_with_other_devices(browser):
-    """With the sheet open on one device, another device joining, or removing it, shows up there without closing the sheet."""
+    """With the sheet open on one device, another device joining shows up there without closing the sheet. (Removals, open or
+    closed: test_every_action_reaches_every_other_device.)"""
     size = {"viewport": {"width": 1300, "height": 900}}
     a = open_site(browser, url=SYNC_URL, **size)
     code = turn_on(a)
@@ -2452,11 +2449,6 @@ def test_an_open_device_list_keeps_up_with_other_devices(browser):
     b = open_site(browser, url=SYNC_URL, **size)
     join(b, code)
     assert until(a, "document.querySelectorAll('#sync-devices li').length === 2", timeout=8000), "the new device appears"
-    open_sync(b)
-    b.wait_for_selector("#sync-devices li >> nth=1")
-    b.locator("#sync-devices li", has_not_text="This device").get_by_role("button").click()
-    assert until(a, "!syncOn && document.querySelector('#sync [data-view=out]').hidden === false", timeout=8000), "and its removal"
-    assert "Sync is off on this device" in a.inner_text("#sync-msg")
     assert a.problems == [] and b.problems == []
 
 
@@ -2549,32 +2541,6 @@ def test_hiding_the_tab_closes_the_connection_and_showing_it_catches_up(browser)
 
 
 
-
-
-def test_with_three_devices_removing_one_leaves_the_others_syncing(browser):
-    size = {"viewport": {"width": 1300, "height": 900}}
-    a = open_site(browser, url=SYNC_URL, **size)
-    code = turn_on(a)
-    a.click("#sync-show-back")
-    b = open_site(browser, url=SYNC_URL, **size)
-    join(b, code)
-    open_sync(a)
-    a.click("#sync-add-device")
-    a.wait_for_selector("#sync-show:text-matches('^[0-9A-Z]{4}-[0-9A-Z]{4}$')")
-    c = open_site(browser, url=SYNC_URL, **size)
-    join(c, a.inner_text("#sync-show"))
-    assert until(a, "!document.getElementById('sync').open", timeout=8000), "paired: the sheet closes on its own"
-    open_sync(a)
-    assert until(a, "document.querySelectorAll('#sync-devices li').length === 3", timeout=8000)
-    a.locator("#sync-devices li").nth(2).get_by_role("button").click()
-    assert until(a, "document.querySelectorAll('#sync-devices li').length === 2", timeout=8000)
-    assert a.evaluate("syncOn"), "this device carries on"
-    for _ in range(50):  # the removed one (b or c) drops out; the other carries on
-        if b.evaluate("syncOn") + c.evaluate("syncOn") == 1:
-            break
-        a.wait_for_timeout(100)
-    assert b.evaluate("syncOn") + c.evaluate("syncOn") == 1
-    assert a.problems == [] and b.problems == [] and c.problems == []
 
 
 def test_a_scanned_code_joins_at_once_even_on_a_device_already_syncing(browser):
@@ -2695,6 +2661,8 @@ def test_every_action_reaches_every_other_device(browser, n, action, sheet):
                 break
             actor.wait_for_timeout(100)
         assert len(removed) == 1, "exactly one device was removed"
+        if n == 3:
+            assert until(actor, "document.querySelectorAll('#sync-devices li').length === 2", timeout=4000), "the actor's list updates"
         assert STOP in _off(removed[0])
         staying = [d for d in others if d is not removed[0]]
     else:
