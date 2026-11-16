@@ -2,6 +2,24 @@
  "items": [
   {
    "date": "2026-11-16",
+   "published": "2026-11-16T16:00:01+00:00",
+   "title": "NVIDIA Announces Rubin HPC — A New GPU to Accelerate Agents for Science, Engineering and Analytics",
+   "url": "https://blogs.nvidia.com/blog/rubin-hpc/",
+   "publisher": "NVIDIA Blog",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "NVIDIA announced Rubin HPC, a new GPU in its Vera Rubin platform, aimed at accelerating simulation and data processing for science, engineering and analytics at SC26.",
+   "relevance": 7,
+   "added": "2026-11-16T16:13:22+00:00",
+   "minutes": 2,
+   "tldr": [
+    "NVIDIA announced Rubin HPC at SC26, a new GPU in the Vera Rubin platform for accelerating simulation and data processing in science, engineering and analytics.",
+    "The GPU has more than 50,000 CUDA cores on a single chip, sparse data acceleration, and seventh-generation NVLink for GPU-to-GPU connectivity.",
+    "Rubin HPC is expected to be available in 2028; the article gives no specific action for users to take now."
+   ]
+  },
+  {
+   "date": "2026-11-16",
    "published": "2026-11-16T09:07:00+00:00",
    "title": "AWS Nitro Sandboxes Put Each EKS Pod in Its Own MicroVM with One RuntimeClass Field",
    "url": "https://www.infoq.com/news/2026/11/aws-nitro-sandboxes-eks/",
@@ -3774,7 +3792,7 @@
    }
   ]
  },
- "generated_at": "2026-11-16T14:18:16+00:00",
+ "generated_at": "2026-11-16T16:13:28+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
