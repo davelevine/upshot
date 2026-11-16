@@ -1,6 +1,25 @@
 {
  "items": [
   {
+   "date": "2026-11-16",
+   "published": "2026-11-16T09:07:00+00:00",
+   "title": "AWS Nitro Sandboxes Put Each EKS Pod in Its Own MicroVM with One RuntimeClass Field",
+   "url": "https://www.infoq.com/news/2026/11/aws-nitro-sandboxes-eks/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "AWS launched Nitro Sandboxes, running opted-in EKS pods, ECS tasks and EC2 workloads in separate Firecracker microVMs with their own kernels, with trade-offs such as no GPU passthrough.",
+   "relevance": 7,
+   "added": "2026-11-16T10:18:13+00:00",
+   "minutes": 4,
+   "tldr": [
+    "AWS launched Nitro Sandboxes, which run opted-in EKS pods, ECS tasks, or EC2 workloads in their own microVM with a separate guest kernel.",
+    "Aimed at workloads where the tenant or code is untrusted, such as coding agents. GPU pods run without the sandbox class at launch.",
+    "On EKS, set runtimeClassName to isolated-sandbox or confidential-sandbox. Auto Mode ships both classes, while standard EKS needs a sandbox-enabled AMI.",
+    "Confidential mode needs a KMS policy or external verifier checking PCRs. Benchmark startup latency and I/O rather than trusting near-native claims."
+   ]
+  },
+  {
    "date": "2026-11-15",
    "published": "2026-11-16T02:14:44+00:00",
    "title": "Qwen4-Max",
@@ -3719,7 +3738,7 @@
    }
   ]
  },
- "generated_at": "2026-11-16T09:18:27+00:00",
+ "generated_at": "2026-11-16T10:18:25+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
