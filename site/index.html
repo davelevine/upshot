@@ -208,6 +208,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   .palette-list { margin: 0; padding: 6px; list-style: none; overflow-y: auto; }
   .palette-list li { display: flex; align-items: flex-start; gap: 10px; padding: 9px 10px; border-radius: var(--radius-sm); cursor: pointer; }
   .palette-list li[aria-selected="true"] { background: var(--accent-soft); }
+  .palette-list li[aria-selected="true"] mark { background: color-mix(in srgb, var(--accent) 28%, transparent); }  /* the row is already --accent-soft, so the match needs more */
   .palette-list .dot { margin-top: 6px; }
   .p-title { font-size: .9rem; font-weight: 600; line-height: 1.35; }
   .p-meta { margin-top: 2px; color: var(--text-muted); font-size: .75rem; }

@@ -1109,6 +1109,18 @@ def test_search_highlight_never_splits_an_entity(browser):
     assert pg.problems == []
 
 
+@pytest.mark.parametrize("scheme", ["light", "dark"])
+def test_the_selected_search_result_keeps_its_highlight(browser, scheme):
+    # The selected row is tinted with the highlight's own color; the match on it needs a stronger one to show.
+    pg = open_site(browser, viewport={"width": 1300, "height": 900}, color_scheme=scheme)
+    pg.keyboard.press("/")
+    pg.locator("#palette-q").fill(pg.evaluate("items[0].title.split(' ')[0]"))
+    row = pg.locator('#palette-list li[aria-selected="true"]')
+    bg = lambda loc: loc.evaluate("e => getComputedStyle(e).backgroundColor")
+    assert row.locator("mark").count() >= 1 and bg(row.locator("mark").first) != bg(row)
+    assert pg.problems == []
+
+
 def test_page_keys_stay_out_of_the_open_search_panel(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 900})
     pg.locator("a.card").first.click()
