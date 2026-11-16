@@ -26,7 +26,7 @@ SITE = ROOT / "site"
 STATE = ROOT / "state.json"
 # Stories are dated, and days labeled, in one time zone, so "Today" means the same thing on every device.
 SITE_TZ = ZoneInfo(os.environ.get("SITE_TZ") or "America/New_York")
-SITE_URL = (os.environ.get("SITE_URL") or "https://upshot.levine.io").rstrip("/")  # forks set the SITE_URL repo variable
+SITE_URL = (os.environ.get("SITE_URL") or "https://upshot.me").rstrip("/")  # forks set the SITE_URL repo variable
 MODEL = os.environ.get("UPSHOT_MODEL", "claude-haiku-5-5")
 CLAUDE = os.environ.get("CLAUDE_BIN", "claude")  # Claude Code CLI
 CATEGORIES = ["ai", "security", "infrastructure", "engineering", "regulation", "other"]

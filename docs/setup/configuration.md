@@ -19,7 +19,7 @@ Constants at the top of [`build.py`](../../build.py); the defaults are what the 
 | `UPSHOT_MODEL` | `claude-haiku-5-5` | Model for all calls (env); the build fails if the CLI answers with another |
 | `CLAUDE_BIN` | `claude` | Path to the Claude Code CLI (env) |
 | `SITE_TZ` | `America/New_York` | Time zone for dates and "Today" (env) |
-| `SITE_URL` | `https://upshot.levine.io` | The site's address (env) |
+| `SITE_URL` | `https://upshot.me` | The site's address (env) |
 
 ## Schedule
 
