@@ -74,6 +74,25 @@
   },
   {
    "date": "2026-11-16",
+   "published": "2026-11-16T08:00:00+00:00",
+   "title": "Measuring alignment eval tells",
+   "url": "https://metr.org/notes/2026-11-16-measuring-alignment-eval-tells/",
+   "publisher": "METR",
+   "cves": [],
+   "category": "ai",
+   "summary": "METR reports investigator agents increasingly tell alignment evals from capability evals by spotting fake-looking environments and honeypot tasks.",
+   "relevance": 7,
+   "added": "2026-11-16T22:18:09+00:00",
+   "minutes": 16,
+   "tldr": [
+    "METR found investigator agents increasingly tell alignment evals apart from capability evals, with Opus 4.8 and Opus 5.5 nearly perfect on its dataset.",
+    "The agents spot alignment evals by noticing environments that look fake and tasks that are honeypots designed to make an agent do something bad.",
+    "Alignment evals built by mocking capability evals and deployment may be easy for current models to recognize, which could lead to overestimating alignment.",
+    "Suggested action: iterate alignment evals against investigator agents to strip unintentional environment-level tells; task-level tells may not all be removable."
+   ]
+  },
+  {
+   "date": "2026-11-16",
    "published": "2026-11-16T09:07:00+00:00",
    "title": "AWS Nitro Sandboxes Put Each EKS Pod in Its Own MicroVM with One RuntimeClass Field",
    "url": "https://www.infoq.com/news/2026/11/aws-nitro-sandboxes-eks/",
@@ -3864,7 +3883,7 @@
    }
   ]
  },
- "generated_at": "2026-11-16T21:18:21+00:00",
+ "generated_at": "2026-11-16T22:18:20+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
