@@ -6,6 +6,10 @@ Upshot is served by Cloudflare Workers and built and deployed from GitHub. This 
 
 [`worker.js`](../../worker.js) serves the static files from `site/`, answers `/api/read` from KV, passes `/api/sync` and `/api/auth/*` to `upshot-sync`, and starts the build on a cron trigger ([Configuration](../setup/configuration.md)). Pages get a per-request CSP nonce. [`wrangler.jsonc`](../../wrangler.jsonc) sets the `ARTICLES` KV binding, the `FONTS` R2 binding, the `SYNC` service binding, the custom domain, and Workers Logs.
 
+### Caching
+
+Pages and `data.json` are revalidated on every load, so a deploy or a new build shows at once; `index.html`'s inline script starts the `data.json` request before `app.js` has loaded. `app.js` is loaded as `/app.js?v=<hash>` and kept for a year, so a repeat visit doesn't ask for it at all: [`tests/assets.test.js`](../../tests/assets.test.js) fails until `index.html` carries the hash of the current file, and names the value. Icons are kept a day, the licensed fonts a year (a changed font gets a new name), and a stored article a day.
+
 ## Deploys
 
 - **The site.** Cloudflare Workers Builds deploys every push to `main`, including the build's data commits, and builds a preview for every other branch, with its URL on the PR.

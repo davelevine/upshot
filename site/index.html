@@ -24,7 +24,8 @@
 <meta name="theme-color" content="#15161e" media="(prefers-color-scheme: dark)">
 <script>document.documentElement.dataset.theme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 if (/Mac|iPhone|iPad/.test(navigator.platform)) document.documentElement.dataset.mac = ''; else if (/Android/.test(navigator.userAgent)) document.documentElement.dataset.android = '';
-for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width'); if (w) document.documentElement.style.setProperty('--' + k + '-w', w + 'px'); }</script>
+for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width'); if (w) document.documentElement.style.setProperty('--' + k + '-w', w + 'px'); }
+window.firstData = fetch('/data.json');  // the stories, on their way before app.js arrives; its load() takes this request</script>
 <style>
   /* Söhne (Klim), licensed, so the Worker serves it from R2 (worker.js); without it, the system sans. Three faces, each taking a
      range of weights: the weights below were tuned for Public Sans, and these are the faces whose rendered ink is nearest
@@ -686,6 +687,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   </form>
 </dialog>
 <button class="back-to-top" id="top" type="button" aria-label="Scroll to the top" title="Scroll to the top" hidden><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
-<script src="/app.js"></script>
+<!-- Versioned by its contents (tests/assets.test.js), so browsers keep it for a year. -->
+<script src="/app.js?v=6d991f87bb"></script>
 </body>
 </html>
