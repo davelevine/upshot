@@ -15,6 +15,24 @@
   },
   {
    "date": "2026-11-15",
+   "published": "2026-11-15T19:26:22+00:00",
+   "title": "Protomaps: Self-hosting map tiles has gotten cheap and easy",
+   "url": "https://bruceroettgers.eu/blog/protomaps/",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "A blog post argues that self-hosting map tiles, using Protomaps, has become cheap and easy, and it drew 320 points on Hacker News.",
+   "relevance": 6,
+   "added": "2026-11-16T09:18:17+00:00",
+   "minutes": 3,
+   "tldr": [
+    "Protomaps' single-file PMTiles format lets developers self-host world map tiles on a CDN, avoiding per-load fees from commercial map APIs like Mapbox.",
+    "Bunny.net is the example host: it supports HTTP Range requests, and a 139GB world map with 5x replication costs about $5/month in storage.",
+    "Restrict allowed referrers and cap downloads at 10kB/s after 10MB per request to deter whole-file downloads that inflate CDN bills."
+   ]
+  },
+  {
+   "date": "2026-11-15",
    "published": "2026-11-15T09:55:00+00:00",
    "title": "Anthropic Outlines Its AI-Powered Code Review Process for Claude Code",
    "url": "https://www.infoq.com/news/2026/11/claude-code-review/",
@@ -1265,11 +1283,12 @@
     "CVE-2026-123158"
    ],
    "exploited": {
-    "at": "2026-11-12T21:35:25+00:00",
-    "kind": "flaw",
     "kev": [
      "CVE-2026-123158"
     ],
+    "at": "2026-11-12T21:35:25+00:00",
+    "kind": "flaw",
+    "quote": "attackers are exploiting it in the wild",
     "fix": "patch",
     "fix_read": true
    }
@@ -3700,7 +3719,7 @@
    }
   ]
  },
- "generated_at": "2026-11-16T08:18:19+00:00",
+ "generated_at": "2026-11-16T09:18:27+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
