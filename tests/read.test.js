@@ -352,7 +352,7 @@ test('the licensed fonts come from R2, only as .woff2, and only to the site and 
   assert.equal(res.headers.get('content-type'), 'font/woff2');
   assert.equal(res.headers.get('etag'), '"e1"');
   assert.equal(res.headers.get('access-control-allow-origin'), 'null');  // the sandboxed frame, not every site
-  assert.match(res.headers.get('cache-control'), /max-age=604800/);
+  assert.equal(res.headers.get('cache-control'), 'public, max-age=31536000, immutable');
   assert.equal((await get('/fonts/licensed/Missing')).status, 404);
   assert.deepEqual(asked, ['Mercury-TextG2Roman.woff2', 'Missing.woff2']);  // nothing but .woff2 can be read from the bucket
   // Only to style text: a font opened as a page (the address bar, a link) is refused; the page's own requests aren't.

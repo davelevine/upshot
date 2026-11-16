@@ -42,7 +42,8 @@ async function font(request, path, env) {
   if (!obj) return new Response('Not found', { status: 404 });
   return new Response(obj.body, {
     headers: {
-      'Content-Type': 'font/woff2', ETag: obj.httpEtag, 'Cache-Control': 'public, max-age=604800',
+      // A year, never rechecked: a changed font gets a new name (docs/setup/configuration.md), so a URL's file never changes.
+      'Content-Type': 'font/woff2', ETag: obj.httpEtag, 'Cache-Control': 'public, max-age=31536000, immutable',
       // The reader frame is sandboxed, so its requests carry Origin: null. Allowing only that, rather than *, serves the
       // frame (and the page itself, which needs no CORS) while other sites' pages can't use the fonts.
       'Access-Control-Allow-Origin': 'null',

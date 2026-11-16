@@ -58,6 +58,8 @@ Söhne, Mercury Text and Mercury Display are licensed, so a fork shows system fo
 
 To use them, create a private R2 bucket named `upshot-fonts`, used for nothing else (the Worker's binding can write to all of it). Upload the `.woff2` files at the top level: `Sohne-Buch`, `Sohne-Kraftig`, `Sohne-Halbfett`, `Mercury-DisplaySemibold`, and the twelve `Mercury-TextG1…`/`Mercury-TextG2…` faces.
 
+Browsers keep each font for a year without checking it again, so never upload a changed font over an existing name: give it a new one, and update its references in `site/index.html`, `site/404.html` and `site/app.js`.
+
 ```bash
 for f in Sohne-*.woff2 Mercury-*.woff2; do npx wrangler r2 object put "upshot-fonts/$f" --file "$f" --content-type font/woff2 --remote; done
 ```
