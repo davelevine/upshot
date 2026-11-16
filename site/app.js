@@ -1020,7 +1020,7 @@ function openReader(i, { fromHash = false } = {}) {
   if (fresh && !docked.matches) (lastInput === 'key' ? $('reader-close') : $('reader')).focus({ preventScroll: true });  // no ring after a tap; docked, focus stays in the list
   if (articles.has(i.url)) return;  // read once already this visit: articles don't change once stored
   let unreadable = 'The reader view isn\u2019t available right now.';
-  fetch('/api/read?url=' + encodeURIComponent(i.url), { cache: 'no-store' }).then(r => r.json()).then(r => {
+  fetch('/api/read?url=' + encodeURIComponent(i.url)).then(r => r.json()).then(r => {  // the Worker says what may be kept
     if (r.content) articles.set(i.url, { content: r.content, minutes: readingMinutes(r.content), byline: r.byline });
     if (readerFor !== i.url) return;  // another article was opened meanwhile
     if (r.content) {

@@ -9,9 +9,13 @@ export async function keyFor(url) {
 
 async function read(request, env) {
   const url = new URL(request.url).searchParams.get('url');
-  const stored = url && env.ARTICLES && await env.ARTICLES.get(await keyFor(url));  // passed through unparsed, to stay cheap
+  // Passed through unparsed, to stay cheap; the metadata the build writes says whether it's an article.
+  const { value: stored, metadata } = (url && env.ARTICLES && await env.ARTICLES.getWithMetadata(await keyFor(url))) || {};
+  // An article is kept a day: it changes only when the extractor's version does. Anything else (pending, or blocked this
+  // time) may be an article after the next build, so it's never kept.
+  const cache = stored && metadata?.reason === 'ok' ? 'private, max-age=86400' : 'no-store';
   return new Response(stored || JSON.stringify({ url, reason: 'pending' }), {
-    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': cache },
   });
 }
 
@@ -26,7 +30,7 @@ function toSync(request, env) {
 
 // The site's fonts (Söhne, Mercury Text and Mercury Display) are licensed, so they can't be in this public repo with the
 // rest of site/. They live in a private R2 bucket (upshot-fonts; docs/setup/configuration.md) and are served from here, on the site's
-// own origin. A week's cache: a replaced file reaches browsers within that, or at once under a new name. The URLs have
+// own origin. Cached for a year, so a changed font needs a new name (docs/setup/configuration.md). The URLs have
 // no extension, so the Worker runs for them (run_worker_first in wrangler.jsonc); the bucket's keys are the file names,
 // with .woff2.
 const FONT_PREFIX = '/fonts/licensed/';

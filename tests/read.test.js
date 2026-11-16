@@ -262,20 +262,29 @@ test('run hands back article text for TL;DRs: fresh, from the store, and none wh
   assert.equal(out.texts['https://x.test/blocked'], undefined);
 });
 
-test('/api/read returns what the build stored, and pending otherwise', async () => {
-  const url = 'https://x.test/a';
+test('/api/read returns what the build stored, and pending otherwise; only an article may be kept', async () => {
+  const url = 'https://x.test/a', blocked = 'https://x.test/blocked';
   const ask = async (env, u = url) => {
     const res = await worker.fetch(new Request('https://site.test/api/read?url=' + encodeURIComponent(u)), env);
     return [res.status, await res.json(), res.headers.get('cache-control')];
   };
-  const k = await keyFor(url);
-  const env = { ARTICLES: { get: async wanted => (wanted === k ? JSON.stringify({ url, reason: 'ok', content: '<p>x</p>' }) : null) } };
+  const [k, kb] = [await keyFor(url), await keyFor(blocked)];
+  const kv = {
+    [k]: { value: JSON.stringify({ url, reason: 'ok', content: '<p>x</p>' }), metadata: { reason: 'ok', words: 1, v: 1 } },
+    [kb]: { value: JSON.stringify({ url: blocked, reason: 'challenge' }), metadata: { reason: 'challenge', words: 0, v: 1 } },
+  };
+  const env = { ARTICLES: { getWithMetadata: async wanted => kv[wanted] || { value: null, metadata: null } } };
   let [status, r, cache] = await ask(env);
-  assert.equal(status, 200); assert.equal(r.content, '<p>x</p>'); assert.equal(cache, 'no-store');
-  [, r] = await ask(env, 'https://elsewhere.test/not-stored');
-  assert.equal(r.reason, 'pending'); assert.equal(r.content, undefined);
-  [, r] = await ask({});  // no binding
-  assert.equal(r.reason, 'pending');
+  assert.equal(status, 200); assert.equal(r.content, '<p>x</p>'); assert.equal(cache, 'private, max-age=86400');
+  [, r, cache] = await ask(env, blocked);
+  assert.equal(r.reason, 'challenge'); assert.equal(cache, 'no-store');  // may be an article after the next build
+  [, r, cache] = await ask(env, 'https://elsewhere.test/not-stored');
+  assert.equal(r.reason, 'pending'); assert.equal(r.content, undefined); assert.equal(cache, 'no-store');
+  [, r, cache] = await ask({});  // no binding
+  assert.equal(r.reason, 'pending'); assert.equal(cache, 'no-store');
+  kv[k].metadata = null;  // an entry without metadata isn't trusted to be an article
+  [, r, cache] = await ask(env);
+  assert.equal(r.content, '<p>x</p>'); assert.equal(cache, 'no-store');
 });
 
 test('linkShare tells prose from a list of links', () => {
