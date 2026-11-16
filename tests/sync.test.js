@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import site from '../worker.js';
-import { account, deviceLabel, readCookie, validMarks } from '../sync/account.js';
+import { account, deviceLabel, readCookie, validLater, validMarks } from '../sync/account.js';
 
 const worker = { fetch: account };  // the upshot-sync Worker's handler
 
@@ -43,6 +43,14 @@ test('validMarks takes only http(s) stories with a well-formed mark', () => {
     { 'https://x.test/': [1, 1] }, { 'https://x.test/': [1, 1.5, 0] }, { ['https://x.test/' + 'x'.repeat(500)]: [1, 1, 1] },
     Object.fromEntries(Array.from({ length: 301 }, (_, i) => [`https://x.test/${i}`, [1, 1, 1]]))]) assert.equal(validMarks(bad), false);
   assert.ok(validMarks(Object.fromEntries(Array.from({ length: 300 }, (_, i) => [`https://x.test/${i}`, [1, 1, 1]]))), 'a full batch from the page');
+});
+
+test('validLater takes saves and unsaves, and a body without any', () => {
+  assert.ok(validLater(undefined), 'a page from before Read later');
+  assert.ok(validLater({ 'https://x.test/a': [1, Date.now()], 'https://x.test/b': [0, 5] }));
+  for (const bad of [null, [], { 'javascript:x': [1, 1] }, { 'https://x.test/': [2, 1] }, { 'https://x.test/': [1, -1] },
+    { 'https://x.test/': [1, 1, 1] }, { 'https://x.test/': [1] }, { 'https://x.test/': [1, 1.5] },
+    Object.fromEntries(Array.from({ length: 301 }, (_, i) => [`https://x.test/${i}`, [1, 1]]))]) assert.equal(validLater(bad), false);
 });
 
 test('signed out costs no Durable Object call, and sync says so without an error status', async () => {

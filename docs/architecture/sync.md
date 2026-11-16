@@ -1,6 +1,6 @@
 # Sync
 
-Sync keeps what you've read the same on every device, with no account, email or password. It runs in a second Worker, `upshot-sync` ([`sync/`](../../sync/)), which the Site Worker reaches over a service binding.
+Sync keeps what you've read, and what you've saved for later, the same on every device, with no account, email or password. It runs in a second Worker, `upshot-sync` ([`sync/`](../../sync/)), which the Site Worker reaches over a service binding.
 
 ## Pairing
 
@@ -20,6 +20,7 @@ Once a device syncs, the menu item becomes **Sync settings**, and a sync button 
 - **The server's merge wins.** The page sends only what changed, and takes the server's answer over its own unless that story changed again locally. A device with a wrong clock still ends up agreeing.
 - **A joining device takes the sync's read state.** Entering a code replaces the device's read state rather than merging it, so a new phone can't mark a laptop's unread stories as read.
 - **Changes are pushed.** While a tab is visible, the page holds a WebSocket to the Durable Object, using Cloudflare's hibernation API, so a quiet connection isn't billed. Hiding the tab closes it.
+- **Read later syncs on its own.** Saves go in the same request as read state but are merged apart from it, each story's newest save or removal winning, so saving a story on one device never changes whether another has read it. Joining by code keeps the device's saves and adds the sync's, since a save is never an absence.
 - **No cost without sync.** A browser that never turns sync on never calls `/api/sync`.
 
 ## Managing devices
@@ -34,7 +35,7 @@ On the Free plan a limit makes calls fail until midnight UTC instead of adding t
 
 - Turning sync on and entering codes: 30 a minute per address. Syncs and live connections: 120 a minute.
 - Requests must come from the site's own origin, and a sync carries at most 300 changes.
-- A reader keeps read state for at most 2,000 stories, and anything untouched for 120 days is dropped.
+- A reader keeps read state for at most 2,000 stories and saves for at most 500, and anything untouched for 120 days is dropped.
 - A socket that sends anything is closed.
 
 A determined script with a session can still use up the day's 100,000 row writes. A per-reader write budget would close that, and isn't worth it at this size.

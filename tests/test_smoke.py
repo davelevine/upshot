@@ -121,7 +121,7 @@ def test_feed_renders(browser):
     assert pg.locator(".card-arrow").count() == 0 and pg.locator(".card-time").count() == 0
     # After Feedbin: the publisher's icon, then title, source, the one-line summary and how old it is. The topic is the sidebar's job.
     first = pg.locator("a.card").first
-    assert pg.evaluate("[...document.querySelector('a.card .card-body').children].map(e => e.className)") == ["card-title", "card-meta", "card-sum", "card-age"]
+    assert pg.evaluate("[...document.querySelector('a.card .card-body').children].map(e => e.className)") == ["card-title", "card-meta", "card-sum", "card-foot"]
     assert first.locator("> .src-icon").count() == 1 and pg.locator("a.card .dot").count() == 0
     assert first.locator(".card-src").inner_text() == pg.evaluate("source(items[0])")
     hn = pg.evaluate("items.find(i => i.publisher.startsWith('Hacker News '))?.url")  # who wrote it, not where it was found
@@ -1343,6 +1343,66 @@ def test_the_reader_marks_a_story_unread_and_read_again(browser):
     assert pg.problems == []
 
 
+def test_read_later_saves_from_the_reader(browser):
+    """Read later is always in the sidebar. The reader's bookmark saves a story: its row is marked, the entry counts what's
+    saved and lists it. Reading everything leaves it saved, a reload keeps it, and `s` takes it out again."""
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    later = "#filters .filter-btn[data-f='later']"
+    assert pg.locator(later).count() == 1 and pg.locator(f"{later} .f-count").count() == 0, "listed, with no count, before anything is saved"
+    pg.click(later)
+    wait_until_closed(pg)
+    assert pg.inner_text("#items .empty") == "Nothing saved yet. Open a story and use its bookmark to save it here."
+    pg.click("#filters .filter-btn[data-f='all']")
+    wait_until_closed(pg)
+    card = pg.locator("a.card").nth(2)
+    url = card.get_attribute("href")
+    card.click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    btn = pg.locator("#reader-later")
+    assert btn.get_attribute("aria-pressed") == "false" and not card.locator(".card-saved").is_visible()
+    btn.click()
+    assert btn.get_attribute("aria-pressed") == "true" and btn.get_attribute("aria-label") == "Remove from Read later"
+    assert card.locator(".card-saved").is_visible() and pg.inner_text("#status") == "Saved to Read later"
+    assert pg.inner_text(f"{later} .f-name") == "Read later" and pg.inner_text(f"{later} .f-count") == "1\nsaved"
+
+    pg.click(later)
+    wait_until_closed(pg)
+    assert pg.evaluate("[...document.querySelectorAll('#items a.card')].map(a => a.getAttribute('href'))") == [url]
+    pg.evaluate("markAllRead(items)")
+    assert pg.evaluate("u => isSaved(u)", url), "reading everything leaves it saved"
+
+    pg.reload()
+    pg.wait_for_selector(later)
+    assert pg.inner_text(f"{later} .f-count") == "1\nsaved", "kept across a reload"
+    pg.click(later)
+    wait_until_closed(pg)
+    pg.locator("#items a.card").first.click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.keyboard.press("s")  # the shortcut takes it out
+    assert not pg.evaluate("u => isSaved(u)", url) and pg.evaluate("localStorage.getItem('later')") == "{}"
+    assert pg.locator(f"#items a.card[href='{url}']").count() == 1, "the list holds still while the story is open"
+    assert pg.locator(f"{later} .f-count").count() == 0
+    pg.keyboard.press("Escape")
+    wait_until_closed(pg)
+    assert pg.evaluate("filter") == "later" and pg.locator("#items a.card").count() == 0, "closing it, the story leaves the list"
+    assert pg.locator("#items .empty").is_visible(), "which stays, empty, with its own message"
+
+    # Two saved, one taken out: closing drops just that one, and the list stays.
+    pg.evaluate("for (const n of [1, 4]) { openReader(items[n]); toggleLater(); }")
+    pg.keyboard.press("Escape")
+    wait_until_closed(pg)
+    pg.click(later)
+    wait_until_closed(pg)
+    pg.locator("#items a.card").first.click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.keyboard.press("s")
+    pg.keyboard.press("Escape")
+    wait_until_closed(pg)
+    assert pg.evaluate("filter") == "later" and pg.locator("#items a.card").count() == 1
+    assert pg.inner_text(f"{later} .f-count") == "1\nsaved"
+    assert pg.problems == []
+
+
 def test_read_marks_the_list_read_once_confirmed(browser):
     # Feedbin's toolbar at the sidebar's foot, Shortcuts and Read each centered in half of it. Read asks first, and marks only
     # the list that's showing.
@@ -2034,6 +2094,25 @@ def test_sync_by_code_between_devices(browser):
     a.evaluate("syncNow()")
     assert until(a, "u => !isRead(u)", url), "unread carries back"
 
+    # Read later syncs on its own, so a save on one device doesn't touch what another has read.
+    a.evaluate("n => openReader(items[n])", 5)
+    a.wait_for_selector("#reader-body iframe:not(.loading)")
+    a.click("#reader-later")
+    a.evaluate("syncNow()")
+    assert until(a, "!laterPending.size")
+    saved = a.evaluate("items[5].url")
+    b.evaluate("syncNow()")
+    assert until(b, "u => isSaved(u)", saved), "the save reaches the other device"
+    assert b.evaluate("u => isRead(u)", url) is False, "and leaves its read state alone"
+    b.evaluate("u => { readerFor = u; toggleLater(); }", saved)
+    b.evaluate("syncNow()")
+    assert until(b, "!laterPending.size")
+    a.evaluate("syncNow()")
+    assert until(a, "u => !isSaved(u)", saved), "unsaving carries back"
+    # A page from before Read later sends no saves: still a good request, and its marks still sync.
+    old = a.evaluate("fetch('/api/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ marks: {}, cursor: 0 }) }).then(r => r.status)")
+    assert old == 200
+
     open_sync(a)
     a.wait_for_selector("#sync-devices li >> nth=1")
     assert "This device" in a.locator("#sync-devices li").first.inner_text(), "this device first"
@@ -2074,6 +2153,12 @@ def test_the_sync_arrows_match_the_search_icon_on_phones(browser):
       return [Math.round(b.width * k * 10) / 10, Math.round(b.height * k * 10) / 10, Math.round(parseFloat(getComputedStyle(g).strokeWidth) * k * 10) / 10];
     })""")
     assert ink[0] == ink[1] == [16, 16, 2], f"search, then sync: width, height, stroke in px: {ink}"
+    # Search's close button covers search wherever it sits: syncing, that's a button further left, not over the sync arrows.
+    enter_list(a)
+    a.tap("#search-btn")
+    a.locator("#palette").wait_for()
+    close, icon = a.locator("#palette-close").bounding_box(), a.locator("#search-btn").bounding_box()
+    assert (close["x"], close["y"]) == (icon["x"], icon["y"]), (close, icon)
     assert a.problems == []
 
 

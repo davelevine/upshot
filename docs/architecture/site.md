@@ -30,6 +30,12 @@ Unread titles are bold, and the sidebar counts unread stories. A first visit sta
 
 A toolbar after Feedbin's holds **Read**, which marks the list showing as read after you confirm (`Shift A` too), beside **Shortcuts** on a desktop or **Top** on a phone. The `…` on the selected story marks everything above or below it.
 
+## Read later
+
+The bookmark in the reader's bar (`s` too) saves a story to **Read later**, an entry under the essentials that's always listed, since it's the reader's own list rather than one the news fills. It counts saved stories, read or not: the list empties as stories are removed, not as they're read. A saved row shows a small bookmark beside its age.
+
+A saved story stays saved when it's read or marked read with the rest of a list, and leaves when the bookmark is turned off or the story leaves the site after 90 days. A story unsaved while open stays in the list until the reader closes. Saves live in local storage like read state, and sync carries them too.
+
 ## The wordmark pass
 
 When Upshot opens, or returns after 15 minutes away, the wordmark's spot runs once through the date, when the news last updated and when the next build is due, then settles back, after Kagi News. It takes under five seconds, and a tap ends it.
