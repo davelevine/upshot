@@ -1478,6 +1478,10 @@ def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, sc
     label = lambda u: (card(u).locator(".x-word").count(), card(u).locator(".fix-pill").text_content())
     assert label(sec) == (1, "Patch available") and label(infra) == (1, "No patch yet")  # Exploited, then its remedy
     word = lambda u: card(u).locator(".x-word").evaluate("e => getComputedStyle(e).color")
+    # The dot between them sits midway: the label's gap before it, the same space after.
+    gap, after = card(sec).locator(".exploited").evaluate(
+        "e => [parseFloat(getComputedStyle(e).columnGap), parseFloat(getComputedStyle(e.querySelector('.patch-out'), '::before').marginRight)]")
+    assert gap == after > 0
     assert word(sec) != word(infra)  # red only while there's no fix: the usual case is quiet
     assert pg.evaluate("u => items.find(i => i.url === u).exploited && !listed(items.find(i => i.url === u))", old)  # tagged, but too old to list
     entry = pg.locator("#filters [data-f='exploited']")

@@ -938,7 +938,7 @@ table { display: block; overflow-x: auto; border-collapse: collapse; font-size: 
 hr { border: 0; border-top: 1px solid var(--border); }
 .flag { margin: 0 0 .35em; } .exploited { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; } .x-word { color: var(--text); } .exploited:has(.no-patch) .x-word { color: var(--exploited-ink); } .x-word.compromised { color: var(--caution-ink); }
 .fix-pill { padding: 1px 8px; border-radius: 999px; font-size: .9em; font-weight: 700; line-height: 1.35; }  /* a chip, as in the list; not .pill, the "Read it on" button's */ .no-patch { background: var(--exploited); color: var(--exploited-text); } .patch-out, .mitigation { padding: 0; color: var(--accent); font-size: 1em; font-weight: 600; line-height: inherit; }
-.mitigation { color: var(--text-muted); font-weight: 500; } .patch-out::before, .mitigation::before { content: "· "; color: var(--text-muted); }
+.mitigation { color: var(--text-muted); font-weight: 500; } .patch-out::before, .mitigation::before { content: "·"; margin-right: 6px; color: var(--text-muted); }
 .late { animation: late .2s ease .4s both; } @keyframes late { from { opacity: 0; } }
 .status { color: var(--text-muted); font: 370 .9375rem/1.5 Sohne, system-ui, sans-serif; }
 .pill { display: inline-block; padding: 10px 18px; border: 1px solid var(--accent); border-radius: 999px; font: 600 .9375rem/1.4 Sohne, system-ui, sans-serif; text-decoration: none; }

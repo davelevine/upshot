@@ -212,7 +212,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   .palette-list .dot { margin-top: 6px; }
   .p-title { font-size: .9rem; font-weight: 600; line-height: 1.35; }
   .p-meta { margin-top: 2px; color: var(--text-muted); font-size: .75rem; }
-  .p-meta :is(.exploited, .ess) { margin-left: 4px; font-size: inherit; }  /* a story's label, as in the lists */
+  .p-meta :is(.exploited, .ess) { font-size: inherit; }  /* a story's label, as in the lists */
   .p-meta .ess { color: var(--accent); font-weight: 600; }
   .palette-list .palette-head { display: block; min-height: 0; padding: 6px 10px 4px; color: var(--text-muted); font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; cursor: default; }
   .palette-list .palette-empty { justify-content: center; padding: 22px; color: var(--text-muted); font-size: .875rem; cursor: default; }
@@ -278,7 +278,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   .exploited .no-patch { background: var(--exploited); color: var(--exploited-text); }
   .exploited .patch-out { padding: 0; color: var(--accent); font-weight: 600; }  /* the good news, in the accent, as Essential is */
   .exploited .mitigation { padding: 0; color: var(--text-muted); font-weight: 500; }  /* a workaround only: no color, no alarm */
-  .exploited :is(.patch-out, .mitigation)::before { content: "· "; color: var(--text-muted); }
+  .exploited :is(.patch-out, .mitigation)::before { content: "·"; margin-right: 6px; color: var(--text-muted); }  /* the same space each side as the gap before it */
   .f-open { flex: none; color: var(--exploited-ink); font-size: .75rem; font-weight: 600; }  /* exploited flaws with no fix yet */
   .skeleton { pointer-events: none; animation: skeleton-in .2s ease .4s both; }  /* held back: a normal load lands first, and a flash of placeholders is just noise */
   @keyframes skeleton-in { from { opacity: 0; } }
@@ -689,6 +689,6 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
 </dialog>
 <button class="back-to-top" id="top" type="button" aria-label="Scroll to the top" title="Scroll to the top" hidden><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <!-- Versioned by its contents (tests/assets.test.js), so browsers keep it for a year. -->
-<script src="/app.js?v=6d991f87bb"></script>
+<script src="/app.js?v=659bfd8c52"></script>
 </body>
 </html>
