@@ -278,3 +278,12 @@
 **Rules:**
 - Document how the project works and how to run or change it. A third-party tool's workflow (diagram generators, editors, formatters) doesn't belong in the docs; the committed source file is enough.
 - Before adding a section, ask whether a reader working on the project would need it, or only someone repeating a task I just did.
+
+## 2026-11-16 — Trace the real path before blaming a component
+
+**Mistake:** Asked whether an upshot could come from the excerpt, I said Hacker News stories have no reader text because hnrss carries only the link and points. The user asked whether hnrss really stops the reader, and it doesn't: the reader fetches the linked article itself, and 13 of 18 HN stories had reader text. I had also offered a local "The reader view isn't ready yet" screenshot as evidence about the live site, when the local article store is simply empty.
+
+**Rules:**
+- Before saying why something fails, trace where its input really comes from (here, `extract.mjs` fetches the article URL; the feed only supplies the excerpt) and check the data (`minutes > 0` per publisher) instead of reasoning from one example.
+- A local `wrangler dev` has an empty article store, so its reader says nothing about production. Don't use it as evidence for how a live story behaves.
+- When asked "it used to work", look for the record before answering, and say plainly when the repo has none.
