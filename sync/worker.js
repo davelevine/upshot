@@ -8,6 +8,7 @@ import { account } from './account.js';
 const DAY = 864e5;
 const KEEP = 120 * DAY;  // stories leave the site after 90 days (build.py KEEP_DAYS); a mark untouched this long is for one that's gone
 const MAX_MARKS = 2000;  // the site holds about 450 stories at once; this bounds what one reader can store
+const MAX_LATER = 500;  // stories saved for later: a story leaves with the site's, so a reader never needs more
 const IDLE = 400 * DAY;  // as long as a session cookie lasts unused
 
 // One reader: their devices and their marks. A Durable Object handles one call at a time, so
@@ -28,24 +29,34 @@ export class Reader extends DurableObject {
     this.sql.exec(`
       CREATE TABLE IF NOT EXISTS sessions (hash TEXT PRIMARY KEY, label TEXT NOT NULL, seen INTEGER NOT NULL);
       CREATE TABLE IF NOT EXISTS marks (url TEXT PRIMARY KEY, read INTEGER NOT NULL, at INTEGER NOT NULL, opened INTEGER NOT NULL, seq INTEGER NOT NULL, touched INTEGER NOT NULL);
+      CREATE TABLE IF NOT EXISTS later (url TEXT PRIMARY KEY, saved INTEGER NOT NULL, at INTEGER NOT NULL, seq INTEGER NOT NULL, touched INTEGER NOT NULL);
       CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v);
       CREATE INDEX IF NOT EXISTS marks_seq ON marks (seq);
       CREATE INDEX IF NOT EXISTS marks_touched ON marks (touched);
-      CREATE INDEX IF NOT EXISTS marks_at ON marks (at);`);
+      CREATE INDEX IF NOT EXISTS marks_at ON marks (at);
+      CREATE INDEX IF NOT EXISTS later_seq ON later (seq);
+      CREATE INDEX IF NOT EXISTS later_touched ON later (touched);
+      CREATE INDEX IF NOT EXISTS later_at ON later (at);`);
   }
   // Each sync reads only the rows it needs: the indexes spare it a scan of every mark (billed per row read), and the mark
   // count is kept here rather than counted. Set once for a reader stored before it was kept.
-  #marks() {
-    return this.#get('n') ?? this.sql.exec('SELECT COUNT(*) AS n FROM marks').one().n;
+  #rows(table) {
+    return this.#get(table === 'marks' ? 'n' : 'nl') ?? this.sql.exec(`SELECT COUNT(*) AS n FROM ${table}`).one().n;
   }
-  #dropMarks(where, ...args) { return this.sql.exec(`DELETE FROM marks WHERE ${where} RETURNING url`, ...args).toArray().length; }
+  #dropRows(table, where, ...args) { return this.sql.exec(`DELETE FROM ${table} WHERE ${where} RETURNING url`, ...args).toArray().length; }
+  // Rows untouched for as long as they're kept go, then the oldest past the cap; the new count is kept in meta.
+  #prune(table, n, max, now) {
+    n -= this.#dropRows(table, 'touched <= ?', now - KEEP);
+    if (n > max) n -= this.#dropRows(table, `url IN (SELECT url FROM ${table} ORDER BY at LIMIT ?)`, n - max);
+    this.#set(table === 'marks' ? 'n' : 'nl', n);
+  }
   // The alarm: when the reader's last device has gone unused as long as a cookie lasts (then the reader goes), or its
   // oldest mark has gone untouched as long as marks are kept (then those go), whichever comes first. So a reader nobody
   // syncs any more doesn't hold its marks for 400 days.
   #arm() {
     const seen = this.sql.exec('SELECT MAX(seen) AS t FROM sessions').one().t;
     if (seen == null) return;
-    const oldest = this.sql.exec('SELECT MIN(touched) AS t FROM marks').one().t;
+    const oldest = this.sql.exec('SELECT MIN(t) AS t FROM (SELECT MIN(touched) AS t FROM marks UNION ALL SELECT MIN(touched) FROM later)').one().t;
     this.ctx.storage.setAlarm(Math.min(seen + IDLE, oldest == null ? Infinity : oldest + KEEP));
   }
   #get(k) { return this.sql.exec('SELECT v FROM meta WHERE k = ?', k).toArray()[0]?.v ?? null; }
@@ -120,37 +131,52 @@ export class Reader extends DurableObject {
 
   // Takes a device's changes, keeping each story's newest, and returns what the device hasn't seen: every row changed since
   // its cursor, plus this store's version of any change it turned down, so a device whose clock is off still ends up
-  // agreeing. `seq` numbers changes as they arrive here, kept apart from the rows so pruning never reuses a number.
+  // agreeing. `seq` numbers changes as they arrive here, kept apart from the rows so pruning never reuses a number, and
+  // shared by both tables, so one cursor covers marks and stories saved for later.
   // `since`: the earliest first-visit cutoff of the reader's devices (site/app.js), so all of them count the same older
   // stories as read.
-  sync(hash, changes, cursor, since) {
+  sync(hash, changes, cursor, since, later = {}) {
     if (!this.checkSession(hash)) return null;
     const now = Date.now();
     this.sql.exec('UPDATE sessions SET seen = ? WHERE hash = ?', now, hash);  // every sync, for the device list's "Last synced"
-    let seq = this.#get('seq') ?? 0;
-    if (cursor > seq) cursor = 0;  // a cursor from before the reader's data was deleted: start over
-    const refused = [];
-    let n = this.#marks();
-    for (const [url, [read, at, opened]] of Object.entries(changes)) {
-      const t = Math.min(at, now);  // a clock running ahead can't win every future change
-      const had = this.sql.exec('SELECT at FROM marks WHERE url = ?', url).toArray()[0];
-      if (had && had.at >= t) { refused.push(url); continue; }
-      if (!had) n++;
-      this.sql.exec(`INSERT INTO marks VALUES (?, ?, ?, ?, ?, ?)
-        ON CONFLICT (url) DO UPDATE SET read = excluded.read, at = excluded.at, opened = excluded.opened, seq = excluded.seq, touched = excluded.touched`,
-        url, read, t, opened, ++seq, now);
-    }
-    if (seq !== (this.#get('seq') ?? 0)) this.#tell('marks', hash);  // the other devices' pages pull
+    const was = this.#get('seq') ?? 0;
+    if (cursor > was) cursor = 0;  // a cursor from before the reader's data was deleted: start over
+    let seq = was;
+    // Keeps whichever is newer, the stored row or the device's; `write` stores the device's. Returns the urls turned down.
+    const merge = (table, rows, max, write) => {
+      const refused = [];
+      let n = this.#rows(table);
+      for (const [url, row] of Object.entries(rows)) {
+        const t = Math.min(row[1], now);  // a clock running ahead can't win every future change
+        const had = this.sql.exec(`SELECT at FROM ${table} WHERE url = ?`, url).toArray()[0];
+        if (had && had.at >= t) { refused.push(url); continue; }
+        if (!had) n++;
+        write(url, row, t, ++seq);
+      }
+      this.#prune(table, n, max, now);
+      return refused;
+    };
+    const refusedMarks = merge('marks', changes, MAX_MARKS, (url, [read, , opened], t, s) => this.sql.exec(`INSERT INTO marks VALUES (?, ?, ?, ?, ?, ?)
+      ON CONFLICT (url) DO UPDATE SET read = excluded.read, at = excluded.at, opened = excluded.opened, seq = excluded.seq, touched = excluded.touched`,
+      url, read, t, opened, s, now));
+    const refusedLater = merge('later', later, MAX_LATER, (url, [saved], t, s) => this.sql.exec(`INSERT INTO later VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT (url) DO UPDATE SET saved = excluded.saved, at = excluded.at, seq = excluded.seq, touched = excluded.touched`,
+      url, saved, t, s, now));
+    if (seq !== was) this.#tell('marks', hash);  // the other devices' pages pull
     this.#set('seq', seq);
-    n -= this.#dropMarks('touched <= ?', now - KEEP);
-    if (n > MAX_MARKS) n -= this.#dropMarks('url IN (SELECT url FROM marks ORDER BY at LIMIT ?)', n - MAX_MARKS);
-    this.#set('n', n);
     this.#arm();
-    const rows = this.sql.exec('SELECT url, read, at, opened FROM marks WHERE seq > ? ORDER BY seq', cursor).toArray();
-    for (const url of refused) rows.push(...this.sql.exec('SELECT url, read, at, opened FROM marks WHERE url = ?', url).toArray());
     const kept = this.#get('since');
     if (since && (!kept || since < kept)) this.#set('since', since);
-    return { marks: Object.fromEntries(rows.map(r => [r.url, [r.read, r.at, r.opened]])), cursor: seq, since: this.#get('since') };
+    const unseen = (cols, table, refused) => {  // what the device has not seen: changed since its cursor, or turned down
+      const rows = this.sql.exec(`SELECT ${cols} FROM ${table} WHERE seq > ? ORDER BY seq`, cursor).toArray();
+      for (const url of refused) rows.push(...this.sql.exec(`SELECT ${cols} FROM ${table} WHERE url = ?`, url).toArray());
+      return rows;
+    };
+    return {
+      marks: Object.fromEntries(unseen('url, read, at, opened', 'marks', refusedMarks).map(r => [r.url, [r.read, r.at, r.opened]])),
+      later: Object.fromEntries(unseen('url, saved, at', 'later', refusedLater).map(r => [r.url, [r.saved, r.at]])),
+      cursor: seq, since: this.#get('since'),
+    };
   }
 
   // ponytail: recreating the tables leaves a few KB of empty storage behind if a stale cookie later reaches a deleted
@@ -161,11 +187,11 @@ export class Reader extends DurableObject {
     this.#schema();  // this instance can outlive its data; later calls find empty tables, not missing ones
   }
   // No device has used sync for as long as a cookie lasts: every cookie has expired, so the reader goes. Otherwise it's marks
-  // untouched for as long as they're kept (#arm).
+  // and saves untouched for as long as they're kept (#arm).
   async alarm() {
     const now = Date.now();
     if (!(this.sql.exec('SELECT MAX(seen) AS t FROM sessions').one().t > now - IDLE)) return this.deleteAll();
-    this.#set('n', this.#marks() - this.#dropMarks('touched <= ?', now - KEEP));
+    for (const t of ['marks', 'later']) this.#prune(t, this.#rows(t), Infinity, now);
     this.#arm();
   }
 }

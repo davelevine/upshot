@@ -87,9 +87,13 @@ async function body(request) {
 
 const isMark = m => Array.isArray(m) && m.length === 3 && (m[0] === 0 || m[0] === 1) && (m[2] === 0 || m[2] === 1)
   && Number.isSafeInteger(m[1]) && m[1] >= 0;
-export const validMarks = marks => !!marks && typeof marks === 'object' && !Array.isArray(marks)
-  && Object.keys(marks).length <= MAX_BATCH
-  && Object.entries(marks).every(([u, m]) => u.length <= MAX_URL && /^https?:\/\//.test(u) && isMark(m));
+// A story saved for later: [saved, when]. Unsaving is sent too, as [0, when], so it reaches the other devices.
+const isSave = m => Array.isArray(m) && m.length === 2 && (m[0] === 0 || m[0] === 1) && Number.isSafeInteger(m[1]) && m[1] >= 0;
+const validMap = ok => map => !!map && typeof map === 'object' && !Array.isArray(map)
+  && Object.keys(map).length <= MAX_BATCH
+  && Object.entries(map).every(([u, m]) => u.length <= MAX_URL && /^https?:\/\//.test(u) && ok(m));
+export const validMarks = validMap(isMark);
+export const validLater = later => later === undefined || validMap(isSave)(later);  // a page from before Read later sends none
 
 const routes = {
   // Turning sync on: a new reader, with this device as its first.
@@ -169,9 +173,9 @@ const routes = {
 async function sync(request, env, me) {
   if (!me) return json({ signedIn: false });
   const b = await body(request);
-  if (!b || !validMarks(b.marks) || !Number.isSafeInteger(b.cursor) || b.cursor < 0) return fail(400, 'bad request');
+  if (!b || !validMarks(b.marks) || !validLater(b.later) || !Number.isSafeInteger(b.cursor) || b.cursor < 0) return fail(400, 'bad request');
   const since = typeof b.since === 'string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d{3})?Z$/.test(b.since) ? b.since : null;  // UTC ISO dates compare as text
-  const res = await readerOf(env, me.user).sync(me.hash, b.marks, b.cursor, since);
+  const res = await readerOf(env, me.user).sync(me.hash, b.marks, b.cursor, since, b.later ?? {});
   if (!res) return goneRes(json({ signedIn: false }));
   return json(res, 200, cookies(`${me.user}.${me.token}`, COOKIE_AGE));  // renewed on every sync: a device in use never expires
 }

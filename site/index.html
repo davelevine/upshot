@@ -243,7 +243,8 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   .items { max-width: var(--read); margin: 0 auto; padding: 8px 24px 48px; display: flex; flex-direction: column; }
   /* How fresh the list is, at the sidebar's foot, just above the toolbar. The wordmark's pass says it once on opening; this stays. */
   .side-foot { display: flex; flex: none; align-items: center; height: 44px; margin: auto 0 0; padding: 0 10px; color: var(--text-muted); font-size: .8125rem; }
-  .card-age { display: block; margin-top: 4px; color: var(--text-muted); font-size: .8125rem; font-variant-numeric: tabular-nums; }
+  .card-foot { display: flex; align-items: center; gap: 6px; margin-top: 4px; }  /* the bookmark beside the age: the selected row's "…" holds the far end */
+  .card-age { display: block; color: var(--text-muted); font-size: .8125rem; font-variant-numeric: tabular-nums; }
   .card { content-visibility: auto; contain-intrinsic-block-size: auto 6rem; display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: var(--radius-md); transition: background-color .15s ease; }
   .card[aria-current="true"] { background: var(--bg-card); }
   .card-body { flex: 1; min-width: 0; }
@@ -264,6 +265,9 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   .back-to-top svg { width: 18px; height: 18px; }
   .back-to-top:active { background: var(--accent); color: var(--accent-contrast); }
   @media (hover: hover) { .back-to-top:hover { background: var(--accent); color: var(--accent-contrast); } }  /* fills in, rather than moving */
+  .card-saved { display: none; flex: none; color: var(--text-muted); }  /* saved for later: a bookmark at the row's foot, as Feedbin marks a starred row */
+  .card-saved svg { display: block; width: 12px; height: 12px; fill: currentColor; stroke: none; }
+  .card.saved .card-saved { display: block; }
   .card.read .card-title { color: var(--text-muted); font-weight: 500; }
   .card.read .card-meta { color: var(--text-muted); }
   /* An actively exploited flaw (build.py: in CISA's catalog, or a checked claim). */
@@ -479,10 +483,13 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   }
   @media (min-width: 1280px) { :root { --side-w: 240px; --list-w: 440px; } }
   .reader-bar { display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 12px; border-bottom: 1px solid var(--border); flex: 0 0 auto; }
+  @media (max-width: 340px) { .reader-bar { gap: 2px; } }  /* six 44px buttons and the icon: tighter, not smaller, on the narrowest phones */
   .reader-spacer { flex: 1; }
   .reader-source { min-width: 0; overflow: hidden; color: var(--text); font-size: .9375rem; white-space: nowrap; text-overflow: ellipsis; }  /* who it's from, beside the icon, as in Feedbin */
   #reader-unread.unread svg { fill: currentColor; }  /* a filled dot while it's unread, as in Feedbin */
   #reader-unread.unread { color: var(--accent); }
+  #reader-later[aria-pressed="true"] svg { fill: currentColor; }  /* saved for later: filled, in the accent, as the unread dot is */
+  #reader-later[aria-pressed="true"] { color: var(--accent); }
   /* An open menu's button: the text size, share and the row's "…". */
   #reader-size[aria-expanded="true"], #reader-send[aria-expanded="true"], .more-wrap > .icon-btn[aria-expanded="true"] { background: var(--bg-card-hover); color: var(--text); }
   /* Text size: four A's in growing sizes, the current one marked. */
@@ -608,6 +615,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
         <button type="button" role="menuitem" id="send-more" hidden><svg class="send-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>More…</button>
       </span>
     </span>
+    <button class="icon-btn" id="reader-later" type="button" title="Read later" aria-label="Read later" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg></button>
     <button class="icon-btn" id="reader-unread" type="button" title="Mark as unread" aria-label="Mark as unread"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/></svg></button>
     <button class="icon-btn" id="reader-theme" type="button" title="Toggle dark mode" aria-label="Toggle dark mode">
       <svg class="only-light" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
@@ -637,6 +645,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
     <dt><kbd>k</kbd> / <kbd>←</kbd></dt><dd>Previous article</dd>
     <dt><kbd>Enter</kbd></dt><dd>Open the focused article</dd>
     <dt><kbd>m</kbd></dt><dd>Mark the open article read or unread</dd>
+    <dt><kbd>s</kbd></dt><dd>Save the open article to Read later, or remove it</dd>
     <dt><kbd>Shift A</kbd></dt><dd>Mark every article in the list as read, after asking</dd>
     <dt><kbd>⌘K</kbd> / <kbd>Ctrl K</kbd> / <kbd>/</kbd></dt><dd>Search every article</dd>
     <dt><kbd>Esc</kbd></dt><dd>Close the reader, search or this list</dd>
@@ -689,6 +698,6 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
 </dialog>
 <button class="back-to-top" id="top" type="button" aria-label="Scroll to the top" title="Scroll to the top" hidden><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <!-- Versioned by its contents (tests/assets.test.js), so browsers keep it for a year. -->
-<script src="/app.js?v=659bfd8c52"></script>
+<script src="/app.js?v=dd48fe6ab3"></script>
 </body>
 </html>

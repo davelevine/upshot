@@ -27,16 +27,16 @@ function watchEnd() {
 watchEnd();
 docked.addEventListener('change', watchEnd);
 let tz, iconArt = {}, icons = new Set(), items = [], filter = 'all', shown = [], limit = PAGE, generatedAt = null, picks = new Map();  // picks: url -> what to do
-const label = f => (f === 'all' ? 'All' : f === 'essentials' ? 'Essentials' : f === 'exploited' ? 'Exploited' : CATS[f]);
+const label = f => (f === 'all' ? 'All' : f === 'essentials' ? 'Essentials' : f === 'exploited' ? 'Exploited' : f === 'later' ? 'Read later' : CATS[f]);
 // Exploited flaws (build.py flags them): marked where they fall in the feed, and listed under the essentials for a week.
 const EXPLOITED_DAYS = 7;
 const listed = i => !!i.exploited && ageMins(i) < EXPLOITED_DAYS * 1440;
 const exists = f => (f === 'essentials' ? picks.size > 0 : f === 'exploited' ? items.some(listed) : true);  // the two lists come and go
-const inList = (i, f) => f === 'all' || (f === 'essentials' ? picks.has(i.url) : f === 'exploited' ? listed(i) : cat(i.category) === f);
+const inList = (i, f) => f === 'all' || (f === 'essentials' ? picks.has(i.url) : f === 'exploited' ? listed(i) : f === 'later' ? isSaved(i.url) : cat(i.category) === f);
 const plural = (n, one, many) => (n === 1 ? one : many);
 // What the list showing holds, counted: a topic is where the stories are ("3 stories in Other"), not a word about them ("3 Other stories").
 const listNoun = n => (filter === 'essentials' ? plural(n, 'essential', 'essentials') : filter === 'exploited' ? plural(n, 'exploited flaw', 'exploited flaws')
-  : plural(n, 'story', 'stories') + (filter === 'all' ? '' : ` in ${label(filter)}`));
+  : filter === 'later' ? plural(n, 'saved story', 'saved stories') : plural(n, 'story', 'stories') + (filter === 'all' ? '' : ` in ${label(filter)}`));
 // An exploited flaw and its remedy, in CISA's terms: "Patch available" (the accent), "Mitigation only" (quiet), or "No patch
 // yet", the one alarm on a row, red with "Exploited" (nothing to apply: watch it); nothing when the story doesn't say. A
 // supply-chain attack says "Compromised" instead, as GitHub and OSV keep malware apart from vulnerabilities, in yellow, Carbon's
@@ -77,9 +77,14 @@ function age(i) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...(year && { year: 'numeric' }), timeZone: 'UTC' });
 }
 const ageHtml = i => `<time class="card-age" datetime="${esc(i.published || i.added || i.date)}">${age(i)}</time>`;
+// Saved for later: a bookmark beside the age, as Feedbin marks a starred row. Every row has one, shown by the `saved` class, so saving needs no redraw.
+const SAVED_MARK = '<span class="card-saved"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg><span class="sr-only">Saved</span></span>';
 // A sync or another tab changes only which stories are read, never which are listed, so the rows stay: rebuilding them would
 // abort every icon still loading and fetch it again.
-const refreshRead = () => $('items').querySelectorAll('a.card').forEach(a => a.classList.toggle('read', isRead(a.getAttribute('href'))));
+const refreshRead = () => $('items').querySelectorAll('a.card').forEach(a => {
+  a.classList.toggle('read', isRead(a.getAttribute('href')));
+  a.classList.toggle('saved', isSaved(a.getAttribute('href')));
+});
 const refreshAges = () => document.querySelectorAll('a.card').forEach(a => {
   const i = items.find(x => x.url === a.getAttribute('href')), t = a.querySelector('.card-age');
   if (i && t) t.textContent = age(i);
@@ -103,10 +108,15 @@ function renderFilters() {
   const btn = (f, n, mark, note = '') => `<button class="filter-btn${filter === f ? ' active' : ''}" data-f="${f}" aria-pressed="${filter === f}">` +
     `<span class="f-mark" aria-hidden="true">${mark}</span><span class="f-name">${label(f)}</span>${note || (n ? `<span class="f-count">${n}<span class="sr-only"> unread</span></span>` : '')}</button>`;
   const open = unpatched();  // exploited flaws with no fix yet: in place of the unread count while there are any
+  const saved = items.filter(i => isSaved(i.url)).length;
   $('filters').innerHTML = btn('all', unreadAll, '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>') +
     (picks.size ? btn('essentials', unreadPicks, '<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>') : '') +
     (exists('exploited') ? btn('exploited', items.filter(i => listed(i) && isUnread(i)).length, '<svg viewBox="0 0 24 24"><path d="M12 4 2.5 20h19z"/><path d="M12 10v4M12 17h.01"/></svg>',
       open ? `<span class="f-open">${open} unpatched</span>` : '') : '') +
+    // Read later counts what's saved, read or not: it empties as stories are unsaved, not as they're read. Always listed:
+    // it's the reader's own list, not one the news fills, and the bookmark in the reader is otherwise all that tells of it.
+    btn('later', 0, '<svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>',
+      saved ? `<span class="f-count">${saved}<span class="sr-only"> saved</span></span>` : '') +
     '<h2 class="f-head">Topics</h2>' + Object.keys(CATS).filter(c => counts[c] || filter === c).map(c => btn(c, unread[c] || 0, `<span class="dot" style="--c:var(--cat-${c})"></span>`)).join('');
   $('list-name').textContent = label(filter);  // phones: the list's name above it, so a filter never makes stories look missing
   syncReadAll();
@@ -124,16 +134,16 @@ function renderPage() {
   // No headings or counts: the list starts at the top, each story says how old it is, and the sidebar says which list it is.
   $('items').innerHTML = shown.length ? `
     ${shown.slice(0, limit).map(i => { const ess = picks.has(i.url), why = filter === 'essentials' && picks.get(i.url), preview = why || i.summary; return `
-    <a class="card${isRead(i.url) ? ' read' : ''}${ess ? ' essential' : ''}" href="${esc(i.url)}" target="_blank" rel="noopener"${i.url === currentUrl() ? ' aria-current="true"' : ''}>
+    <a class="card${isRead(i.url) ? ' read' : ''}${isSaved(i.url) ? ' saved' : ''}${ess ? ' essential' : ''}" href="${esc(i.url)}" target="_blank" rel="noopener"${i.url === currentUrl() ? ' aria-current="true"' : ''}>
       ${iconHtml(i.publisher)}
       <div class="card-body">
         <div class="card-title">${esc(i.title)}</div>
         <div class="card-meta"><span class="card-src">${esc(source(i))}</span>${label1(i, ess)}</div>
         ${preview ? `<div class="card-sum${why ? ' full' : ''}">${why ? '<b>What to do: </b>' : ''}${esc(preview)}</div>` : ''}
-        ${ageHtml(i)}
+        <div class="card-foot">${ageHtml(i)}${SAVED_MARK}</div>
       </div>
     </a>`; }).join('')}`
-    : '<p class="empty">Nothing in this list right now.</p>';
+    : `<p class="empty">${filter === 'later' ? 'Nothing saved yet. Open a story and use its bookmark to save it here.' : 'Nothing in this list right now.'}</p>`;
   $('items').removeAttribute('aria-busy');
   syncReadAll(); placeMore();
   if (generatedAt) showUpdated();  // the feed was just redrawn, and its "Updated" with it
@@ -261,8 +271,9 @@ function pruneRead() {
   for (const u of kept) if (!urls.has(u)) kept.delete(u);
   // A synced mark for a story this tab hasn't loaded may be for one a newer build added; it's kept for a week.
   for (const u in marks) if (!urls.has(u) && marks[u][1] < weekAgo) { delete marks[u]; pending.delete(u); }
+  for (const u in later) if (!urls.has(u) && later[u][1] < weekAgo) { delete later[u]; laterPending.delete(u); }  // a save leaves with its story
   if (syncOn) fromMarks();  // with sync on, the marks are the read list
-  saveRead(); saveKept(); saveMarks();
+  saveRead(); saveKept(); saveMarks(); saveLater();
 }
 
 // Sync (sync/account.js, sync/worker.js): once this device is syncing, every read or unread is noted as a mark, [read, when,
@@ -274,6 +285,9 @@ function pruneRead() {
 const SYNC_DELAY = 3000, SYNC_BATCH = 300;  // a batch stays well under the server's size limit
 const stored = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
 let syncOn, marks, pending, cursor, takeSince, pushTimer, syncGen = 0, syncNotice = '';
+// Read later: stories set aside, {url: [saved, when]}, kept with or without sync, and leaving with the story itself. With
+// sync on, unsaving keeps [0, when] so it reaches the other devices; `laterPending` is what this device hasn't sent.
+let later, laterPending;
 // Every tab shares what's stored, and storage events tell a tab of another's writes only after a moment (much later for a
 // tab frozen in the background). So a tab rereads before it changes the marks, rather than writing back its own older copy
 // over another tab's newer marks, or its unsent ones. Finding sync turned on or off that way, it acts on it here.
@@ -281,6 +295,7 @@ const loadSync = () => {
   const was = syncOn;
   syncOn = !!localStorage.getItem('syncOn'); marks = stored('marks', {}); pending = new Set(stored('syncPending', []));
   cursor = +localStorage.getItem('syncCursor') || 0; takeSince = !!localStorage.getItem('syncTakeSince');
+  later = stored('later', {}); laterPending = new Set(stored('laterPending', []));
   if (was === undefined || syncOn === was) return;  // undefined: loading the page
   syncOn ? setTimeout(connectLive) : disconnectLive();  // later: this may be partway through a sync
   if ($('sync').open && syncViewName !== 'code') renderSync();
@@ -290,16 +305,22 @@ const saveMarks = () => {
   localStorage.setItem('marks', JSON.stringify(marks));
   localStorage.setItem('syncPending', JSON.stringify([...pending]));
 };
+const saveLater = () => {
+  localStorage.setItem('later', JSON.stringify(later));
+  localStorage.setItem('laterPending', JSON.stringify([...laterPending]));
+};
+const isSaved = url => later[url]?.[0] === 1;
 const maySync = () => syncOn || /(?:^|;\s*)upshot_sync=1/.test(document.cookie);
 // Another tab changed what's stored: take it up, so this tab never writes its older copy back over it.
 addEventListener('storage', e => {
-  if (!['syncOn', 'marks', 'syncPending', 'syncCursor', 'syncTakeSince', 'since', 'read', 'kept'].includes(e.key)) return;
+  if (!['syncOn', 'marks', 'syncPending', 'syncCursor', 'syncTakeSince', 'since', 'read', 'kept', 'later', 'laterPending'].includes(e.key)) return;
   loadSync();
   since = localStorage.getItem('since');
   readSet.clear(); for (const u of stored('read', [])) readSet.add(u);
   kept.clear(); for (const u of stored('kept', [])) kept.add(u);
   showSync();
   if (items.length) { renderFilters(); refreshRead(); }
+  if (readerFor) syncLater();
 });
 function noteMark(url, read, opened) {
   loadSync();
@@ -334,6 +355,7 @@ function signedIn(joined = false) {
   syncOn = true; localStorage.setItem('syncOn', 1); nameSheet();
   marks = {}; cursor = 0; localStorage.setItem('syncCursor', 0);
   if (joined) { pending = new Set(); saveMarks(); } else seedMarks();
+  laterPending = new Set(Object.keys(later)); saveLater();  // saves are explicit, so a union is safe even on joining
   takeSince = joined; joined ? localStorage.setItem('syncTakeSince', 1) : localStorage.removeItem('syncTakeSince');  // stored: another tab, or a reload, mustn't send the old cutoff either
   disconnectLive(); setTimeout(connectLive);  // a new session: its own connection, once the cookie is set
 }
@@ -341,6 +363,8 @@ function signedOut(notice = '') {
   syncGen++;
   syncOn = false; marks = {}; pending.clear(); cursor = 0; syncedAt = 0; takeSince = false;
   for (const k of ['syncOn', 'marks', 'syncPending', 'syncCursor', 'syncTakeSince']) localStorage.removeItem(k);
+  for (const u in later) if (!later[u][0]) delete later[u];  // keeps what's saved; unsaves were only for the other devices
+  laterPending.clear(); saveLater();
   syncNotice = notice;
   disconnectLive();
   showSync();  // the sync button goes
@@ -405,11 +429,13 @@ async function syncNow() {
   clearTimeout(pushTimer); pushTimer = null;
   if (!items.length || !maySync()) return;
   if (syncing) return syncing.then(syncNow);  // one at a time, so each picks up where the last left off
-  const sendable = u => marks[u] && u.length <= 2048 && /^https?:\/\//.test(u);  // what the server accepts
+  const sendable = (map, u) => map[u] && u.length <= 2048 && /^https?:\/\//.test(u);  // what the server accepts
   loadSync();
-  for (const u of pending) if (!sendable(u)) pending.delete(u);
+  for (const u of pending) if (!sendable(marks, u)) pending.delete(u);
+  for (const u of laterPending) if (!sendable(later, u)) laterPending.delete(u);
   const sent = Object.fromEntries([...pending].slice(0, SYNC_BATCH).map(u => [u, marks[u]]));
-  const body = JSON.stringify({ marks: sent, cursor, since: takeSince ? null : since }), gen = syncGen;
+  const sentLater = Object.fromEntries([...laterPending].slice(0, SYNC_BATCH - Object.keys(sent).length).map(u => [u, later[u]]));  // one batch between them
+  const body = JSON.stringify({ marks: sent, later: sentLater, cursor, since: takeSince ? null : since }), gen = syncGen;
   if (syncOn) setSync('busy');
   // keepalive lets a send finish after the tab is hidden or closed, but only up to 64 KB.
   syncing = fetch('/api/sync', { method: 'POST', keepalive: body.length < 6e4, headers: { 'Content-Type': 'application/json' }, body })
@@ -418,7 +444,7 @@ async function syncNow() {
   syncing = null;
   if (gen !== syncGen) return;  // this device joined or left a sync meanwhile
   loadSync();  // another tab may have written meanwhile
-  if (res?.status === 400) { for (const u in sent) pending.delete(u); saveMarks(); }  // malformed: it would never get through
+  if (res?.status === 400) { for (const u in sent) pending.delete(u); for (const u in sentLater) laterPending.delete(u); saveMarks(); saveLater(); }  // malformed: it would never get through
   if (!res?.data) { if (syncOn) setSync('error'); return; }  // offline: the marks stay pending, sent when it's back
   if (res.data.signedIn === false) {  // removed elsewhere, or never in
     if (syncOn) { signedOut(STOPPED); if ($('sync').open && ['in', 'show'].includes(syncViewName)) syncView('out'); }
@@ -433,6 +459,14 @@ async function syncNow() {
     if (pending.has(u) || (marks[u] && marks[u].join() === m.join())) continue;
     marks[u] = m; changed = true;
   }
+  if (res.data.later) {  // a sync server from before Read later sends none: the saves stay pending until one does
+    for (const [u, m] of Object.entries(sentLater)) if (later[u]?.[1] === m[1]) laterPending.delete(u);
+    for (const [u, m] of Object.entries(res.data.later)) {
+      if (laterPending.has(u) || later[u]?.join() === m.join()) continue;
+      later[u] = m; changed = true;
+    }
+    saveLater();
+  }
   if (res.data.since && (takeSince || !since || res.data.since < since)) { localStorage.setItem('since', since = res.data.since); changed = true; }
   if (takeSince) { takeSince = false; localStorage.removeItem('syncTakeSince'); changed = true; }  // joined: the read list is the sync's, even with nothing in it
   cursor = res.data.cursor; localStorage.setItem('syncCursor', cursor);
@@ -440,9 +474,11 @@ async function syncNow() {
   if (changed) {
     fromMarks();
     renderFilters(); refreshRead();
-    if (readerFor) syncUnread();
+    if (readerFor) { syncUnread(); syncLater(); }
   }
-  if (pending.size && (fresh || Object.keys(sent).length === SYNC_BATCH)) syncNow();  // what this browser had, or the next batch
+  // What this browser had, or the next batch. Saves only count once the server takes them: one from before Read later never does.
+  const full = Object.keys(sent).length + (res.data.later ? Object.keys(sentLater).length : 0) === SYNC_BATCH;
+  if ((pending.size || laterPending.size) && (fresh || full)) syncNow();
 }
 // Live updates: while this device syncs and the tab is in view, a WebSocket to its sync's Durable Object, which says when
 // another device changed something, rather than this page asking every few seconds. Quiet, it costs nothing (the object
@@ -732,6 +768,27 @@ function toggleRead() {
   $('status').textContent = isRead(readerFor) ? 'Marked as read' : 'Marked as unread';
 }
 $('reader-unread').onclick = toggleRead;
+// Read later, the reader's bookmark (`s`): saving or unsaving the open story. Reading it leaves it saved.
+function syncLater() {
+  const on = !!readerFor && isSaved(readerFor), label = on ? 'Remove from Read later' : 'Read later';
+  $('reader-later').setAttribute('aria-pressed', String(on));
+  $('reader-later').setAttribute('aria-label', label);
+  $('reader-later').title = label;
+}
+function toggleLater() {
+  const url = readerFor;
+  if (!url) return;
+  loadSync();  // another tab's saves first: see loadSync
+  const on = isSaved(url) ? 0 : 1;
+  if (on || syncOn) later[url] = [on, Date.now()]; else delete later[url];
+  if (syncOn) { laterPending.add(url); clearTimeout(pushTimer); pushTimer = setTimeout(syncNow, SYNC_DELAY); }
+  saveLater();
+  cardFor(url)?.classList.toggle('saved', !!on);
+  renderFilters();
+  syncLater();
+  $('status').textContent = on ? 'Saved to Read later' : 'Removed from Read later';
+}
+$('reader-later').onclick = toggleLater;
 
 // "Updated 2h ago" at the top of the feed; a number that keeps growing means builds have stopped.
 const agoText = mins => (mins < 1 ? 'just now' : mins < 60 ? `${Math.floor(mins)}m ago`
@@ -842,7 +899,7 @@ addEventListener('message', e => {  // the page's theme toggle
 });
 addEventListener('keydown', e => {  // keys pressed while the article has focus never reach the page
   const k = e.key.toLowerCase(), mod = e.metaKey || e.ctrlKey;
-  if (!e.altKey && (['escape', 'j', 'k', 'm', 'arrowleft', 'arrowright', '?', '/'].includes(k) || (k === 'a' && e.shiftKey && !mod))) { e.preventDefault(); parent.postMessage({ tw: 'key', key: k, mod: mod, shift: e.shiftKey }, '*'); }
+  if (!e.altKey && (['escape', 'j', 'k', 'm', 's', 'arrowleft', 'arrowright', '?', '/'].includes(k) || (k === 'a' && e.shiftKey && !mod))) { e.preventDefault(); parent.postMessage({ tw: 'key', key: k, mod: mod, shift: e.shiftKey }, '*'); }
 });`;
 
 // The article frame's fonts: Mercury Text for the article and Mercury Display, its headline cut, for the title; Söhne for
@@ -1097,6 +1154,8 @@ function closeReader() {
   document.body.classList.remove('reading');
   $('reader').setAttribute('aria-hidden', 'true');
   setInert();
+  // Read later keeps a story unsaved while it was open, so the list doesn't shift under the reader; closing it, the story leaves.
+  if (filter === 'later' && shown.some(i => !isSaved(i.url))) renderItems(true);
   markCurrent(currentUrl());
   syncTicker();
   const card = url && cardFor(url);  // back to where you were, even after j/k through several articles
@@ -1254,6 +1313,7 @@ function onKey(key, mod, e) {
   if (key === '?') { e?.preventDefault(); $('keys').showModal(); }
   else if (key === '/') { e?.preventDefault(); openPalette(); }
   else if (key === 'm' && reading) { e?.preventDefault(); toggleRead(); }
+  else if (key === 's' && reading) { e?.preventDefault(); toggleLater(); }
   else if (key === 'a' && e?.shiftKey) { e.preventDefault(); confirmReadAll(); }  // Feedbin's: the list's Read button
   else if (key === 'j' || key === 'arrowright') { e?.preventDefault(); step(1); }
   else if (key === 'k' || key === 'arrowleft') { e?.preventDefault(); step(-1); }

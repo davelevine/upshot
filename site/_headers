@@ -3,7 +3,7 @@
 # img-src is open to https because the reader shows article images. frame-src is 'none': the reader's frame is srcdoc, which
 # frame-src doesn't govern, and no page from another site is ever framed.
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-n3fYwS6SImHVLdSyw1AGEf0FlCh3SWvGBVZzEK0iyVc=' 'sha256-EViuThbIakYHvcQA7l53w1qYkPJAcrzW5II4FSazx/E='; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src https:; frame-src 'none'; connect-src 'self'; font-src 'self' data:; manifest-src 'self'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-n3fYwS6SImHVLdSyw1AGEf0FlCh3SWvGBVZzEK0iyVc=' 'sha256-OUTG7bLeQ8vifALxqfZES3pj/VQKd5hYPgk1+c0HBmg='; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src https:; frame-src 'none'; connect-src 'self'; font-src 'self' data:; manifest-src 'self'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
 
 # Source icons don't change between visits, so a day without asking again: each one otherwise costs a round trip on every visit.
