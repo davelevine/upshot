@@ -6,15 +6,18 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseHTML } from 'linkedom';
-import { classify } from '../../extract.mjs';
+import { UA, classify } from '../../extract.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
-const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36';
 const MIN_SCRAMBLE_WORDS = 3; // shorter is a name or a label, which is structure rather than writing
 // What the reader's cleanup has to recognise, so it stays real. It's what page furniture says, not what any article does.
 const CHROME = /^\s*(\d+ min(ute)?s?( read)?|share( this( article| post| story)?)?:?|tweet|copy link|print|(table of )?contents|on this page|in this (article|post)|jump to|related( posts?| articles?| stories)?:?|read next|you may also like|advertisement|sponsored|tags?:|topics?:|filed under:?|categories:?|subscribe( to .*)?|sign up( for .*)?|newsletter|keep reading|back to top|about the authors?|written by|\d+ comments?|found this article interesting.*|show more\s*show less|posted on .+\d+ comments?|related: .*|get .+ in your inbox|[|•·—–-]+|(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]* \d{1,2},? \d{4})\s*$/i;
 const LETTERS = 'etaoinshrdlucmfwypvbgk';
+
+// [publisher, feed URL] for each feed in feeds.opml.
+export const readFeeds = () => [...readFileSync(join(ROOT, 'feeds.opml'), 'utf8').matchAll(/<outline[^>]*\stext="([^"]+)"[^>]*\sxmlUrl="([^"]+)"/g)]
+  .map(m => [m[1].replace(/&amp;/g, '&'), m[2].replace(/&amp;/g, '&')]);
 
 export const slug = publisher => publisher.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
@@ -103,8 +106,7 @@ async function main() {
   const only = process.argv.slice(2);
   const rawDir = process.env.RAW_DIR;  // real pages, for working on the rules; keep this outside the repository
   const items = JSON.parse(readFileSync(join(ROOT, 'site/data.json'), 'utf8')).items;
-  const opml = readFileSync(join(ROOT, 'feeds.opml'), 'utf8');
-  const feeds = [...opml.matchAll(/<outline[^>]*\stext="([^"]+)"[^>]*\sxmlUrl="([^"]+)"/g)].map(m => [m[1].replace(/&amp;/g, '&'), m[2].replace(/&amp;/g, '&')]);
+  const feeds = readFeeds();
   const pages = join(HERE, 'pages');
   mkdirSync(pages, { recursive: true });
   const metaPath = join(HERE, 'meta.json');

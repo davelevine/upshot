@@ -7,13 +7,13 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseHTML } from 'linkedom';
 import { readArticle, tidy, extract } from '../extract.mjs';
-import { scramble, scramblePage } from './fixtures/fetch.mjs';
+import { readFeeds, scramble, scramblePage } from './fixtures/fetch.mjs';
 
 const DIR = new URL('./fixtures/', import.meta.url).pathname;
 const read = name => readFileSync(join(DIR, name), 'utf8');
 const META = JSON.parse(read('meta.json'));
 const EXPECTED = existsSync(join(DIR, 'expected.json')) ? JSON.parse(read('expected.json')) : {};
-const FEEDS = [...read('../../feeds.opml').matchAll(/<outline[^>]*\stext="([^"]+)"[^>]*\sxmlUrl="([^"]+)"/g)].map(m => [m[1].replace(/&amp;/g, '&'), m[2].replace(/&amp;/g, '&')]);
+const FEEDS = readFeeds();
 const CHROME = /^(\d+ min(ute)?s?( read)?|(share|tweet|copy link)( this( article| post| story)?)?:?|table of contents|related posts|advertisement|sponsored|keep reading|back to top|about the authors?|written by|\d+ comments?)$/i;
 const TOLERANCE = 0.1;
 

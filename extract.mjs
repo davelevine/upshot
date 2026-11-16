@@ -8,7 +8,7 @@ import { Readability } from '@mozilla/readability';
 import { parseHTML } from 'linkedom';
 import { keyFor } from './worker.js';
 
-const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36';
+export const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36';
 const MAX_HTML = 3_000_000;
 const MIN_TEXT = 500; // shorter "articles" are usually cookie walls or app shells
 const MIN_PAGE_WORDS = 300; // a page with less visible text than this is a shell, not an article that didn't parse
