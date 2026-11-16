@@ -391,6 +391,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
     /* No Esc key here: the close button sits over the header's search icon, so it turns into an X. */
     .palette-close { position: fixed; top: 3.5px; right: 64px; display: grid; place-items: center; width: 44px; height: 44px; color: var(--text-muted); }
     .palette-close kbd { display: none; } .palette-close svg { display: block; width: 24px; height: 24px; }
+    body:has(#sync-ind:not([hidden])) .palette-close { right: 114px; }  /* syncing, the sync button takes search's place, which moves a button (and a 6px gap) left */
     body:has(#palette[open]) .search-btn svg { visibility: hidden; }
   }
   /* The reader's slide: the same both ways, moving at once and settling. Phones travel less, so take less time. */

@@ -2153,6 +2153,12 @@ def test_the_sync_arrows_match_the_search_icon_on_phones(browser):
       return [Math.round(b.width * k * 10) / 10, Math.round(b.height * k * 10) / 10, Math.round(parseFloat(getComputedStyle(g).strokeWidth) * k * 10) / 10];
     })""")
     assert ink[0] == ink[1] == [16, 16, 2], f"search, then sync: width, height, stroke in px: {ink}"
+    # Search's close button covers search wherever it sits: syncing, that's a button further left, not over the sync arrows.
+    enter_list(a)
+    a.tap("#search-btn")
+    a.locator("#palette").wait_for()
+    close, icon = a.locator("#palette-close").bounding_box(), a.locator("#search-btn").bounding_box()
+    assert (close["x"], close["y"]) == (icon["x"], icon["y"]), (close, icon)
     assert a.problems == []
 
 
