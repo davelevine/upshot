@@ -61,6 +61,19 @@
   },
   {
    "date": "2026-11-16",
+   "published": "2026-11-16T18:31:30+00:00",
+   "title": "Outages reported at Bank of America, Chase, U.S. Bank, Wells Fargo and Zelle",
+   "url": "https://apnews.com/article/bank-outage-chase-wells-fargo-truist-50fee2693c22f597fa6ca51a97ef2cda",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Customers reported outages at Bank of America, Chase, U.S. Bank, Wells Fargo and Zelle, according to an AP report; cause not stated in the excerpt.",
+   "relevance": 7,
+   "added": "2026-11-16T20:18:25+00:00",
+   "minutes": 0
+  },
+  {
+   "date": "2026-11-16",
    "published": "2026-11-16T09:07:00+00:00",
    "title": "AWS Nitro Sandboxes Put Each EKS Pod in Its Own MicroVM with One RuntimeClass Field",
    "url": "https://www.infoq.com/news/2026/11/aws-nitro-sandboxes-eks/",
@@ -3851,7 +3864,7 @@
    }
   ]
  },
- "generated_at": "2026-11-16T19:18:19+00:00",
+ "generated_at": "2026-11-16T20:18:27+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
