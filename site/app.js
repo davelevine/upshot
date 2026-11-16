@@ -77,6 +77,9 @@ function age(i) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...(year && { year: 'numeric' }), timeZone: 'UTC' });
 }
 const ageHtml = i => `<time class="card-age" datetime="${esc(i.published || i.added || i.date)}">${age(i)}</time>`;
+// A sync or another tab changes only which stories are read, never which are listed, so the rows stay: rebuilding them would
+// abort every icon still loading and fetch it again.
+const refreshRead = () => $('items').querySelectorAll('a.card').forEach(a => a.classList.toggle('read', isRead(a.getAttribute('href'))));
 const refreshAges = () => document.querySelectorAll('a.card').forEach(a => {
   const i = items.find(x => x.url === a.getAttribute('href')), t = a.querySelector('.card-age');
   if (i && t) t.textContent = age(i);
@@ -296,7 +299,7 @@ addEventListener('storage', e => {
   readSet.clear(); for (const u of stored('read', [])) readSet.add(u);
   kept.clear(); for (const u of stored('kept', [])) kept.add(u);
   showSync();
-  if (items.length) { renderFilters(); renderItems(true); }
+  if (items.length) { renderFilters(); refreshRead(); }
 });
 function noteMark(url, read, opened) {
   loadSync();
@@ -436,7 +439,7 @@ async function syncNow() {
   saveMarks();
   if (changed) {
     fromMarks();
-    renderFilters(); renderItems(true);
+    renderFilters(); refreshRead();
     if (readerFor) syncUnread();
   }
   if (pending.size && (fresh || Object.keys(sent).length === SYNC_BATCH)) syncNow();  // what this browser had, or the next batch

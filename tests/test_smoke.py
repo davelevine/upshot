@@ -1977,8 +1977,13 @@ def test_sync_by_code_between_devices(browser):
     read_one(a, 3)
     a.evaluate("syncNow()")  # rather than wait out the few seconds marks are held for, to go together
     assert until(a, "!pending.size")
+    b.evaluate("document.querySelectorAll('#items img.src-icon').forEach(i => i.dataset.kept = 1)")
     b.evaluate("syncNow()")  # what a return to the tab does
     assert until(b, "u => isRead(u)", url), "the story read on the first device"
+    card = f'#items a.card[href="{url}"]'
+    assert until(b, "s => document.querySelector(s).classList.contains('read')", card), "and its row shows it"
+    assert b.evaluate("[...document.querySelectorAll('#items img.src-icon')].every(i => i.dataset.kept)"), \
+        "the rows stay: a rebuild would abort the icons still loading"
 
     b.evaluate("u => markUnread(u)", url)
     b.evaluate("syncNow()")
