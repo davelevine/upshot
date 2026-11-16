@@ -20,13 +20,14 @@ const MIN = 60e3, DAY = 864e5;
 // Just enough of a Durable Object's state: SQL, one alarm, and hibernatable WebSockets with tags.
 function reader() {
   const db = new DatabaseSync(':memory:');
-  const sockets = [];
+  const sockets = [], queries = [];
   const cursor = rows => ({ toArray: () => rows, one: () => rows[0] });
   const ctx = {
     alarm: null,
     storage: {
       sql: {
         exec(q, ...args) {
+          queries.push([q, args]);
           if (!args.length && q.split(';').filter(x => x.trim()).length > 1) { db.exec(q); return cursor([]); }
           const st = db.prepare(q);
           return /^\s*(SELECT|EXPLAIN)|RETURNING/i.test(q) ? cursor(st.all(...args).map(r => ({ ...r }))) : (st.run(...args), cursor([]));
@@ -44,6 +45,7 @@ function reader() {
   const r = new Reader(ctx, {});
   r.socket = tag => { const s = { tag, sent: [], closed: null, send(m) { this.sent.push(JSON.parse(m).t); }, close(c) { this.closed = c; } }; sockets.push(s); return s; };
   r.ctx = ctx;
+  r.queries = queries;
   return r;
 }
 
@@ -135,11 +137,23 @@ test('a reader keeps its newest 2,000 marks, counted without a scan', () => {
   assert.ok(!('https://x.test/0/0' in marks) && 'https://x.test/6/299' in marks, 'the oldest went');
 });
 
-test('the queries a sync runs on every call use an index, not a scan of every mark', () => {
-  const sql = reader().ctx.storage.sql;
-  for (const q of ['SELECT url FROM marks WHERE seq > 1', 'DELETE FROM marks WHERE touched <= 1', 'SELECT MIN(touched) FROM marks', 'SELECT url FROM marks ORDER BY at LIMIT 1']) {
-    const plan = sql.exec(`EXPLAIN QUERY PLAN ${q}`).toArray().map(r => r.detail).join('; ');
-    assert.match(plan, /USING (COVERING )?INDEX/, `${q}: ${plan}`);
+test('the queries a sync runs never scan every mark', async () => {
+  // The Reader's own SQL, as it ran: syncs, the 2,000-mark cap, pruning and the alarm. A full scan is billed per row read.
+  const r = reader();
+  r.addSession('a', 'A'); r.addSession('b', 'B', true);
+  for (let batch = 0; batch < 7; batch++) {
+    now += 1000;
+    r.sync('a', Object.fromEntries(Array.from({ length: 300 }, (_, i) => [`https://x.test/${batch}/${i}`, [1, now, 0]])), 0, null);
+  }
+  now += 121 * DAY;
+  r.sync('b', { 'https://x.test/new': [1, now, 1] }, 0, null);
+  now = r.ctx.alarm;
+  await r.alarm();
+  const ran = new Map(r.queries.filter(([q]) => /^\s*(SELECT|DELETE|UPDATE)\b/i.test(q) && /\bmarks\b/.test(q)).map(e => [e[0], e[1]]));
+  assert.ok(ran.size >= 4, [...ran.keys()].join('\n'));
+  for (const [q, args] of ran) {
+    const plan = r.ctx.storage.sql.exec(`EXPLAIN QUERY PLAN ${q}`, ...args).toArray().map(p => p.detail);
+    assert.ok(!plan.some(d => /^SCAN marks$/.test(d)), `${q}: ${plan.join('; ')}`);
   }
 });
 
