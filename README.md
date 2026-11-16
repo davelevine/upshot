@@ -1,8 +1,8 @@
 <!--markdownlint-disable-->
 
 [![Build](https://github.com/davelevine/upshot/actions/workflows/build.yml/badge.svg)](https://github.com/davelevine/upshot/actions/workflows/build.yml)
-[![Site](https://img.shields.io/badge/upshot.levine.io-live-73dbcc?labelColor=2c3e50)](https://upshot.levine.io)
-[![RSS](https://img.shields.io/badge/RSS-feed-ebb077?logo=rss&logoColor=ebb077&labelColor=2c3e50)](https://upshot.levine.io/rss.xml)
+[![Site](https://img.shields.io/badge/upshot.me-live-73dbcc?labelColor=2c3e50)](https://upshot.me)
+[![RSS](https://img.shields.io/badge/RSS-feed-ebb077?logo=rss&logoColor=ebb077&labelColor=2c3e50)](https://upshot.me/rss.xml)
 
 <div align="center">
 

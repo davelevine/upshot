@@ -2084,9 +2084,11 @@ def test_the_header_sync_button_syncs_now_and_shows_it(browser):
     turn_on(a)
     a.keyboard.press("Escape")
     assert until(a, "!pending.size && syncState === 'ok' && !document.getElementById('sync-ind').classList.contains('busy')")
-    # Each change of the busy class, timed in the page: the assertion can't race the sync, however long it takes.
+    # Each change of the busy class, timed in the page: the assertion can't race the sync, however long it takes. On the
+    # app's clock (Date.now), because an observer runs only once the task that changed the class is done, which stamps the
+    # start late: the turn is measured from the app's own spinFrom instead.
     a.evaluate("""() => { const b = document.getElementById('sync-ind'); window.__spin = [];
-      new MutationObserver(() => { const on = b.classList.contains('busy'); if (window.__spin.at(-1)?.[0] !== on) window.__spin.push([on, performance.now()]); })
+      new MutationObserver(() => { const on = b.classList.contains('busy'); if (window.__spin.at(-1)?.[0] !== on) window.__spin.push([on, Date.now()]); })
         .observe(b, { attributes: true, attributeFilter: ['class'] }); }""")
     with a.expect_request(lambda r: r.url.endswith("/api/sync") and r.method == "POST"):
         a.click("#sync-ind")
@@ -2094,7 +2096,8 @@ def test_the_header_sync_button_syncs_now_and_shows_it(browser):
     assert until(a, "syncState === 'ok'"), "the sync itself is quick"
     assert until(a, "!document.getElementById('sync-ind').classList.contains('busy')", timeout=3000), "then it stops"
     spin = a.evaluate("window.__spin")
-    assert [on for on, _ in spin] == [True, False] and spin[1][1] - spin[0][1] >= 990, f"a whole turn at least: {spin}"
+    spin_from = a.evaluate("spinFrom")
+    assert [on for on, _ in spin] == [True, False] and spin[1][1] - spin_from >= 1000, f"a whole turn at least: {spin}, from {spin_from}"
     assert a.get_attribute("#sync-ind", "aria-label").startswith("Synced just now. Sync now")
     # Unreachable: the tap retries now, not after the reconnect's wait.
     a.route("**/api/sync", lambda route: route.abort("internetdisconnected"))

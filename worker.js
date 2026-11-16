@@ -1,4 +1,4 @@
-// The Worker behind upshot.levine.io. Files come straight from site/; this runs only for the reader's /api/read, for
+// The Worker behind upshot.me. Files come straight from site/; this runs only for the reader's /api/read, for
 // read-state sync's /api/sync and /api/auth/* (passed to sync/), and for pages (run_worker_first in wrangler.jsonc).
 // Extraction happens in the build (extract.mjs), because parsing a page costs far more CPU than a request is allowed.
 // Only stored articles can come back.
