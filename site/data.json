@@ -20,6 +20,19 @@
   },
   {
    "date": "2026-11-16",
+   "published": "2026-11-16T08:00:00+00:00",
+   "title": "Our first phase of embedded assessments",
+   "url": "https://openai.com/index/our-first-phase-of-embedded-assessments",
+   "publisher": "OpenAI",
+   "cves": [],
+   "category": "ai",
+   "summary": "OpenAI began embedded assessments with Apollo Research, METR, Transluce and Goodfire to independently evaluate alignment, safeguards and monitoring systems.",
+   "relevance": 7,
+   "added": "2026-11-16T18:18:06+00:00",
+   "minutes": 0
+  },
+  {
+   "date": "2026-11-16",
    "published": "2026-11-16T09:07:00+00:00",
    "title": "AWS Nitro Sandboxes Put Each EKS Pod in Its Own MicroVM with One RuntimeClass Field",
    "url": "https://www.infoq.com/news/2026/11/aws-nitro-sandboxes-eks/",
@@ -3810,7 +3823,7 @@
    }
   ]
  },
- "generated_at": "2026-11-16T17:18:43+00:00",
+ "generated_at": "2026-11-16T18:18:09+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
