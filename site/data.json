@@ -2,6 +2,19 @@
  "items": [
   {
    "date": "2026-11-15",
+   "published": "2026-11-16T02:14:44+00:00",
+   "title": "Qwen4-Max",
+   "url": "https://qwen.ai/blog?id=qwen4-max",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "ai",
+   "summary": "Alibaba's Qwen team released Qwen4-Max, a new flagship model generation, drawing 309 points on Hacker News.",
+   "relevance": 8,
+   "added": "2026-11-16T06:18:03+00:00",
+   "minutes": 0
+  },
+  {
+   "date": "2026-11-15",
    "published": "2026-11-15T09:55:00+00:00",
    "title": "Anthropic Outlines Its AI-Powered Code Review Process for Claude Code",
    "url": "https://www.infoq.com/news/2026/11/claude-code-review/",
@@ -3687,7 +3700,7 @@
    }
   ]
  },
- "generated_at": "2026-11-16T05:18:30+00:00",
+ "generated_at": "2026-11-16T06:18:05+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
