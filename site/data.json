@@ -2,6 +2,34 @@
  "items": [
   {
    "date": "2026-11-16",
+   "published": "2026-11-16T18:14:14+00:00",
+   "title": "Rapid7 Detected Exploitation of CVE-2026-90436 against Atlassian Confluence Data Center, N-able N-central also Exploited",
+   "url": "https://www.rapid7.com/blog/post/etr-rapid7-detected-exploitation-of-cve-2026-90436-against-atlassian-confluence-data-center-n-able-n-central-also-exploited",
+   "publisher": "Rapid7",
+   "cves": [
+    "CVE-2026-90436"
+   ],
+   "category": "security",
+   "summary": "Rapid7 reports exploitation of critical unauthenticated RCE CVE-2026-90436 in Apache Axis 1.x, affecting Atlassian Confluence Data Center and N-able N-central.",
+   "relevance": 9,
+   "added": "2026-11-16T19:18:09+00:00",
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-16T19:18:06+00:00",
+    "kind": "flaw",
+    "quote": "Detected Exploitation of CVE-2026-90436 against Atlassian Confluence Data Center",
+    "fix": "patch"
+   },
+   "minutes": 3,
+   "tldr": [
+    "Rapid7 MDR detected active exploitation of CVE-2026-90436, an unauthenticated RCE in Apache Axis 1.x, against Atlassian Confluence Data Center.",
+    "N-able reported exploitation of N-central for a vulnerability that strongly correlates to CVE-2026-90436. A proof-of-concept targeting N-central was published November 12, 2026.",
+    "Affected Confluence versions 1.x through 9.x are exploitable only with Remote API (XML-RPC & SOAP) enabled. N-central requires Legacy API enabled.",
+    "Upgrade Confluence to 9.2.28 or a 10.x release, or clear the Remote API setting if patching must wait. On-premises N-central admins should confirm Legacy API is disabled."
+   ]
+  },
+  {
+   "date": "2026-11-16",
    "published": "2026-11-16T16:00:01+00:00",
    "title": "NVIDIA Announces Rubin HPC — A New GPU to Accelerate Agents for Science, Engineering and Analytics",
    "url": "https://blogs.nvidia.com/blog/rubin-hpc/",
@@ -3823,7 +3851,7 @@
    }
   ]
  },
- "generated_at": "2026-11-16T18:18:09+00:00",
+ "generated_at": "2026-11-16T19:18:19+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
