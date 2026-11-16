@@ -1735,10 +1735,10 @@ def test_wide_screens_resize_the_topics_and_the_list(browser):
     assert width("--side-w") == side - 40 + 16 and pg.get_attribute("#resize-side", "aria-valuenow") == str(int(side - 40 + 16))
     kept = width("--side-w")
     # Applied before app.js runs, so a reload paints the columns where they were rather than jumping there.
-    pg.route("**/app.js", lambda r: r.fulfill(body="", content_type="text/javascript"))
+    pg.route("**/app.js*", lambda r: r.fulfill(body="", content_type="text/javascript"))
     pg.reload()
     assert width("--side-w") == kept and abs(pg.locator("#reader").bounding_box()["x"] - (kept + width("--list-w"))) <= 1
-    pg.unroute("**/app.js")
+    pg.unroute("**/app.js*")
     pg.reload()
     enter_list(pg)
     assert width("--side-w") == kept  # kept on this device
@@ -1874,7 +1874,7 @@ def test_a_refresh_is_not_an_opening(browser):
 
 def test_before_app_js_the_page_has_its_hint_and_held_back_placeholders(browser):
     ctx = browser.new_context(viewport={"width": 1440, "height": 900})
-    ctx.route("**/app.js", lambda r: r.fulfill(body="", content_type="text/javascript"))
+    ctx.route("**/app.js*", lambda r: r.fulfill(body="", content_type="text/javascript"))
     pg = ctx.new_page()
     pg.goto(URL)
     # The ⌘K / Ctrl K hint is CSS, not a late fill-in from app.js; the topics hold placeholder rows, as the list does.

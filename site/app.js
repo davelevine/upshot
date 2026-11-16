@@ -760,8 +760,11 @@ $('stale-check').onclick = async () => {
 };
 // Redraws only when a new build has landed, keeping the filter, search and loaded depth.
 function load() {
-  return fetch('/data.json', { cache: 'no-cache' })  // absolute: the page is also served at /read/…
-.then(r => r.json()).then(data => {
+  // The first load takes the request index.html's inline script started, so the stories don't wait for this file (data.json
+  // is max-age=0, so that one revalidates too); later loads ask afresh.
+  const res = window.firstData || fetch('/data.json', { cache: 'no-cache' });  // absolute: the page is also served at /read/…
+  window.firstData = null;
+  return res.then(r => r.json()).then(data => {
     if (data.generated_at === generatedAt) return;
     const refresh = generatedAt !== null;
     generatedAt = data.generated_at;

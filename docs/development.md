@@ -56,6 +56,7 @@ It loads the site in Chromium under its real CSP and checks the feed, the reader
 ## Things to know
 
 - **CSP hashes.** If you change the theme script in `index.html` or the relay script in `app.js`, `node --test` prints the new hash for `site/_headers`.
+- **`app.js` version.** Any change to `app.js` changes its hash, and `node --test` fails with the `/app.js?v=…` to put in `index.html`. Browsers keep it for a year, so a stale version would leave them on the old file.
 - **Reader fixtures.** Every publisher in `feeds.opml` has a scrambled test page under `tests/fixtures/` (see [Configuration](setup/configuration.md) for how to add one). When a page breaks the reader, save it the same way and fix the rule in `tidy()`, keyed on what the element is, never on a site's name or class.
 - **Category names.** A category has one name everywhere: its label in `app.js`, its id in `build.py` (`CATEGORIES`, the bars, the scoring prompt), `data.json` and the `--cat-*` colors. To rename one, change them all, and map the old id to the new one in `build.py` (on loading `data.json`) and `app.js` until a build has rewritten every stored story; then delete the mapping.
 - **Durable Object storage.** Tables are created in the constructors (`CREATE TABLE IF NOT EXISTS`). A new column needs an `ALTER TABLE` there too; a new Durable Object class needs a new entry in `migrations` in [`sync/wrangler.jsonc`](../sync/wrangler.jsonc). Changes to `sync/` deploy only from `main`, so try them locally first.
