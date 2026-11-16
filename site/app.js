@@ -144,6 +144,8 @@ function renderPage() {
       </div>
     </a>`; }).join('')}`
     : `<p class="empty">${filter === 'later' ? 'Nothing saved yet. Open a story and use its bookmark to save it here.' : 'Nothing in this list right now.'}</p>`;
+  // Without sync, saves stay in this browser: said once, under the list, rather than on every save. showSync hides it once syncing.
+  if (filter === 'later') $('items').insertAdjacentHTML('beforeend', `<p class="later-note"${syncOn ? ' hidden' : ''}>Saved on this device only. <button type="button" class="sync-link-btn">Turn on sync</button> to see them on your other devices.</p>`);
   $('items').removeAttribute('aria-busy');
   syncReadAll(); placeMore();
   if (generatedAt) showUpdated();  // the feed was just redrawn, and its "Updated" with it
@@ -397,6 +399,7 @@ function showSync() {
   if (b.dataset.err !== err) { b.dataset.err = err; b.innerHTML = syncIcon(); }  // only when it changes: a new icon would restart the turn
   b.title = `${syncLabel()}. Sync now`; b.setAttribute('aria-label', b.title);
   nameSheet();
+  for (const n of document.querySelectorAll('.later-note')) n.hidden = syncOn;
 }
 // The menu item and its sheet: an invitation while this device doesn't sync, and once it does (the header's button doing
 // the syncing), where its devices and codes are kept, as a browser's "Sign in" becomes its account.
@@ -661,6 +664,7 @@ async function joinWithCode() {
 // the background) catches up first, so it never offers to start a sync this browser already has.
 const openSheet = () => { $('sync').showModal(); renderSync(); if (!syncOn && maySync()) syncNow().then(() => { if (syncOn && syncViewName === 'out') renderSync(); }); };
 $('sync-btn').onclick = () => { $('menu').hidePopover(); openSheet(); };
+$('items').addEventListener('click', e => { if (e.target.closest('.later-note button')) openSheet(); });  // Read later's note, without sync
 $('sync-ind').onclick = syncByHand;
 setInterval(() => { if (syncOn && !document.hidden) showSync(); }, 60e3);  // "Synced 3m ago" stays true
 $('sync').addEventListener('click', e => {

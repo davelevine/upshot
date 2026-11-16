@@ -1352,6 +1352,12 @@ def test_read_later_saves_from_the_reader(browser):
     pg.click(later)
     wait_until_closed(pg)
     assert pg.inner_text("#items .empty") == "Nothing saved yet. Open a story and use its bookmark to save it here."
+    note = pg.locator("#items .later-note")
+    assert note.inner_text() == "Saved on this device only. Turn on sync to see them on your other devices.", "without sync, saves stay here"
+    note.locator("button").click()
+    pg.locator("#sync").wait_for()
+    assert pg.locator("#sync-create").is_visible(), "the note opens the sync sheet"
+    pg.keyboard.press("Escape")
     pg.click("#filters .filter-btn[data-f='all']")
     wait_until_closed(pg)
     card = pg.locator("a.card").nth(2)
@@ -2094,7 +2100,10 @@ def test_sync_by_code_between_devices(browser):
     a.evaluate("syncNow()")
     assert until(a, "u => !isRead(u)", url), "unread carries back"
 
-    # Read later syncs on its own, so a save on one device doesn't touch what another has read.
+    # Read later syncs on its own, so a save on one device doesn't touch what another has read; syncing, its note goes.
+    a.click("#filters .filter-btn[data-f='later']")
+    wait_until_closed(a)
+    assert a.locator("#items .later-note").is_hidden()
     a.evaluate("n => openReader(items[n])", 5)
     a.wait_for_selector("#reader-body iframe:not(.loading)")
     a.click("#reader-later")
