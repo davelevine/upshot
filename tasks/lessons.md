@@ -287,3 +287,12 @@
 - Before saying why something fails, trace where its input really comes from (here, `extract.mjs` fetches the article URL; the feed only supplies the excerpt) and check the data (`minutes > 0` per publisher) instead of reasoning from one example.
 - A local `wrangler dev` has an empty article store, so its reader says nothing about production. Don't use it as evidence for how a live story behaves.
 - When asked "it used to work", look for the record before answering, and say plainly when the repo has none.
+
+## 2026-11-16 — Reproduce the screen the user describes before explaining it
+
+**Mistake:** The user said the sync icon looked crossed out with search open on a phone. The slash matched the sync error icon, so I explained it as a failed sync during a preview reload and offered an automatic retry. The user said it happened every time search opened. It wasn't sync at all: on phones the search panel's close ✕ is fixed at `right: 64px` to cover the search icon, and with sync on the sync button takes that slot, so the ✕ was drawn over the sync arrows.
+
+**Rules:**
+- When the user reports how something looks, reproduce that exact screen (same width, same state, same steps) before offering a cause. A matching icon in the code isn't evidence that it's the one on screen.
+- When a report names a trigger ("when search opens"), test that trigger first; a cause that ignores it is probably wrong.
+- Anything positioned to cover another control (`position: fixed` at a set offset) must be checked with every optional neighbor present: sync on and off, the reader open and closed.
