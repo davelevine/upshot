@@ -789,6 +789,7 @@ function load() {
       if (passDue()) { if (document.hidden) tickOnShow = true; else playTicker(); }  // opened, not just refreshed: one pass
       (window.requestIdleCallback || (f => setTimeout(f, 1000)))(loadFrameFonts);  // ahead of the first article
     }
+    (window.requestIdleCallback || (f => setTimeout(f, 1000)))(prefetchArticles);  // the new top stories, after a refresh too
   });
 }
 let readerFor = null;
@@ -984,6 +985,25 @@ const slugFor = url => [...slugs].find(([, u]) => u === url)?.[0];
 const readPath = url => '/read/' + slugFor(url);
 // Articles fetched this visit, so reopening one is instant; only full articles, since a pending one may arrive later.
 const articles = new Map();
+// One request per article at a time: the reader and the prefetch below share it, so opening a story that's on its way
+// waits for that fetch rather than starting another.
+const fetching = new Map();
+function fetchArticle(url) {
+  if (!fetching.has(url)) fetching.set(url, fetch('/api/read?url=' + encodeURIComponent(url)).then(r => r.json()).then(r => {  // the Worker says what may be kept
+    if (r.content) articles.set(url, { content: r.content, minutes: readingMinutes(r.content), byline: r.byline });
+    return r;
+  }).finally(() => fetching.delete(url)));
+  return fetching.get(url);
+}
+// The top few unread stories in the list, fetched while the page is idle, one at a time, so opening one is instant. Not
+// when the browser asks to save data.
+const PREFETCH = 6;
+async function prefetchArticles() {
+  if (navigator.connection?.saveData) return;
+  for (const i of shown.filter(isUnread).slice(0, PREFETCH)) {
+    if (!articles.has(i.url)) await fetchArticle(i.url).catch(() => {});  // the reader asks again when it's opened
+  }
+}
 let frameFor = null;  // whose article the reader's frame holds
 function openReader(i, { fromHash = false } = {}) {
   const fresh = !document.body.classList.contains('reading');
@@ -1020,8 +1040,7 @@ function openReader(i, { fromHash = false } = {}) {
   if (fresh && !docked.matches) (lastInput === 'key' ? $('reader-close') : $('reader')).focus({ preventScroll: true });  // no ring after a tap; docked, focus stays in the list
   if (articles.has(i.url)) return;  // read once already this visit: articles don't change once stored
   let unreadable = 'The reader view isn\u2019t available right now.';
-  fetch('/api/read?url=' + encodeURIComponent(i.url)).then(r => r.json()).then(r => {  // the Worker says what may be kept
-    if (r.content) articles.set(i.url, { content: r.content, minutes: readingMinutes(r.content), byline: r.byline });
+  fetchArticle(i.url).then(r => {
     if (readerFor !== i.url) return;  // another article was opened meanwhile
     if (r.content) {
       const { minutes } = articles.get(i.url);

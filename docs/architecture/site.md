@@ -36,7 +36,7 @@ When Upshot opens, or returns after 15 minutes away, the wordmark's spot runs on
 
 ## The reader
 
-Each build extracts new stories with Mozilla's [Readability](https://github.com/mozilla/readability) and stores the text in Cloudflare KV. Opening an article calls `/api/read`, which the Worker answers from KV. Parsing happens in the build because it costs more CPU than the Worker gets per request on the free plan.
+Each build extracts new stories with Mozilla's [Readability](https://github.com/mozilla/readability) and stores the text in Cloudflare KV. Opening an article calls `/api/read`, which the Worker answers from KV. The page also fetches the top six unread stories in the list ahead, once it's idle (not when the browser asks to save data), so those open at once; a stored article is kept by the browser for a day. Parsing happens in the build because it costs more CPU than the Worker gets per request on the free plan.
 
 - **It opens with the upshot.** Two to four bullets written by the build from the article. A bullet with a figure (a CVE, version, date or count) that isn't in the article word for word is dropped.
 - **It isn't a proxy.** The Worker never fetches anything; it returns only what the build stored. A story without stored text shows its summary and a link to the original.

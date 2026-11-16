@@ -411,6 +411,8 @@ def show_essentials(pg):
 def held_reader(browser, **context):
     """Opens the top essentials story with /api/read held, so the test decides when (and how) the fetch resolves."""
     ctx = browser.new_context(**context)
+    # Save-Data: no prefetch, so the only request held is the reader's own (and len(held) == 1 checks the skip).
+    ctx.add_init_script("Object.defineProperty(navigator, 'connection', { value: { saveData: true } })")
     pg = ctx.new_page()
     held = []
     ctx.route("**/api/read?*", lambda route: held.append(route))
@@ -1674,6 +1676,7 @@ def test_a_story_read_once_reopens_without_fetching_again(browser):
     fetches = []
     pg.on("request", lambda r: fetches.append(r.url) if "/api/read" in r.url else None)
     card = pg.locator("a.card").nth(1)
+    story = card.get_attribute("href")
     card.tap()
     pg.frame_locator("#reader-body iframe:not(.loading)").locator("p").nth(29).wait_for()
     frame = pg.locator("#reader-body iframe:not(.loading)").element_handle()
@@ -1682,9 +1685,33 @@ def test_a_story_read_once_reopens_without_fetching_again(browser):
     card.tap()  # the same story again
     pg.wait_for_function("() => document.body.classList.contains('reading')")
     pg.wait_for_timeout(300)
-    assert len(fetches) == 1  # stored this visit: no second fetch
+    assert len([f for f in fetches if urllib.parse.quote(story, safe="") in f]) <= 1  # stored this visit (or prefetched): never twice
     assert pg.evaluate("f => f.isConnected && document.querySelectorAll('#reader-body iframe').length === 1", frame)  # the same frame, where it was
     assert pg.problems == []
+
+
+def test_the_top_unread_stories_are_fetched_ahead_and_open_without_a_request(browser):
+    pg = open_site(browser, viewport={"width": 1300, "height": 900})
+    top = pg.evaluate("shown.filter(isUnread).slice(0, PREFETCH).map(i => i.url)")
+    assert len(top) == pg.evaluate("PREFETCH")
+    pg.wait_for_function("urls => urls.every(u => articles.has(u))", arg=top)
+    assert pg.evaluate("articles.size") == len(top)  # only those: not the whole list
+    fetches = []
+    pg.on("request", lambda r: fetches.append(r.url) if "/api/read" in r.url else None)
+    pg.evaluate("u => openReader(items.find(i => i.url === u))", top[2])
+    pg.frame_locator("#reader-body iframe:not(.loading)").locator("p").nth(29).wait_for()
+    assert fetches == []  # already here
+    assert pg.problems == []
+
+    ctx = browser.new_context(viewport={"width": 1300, "height": 900})
+    ctx.add_init_script("Object.defineProperty(navigator, 'connection', { value: { saveData: true } })")
+    asked = []
+    ctx.route("**/api/read?*", lambda route: (asked.append(route.request.url), route.abort()))
+    saver = ctx.new_page()
+    saver.goto(URL)
+    enter_list(saver)
+    saver.wait_for_timeout(1500)
+    assert asked == []  # Save-Data: nothing fetched ahead
 
 
 def test_wide_screens_resize_the_topics_and_the_list(browser):
@@ -2277,10 +2304,11 @@ def test_sync_code_qr_and_typing(browser):
 # The sync audit's fixes, one check each.
 
 def test_visitors_who_never_sync_make_no_sync_request(browser):
-    """Only a browser that's syncing (or holds the flag cookie) asks /api/sync: every other page view costs nothing extra."""
+    """Only a browser that's syncing (or holds the flag cookie) asks /api/sync or /api/auth: sync costs other page views
+    nothing. (The reader's /api/read prefetch is its own cost, covered with the reader.)"""
     pg = open_site(browser, url=SYNC_URL)
     calls = []
-    pg.on("request", lambda r: calls.append(r.url) if "/api/" in r.url else None)
+    pg.on("request", lambda r: calls.append(r.url) if "/api/sync" in r.url or "/api/auth" in r.url else None)
     pg.reload()
     enter_list(pg)
     pg.evaluate("document.dispatchEvent(new Event('visibilitychange'))")
