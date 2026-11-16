@@ -243,17 +243,19 @@ def fake_extract(monkeypatch, out, returncode=0):
 def test_reading_times_come_from_the_extracted_articles(monkeypatch):
     calls = fake_extract(monkeypatch, {"words": {"https://x.test/long": 690, "https://x.test/blocked": 0, "https://x.test/done": 2000}})
     items = [{"url": "https://x.test/long", "publisher": "P"}, {"url": "https://x.test/blocked"}, {"url": "https://x.test/slow"}, {"url": "https://x.test/done", "minutes": 5}]
-    assert build.add_reading_times(items, feeds={"P": "https://x.test/rss"}) is None
+    assert build.add_reading_times(items) is None
     assert [i.get("minutes") for i in items] == [3, 0, None, 5]  # no entry means try again; a known time stays
-    assert calls[0]["feeds"] == {"P": "https://x.test/rss"}
+    assert calls[0]["feeds"] == {}
 
 
 def test_reading_times_prefer_whole_articles_in_feeds(monkeypatch):
     calls = fake_extract(monkeypatch, {"words": {"https://x.test/a": 200}})
-    items = [{"url": "https://x.test/a", "minutes": 0}]
-    build.add_reading_times(items, {"https://x.test/a": 7})
+    items = [{"url": "https://x.test/a", "minutes": 0}, {"url": "https://x.test/b"}]
+    body = "<p>" + "word " * 1610 + "</p>"
+    build.add_reading_times(items, {"https://x.test/a": body, "https://x.test/off-site": body})
     assert items[0]["minutes"] == 7
     assert calls[0]["items"][0]["minutes"] == 7
+    assert calls[0]["feeds"] == {"https://x.test/a": body}  # only the stories on the site go to extract.mjs
 
 
 def test_a_storys_cves_are_the_ones_it_names_not_its_articles_background():
@@ -270,19 +272,12 @@ def test_reading_times_report_when_the_store_cant_be_updated(monkeypatch):
     assert "exited 1" in build.add_reading_times([{"url": "https://x.test/a"}])
 
 
-def test_feed_minutes_ignores_teasers():
+def test_feed_articles_keeps_whole_articles_and_ignores_teasers():
     long = "<p>" + "word " * 690 + "</p>"
-    fetched = {"f": ("Feed", [{"link": "https://x.test/full", "content": [{"value": long}]},
+    fetched = {"f": ("Feed", [{"link": "https://x.test/full?utm_source=rss", "content": [{"value": long}], "summary": "short"},
                               {"link": "https://x.test/summary", "summary": long},
                               {"link": "https://x.test/teaser", "summary": "word " * 25}]), "dead": None}
-    assert build.feed_minutes(fetched) == {"https://x.test/full": 3, "https://x.test/summary": 3}
-
-
-def test_full_text_feeds_lists_only_feeds_with_whole_articles():
-    long = "word " * 400
-    fetched = {"https://full.test/rss": ("Full", [{"link": "a", "summary": "short"}, {"link": "b", "content": [{"value": long}]}]),
-               "https://teaser.test/rss": ("Teaser", [{"link": "c", "summary": "short"}]), "https://dead.test/rss": None}
-    assert build.full_text_feeds(fetched) == {"Full": "https://full.test/rss"}
+    assert build.feed_articles(fetched) == {"https://x.test/full": long, "https://x.test/summary": long}
 
 
 def test_run_summary_counts_and_near_misses():
@@ -637,23 +632,6 @@ def test_a_retracted_story_is_never_flagged(monkeypatch, tmp_path):
     claim = {"category": "security", "exploited": True, "kind": "flaw", "evidence": "abuse exposed secrets in the wild", "fix": "unknown", "fix_evidence": ""}
     item = {"url": "https://x.test/trend", "title": "Threat actors abuse exposed secrets in the wild", "excerpt": "", "cves": []}
     assert build.exploited(item, claim, {}) is None and build.exploited({**item, "url": "https://x.test/other"}, claim, {})
-
-
-def test_the_claim_backfill_checks_the_last_weeks_unflagged_security_stories(monkeypatch):
-    seen = []
-    def fake(item):
-        seen.append(item["title"])
-        return {"category": "security", "relevance": 8, "summary": "s", "exploited": True, "kind": "compromise",
-                "evidence": item["title"], "fix": "unknown", "fix_evidence": ""}
-    monkeypatch.setattr(build, "classify", fake)
-    today = build.now().astimezone(build.SITE_TZ).date()
-    day = lambda n: (today - build.timedelta(days=n)).isoformat()
-    items = [{"url": "a", "title": "Malicious npm release steals tokens", "publisher": "P", "date": day(1), "category": "security", "summary": "s"},
-             {"url": "b", "title": "Old malicious release", "publisher": "P", "date": day(30), "category": "security", "summary": "s"},
-             {"url": "c", "title": "Malicious AI thing", "publisher": "P", "date": day(1), "category": "ai", "summary": "s"},
-             {"url": "d", "title": "Already flagged", "publisher": "P", "date": day(1), "category": "security", "summary": "s", "exploited": {"kev": [], "at": "t", "kind": "flaw"}}]
-    assert build.backfill_claims(items, {}) == 1 and seen == ["Malicious npm release steals tokens"]
-    assert items[0]["exploited"]["kind"] == "compromise" and "exploited" not in items[1]
 
 
 def test_rss_titles_carry_the_label():

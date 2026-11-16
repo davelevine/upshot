@@ -1,6 +1,6 @@
 // Pulls each story's article during the build and stores it in Cloudflare KV, where /api/read serves it from.
 // Parsing happens here because it costs far more CPU than the Worker is allowed per request.
-// stdin: {items: [{url, publisher, title, minutes}], feeds: {publisher: url}, textFor: [url]}.
+// stdin: {items: [{url, publisher, title, minutes}], feeds: {url: whole article from its feed}, textFor: [url]}.
 // stdout: {words: {url: n}, texts: {url: plain text, for the TL;DRs}, error}.
 import { appendFileSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -11,11 +11,9 @@ import { keyFor } from './worker.js';
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36';
 const MAX_HTML = 3_000_000;
 const MIN_TEXT = 500; // shorter "articles" are usually cookie walls or app shells
-const MIN_FEED_WORDS = 300; // less is a teaser, not the article
 const MIN_PAGE_WORDS = 300; // a page with less visible text than this is a shell, not an article that didn't parse
 const MAX_LINK_SHARE = 0.5; // more of an "article" than this is links: it's a list of other stories
 const PAGE_TIMEOUT = 15000; // some pages take 10s
-const FEED_TIMEOUT = 10000; // one full-article feed is 4MB
 const CONCURRENCY = 6;
 const MAX_TEXT = 40000; // characters of article text handed to the build for its TL;DR
 const MAX_WRITES = 100; // per build: free KV allows 1,000 writes a day, and builds run 6+ times; the rest wait for the next build
@@ -71,22 +69,6 @@ export function classify(res, html) {
   if (!(res.headers.get('content-type') || '').includes('html')) return 'not_html';
   if (CHALLENGE.test(html) && visibleWords(html) < MIN_PAGE_WORDS) return 'challenge';
   return null;
-}
-
-// One article's text from a feed that publishes whole articles, or null.
-export function feedArticle(xml, url) {
-  const { pathname } = new URL(url);
-  const pathOf = link => { try { return new URL(link.trim().replace(/&amp;/g, '&')).pathname; } catch { return null; } };
-  // Its own link, not just a mention: a newer post that links to this one mustn't be served in its place.
-  const entry = xml.split(/<(?:item|entry)[\s>]/).slice(1).find(e => [...e.matchAll(/<link(?:\s[^>]*?href=["']([^"']+)["'][^>]*\/?>|[^>]*>(?:<!\[CDATA\[)?([^<\]]+))/g)]
-    .some(m => pathOf(m[1] || m[2]) === pathname));
-  if (!entry) return null;
-  const bodies = [/<content:encoded[^>]*>([\s\S]*?)<\/content:encoded>/, /<content(?:\s[^>]*)?>([\s\S]*?)<\/content>/, /<description[^>]*>([\s\S]*?)<\/description>/]
-    .map(re => re.exec(entry)?.[1]).filter(Boolean)
-    .map(b => /^\s*<!\[CDATA\[/.test(b) ? b.replace(/^\s*<!\[CDATA\[/, '').replace(/\]\]>\s*$/, '')
-      : b.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#0?39;/g, "'").replace(/&amp;/g, '&'));
-  const best = bodies.sort((a, b) => visibleWords(b) - visibleWords(a))[0];
-  return best && visibleWords(best) >= MIN_FEED_WORDS ? best : null;
 }
 
 // How much of a piece of HTML is link text. An article is prose; a list of related posts is nearly all links.
@@ -292,8 +274,9 @@ export function tidy(article, url = '') {
   return { content: root.innerHTML, text, loss, skipped: false };
 }
 
-// What the reader gets for one story: its article, or the reason there isn't one.
-export async function readArticle(item, feedText) {
+// What the reader gets for one story: its article, or the reason there isn't one. `body`: the whole article from its
+// feed (build.py, feed_articles), the fallback when the page can't be read.
+export async function readArticle(item, body) {
   const { url } = item;
   const result = { url, reason: 'error' };
   try {
@@ -313,23 +296,9 @@ export async function readArticle(item, feedText) {
   } catch (e) {
     result.reason = e?.name === 'TimeoutError' || e?.name === 'AbortError' ? 'timeout' : 'error';
   }
-  const body = feedArticle(await feedText(item.publisher), url);
   if (!body) return result;
   const tidied = tidy({ content: body, title: item.title }, url);
   return { url, reason: 'ok', source: 'feed', ...(tidied.skipped && { tidy: 'skipped' }), content: clean(tidied.content, url) };
-}
-
-// Each feed once per run, and '' if there isn't one or it fails.
-export function feedReader(feeds) {
-  const seen = new Map();
-  return publisher => {
-    if (!feeds[publisher]) return Promise.resolve('');
-    if (!seen.has(publisher)) {
-      seen.set(publisher, fetch(feeds[publisher], { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(FEED_TIMEOUT) })
-        .then(r => (r.ok ? r.text() : '')).catch(() => ''));
-    }
-    return seen.get(publisher);
-  };
 }
 
 export function kvClient({ CF_API_TOKEN, CF_ACCOUNT_ID, CF_KV_NAMESPACE_ID }) {
@@ -372,10 +341,10 @@ export const plainText = html => (parseHTML(`<!doctype html><html><body>${html
   .replace(/\s+/g, ' ').trim().slice(0, MAX_TEXT);
 
 // Stores what's new or was blocked last time, and reports every story's word count. 0 means blocked; no entry means try again.
-export async function run({ items, feeds, textFor = [] }, kv) {
+export async function run({ items, feeds = {}, textFor = [] }, kv) {
   const stored = kv ? await kv.list() : new Map();
   const keys = new Map(await Promise.all(items.map(async i => [i.url, await keyFor(i.url)])));
-  const words = {}, entries = [], counts = {}, texts = {}, feedText = feedReader(feeds), wantText = new Set(textFor);
+  const words = {}, entries = [], counts = {}, texts = {}, wantText = new Set(textFor);
   const todo = items.filter(i => {
     const had = stored.get(keys.get(i.url));
     if (had?.reason === 'ok') words[i.url] = had.words;
@@ -386,7 +355,7 @@ export async function run({ items, feeds, textFor = [] }, kv) {
   await Promise.all(Array.from({ length: CONCURRENCY }, async () => {
     while (queue.length) {
       const item = queue.shift();
-      const record = await readArticle(item, feedText);
+      const record = await readArticle(item, feeds[item.url]);
       counts[record.reason] = (counts[record.reason] || 0) + 1;
       if (record.tidy) counts.tidy_skipped = (counts.tidy_skipped || 0) + 1;
       if (TRANSIENT.includes(record.reason)) continue;

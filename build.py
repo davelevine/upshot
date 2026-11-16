@@ -396,28 +396,6 @@ def mark_fixed(items, cve_ids, status):
             x["fix"] = best_fix(x.get("fix"), status)
 
 
-def backfill_claims(items, kev, days=7):
-    """Once, when the flag shipped: the claim check for the last week's security stories, which were scored before it
-    existed. Their best record is the stored summary and upshot, which the quote is checked against. Returns how many
-    were checked."""
-    since = (now().astimezone(SITE_TZ).date() - timedelta(days=days)).isoformat()
-    todo = [i for i in items if i["date"] >= since and i.get("category") == "security" and not i.get("exploited")]
-
-    def one(i):
-        item = {"url": i["url"], "title": i["title"], "publisher": i["publisher"], "cves": i.get("cves", []),
-                "excerpt": f"{i.get('summary', '')} {' '.join(i.get('tldr', []))}"}
-        try:
-            return i, exploited(item, classify(item), kev)
-        except Exception as e:
-            print(f"::warning::claim backfill failed for {i['url']}: {e}")
-            return i, None
-    with ThreadPoolExecutor(SCORE_WORKERS) as ex:
-        for i, flag in ex.map(one, todo):
-            if flag:
-                i["exploited"] = flag
-    return len(todo)
-
-
 def find_repeats(batch, recent):
     """Returns {url: duplicate_of} for items the model flags; recent: headlines already on the site."""
     payload = {"recent": recent, "items": [
@@ -706,35 +684,29 @@ def words_in(html):
     return len(re.sub(r"<[^>]+>", " ", html or "").split())
 
 
-def entry_words(e):
-    return max([words_in(c.get("value")) for c in e.get("content", [])] + [words_in(e.get("summary"))])
-
-
-def feed_minutes(fetched):
-    """{url: minutes} for feeds that publish whole articles, which some do for sites the reader can't get into."""
+def feed_articles(fetched):
+    """{url: html} for feed entries that carry the whole article, which some feeds do for sites the reader can't get into.
+    extract.mjs falls back to these when a page is blocked."""
     out = {}
     for res in fetched.values():
         for e in (res[1] if res else ()):
-            words = entry_words(e)
-            if e.get("link") and words >= MIN_ARTICLE_WORDS:
-                out[normalize_url(e["link"])] = max(1, round(words / WORDS_PER_MINUTE))
+            body = max([c.get("value") or "" for c in e.get("content", [])] + [e.get("summary") or ""], key=words_in)
+            if e.get("link") and words_in(body) >= MIN_ARTICLE_WORDS:
+                out[normalize_url(e["link"])] = body
     return out
 
 
-def full_text_feeds(fetched):
-    """{publisher: feed url} for feeds that publish whole articles. extract.mjs falls back to these when a page is blocked."""
-    return {res[0]: url for url, res in fetched.items()
-            if res and any(entry_words(e) >= MIN_ARTICLE_WORDS for e in res[1])}
-
-
-def add_reading_times(items, known=None, feeds=None, texts=None):
+def add_reading_times(items, articles=None, texts=None):
     """Runs extract.mjs, which stores each new story's article for the reader, and fills in "minutes" from it or from whole
-    articles in feeds (`known`). Only the number is kept here. 0 means blocked: shown as nothing, and retried. Never estimated
-    from a summary, which would make every article about a minute. Returns an error if the reader's store couldn't be updated."""
+    articles in feeds (`articles`, {url: html}). Only the number is kept here. 0 means blocked: shown as nothing, and retried.
+    Never estimated from a summary, which would make every article about a minute. Returns an error if the reader's store
+    couldn't be updated."""
+    articles = articles or {}
     for i in items:
-        if not i.get("minutes") and (known or {}).get(i["url"]):
-            i["minutes"] = known[i["url"]]
-    payload = {"items": [{k: i.get(k) for k in ("url", "publisher", "title", "minutes")} for i in items], "feeds": feeds or {},
+        if not i.get("minutes") and i["url"] in articles:
+            i["minutes"] = max(1, round(words_in(articles[i["url"]]) / WORDS_PER_MINUTE))
+    payload = {"items": [{k: i.get(k) for k in ("url", "publisher", "title", "minutes")} for i in items],
+               "feeds": {i["url"]: articles[i["url"]] for i in items if i["url"] in articles},
                "textFor": [i["url"] for i in items if "tldr" not in i] if texts is not None else []}
     try:
         r = subprocess.run(["node", str(ROOT / "extract.mjs")], input=json.dumps(payload), capture_output=True, text=True, timeout=1800)
@@ -859,8 +831,8 @@ def add_tldrs(items, texts, limit=TLDR_LIMIT):
             if tldr is not None:
                 item["tldr"] = tldr
             x = item.get("exploited") or {}
-            if fix == "none" and x.get("kev"):
-                fix = None  # CISA lists it, so it has a remedy (kev_fix)
+            if x.get("kev"):
+                fix = kev_fix(fix)  # listed: never "no patch yet"
             if fix:  # the whole article over the excerpt, but a remedy once out stays out
                 x["fix"] = best_fix(x.get("fix"), fix) if fix != "none" else x.get("fix") or "none"
             if fix in ("patch", "mitigation"):
@@ -1059,15 +1031,12 @@ def main():
             print(f"::warning::weekly pick failed: {e}")
 
     texts = {}
-    reader_error = add_reading_times(data["items"], feed_minutes(fetched), full_text_feeds(fetched), texts)
+    reader_error = add_reading_times(data["items"], feed_articles(fetched), texts)
     print(f"TL;DRs written: {add_tldrs(data['items'], texts)}")
     for i in data["items"]:  # the upshot is written from the whole article, so it names the CVEs an excerpt cuts off
         i["cves"] = own_cves(i)
     if kev:
         tag_kev(data["items"], kev)
-    if not state.get("claims_backfilled"):  # once: the week before the flag shipped
-        print(f"Claim check backfilled: {backfill_claims(data['items'], kev)}")
-        state["claims_backfilled"] = True
     gone = retracted()
     for i in data["items"]:
         if i["url"] in gone:

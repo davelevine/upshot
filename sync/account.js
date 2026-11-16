@@ -5,7 +5,7 @@
 import { generate } from 'lean-qr';
 import { toSvgSource } from 'lean-qr/extras/svg';
 
-const keyFor = async s => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))].map(b => b.toString(16).padStart(2, '0')).join('');
+import { keyFor } from '../worker.js';
 
 const COOKIE = 'upshot_session', COOKIE_AGE = 400 * 86400;  // 400 days, the longest Chrome allows; renewed with use
 const USER = /^[A-Za-z0-9_-]{22}$/, TOKEN = /^[A-Za-z0-9_-]{43}$/;

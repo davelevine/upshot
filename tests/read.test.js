@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { classify, clean, extract, feedArticle, feedReader, kvClient, linkShare, readArticle, run, tidy } from '../extract.mjs';
+import { classify, clean, extract, kvClient, linkShare, readArticle, run, tidy } from '../extract.mjs';
 import worker, { dispatchBuild, keyFor } from '../worker.js';
 
 test('clean strips active content and makes links absolute', () => {
@@ -34,19 +34,6 @@ test('classify recognizes blocks by status and header, not by what an article sa
   assert.equal(classify(page(200, {}), `<p>Access Denied and CAPTCHA bypass. ${words(800)}</p>`), null);
 });
 
-test('feedArticle finds an entry by its own link and ignores teasers', () => {
-  const body = `<p>${words(400)}</p>`;
-  const rss = `<rss><channel><item><title>Newer</title><link>https://x.test/newer?source=rss</link>
-      <content:encoded><![CDATA[<a href="https://x.test/older">the older post</a><p>${'newer '.repeat(400)}</p>]]></content:encoded></item>
-    <item><link>https://x.test/older?source=rss</link><content:encoded><![CDATA[${body}]]></content:encoded></item>
-    <item><link>https://x.test/teaser</link><description>Just a teaser.</description></item></channel></rss>`;
-  assert.equal(feedArticle(rss, 'https://x.test/older'), body);  // not the newer post that links to it
-  assert.equal(feedArticle(rss, 'https://x.test/teaser'), null);
-  assert.equal(feedArticle(rss, 'https://x.test/missing'), null);
-  const atom = `<feed><entry><link rel="alternate" href="https://x.test/atom"/><content type="html">&lt;p&gt;${words(400)}&lt;/p&gt;</content></entry></feed>`;
-  assert.match(feedArticle(atom, 'https://x.test/atom'), /^<p>word/);
-});
-
 const article = `<html><body><article><h1>T</h1><p>${'A proper sentence of the article. '.repeat(80)}</p></article></body></html>`;
 
 async function withFetch(routes, fn) {
@@ -54,7 +41,7 @@ async function withFetch(routes, fn) {
   globalThis.fetch = async u => { const r = routes[u]; if (r instanceof Error) throw r; return r ?? new Response('', { status: 404 }); };
   try { return await fn(); } finally { globalThis.fetch = real; }
 }
-const read = (routes, feeds = {}) => withFetch(routes, () => readArticle({ url: 'https://x.test/a', publisher: 'P' }, feedReader(feeds)));
+const read = (routes, body) => withFetch(routes, () => readArticle({ url: 'https://x.test/a', publisher: 'P' }, body));
 
 test('readArticle gives a reason for every outcome', async () => {
   let r = await read({ 'https://x.test/a': page(200, {}, article) });
@@ -73,10 +60,10 @@ test('readArticle gives a reason for every outcome', async () => {
   assert.equal(r.reason, 'error');
 });
 
-const wholeFeed = `<rss><item><link>https://x.test/a</link><content:encoded><![CDATA[<script>x()</script><p>${words(400)}</p>]]></content:encoded></item></rss>`;
+const wholeArticle = `<script>x()</script><p>${words(400)}</p>`;
 
 test('readArticle falls back to a whole-article feed, cleaned the same way', async () => {
-  const r = await read({ 'https://x.test/a': page(403, {}, 'blocked'), 'https://feed.test/rss': { ok: true, text: async () => wholeFeed } }, { P: 'https://feed.test/rss' });
+  const r = await read({ 'https://x.test/a': page(403, {}, 'blocked') }, wholeArticle);
   assert.equal(r.reason, 'ok'); assert.equal(r.source, 'feed');
   assert.doesNotMatch(r.content, /script/);
 });

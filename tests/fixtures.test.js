@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseHTML } from 'linkedom';
-import { feedReader, readArticle, tidy, extract } from '../extract.mjs';
+import { readArticle, tidy, extract } from '../extract.mjs';
 import { scramble, scramblePage } from './fixtures/fetch.mjs';
 
 const DIR = new URL('./fixtures/', import.meta.url).pathname;
@@ -21,7 +21,7 @@ async function pipeline(meta) {
   const html = read(`pages/${meta.file}`);
   const real = globalThis.fetch;
   globalThis.fetch = async () => new Response(html, { status: meta.status, headers: { 'content-type': meta.contentType || '', ...(meta.mitigated && { 'cf-mitigated': meta.mitigated }) } });
-  try { return await readArticle({ url: meta.url, publisher: '' }, feedReader({})); } finally { globalThis.fetch = real; }
+  try { return await readArticle({ url: meta.url, publisher: '' }); } finally { globalThis.fetch = real; }
 }
 const words = text => text.split(/\s+/).filter(Boolean).length;
 const bodyOf = html => parseHTML(`<!doctype html><html><body><div id="r">${html}</div></body></html>`).document.getElementById('r');
