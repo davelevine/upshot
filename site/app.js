@@ -58,21 +58,20 @@ function isoDay(d = new Date()) {
     .formatToParts(d).map(x => [x.type, x.value]));
   return `${p.year}-${p.month}-${p.day}`;
 }
-const todayIso = () => isoDay();
 const dayNumber = iso => Date.UTC(...iso.split('-').map((n, k) => +n - (k === 1))) / 864e5;
 // How long ago it was published, as Feedbin shows it: 21m, 5h, 3d, then the date. A calmer list than a count per day.
 // Stories from before the build kept the exact time only have a date: whole days, counted in the site's time zone,
 // or the time it reached the site when that was on its date (hours late at most), not a later day.
 function ageMins(i) {
   const at = i.published || (i.added && isoDay(new Date(i.added)) === i.date && i.added);
-  return at ? (Date.now() - Date.parse(at)) / 60e3 : Math.max(0, dayNumber(todayIso()) - dayNumber(i.date)) * 1440;
+  return at ? (Date.now() - Date.parse(at)) / 60e3 : Math.max(0, dayNumber(isoDay()) - dayNumber(i.date)) * 1440;
 }
 function age(i) {
   const mins = ageMins(i);
   if (mins < 60) return `${Math.max(1, Math.floor(mins))}m`;
   if (mins < 1440) return `${Math.floor(mins / 60)}h`;
   if (mins < 7 * 1440) return `${Math.floor(mins / 1440)}d`;
-  const d = new Date(i.date + 'T12:00:00Z'), year = i.date.slice(0, 4) !== todayIso().slice(0, 4);
+  const d = new Date(i.date + 'T12:00:00Z'), year = i.date.slice(0, 4) !== isoDay().slice(0, 4);
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...(year && { year: 'numeric' }), timeZone: 'UTC' });
 }
 const ageHtml = i => `<time class="card-age" datetime="${esc(i.published || i.added || i.date)}">${age(i)}</time>`;
