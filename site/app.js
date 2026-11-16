@@ -1158,8 +1158,9 @@ function closeReader() {
   document.body.classList.remove('reading');
   $('reader').setAttribute('aria-hidden', 'true');
   setInert();
-  // Read later keeps a story unsaved while it was open, so the list doesn't shift under the reader; closing it, the story leaves.
-  if (filter === 'later' && shown.some(i => !isSaved(i.url))) renderItems(true);
+  // Read later holds still while a story is open, so the list doesn't shift under the reader; closing it, a story unsaved
+  // meanwhile leaves, and one saved from elsewhere (search) joins.
+  if (filter === 'later' && (shown.some(i => !isSaved(i.url)) || shown.length !== items.filter(i => isSaved(i.url)).length)) renderItems(true);
   markCurrent(currentUrl());
   syncTicker();
   const card = url && cardFor(url);  // back to where you were, even after j/k through several articles

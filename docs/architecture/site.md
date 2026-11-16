@@ -34,7 +34,7 @@ A toolbar after Feedbin's holds **Read**, which marks the list showing as read a
 
 The bookmark in the reader's bar (`s` too) saves a story to **Read later**, an entry under the essentials that's always listed, since it's the reader's own list rather than one the news fills. It counts saved stories, read or not: the list empties as stories are removed, not as they're read. A saved row shows a small bookmark beside its age.
 
-A saved story stays saved when it's read or marked read with the rest of a list, and leaves when the bookmark is turned off or the story leaves the site after 90 days. A story unsaved while open stays in the list until the reader closes. Saves live in local storage like read state, and sync carries them too. Without sync, a line under the list says saves stay on this device, with a link that opens sync.
+A saved story stays saved when it's read or marked read with the rest of a list, and leaves when the bookmark is turned off or the story leaves the site after 90 days. The list holds still while a story is open: a story unsaved, or one saved from search, leaves or joins it when the reader closes. Saves live in local storage like read state, and sync carries them too. Without sync, a line under the list says saves stay on this device, with a link that opens sync.
 
 ## The wordmark pass
 

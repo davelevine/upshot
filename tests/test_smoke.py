@@ -1406,6 +1406,13 @@ def test_read_later_saves_from_the_reader(browser):
     wait_until_closed(pg)
     assert pg.evaluate("filter") == "later" and pg.locator("#items a.card").count() == 1
     assert pg.inner_text(f"{later} .f-count") == "1\nsaved"
+    # Saved from elsewhere (search opens any story) while Read later shows: it joins the list once the reader closes.
+    pg.evaluate("openReader(items[7])")
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.keyboard.press("s")
+    pg.keyboard.press("Escape")
+    wait_until_closed(pg)
+    assert pg.locator("#items a.card").count() == 2
     assert pg.problems == []
 
 
