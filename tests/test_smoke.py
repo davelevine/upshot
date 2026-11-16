@@ -1730,8 +1730,9 @@ def ticker_site(browser, built_hours_ago, now="2026-11-10T14:00:00Z", **context)
         data["generated_at"], data["tz"] = built, "America/New_York"
         route.fulfill(json=data)
     ctx.route("**/data.json*", patched)
-    pg.clock.install(time=now)
-    pg.clock.pause_at(now)  # time moves only when the test says: a slow machine can't run the pass early
+    # Installs the fake clock already paused: time moves only when the test says, so a slow machine can't run the pass early.
+    # Not install() first: its clock starts running, and a moment later pause_at(now) would be in the past.
+    pg.clock.pause_at(now)
     pg.goto(URL)
     pg.wait_for_selector("#filters .filter-btn")
     pg.clock.run_for(50)
@@ -1802,8 +1803,7 @@ def test_a_pass_waits_for_the_wordmark_to_be_in_view(browser):
     pg.wait_for_selector("#filters .filter-btn")
     path = pg.evaluate("readPath(items[0].url)")
     start = datetime.now(timezone.utc)
-    pg.clock.install(time=start)
-    pg.clock.pause_at(start)  # time moves only when the test says
+    pg.clock.pause_at(start)  # installs the fake clock already paused (see ticker_site): time moves only when the test says
     pg.goto(URL.rstrip("/") + path)
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
     ticking = lambda: pg.evaluate("document.body.classList.contains('ticking')")

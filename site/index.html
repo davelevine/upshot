@@ -53,7 +53,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
     --caution-ink: #f1c21b;  /* Carbon's Yellow 30 */
     --cat-security: #f57595; --cat-ai: #d080e2; --cat-infrastructure: #19affe; --cat-engineering: #69bc57; --cat-regulation: #e98a13; --cat-other: #afb6c1;
   }
-  * { box-sizing: border-box; margin: 0; }
+  * { box-sizing: border-box; margin: 0; -webkit-tap-highlight-color: transparent; }  /* no tap color: Android paints it above the reader that opens on tap */
   [hidden] { display: none !important; }
   .noscript { max-width: var(--read); margin: 24px auto; padding: 0 24px; }
   .keys { margin: auto; padding: 18px 20px 20px;  /* the reset above removes the margin a dialog centers with */ border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-card); color: var(--text); width: min(420px, calc(100vw - 24px)); }
@@ -70,13 +70,11 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
      social lists hide .share-wrap, #share-reddit and links to share pages, which took the whole button away. */
   .send-wrap { position: relative; }
   .popover.send-pop { left: auto; right: 0; width: auto; min-width: 180px; display: flex; flex-direction: column; padding: 6px; }
-  .popover.send-pop[hidden] { display: none; }
   .send-pop > * { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border: 0; border-radius: var(--radius-sm); background: none;
     color: var(--text); font: 500 .9375rem/1.2 Sohne, system-ui, sans-serif; text-align: left; text-decoration: none; cursor: pointer; }
   .send-pop > *:hover { background: var(--bg-card-hover); }
   .send-ico { flex: none; width: 18px; height: 18px; color: var(--text-muted); }
   .send-ico.fill { fill: currentColor; stroke: none; }  /* Bluesky, Reddit and LinkedIn marks from Simple Icons (CC0); LinkedIn's is the one the portfolio uses */
-  #reader-send[aria-expanded="true"] { background: var(--bg-card-hover); color: var(--text); }
   #reader-send:not([data-kind="android"]) .send-apple, #reader-send[data-kind="android"] .send-android { display: block; }
   #reader-send .send-android { transform: scale(.8); }  /* three solid-looking dots carry more weight than the sun's thin rays */
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -85,7 +83,6 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   .theme-switching *, .theme-switching *::before, .theme-switching *::after { transition: none !important; }
   ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .35s; animation-timing-function: ease; }
   html { scrollbar-gutter: stable; scroll-padding-top: 64px; }  /* the reader locks scrolling; keep the scrollbar's space so nothing shifts */
-  * { -webkit-tap-highlight-color: transparent; }  /* Android paints it above the reader that opens on tap */
   body { font-weight: 370; font-family: Sohne, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
   a { color: inherit; text-decoration: none; }
   button { font: inherit; }
@@ -144,7 +141,6 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   .bar-status { display: none; color: var(--text-muted); font-size: .8125rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
   /* Feedbin's "…" on the selected story: a sibling of its row (a button can't sit inside a link), drawn over the row's corner. */
   .more-wrap { position: relative; z-index: 2; align-self: flex-end; margin: -39px 6px 3px 0; }  /* centered on the row's age line, taking no room */
-  .more-wrap > .icon-btn[aria-expanded="true"] { background: var(--bg-card-hover); color: var(--text); }
   .popover.more-pop { white-space: nowrap; }
   .confirm h2 { margin-bottom: 18px; font-weight: 600; line-height: 1.4; }
   .sync p { margin: 0 0 14px; color: var(--text-muted); font-size: .875rem; line-height: 1.5; }
@@ -167,11 +163,11 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   .sync-show { display: block; margin: 4px 0 6px; font: 600 2rem ui-monospace, monospace; letter-spacing: .14em; color: var(--text); min-height: 1.4em; }
   .sync .sync-note { font-size: .8125rem; }
   /* For a phone's camera, so not shown on phones. White behind it in either theme: cameras want dark on light. */
-  .sync-qr:not([hidden]) { display: flex; align-items: center; gap: 14px; margin: 4px 0 12px; }
+  .sync-qr { display: flex; align-items: center; gap: 14px; margin: 4px 0 12px; }
   .sync-qr span { flex: none; width: 112px; height: 112px; border-radius: var(--radius-sm); overflow: hidden; background: #fff; }
   .sync-qr svg { display: block; width: 100%; height: 100%; stroke: none; }  /* not the site's icon outline: crisp modules */
   .sync .sync-qr p { margin: 0; font-size: .8125rem; }
-  @media (max-width: 640px) { .sync-qr:not([hidden]) { display: none; } }
+  @media (max-width: 640px) { .sync-qr { display: none; } }
   .sync-sub { margin: 20px 0 4px; color: var(--text-muted); font-size: .8125rem; font-weight: 600; }  /* as the sidebar's "Topics" */
   .sync-devices { margin: 0; padding: 0; list-style: none; }
   .sync-devices li { display: grid; grid-template-columns: 22px 1fr auto; align-items: center; gap: 0 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
@@ -222,8 +218,8 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   .palette-foot kbd { margin-right: 3px; }
   .palette-close { flex: none; padding: 0; border: 0; background: none; color: var(--accent); font: 500 1rem Sohne, system-ui, sans-serif; cursor: pointer; }
   .palette-close svg { display: none; }
-  /* A list in the sidebar; the same list in a drawer behind the topic button on phones. */
-  .filters { position: static; display: flex; flex-direction: column; gap: 1px; width: auto; height: auto; margin: 0; padding: 0; overflow: visible; border: 0; background: none; color: inherit; }
+  /* The topics, a list in the sidebar. */
+  .filters { display: flex; flex-direction: column; gap: 1px; }
   .list-back, .list-name, .search-btn { display: none; }
   .filter-btn { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 36px; padding: 6px 10px; border: 0; border-radius: var(--radius-sm);
     background: none; color: var(--text); font-size: .9375rem; font-weight: 500; text-align: left; cursor: pointer; }
@@ -240,8 +236,6 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
 
   .popover { position: absolute; top: calc(100% + 6px); left: 0; z-index: 50; width: min(320px, 80vw); padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-md);
     background: var(--bg-card); box-shadow: 0 24px 64px rgba(0, 0, 0, .25); color: var(--text-muted); font-size: .8125rem; line-height: 1.5; }
-  .popover[hidden] { display: none; }
-  .filters::-webkit-scrollbar { display: none; }
 
   /* The feed, after Feedbin: rows with no box around them, the publisher's icon, then title, source and the summary. */
   .items { max-width: var(--read); margin: 0 auto; padding: 8px 24px 48px; display: flex; flex-direction: column; }
@@ -263,10 +257,9 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   .src-mono { display: grid; place-items: center; background: var(--bg-card); box-shadow: inset 0 0 0 1px var(--border-strong); color: var(--text-muted); font: 700 .6875rem/1 Sohne, system-ui, sans-serif; }
   mark { background: var(--accent-soft); color: inherit; border-radius: 2px; }
   .back-to-top { position: fixed; right: 24px; bottom: 24px; z-index: 90; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--accent);
-    border-radius: 999px; background: var(--bg-card); color: var(--accent); cursor: pointer; box-shadow: 0 8px 24px rgba(0, 0, 0, .2); }
-  .back-to-top[hidden] { display: none; }
+    border-radius: 999px; background: var(--bg-card); color: var(--accent); cursor: pointer; box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+    transition: background-color .15s ease, color .15s ease; }
   .back-to-top svg { width: 18px; height: 18px; }
-  .back-to-top { transition: background-color .15s ease, color .15s ease; }
   .back-to-top:active { background: var(--accent); color: var(--accent-contrast); }
   @media (hover: hover) { .back-to-top:hover { background: var(--accent); color: var(--accent-contrast); } }  /* fills in, rather than moving */
   .card.read .card-title { color: var(--text-muted); font-weight: 500; }
@@ -337,17 +330,15 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
     header { padding: 0 14px; }
     /* One column. Search and the menu sit in the header. */
     .shell { display: block; }
-    .subheader { display: contents; }
     .stale { left: 0; height: calc(56px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); }  /* a phone's bottom bar */
     /* A list's toolbar, as in Feedbin's app. It fades with the list's header as the pages slide, and the late bar sits on it. */
     .list-bar { right: 0; width: auto; height: calc(60px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);
       opacity: calc(1 - var(--pd, 0)); transition: opacity var(--slide-in) var(--ease-in); }
     body.home .list-bar { opacity: calc(1 - var(--pd, 1)); }
     body.paging .list-bar { transition: none; }
-    .bar-btn svg { width: 22px; height: 22px; }
     #bar-top { display: flex; } #bar-keys, #top { display: none !important; }  /* Back to top lives in the bar here */
     /* When it updated, in a thin strip on the bar, where the late bar takes its place when a build is late; the topics' foot leaves it to the strip. */
-    .bar-status:not([hidden]) { position: absolute; inset: auto 0 100% 0; display: block; height: 26px; line-height: 25px; text-align: center; border-top: 1px solid var(--border);
+    .bar-status { position: absolute; inset: auto 0 100% 0; display: block; height: 26px; line-height: 25px; text-align: center; border-top: 1px solid var(--border);
       background: var(--bg); font-size: .75rem; }
     .list-bar:has(.bar-status:not([hidden])) { border-top-color: transparent; }  /* one rule, above the strip */
     body:not(.home):has(#bar-updated:not([hidden])) .col { padding-bottom: calc(86px + env(safe-area-inset-bottom)); }
@@ -419,7 +410,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
     /* The topics and a list are pages the same way: the list slides over the topics, which ease a quarter aside, following a
        swipe (--pd: 0 is the list, 1 the topics) or on a tap, back or the chevron. The window scrolls the list; the topics scroll themselves. */
     .shell { overflow-x: clip; }
-    .subheader.side { display: flex; flex-direction: column; position: fixed; inset: 52px 0 0; z-index: 1; height: auto; align-self: stretch;  /* desktop's start would shrink it to its content */ padding: 0; border: 0; overflow-y: auto; }
+    .side { position: fixed; inset: 52px 0 0; z-index: 1; height: auto; align-self: stretch;  /* desktop's start would shrink it to its content */ padding: 0; border: 0; overflow-y: auto; }
     body.reading .side { transform: none; }  /* its search sits in the header; the list moving aside under a story is enough */
     .side > nav { transform: translateX(calc(-25% * (1 - var(--pd, 0)))); transition: transform var(--slide-in) var(--ease-in); }
     body.home .side > nav { transform: translateX(calc(-25% * (1 - var(--pd, 1)))); }
@@ -462,9 +453,8 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
     #resize-side { display: block; left: var(--side-w); }
     #resize-list { display: block; left: var(--left-w); }
     header { width: var(--side-w); }
-    .stale { left: var(--side-w); width: var(--list-w); }  /* the list's foot */
+    .stale { left: var(--side-w); width: var(--list-w); height: 60px; }  /* the list's foot, level with the toolbar beside it */
     .side { top: 0; height: 100dvh; padding-top: 66px; padding-bottom: 65px; }  /* clear of the toolbar at its foot */
-    .stale { height: 60px; }  /* level with the toolbar beside it */
     .list-bar { height: 65px; padding-bottom: 13px; border-top: 0; border-right: 1px solid var(--border); }  /* part of the sidebar, as Feedbin's: no rule above it, its edge runs on down, and its buttons sit as high off the bottom as Feedbin's */
     body:has(#stale:not([hidden])) .col { padding-bottom: 72px; }
     body:has(#stale:not([hidden])) .back-to-top { bottom: 84px; }
@@ -491,11 +481,11 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
   .reader-source { min-width: 0; overflow: hidden; color: var(--text); font-size: .9375rem; white-space: nowrap; text-overflow: ellipsis; }  /* who it's from, beside the icon, as in Feedbin */
   #reader-unread.unread svg { fill: currentColor; }  /* a filled dot while it's unread, as in Feedbin */
   #reader-unread.unread { color: var(--accent); }
-  .text-size[aria-expanded="true"] { background: var(--bg-card-hover); color: var(--text); }
+  /* An open menu's button: the text size, share and the row's "…". */
+  #reader-size[aria-expanded="true"], #reader-send[aria-expanded="true"], .more-wrap > .icon-btn[aria-expanded="true"] { background: var(--bg-card-hover); color: var(--text); }
   /* Text size: four A's in growing sizes, the current one marked. */
   .size-wrap { position: relative; }
   .size-pop { left: auto; right: 0; width: auto; display: flex; gap: 4px; padding: 6px; }
-  .size-pop[hidden] { display: none; }
   .size-pop button { display: grid; place-items: end center; width: 44px; height: 44px; padding-bottom: 11px; border: 1px solid transparent; border-radius: var(--radius-sm);
     background: none; color: var(--text-muted); font-family: Sohne, system-ui, sans-serif; font-weight: 600; line-height: 1; cursor: pointer; }
   .size-pop button:hover { background: var(--bg-card-hover); color: var(--text); }
@@ -564,9 +554,9 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
 </header>
 <div class="stale feed" id="stale" hidden><span id="stale-msg"></span><button class="icon-btn" id="stale-check" type="button" aria-label="Check again" title="Check again"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button></div>
 <div class="shell">
-<aside class="subheader side feed">
+<aside class="side feed">
   <div class="search-row" role="search">
-    <div class="search-wrap" id="search-wrap">
+    <div class="search-wrap">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <button id="search" type="button" aria-label="Search articles" aria-haspopup="dialog">Search…</button>
       <kbd class="search-kbd" aria-hidden="true"></kbd>
@@ -600,7 +590,7 @@ for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width');
     <span class="reader-spacer"></span>
     <span class="send-done" id="send-done" hidden>Copied</span>
     <span class="size-wrap">
-      <button class="icon-btn text-size" id="reader-size" type="button" title="Text size" aria-label="Text size" aria-expanded="false" aria-controls="size-pop"><svg viewBox="0 0 24 24"><path d="M2 19 8 5l6 14M4.4 14h7.2M14.5 19l4-9.5 4 9.5M15.8 16h5.4"/></svg></button>
+      <button class="icon-btn" id="reader-size" type="button" title="Text size" aria-label="Text size" aria-expanded="false" aria-controls="size-pop"><svg viewBox="0 0 24 24"><path d="M2 19 8 5l6 14M4.4 14h7.2M14.5 19l4-9.5 4 9.5M15.8 16h5.4"/></svg></button>
       <span class="popover size-pop" id="size-pop" role="group" aria-label="Text size" hidden>
         <button type="button" data-size="0" aria-label="Small" title="Small">A</button><button type="button" data-size="1" aria-label="Medium" title="Medium">A</button><button type="button" data-size="2" aria-label="Large" title="Large">A</button><button type="button" data-size="3" aria-label="Larger" title="Larger">A</button>
       </span>
