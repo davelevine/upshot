@@ -1,5 +1,4 @@
-const CATS = { security: 'Security', ai: 'AI', infrastructure: 'Infrastructure', engineering: 'Engineering', regulation: 'Regulation', other: 'Other' };
-const ORDER = ['ai', 'infrastructure', 'engineering', 'security', 'regulation', 'other'];
+const CATS = { ai: 'AI', infrastructure: 'Infrastructure', engineering: 'Engineering', security: 'Security', regulation: 'Regulation', other: 'Other' };  // in the topics' order
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const cat = c => (c in CATS ? c : 'other');
@@ -35,6 +34,9 @@ const listed = i => !!i.exploited && ageMins(i) < EXPLOITED_DAYS * 1440;
 const exists = f => (f === 'essentials' ? picks.size > 0 : f === 'exploited' ? items.some(listed) : true);  // the two lists come and go
 const inList = (i, f) => f === 'all' || (f === 'essentials' ? picks.has(i.url) : f === 'exploited' ? listed(i) : cat(i.category) === f);
 const plural = (n, one, many) => (n === 1 ? one : many);
+// What the list showing holds, counted: a topic is where the stories are ("3 stories in Other"), not a word about them ("3 Other stories").
+const listNoun = n => (filter === 'essentials' ? plural(n, 'essential', 'essentials') : filter === 'exploited' ? plural(n, 'exploited flaw', 'exploited flaws')
+  : plural(n, 'story', 'stories') + (filter === 'all' ? '' : ` in ${label(filter)}`));
 // An exploited flaw and its remedy, in CISA's terms: "Patch available" (the accent), "Mitigation only" (quiet), or "No patch
 // yet", the one alarm on a row, red with "Exploited" (nothing to apply: watch it); nothing when the story doesn't say. A
 // supply-chain attack says "Compromised" instead, as GitHub and OSV keep malware apart from vulnerabilities, in yellow, Carbon's
@@ -102,7 +104,7 @@ function renderFilters() {
     (picks.size ? btn('essentials', unreadPicks, '<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>') : '') +
     (exists('exploited') ? btn('exploited', items.filter(i => listed(i) && isUnread(i)).length, '<svg viewBox="0 0 24 24"><path d="M12 4 2.5 20h19z"/><path d="M12 10v4M12 17h.01"/></svg>',
       open ? `<span class="f-open">${open} unpatched</span>` : '') : '') +
-    '<h2 class="f-head">Topics</h2>' + ORDER.filter(c => counts[c] || filter === c).map(c => btn(c, unread[c] || 0, `<span class="dot" style="--c:var(--cat-${c})"></span>`)).join('');
+    '<h2 class="f-head">Topics</h2>' + Object.keys(CATS).filter(c => counts[c] || filter === c).map(c => btn(c, unread[c] || 0, `<span class="dot" style="--c:var(--cat-${c})"></span>`)).join('');
   $('list-name').textContent = label(filter);  // phones: the list's name above it, so a filter never makes stories look missing
   syncReadAll();
   document.title = filter === 'all' ? 'Upshot \u00b7 The week\u2019s tech news, minus the noise' : `${label(filter)} \u00b7 Upshot`;
@@ -137,9 +139,7 @@ function renderPage() {
   const ended = shown.length && limit >= shown.length;
   $('end').hidden = !ended;
   if (ended) {
-    // A topic is where the stories are ("3 stories in Other"), not a word about them ("3 Other stories").
-    const n = shown.length, what = filter === 'essentials' ? `essential${n === 1 ? '' : 's'}` : filter === 'exploited' ? plural(n, 'exploited flaw', 'exploited flaws')
-      : `stor${n === 1 ? 'y' : 'ies'}${filter === 'all' ? '' : ` in ${label(filter)}`}`;
+    const n = shown.length, what = listNoun(n);
     const days = Math.min(KEEP_DAYS, Math.ceil((Date.now() - Date.parse(items.reduce((o, i) => (i.date < o ? i.date : o), items[0].date))) / 864e5));
     const scope = filter === 'all' ? ` from the last ${days} days`
       : filter === 'essentials' && weekly?.window_start ? ` from ${weekRange(weekly)}` : filter === 'exploited' ? ` from the last ${EXPLOITED_DAYS} days` : '';  // the real span: a young site hasn't reached KEEP_DAYS
@@ -342,7 +342,6 @@ function signedOut(notice = '') {
   disconnectLive();
   showSync();  // the sync button goes
 }
-const post = (path, body) => fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
 // What the header's sync button shows: 'busy', 'ok' (with when), or 'error'.
 let syncState = 'ok', syncedAt = 0;
 // Two circling arrows (Lucide's refresh-cw, as index.html's menu item draws it): still when synced, turning while it works,
@@ -513,7 +512,7 @@ function syncView(name, { justOn = false } = {}) {
   document.querySelector(VIEW_FOCUS[name])?.focus();
 }
 // A request that didn't work: 401 means this device was removed elsewhere meanwhile; otherwise, say what to do.
-const call = (path, body) => post(path, body).then(async r => ({ status: r.status, data: r.ok ? await r.json() : null })).catch(() => ({ status: 0, data: null }));
+const call = (path, body) => fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => ({ status: r.status, data: r.ok ? await r.json() : null })).catch(() => ({ status: 0, data: null }));
 function failed(status, what) {
   if (status === 401) { signedOut(STOPPED); return syncView('out'); }
   sayErr(status === 429 ? 'Too many tries. Wait a minute, then try again.' : `Couldn\u2019t ${what}. Check the connection and try again.`);
@@ -666,15 +665,13 @@ function markAllRead(list) {
   for (const u of urls) noteMark(u, 1, 0);
   renderFilters();
   renderItems(true);
-  $('status').textContent = `Marked ${urls.length} ${urls.length === 1 ? 'story' : 'stories'} as read`;
+  $('status').textContent = `Marked ${urls.length} ${plural(urls.length, 'story', 'stories')} as read`;
 }
 const syncReadAll = () => { $('read-all').disabled = !shown.some(isUnread); };
 function confirmReadAll() {
   const n = shown.filter(isUnread).length;
   if (!n) return;
-  const what = filter === 'essentials' ? `essential${n === 1 ? '' : 's'}` : filter === 'exploited' ? plural(n, 'exploited flaw', 'exploited flaws')
-    : `${n === 1 ? 'story' : 'stories'}${filter === 'all' ? '' : ` in ${label(filter)}`}`;
-  $('confirm-msg').textContent = `Mark ${n === 1 ? 'the' : n} unread ${what} as read?`;
+  $('confirm-msg').textContent = `Mark ${n === 1 ? 'the' : n} unread ${listNoun(n)} as read?`;
   closeMenus();
   $('confirm-read').returnValue = '';
   $('confirm-read').showModal();
@@ -711,8 +708,6 @@ morePop.onclick = e => {
   markAllRead(id === 'read-above' ? shown.slice(0, at) : shown.slice(at + 1));
   moreBtn.focus({ preventScroll: true });
 };
-document.addEventListener('click', closeMore);
-addEventListener('blur', closeMore);
 function markUnread(url) {
   readSet.delete(url); saveRead();
   if (older(url)) { kept.add(url); saveKept(); }
@@ -953,10 +948,7 @@ function showInReader(i, html, why, minutes, byline) {
   frame.sandbox = 'allow-scripts allow-popups allow-popups-to-escape-sandbox';
   frame.title = i.title;
   frame.srcdoc = articleDoc(i, html, btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16)))), why, minutes, byline);  // not randomUUID: that needs HTTPS, which a dev server reached by address isn't
-  mountFrame(frame);
-}
-// Loads behind whatever's showing and takes over once drawn, so the pane never blinks empty between frames.
-function mountFrame(frame) {
+  // It loads behind whatever's showing and takes over once drawn, so the pane never blinks empty between frames.
   frame.classList.add('loading');
   frame.onload = () => {
     if (!frame.parentNode) return;
@@ -1067,8 +1059,6 @@ $('size-pop').onclick = e => {
   $('status').textContent = `Text size ${SIZES[textSize]}`;
   $('reader-body').querySelector('iframe[srcdoc]')?.contentWindow.postMessage({ tw: 'size', size: String(textSize) }, '*');
 };
-document.addEventListener('click', closeSize);
-addEventListener('blur', closeSize);  // a tap into the article lands in its frame, which blurs this window
 let lastInput = 'pointer';
 addEventListener('pointerdown', () => { lastInput = 'pointer'; }, true);
 addEventListener('keydown', () => { lastInput = 'key'; }, true);
@@ -1272,6 +1262,10 @@ $('reader-send').onclick = async e => {
   $('send-copy').focus({ preventScroll: true });
 };
 function closeMenus() { closeSize(); closeShare(); closeMore(); }
+// A click anywhere closes them (clicks on their own buttons stop short of this); so does a tap into the article, which lands
+// in its frame and blurs this window.
+document.addEventListener('click', closeMenus);
+addEventListener('blur', closeMenus);
 let sendTo = {};
 // Opened on click, not as links: ad blockers hide links whose address is a share page.
 $('send-pop').onclick = e => {
@@ -1289,8 +1283,6 @@ $('send-pop').onclick = e => {
   if (url.startsWith('mailto:')) location.href = url;
   else window.open(url, '_blank', 'noopener,noreferrer');
 };
-document.addEventListener('click', closeShare);
-addEventListener('blur', closeShare);
 $('send-copy').onclick = async () => {
   closeShare();
   const i = items.find(x => x.url === readerFor);
@@ -1313,7 +1305,6 @@ function openPalette() {
   $('palette').showModal();
   $('palette-q').focus();
 }
-function closePalette() { $('palette').close(); }
 function renderPalette() {
   const q = $('palette-q').value.trim(), ql = q.toLowerCase();
   // Title matches rank above summary/publisher matches; within a rank, items stay newest first.
@@ -1351,7 +1342,7 @@ function selectPalette(n, scroll = true) {
 function choosePalette(n = pal.sel) {
   const i = pal.results[n];
   if (!i) return;
-  closePalette();
+  $('palette').close();
   openReader(i);
 }
 $('palette-q').addEventListener('input', renderPalette);
@@ -1364,8 +1355,8 @@ $('palette-q').addEventListener('keydown', e => {
 });
 $('palette-list').addEventListener('click', e => { const li = e.target.closest('li[data-n]'); if (li) choosePalette(+li.dataset.n); });
 $('palette-list').addEventListener('mousemove', e => { const li = e.target.closest('li[data-n]'); if (li && +li.dataset.n !== pal.sel) selectPalette(+li.dataset.n, false); });
-$('palette').addEventListener('click', e => { if (e.target === $('palette')) closePalette(); });  // the backdrop
-$('palette-close').addEventListener('click', () => closePalette());
+$('palette').addEventListener('click', e => { if (e.target === $('palette')) $('palette').close(); });  // the backdrop
+$('palette-close').addEventListener('click', () => $('palette').close());
 document.addEventListener('auxclick', e => { const a = e.target.closest('a.card'); if (a && e.button === 1) markRead(a.getAttribute('href')); });
 // Plain clicks on an article open the reader; modified and middle clicks still open the site.
 document.addEventListener('click', e => {
