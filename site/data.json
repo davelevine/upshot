@@ -106,6 +106,24 @@
   },
   {
    "date": "2026-11-15",
+   "published": "2026-11-16T00:00:00+00:00",
+   "title": "Agents are sessions, not requests: size GKE node pools for AI agent sessions",
+   "url": "https://developers.googleblog.com/agents-are-sessions-not-requests-size-gke-node-pools-for-ai-agent-sessions/",
+   "publisher": "Google AI",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Google AI guidance proposes parking idle AI agent sessions in object storage on GKE, using Agent Substrate and AX, to cut node costs by up to 40%.",
+   "relevance": 6,
+   "added": "2026-11-16T17:18:31+00:00",
+   "minutes": 8,
+   "tldr": [
+    "Agent Substrate 1.0 is generally available on GKE and can park idle agent sessions by snapshotting actors to object storage and freeing their workers.",
+    "Agent Substrate does not suspend idle actors by itself, so your harness must call the SuspendActor API after an idle timeout.",
+    "Size the warm pool for busiest-hour working sessions. Around 4.5 prompts an hour, one Pod per session becomes the cheaper option, so measure your prompt rate first."
+   ]
+  },
+  {
+   "date": "2026-11-15",
    "published": "2026-11-15T09:55:00+00:00",
    "title": "Anthropic Outlines Its AI-Powered Code Review Process for Claude Code",
    "url": "https://www.infoq.com/news/2026/11/claude-code-review/",
@@ -3792,7 +3810,7 @@
    }
   ]
  },
- "generated_at": "2026-11-16T16:18:17+00:00",
+ "generated_at": "2026-11-16T17:18:43+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
