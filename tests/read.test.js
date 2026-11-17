@@ -369,9 +369,9 @@ test('the cron dispatches the Build workflow on main, skips without a token, and
 
 test('the licensed fonts come from R2, only as .woff2, and only to the site and its reader frame', async () => {
   const asked = [];
-  const env = { FONTS: { get: async key => (asked.push(key), key === 'Mercury-TextG2Roman.woff2' ? { body: 'FONT', httpEtag: '"e1"' } : null) } };
+  const env = { FONTS: { get: async key => (asked.push(key), key === 'Domaine-TextRegular.woff2' ? { body: 'FONT', httpEtag: '"e1"' } : null) } };
   const get = path => worker.fetch(new Request('https://site.test' + path), env);
-  const res = await get('/fonts/licensed/Mercury-TextG2Roman');
+  const res = await get('/fonts/licensed/Domaine-TextRegular');
   assert.equal(res.status, 200);
   assert.equal(await res.text(), 'FONT');
   assert.equal(res.headers.get('content-type'), 'font/woff2');
@@ -379,14 +379,14 @@ test('the licensed fonts come from R2, only as .woff2, and only to the site and 
   assert.equal(res.headers.get('access-control-allow-origin'), 'null');  // the sandboxed frame, not every site
   assert.equal(res.headers.get('cache-control'), 'public, max-age=31536000, immutable');
   assert.equal((await get('/fonts/licensed/Missing')).status, 404);
-  assert.deepEqual(asked, ['Mercury-TextG2Roman.woff2', 'Missing.woff2']);  // nothing but .woff2 can be read from the bucket
+  assert.deepEqual(asked, ['Domaine-TextRegular.woff2', 'Missing.woff2']);  // nothing but .woff2 can be read from the bucket
   // Only to style text: a font opened as a page (the address bar, a link) is refused; the page's own requests aren't.
-  const as = dest => worker.fetch(new Request('https://site.test/fonts/licensed/Mercury-TextG2Roman', { headers: { 'Sec-Fetch-Dest': dest } }), env);
+  const as = dest => worker.fetch(new Request('https://site.test/fonts/licensed/Domaine-TextRegular', { headers: { 'Sec-Fetch-Dest': dest } }), env);
   assert.equal((await as('document')).status, 403);
   assert.equal((await as('iframe')).status, 403);
   assert.equal((await as('font')).status, 200);  // @font-face and the preload
   assert.equal((await as('empty')).status, 200);  // the fetch that inlines fonts into the reader frame
-  const unbound = await worker.fetch(new Request('https://site.test/fonts/licensed/Mercury-TextG2Roman'), {});
+  const unbound = await worker.fetch(new Request('https://site.test/fonts/licensed/Domaine-TextRegular'), {});
   assert.equal(unbound.status, 404);  // a fork without the bucket: the reader falls back to the system serif
 });
 

@@ -17,7 +17,7 @@ PIXEL = "data:image/gif;base64,R0lGODlhAQABAAAAACw="
 BODY = "".join(f"<p>Paragraph {n} of the stub article, long enough to read like the real thing.</p>" for n in range(30))
 
 
-# The site's fonts (Söhne, Mercury Text, Mercury Display) are licensed and served from R2, which is empty in CI and in a
+# The site's fonts (Söhne, Domaine Text, Domaine Display) are licensed and served from R2, which is empty in CI and in a
 # fresh checkout. Every context gets Public Sans's bytes (kept for the build's og.png) in their place, so pages run as in
 # production (no 404s in the console) and the font tests can still follow each face.
 STAND_IN_FONT = open(os.path.join(os.path.dirname(__file__), "..", "fonts", "PublicSansVariable.woff2"), "rb").read()
@@ -444,7 +444,7 @@ def test_reader_shows_the_story_before_the_fetch_finishes(browser):
     meta = frame.locator(".meta").evaluate("e => [...e.childNodes].filter(n => !n.matches?.('.flag')).map(n => n.textContent).join('')")
     assert "by Ada Lovelace" in meta and "By By" not in meta  # Feedbin-style: date by author, then minutes
     assert "\n" not in meta and pg.evaluate("readerFor && items.find(i => i.url === readerFor).publisher") == pg.inner_text("#reader-source")  # the source sits in the bar
-    assert frame.locator("h1").evaluate("e => getComputedStyle(e).fontFamily").startswith('"Mercury Display"')
+    assert frame.locator("h1").evaluate("e => getComputedStyle(e).fontFamily").startswith('"Domaine Display"')
     assert frame.locator("h1").inner_text() == title and frame.locator(".todo").count() == 1
 
 
@@ -540,42 +540,37 @@ def test_the_page_is_set_in_sohne_one_face_per_weight(browser):
     assert {"100 549", "550 649"} <= set(loaded)
 
 
-def test_articles_are_set_in_mercury_by_theme_without_downloading_fonts_each_time(browser):
+def test_articles_are_set_in_domaine_without_downloading_fonts_each_time(browser):
     # The fonts' own bytes aren't needed: the browser fixture's stand-in is enough to follow every face.
-    for theme, grade in (("light", "G2"), ("dark", "G1")):  # the lighter grade where light text on dark reads heavier
-        ctx = browser.new_context(viewport={"width": 1440, "height": 900})
-        ctx.add_init_script(f"localStorage.setItem('theme', '{theme}')")
-        ctx.route("**/api/read?*", lambda route: route.fulfill(content_type="application/json", body=json.dumps(
-            {"content": f'{BODY}<p><em>An italic line.</em></p>'})))
-        pg = ctx.new_page()
-        fonts = []
-        pg.on("response", lambda r: fonts.append(r.url.rsplit("/", 1)[-1]) if "/fonts/" in r.url else None)
-        pg.goto(URL)
-        enter_list(pg)
-        other = "G1" if grade == "G2" else "G2"
-        pg.wait_for_timeout(1500)  # past the page's idle time
-        assert not [f for f in fonts if f.startswith("Mercury")], "no Mercury until a story opens"
-        before = None
-        for n in (0, 1, 0):  # including one opened again
-            pg.evaluate("n => openReader(items[n])", n)
-            frame = pg.frame_locator("#reader-body iframe:not(.loading)")
-            frame.locator("p").nth(29).wait_for()
-            if before is None:  # the first story fetches this theme's grade
-                assert {f"Mercury-Text{grade}{s}" for s in ("Roman", "Italic", "Bold")} <= set(fonts)
-                assert not [f for f in fonts if f.startswith(f"Mercury-Text{other}")]  # the other grade waits for that theme
-                before = len(fonts)
-            faces = frame.locator("body").evaluate("() => document.fonts.ready.then(() => [...document.fonts].filter(f => f.status === 'loaded').map(f => f.family.replace(/\"/g, '')))")
-            assert f"Mercury Text {grade}" in faces and "Sohne" in faces  # the article in Mercury, the upshot and date line in Söhne
-            assert {f for f in faces if f.startswith("Mercury")} == {f"Mercury Text {grade}", "Mercury Display"}  # this theme's grade, and the headline cut
-            assert frame.locator("h1").evaluate("e => getComputedStyle(e).fontFamily").startswith('"Mercury Display"')
-            assert frame.locator("em").evaluate(f"e => document.fonts.check('italic 17px \"Mercury Text {grade}\"')")  # real italics
-            assert frame.locator("main p").nth(3).evaluate("e => getComputedStyle(e).fontFamily").startswith(f'"Mercury Text {grade}"')
-        # A sandboxed frame caches apart every time, so fonts loaded there by URL came down again for every article.
-        assert fonts[before:] == []
-        pg.evaluate(f"pickTheme('{'dark' if theme == 'light' else 'light'}')")  # a switch fetches the other grade, once
-        pg.wait_for_function("() => Object.keys(frameFonts).length === Object.keys(FRAME_FONTS).length")
-        assert {f"Mercury-Text{other}{s}" for s in ("Roman", "Italic", "Bold")} <= set(fonts[before:])
-        ctx.close()
+    ctx = browser.new_context(viewport={"width": 1440, "height": 900})
+    ctx.route("**/api/read?*", lambda route: route.fulfill(content_type="application/json", body=json.dumps(
+        {"content": f'{BODY}<p><em>An italic line.</em></p>'})))
+    pg = ctx.new_page()
+    fonts = []
+    pg.on("response", lambda r: fonts.append(r.url.rsplit("/", 1)[-1]) if "/fonts/" in r.url else None)
+    pg.goto(URL)
+    enter_list(pg)
+    pg.wait_for_timeout(1500)  # past the page's idle time
+    assert not [f for f in fonts if f.startswith("Domaine")], "no Domaine until a story opens"
+    before = None
+    for n in (0, 1, 0):  # including one opened again
+        pg.evaluate("n => openReader(items[n])", n)
+        frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+        frame.locator("p").nth(29).wait_for()
+        if before is None:  # the first story fetches every face, once
+            assert {f"Domaine-Text{s}" for s in ("Regular", "Italic", "Bold", "BoldItalic")} | {"Domaine-DisplayMedium"} <= set(fonts)
+            before = len(fonts)
+        faces = frame.locator("body").evaluate("() => document.fonts.ready.then(() => [...document.fonts].filter(f => f.status === 'loaded').map(f => f.family.replace(/\"/g, '')))")
+        assert {"Domaine Text", "Domaine Display", "Sohne"} <= set(faces)  # the article in Domaine, the upshot and date line in Söhne
+        assert frame.locator("h1").evaluate("e => getComputedStyle(e).fontFamily").startswith('"Domaine Display"')
+        assert frame.locator("em").evaluate("e => document.fonts.check('italic 17px \"Domaine Text\"')")  # real italics
+        assert frame.locator("main p").nth(3).evaluate("e => getComputedStyle(e).fontFamily").startswith('"Domaine Text"')
+    # A sandboxed frame caches apart every time, so fonts loaded there by URL would come down again for every article.
+    assert fonts[before:] == []
+    pg.evaluate("pickTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark')")  # both themes share the faces
+    pg.wait_for_timeout(500)
+    assert fonts[before:] == []
+    ctx.close()
 
 
 def test_escape_returns_focus_to_the_row_for_the_keyboard(browser):
