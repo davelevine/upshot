@@ -2,6 +2,19 @@
  "items": [
   {
    "date": "2026-11-17",
+   "published": "2026-11-17T17:45:00+00:00",
+   "title": "Introducing GPT-6.2 Astra and Sol",
+   "url": "https://openai.com/index/introducing-gpt-6-2-astra-sol",
+   "publisher": "OpenAI",
+   "cves": [],
+   "category": "ai",
+   "summary": "OpenAI introduced GPT-6.2 Astra and Sol, claiming better professional outputs, coding, computer use and lower-cost efficiency across ChatGPT Work, Codex and the API.",
+   "relevance": 9,
+   "added": "2026-11-17T18:18:26+00:00",
+   "minutes": 0
+  },
+  {
+   "date": "2026-11-17",
    "published": "2026-11-17T06:29:27+00:00",
    "title": "ConnectWise Warns ScreenConnect Attacks Continue as SCKit Targets Unpatched Systems",
    "url": "https://thehackernews.com/2026/11/connectwise-warns-screenconnect-attacks.html",
@@ -344,6 +357,25 @@
   },
   {
    "date": "2026-11-16",
+   "published": "2026-11-17T00:00:00+00:00",
+   "title": "Gemini 4 Hydrogen: a faster model for general purpose robotics",
+   "url": "https://developers.googleblog.com/gemini-hydrogen-for-robotics/",
+   "publisher": "Google AI",
+   "cves": [],
+   "category": "ai",
+   "summary": "Google released Gemini 4 Hydrogen, a fast robotics-focused model, alongside a Robotics plugin for Google Antigravity with MuJoCo simulation and closed-loop control tools.",
+   "relevance": 7,
+   "added": "2026-11-17T18:18:26+00:00",
+   "minutes": 6,
+   "tldr": [
+    "Google released Gemini 4 Hydrogen, a faster embodied-reasoning model, plus a Robotics plugin for Google Antigravity covering robot setup, simulation and control.",
+    "Hydrogen outperforms Gemini Robotics ER 2 on ERQA spatial reasoning tasks, and Google recommends ER 2 users try it for these workloads.",
+    "To install, select gemini-4-hydrogen in Antigravity and add the Robotics plugin from Customizations; Antigravity requires a paid Google AI Pro or Ultra subscription.",
+    "Gemini API developers can call gemini-4-hydrogen through the Interactions API, with day-one google-genai SDK support."
+   ]
+  },
+  {
+   "date": "2026-11-16",
    "published": "2026-11-16T09:07:00+00:00",
    "title": "AWS Nitro Sandboxes Put Each EKS Pod in Its Own MicroVM with One RuntimeClass Field",
    "url": "https://www.infoq.com/news/2026/11/aws-nitro-sandboxes-eks/",
@@ -413,6 +445,24 @@
     "Kubernetes SIG Network has deprecated the kube-proxy ipvs backend as of Kubernetes 1.35 and plans to remove it in 1.40.",
     "ipvs users should migrate to the nftables backend, which became GA in 1.33, or to the iptables backend.",
     "If nftables is unavailable, iptables is an option; reboot each node after changing its kube-proxy configuration, not just restart kube-proxy."
+   ]
+  },
+  {
+   "date": "2026-11-16",
+   "published": "2026-11-17T00:00:00+00:00",
+   "title": "Accelerating development for massive Git repositories",
+   "url": "https://developers.googleblog.com/accelerating-development-for-massive-git-repositories/",
+   "publisher": "Google AI",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Google open-sourced Another Build File Service (ABFS), a content-addressable filesystem and build cache that it says cuts Android checkouts to under 8 seconds and builds to about 2 minutes.",
+   "relevance": 6,
+   "added": "2026-11-17T18:18:26+00:00",
+   "minutes": 7,
+   "tldr": [
+    "Google open-sourced ABFS, a content-addressable build filesystem that cuts Android checkouts from ~36 minutes to under 8 seconds.",
+    "Full Android builds drop from ~80 minutes to just over 2 minutes, and the shared cache reuses up to 100% of build actions.",
+    "Teams running large Git-based builds, including Android developers and agents, can explore ABFS, CASFS, and Ninja-go on GitHub or contact abfs@google.com."
    ]
   },
   {
@@ -4171,7 +4221,7 @@
    }
   ]
  },
- "generated_at": "2026-11-17T17:18:25+00:00",
+ "generated_at": "2026-11-17T18:18:37+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
