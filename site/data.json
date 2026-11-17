@@ -106,6 +106,24 @@
    ]
   },
   {
+   "date": "2026-11-17",
+   "published": "2026-11-17T12:25:00+00:00",
+   "title": "Qwik 2.0 RC: Replaces HTML Comment Markers for Faster Reactivity and Out-of-Order Streaming",
+   "url": "https://www.infoq.com/news/2026/11/quik-2-streaming/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Qwik 2.0 release candidate replaces HTML comment markers with script blocks for state, adds experimental out-of-order streaming and async useComputed$.",
+   "relevance": 6,
+   "added": "2026-11-17T13:18:25+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Qwik 2.0 Release Candidate (@qwik.dev/core@2.0.0-rc.0) drops HTML comment markers for compressed qwik/state and qwik/vnode script blocks.",
+    "Run pnpm qwik migrate-v2, which also handles the move to @qwik.dev/core and @qwik.dev/router; new projects can use pnpm create qwik@rc.",
+    "Out-of-order streaming is experimental and opt-in through qwikVite experimental flags in vite.config.ts, including pendingBoundary and catchBoundary."
+   ]
+  },
+  {
    "date": "2026-11-16",
    "published": "2026-11-16T18:14:14+00:00",
    "title": "Rapid7 Detected Exploitation of CVE-2026-90436 against Atlassian Confluence Data Center, N-able N-central also Exploited",
@@ -4099,7 +4117,7 @@
    }
   ]
  },
- "generated_at": "2026-11-17T12:18:16+00:00",
+ "generated_at": "2026-11-17T13:18:35+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
