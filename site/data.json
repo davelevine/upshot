@@ -30,6 +30,30 @@
   },
   {
    "date": "2026-11-16",
+   "published": "2026-11-17T02:12:17+00:00",
+   "title": "Optimizely supply chain attack infects major brands' sites with malware",
+   "url": "https://www.bleepingcomputer.com/news/security/optimizely-supply-chain-attack-infects-major-brands-sites-with-malware/",
+   "publisher": "BleepingComputer",
+   "cves": [],
+   "category": "security",
+   "summary": "A suspected supply chain attack on Optimizely injected malicious JavaScript into major brands' websites, including Zoom, CNN, BBC and GitLab.",
+   "relevance": 9,
+   "added": "2026-11-17T02:18:04+00:00",
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-17T02:18:02+00:00",
+    "kind": "compromise",
+    "quote": "A suspected supply chain attack targeting Optimizely has led to malicious JavaScript being loaded on numerous popular websites"
+   },
+   "minutes": 3,
+   "tldr": [
+    "A suspected supply chain attack on Optimizely injected malicious JavaScript into 188 scripts across 178 organizations, including Zoom, CNN, BBC, and GitLab.",
+    "The injected track.js script hijacks cryptocurrency wallet addresses, skims payment card data, and delivers iOS exploit kits to visitors.",
+    "Check for scripts loading 1688360[.]cc/track.js; Helme said only one of 188 infected files still held malicious code as of 21:52 UTC November 16."
+   ]
+  },
+  {
+   "date": "2026-11-16",
    "published": "2026-11-16T18:00:00+00:00",
    "title": "CVE-2026-84869 in ScreenConnect Exploited to Run Malicious Files on MSP Technician Accounts",
    "url": "https://www.huntress.com/blog/cve-2026-84869-screenconnect-technician-exploitation",
@@ -3942,7 +3966,7 @@
    }
   ]
  },
- "generated_at": "2026-11-17T01:18:20+00:00",
+ "generated_at": "2026-11-17T02:18:13+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
