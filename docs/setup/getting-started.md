@@ -32,7 +32,7 @@ This guide sets up your own copy of Upshot: a fork that builds every hour on Git
 
 5. **Set `SITE_URL`** as a repository variable (**Settings → Secrets and variables → Actions → Variables**), for example `https://news.example.com`. The build uses it for the RSS feed's links and reading times.
 
-6. **Make it yours:** the GitHub links and `og:url` in `site/index.html`, the README badges, and [`feeds.opml`](../../feeds.opml).
+6. **Make it yours:** the GitHub links, `og:url` and the canonical link in `site/index.html`, the README badges, and [`feeds.opml`](../../feeds.opml).
 
 7. **Run the first build** from **Actions → Build → Run workflow** on `main`, with `backfill_days` set to `30` to fill in the last month (as far back as each feed still lists). Cloudflare deploys a minute after the build commits.
 
