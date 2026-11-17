@@ -45,6 +45,31 @@
   },
   {
    "date": "2026-11-17",
+   "published": "2026-11-17T18:16:17+00:00",
+   "title": "AI Framework Autonomously Weaponized Flaws in Real Attacks, Google Says",
+   "url": "https://www.securityweek.com/ai-framework-autonomously-weaponized-flaws-in-real-attacks-google-says/",
+   "publisher": "SecurityWeek",
+   "cves": [],
+   "category": "security",
+   "summary": "Google reports threat actors are using multi-agent AI offensive frameworks to autonomously weaponize flaws and speed up multi-stage intrusions in real attacks.",
+   "relevance": 8,
+   "added": "2026-11-17T19:18:17+00:00",
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-17T19:18:14+00:00",
+    "kind": "flaw",
+    "quote": "Autonomously Weaponized Flaws in Real Attacks",
+    "fix_read": true
+   },
+   "minutes": 4,
+   "tldr": [
+    "Google Threat Intelligence Group says threat actors used a multi-agent AI framework, exploit_agent, to automate vulnerability discovery and exploitation without human intervention.",
+    "The exploit_agent framework was found on an exposed staging server, with evidence of interest in French media, entertainment and education sites.",
+    "Other frameworks, including Artex, Cairn, CyberStrikeAI and PentAGI, are speeding multi-stage intrusions and reverse engineering patches to weaponize n-day flaws."
+   ]
+  },
+  {
+   "date": "2026-11-17",
    "published": "2026-11-17T12:05:43+00:00",
    "title": "Formal Verification of the Signal Protocol Using AI",
    "url": "https://www.schneier.com/blog/archives/2026/11/formal-verification-of-the-signal-protocol-using-ai.html",
@@ -133,6 +158,43 @@
     "The article explains why live fault injection misses distributed bugs and how deterministic simulation testing makes them reproducible.",
     "Chaos tests check availability, but correctness needs client-visible histories checked for consistency, as Jepsen does.",
     "Run the cluster on one thread with simulated clock, network and disk, and seed the fault PRNG so failing runs replay."
+   ]
+  },
+  {
+   "date": "2026-11-17",
+   "published": "2026-11-17T18:02:05+00:00",
+   "title": "Copilot code review: Adaptive effort, secret detection, and more",
+   "url": "https://github.blog/changelog/2026-11-17-copilot-code-review-adaptive-effort-secret-detection-and-more",
+   "publisher": "GitHub Changelog",
+   "cves": [],
+   "category": "engineering",
+   "summary": "GitHub Copilot code review adds adaptive review effort matched to each pull request, plus secret detection.",
+   "relevance": 6,
+   "added": "2026-11-17T19:18:17+00:00",
+   "minutes": 3,
+   "tldr": [
+    "GitHub added Adaptive review effort, cross-repository context, and secret detection to Copilot code review, all in public preview.",
+    "Adaptive picks Lite, Balanced, or Max per pull request, never above your configured maximum; select it from the Reviewers bar or set it as default.",
+    "Secret detection flags exposed credentials in review comments before merge; enable under Copilot, then Code review settings.",
+    "Copilot code review for Azure DevOps is now generally available, billed in GitHub AI credits to your linked Azure subscription."
+   ]
+  },
+  {
+   "date": "2026-11-17",
+   "published": "2026-11-17T18:35:00+00:00",
+   "title": "Simplifying multicloud networking to Azure with partner Cross-Cloud Interconnect",
+   "url": "https://cloud.google.com/blog/products/networking/cross-cloud-interconnect-for-microsoft-azure/",
+   "publisher": "Google Cloud Blog",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Google Cloud extends its partner Cross-Cloud Interconnect to Microsoft Azure in preview, offering private multicloud network connections without ordering separate physical links.",
+   "relevance": 6,
+   "added": "2026-11-17T19:18:17+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Google Cloud and Microsoft have launched Partner Cross-Cloud Interconnect for Microsoft Azure in preview, linking Google Cloud and Azure privately.",
+    "Enterprises running workloads across both clouds can set up the high-bandwidth connection programmatically in minutes, with no physical infrastructure to manage.",
+    "Preview is available in us-east4, us-west2, and europe-west3; set it up from the Google Cloud console or API, or contact your Google Cloud account team."
    ]
   },
   {
@@ -4221,7 +4283,7 @@
    }
   ]
  },
- "generated_at": "2026-11-17T18:18:37+00:00",
+ "generated_at": "2026-11-17T19:18:32+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
