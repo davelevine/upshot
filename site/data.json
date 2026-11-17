@@ -153,6 +153,42 @@
   },
   {
    "date": "2026-11-16",
+   "published": "2026-11-16T16:53:39+00:00",
+   "title": "Jiff 1.0: A datetime library for Rust",
+   "url": "https://burntsushi.net/jiff/",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Jiff 1.0, a datetime library for Rust by BurntSushi, has been released.",
+   "relevance": 6,
+   "added": "2026-11-17T01:18:10+00:00",
+   "minutes": 54,
+   "tldr": [
+    "Jiff 1.0 is released: a Rust datetime library that automatically handles many common daylight saving time problems.",
+    "Projects including uv, Cargo, Starship, fd, Nushell and mise already use it, and the author plans to commit to 1.0 indefinitely.",
+    "If upgrading from Jiff 0.2, consult the CHANGELOG for breaking changes before moving to 1.0."
+   ]
+  },
+  {
+   "date": "2026-11-16",
+   "published": "2026-11-16T18:35:00+00:00",
+   "title": "Scheduling the removal of the kube-proxy IPVS backend",
+   "url": "https://kubernetes.io/blog/2026/11/16/ipvs-removal/",
+   "publisher": "Kubernetes",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Kubernetes plans to remove the kube-proxy IPVS backend, citing poor fit with the Services API and edge-case bugs; nftables is the replacement.",
+   "relevance": 6,
+   "added": "2026-11-17T01:18:10+00:00",
+   "minutes": 7,
+   "tldr": [
+    "Kubernetes SIG Network has deprecated the kube-proxy ipvs backend as of Kubernetes 1.35 and plans to remove it in 1.40.",
+    "ipvs users should migrate to the nftables backend, which became GA in 1.33, or to the iptables backend.",
+    "If nftables is unavailable, iptables is an option; reboot each node after changing its kube-proxy configuration, not just restart kube-proxy."
+   ]
+  },
+  {
+   "date": "2026-11-16",
    "published": "2026-11-16T12:53:18+00:00",
    "title": "Microsoft: Windows Server 2016 reaches end of support in 60 days",
    "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-windows-server-2016-reaches-end-of-support-in-60-days/",
@@ -3906,7 +3942,7 @@
    }
   ]
  },
- "generated_at": "2026-11-17T00:18:13+00:00",
+ "generated_at": "2026-11-17T01:18:20+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
