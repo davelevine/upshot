@@ -32,6 +32,24 @@
   },
   {
    "date": "2026-11-17",
+   "published": "2026-11-17T07:02:53+00:00",
+   "title": "pnpm Introduces New Lockfile Format to Reduce Git Merge Conflicts",
+   "url": "https://socket.dev/blog/pnpm-introduces-new-lockfile-format",
+   "publisher": "Socket",
+   "cves": [],
+   "category": "engineering",
+   "summary": "pnpm has introduced an experimental lockfile format that changes how dependencies are recorded, aiming to reduce Git merge conflicts.",
+   "relevance": 6,
+   "added": "2026-11-17T11:18:04+00:00",
+   "minutes": 2,
+   "tldr": [
+    "pnpm 12.19.0 adds an experimental v13 lockfile format that reduces Git merge conflicts in pnpm-lock.yaml and previews changes planned for pnpm 13.",
+    "Lockfile-reading tools such as security scanners, SCA platforms and SBOM generators may break, since v13 merges packages and snapshots and moves integrity hashes.",
+    "The format is opt-in through pnpm-workspace.yaml, and the default stays v9. Older pnpm versions cannot read v13 lockfiles, and the format may change before pnpm 13."
+   ]
+  },
+  {
+   "date": "2026-11-17",
    "published": "2026-11-17T09:00:00+00:00",
    "title": "Ten Years On, Google Updates the SRE Book for the AI Era",
    "url": "https://www.infoq.com/news/2026/11/google-sre-book-ai-era/",
@@ -4043,7 +4061,7 @@
    }
   ]
  },
- "generated_at": "2026-11-17T10:18:27+00:00",
+ "generated_at": "2026-11-17T11:18:12+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
