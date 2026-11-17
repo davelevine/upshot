@@ -214,7 +214,6 @@ function swapTheme(t) {
   const swap = () => {
     root.classList.add('theme-switching');
     root.dataset.theme = t;
-    if (fontsReady) loadFrameFonts(t);
     getComputedStyle(root).color;  // commit the new colors before transitions come back
     root.classList.remove('theme-switching');
     syncThemeColor();
@@ -946,28 +945,23 @@ addEventListener('keydown', e => {  // keys pressed while the article has focus 
   if (['escape', 'j', 'k', 'm', 's', 'arrowleft', 'arrowright', '?', '/'].includes(k) || (!mod && (['v', 'g', 'e', 'l', 'a'].includes(k) || (e.shiftKey && (k === 'c' || k === 'f'))))) { e.preventDefault(); parent.postMessage({ tw: 'key', key: k, mod: mod, shift: e.shiftKey }, '*'); }
 });`;
 
-// The article frame's fonts: Mercury Text for the article and Mercury Display, its headline cut, for the title; Söhne for
-// the rest (the upshot, the date line), as on the page. Mercury Text comes in grades, darker or lighter at identical widths:
-// G2 for the light theme, the lighter G1 for the dark, where light text reads heavier. All three are licensed, so they
-// aren't in site/; the Worker serves them from R2 (worker.js). A sandboxed frame has an opaque origin,
-// which the browser caches apart every time, so a font loaded there by URL was downloaded afresh for every frame (two
-// per article) and flashed the fallback meanwhile. The page fetches each once instead, cached as usual, and hands it to
-// every frame inline. Until one arrives, a frame loads it by URL as before.
-const MERCURY = [['Roman', 400, 'normal'], ['Italic', 400, 'italic'], ['Semibold', 600, 'normal'], ['SemiboldItalic', 600, 'italic'], ['Bold', 700, 'normal'], ['BoldItalic', 700, 'italic']];
-const MERCURY_FACES = ['G1', 'G2'].flatMap(g => MERCURY.map(([style, weight, slant]) => ({ key: g + style, url: `/fonts/licensed/Mercury-Text${g}${style}`, family: `Mercury Text ${g}`, weight, slant })));
+// The article frame's fonts: Domaine Text for the article and Domaine Display, its headline cut, for the title; Söhne for
+// the rest (the upshot, the date line), as on the page. All three are licensed, so they aren't in site/; the Worker
+// serves them from R2 (worker.js). A sandboxed frame has an opaque origin, which the browser caches apart every time, so
+// a font loaded there by URL would download afresh for every frame (two per article) and flash the fallback meanwhile.
+// The page fetches each once instead, cached as usual, and hands it to every frame inline. Until one arrives, a frame
+// loads it by URL. Domaine Text has no 500 or 600: the flag line's 600 resolves to Bold, the mitigation's 500 to Regular.
+const DOMAINE = [['Regular', 400, 'normal'], ['Italic', 400, 'italic'], ['Bold', 700, 'normal'], ['BoldItalic', 700, 'italic']];
 const SOHNE = [['Buch', '100 549'], ['Kraftig', '550 649'], ['Halbfett', '650 900']];  // as on the page (index.html)
-const FRAME_FONTS = { display: '/fonts/licensed/Mercury-DisplaySemibold', ...Object.fromEntries(SOHNE.map(([n]) => ['sohne' + n, `/fonts/licensed/Sohne-${n}`])), ...Object.fromEntries(MERCURY_FACES.map(f => [f.key, f.url])) };
+const FRAME_FONTS = { display: '/fonts/licensed/Domaine-DisplayMedium', ...Object.fromEntries(SOHNE.map(([n]) => ['sohne' + n, `/fonts/licensed/Sohne-${n}`])), ...Object.fromEntries(DOMAINE.map(([n]) => ['text' + n, `/fonts/licensed/Domaine-Text${n}`])) };
 const frameFonts = {};
 // Fetched when the first story opens, not with the page: a visit that opens nothing never downloads them. That story's
 // frame waits for them (briefly; then it loads them by URL), so it doesn't draw in a fallback first.
 let fontsReady = null, fontsDone = false;
 const frameFontsReady = () => (fontsReady ||= Promise.race([loadFrameFonts(), new Promise(done => setTimeout(done, 1500))]).then(() => { fontsDone = true; }));
 const frameFont = k => frameFonts[k] || location.origin + FRAME_FONTS[k];
-// Only the theme's grade: the other is fetched if the theme changes (swapTheme). Until then, a frame loads a face by URL.
-const GRADE = { light: 'G2', dark: 'G1' };
-function loadFrameFonts(theme = document.documentElement.dataset.theme) {
-  const other = GRADE[theme] === 'G1' ? 'G2' : 'G1';
-  return Promise.all(Object.entries(FRAME_FONTS).filter(([k]) => !k.startsWith(other) && !frameFonts[k]).map(([k, url]) =>
+function loadFrameFonts() {
+  return Promise.all(Object.entries(FRAME_FONTS).map(([k, url]) =>
     // Without credentials, as the page's preload of Söhne asks, so the preloaded copy is reused rather than fetched again.
     fetch(url, { credentials: 'omit' }).then(r => (r.ok ? r.blob() : Promise.reject())).then(b => new Promise(done => {
       const read = new FileReader();
@@ -1015,19 +1009,18 @@ function articleDoc(i, html, nonce, why, minutes, byline) {
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${location.origin} data:; img-src https: data:; media-src https:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'">
 <base target="_blank"><style>
 :root { ${frameVars('light')} } :root[data-theme="dark"] { ${frameVars('dark')} }
-:root { --serif: "Mercury Text G2", "Iowan Old Style", Charter, Georgia, serif; }
+:root { --serif: "Domaine Text", "Iowan Old Style", Charter, Georgia, serif; }
 body { margin: 0; background: var(--bg); color: var(--text); font: 1.125rem/1.65 var(--serif); overflow-wrap: break-word; }
 main { --pad: 24px; box-sizing: border-box; max-width: calc(35.5em + 2 * var(--pad)); margin: 0 auto; padding: 32px var(--pad) 96px; }  /* em, not px: about 70 characters a line at every text size (640px at the default) */
 .glide main { transition: max-width .3s ease, padding .3s ease; }  /* a change of text size or fluid width glides, as Feedbin's; a resize (full screen, the columns) doesn't, or the padding that changes at 600px would slide the story into place */
 a { color: var(--accent); }
-h1 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 0 -.1em .4em; padding: 0 .1em; font-size: clamp(1.4rem, 1rem + 2vw, 1.75rem); font-weight: 600; line-height: 1.25; }  /* the clamp's overflow clips: 1.25, not 1.2, leaves room for Mercury Display's descenders (g, p, y reach 0.235em below the baseline; 1.2 left 0.233em), and the side padding, canceled by the margin, for a line-initial f, whose tip reaches left of its box */
+h1 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 0 -.1em .4em; padding: 0 .1em; font-size: clamp(1.4rem, 1rem + 2vw, 1.75rem); font-weight: 600; line-height: 1.25; }  /* the clamp's overflow clips, so Domaine Display's ascent-override (below) keeps g, p and y inside the line; the side padding, canceled by the margin, is for a line-initial f, whose tip reaches left of its box */
 h1 a { color: inherit; text-decoration: none; } h1 a:hover { text-decoration: underline; text-decoration-thickness: 2px; }
 ${SOHNE.map(([n, w]) => `@font-face { font-family: Sohne; src: url("${frameFont('sohne' + n)}") format("woff2"); font-weight: ${w}; size-adjust: 108%; font-display: swap; }`).join('\n')}
-@font-face { font-family: "Mercury Display"; src: url("${frameFont('display')}") format("woff2"); font-weight: 600; size-adjust: 113%; font-display: swap; }
-${MERCURY_FACES.map(f => `@font-face { font-family: "${f.family}"; src: url("${frameFont(f.key)}") format("woff2"); font-weight: ${f.weight}; font-style: ${f.slant}; size-adjust: 113%; font-display: swap; }`).join('\n')}
-:root[data-theme="dark"] { --serif: "Mercury Text G1", "Iowan Old Style", Charter, Georgia, serif; }  /* the lighter grade: light text on dark reads heavier; widths match, so no reflow */
-h1 { font-family: "Mercury Display", var(--serif); }  /* Mercury's headline cut, finer than Text at this size; it has no grades, so both themes share it, falling back to the theme's own grade */
-[data-size="0"] body { font-size: 1.0625rem; } [data-size="2"] body { font-size: 1.25rem; } [data-size="3"] body { font-size: 1.375rem; }  /* a step up for a small x-height: Mercury's is 0.448 of the em, which size-adjust: 113% above brings to 0.506 */
+@font-face { font-family: "Domaine Display"; src: url("${frameFont('display')}") format("woff2"); font-weight: 600; size-adjust: 104%; ascent-override: 97%; font-display: swap; }  /* the Medium, declared 600 for the h1: Domaine's Semibold sets heavier than the rest of the site. Its own ascent (1.08em) drops the baseline so low in a 1.25 line that the clamp clips g's tail; 97% leaves room for both g (0.233em down) and Å (0.948em up) */
+${DOMAINE.map(([n, w, slant]) => `@font-face { font-family: "Domaine Text"; src: url("${frameFont('text' + n)}") format("woff2"); font-weight: ${w}; font-style: ${slant}; size-adjust: 104%; font-display: swap; }`).join('\n')}
+h1 { font-family: "Domaine Display", var(--serif); }  /* Domaine's headline cut, finer than Text at this size */
+[data-size="0"] body { font-size: 1.0625rem; } [data-size="2"] body { font-size: 1.25rem; } [data-size="3"] body { font-size: 1.375rem; }  /* sized for an x-height of about half the em: Domaine Text's is 0.486, which size-adjust: 104% above brings to 0.505 */
 .meta { margin-bottom: 1.8em; color: var(--text-muted); font: 370 .88em/1.45 Sohne, system-ui, sans-serif; }  /* em: follows the text size */
 .todo { margin: 0 0 1.8em; padding: 12px 16px; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; background: var(--bg-card); }
 .tldr ul { margin: .35em 0 0; padding-left: 1.15em; font: 370 .94em/1.5 Sohne, system-ui, sans-serif; } .tldr li + li { margin-top: .45em; }  /* sans: scanned, not read */

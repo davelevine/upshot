@@ -30,7 +30,7 @@ Sync's session cookie is `Secure`, which browsers waive only for `localhost`. To
 **Fonts.** `wrangler dev` uses an empty local copy of the R2 bucket, so the site shows system fonts. If you have the licensed fonts, load them once:
 
 ```bash
-for f in /path/to/fonts/{Sohne,Mercury}-*.woff2; do npx wrangler r2 object put "upshot-fonts/$(basename "$f")" --file "$f" --content-type font/woff2 --local; done
+for f in /path/to/fonts/{Sohne,Domaine}-*.woff2; do npx wrangler r2 object put "upshot-fonts/$(basename "$f")" --file "$f" --content-type font/woff2 --local; done
 ```
 
 They stay in `.wrangler/state`. A server started with its own `--persist-to` needs the same step with that flag.
