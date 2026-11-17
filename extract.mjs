@@ -274,10 +274,23 @@ export function tidy(article, url = '') {
   return { content: root.innerHTML, text, loss, skipped: false };
 }
 
+// A feed entry long enough to pass for the article (build.py, feed_articles) that still ends the way a cut-off excerpt
+// does: an ellipsis or a link onward. WordPress's "The post … appeared first on …" line follows both, so it's set aside.
+export function looksCut(html) {
+  const tail = allText(html).slice(-600).replace(/\s*The post .{1,300} appeared first on .{1,120}$/i, '').trim();
+  return /(…|\.\.\.|\[…\]|\[\.\.\.\])$/.test(tail) || /\b(read more|continue reading|keep reading|read the (full|rest|whole)\b[^.!?]*)\W*$/i.test(tail);
+}
+const fromFeed = (item, body) => {
+  const tidied = tidy({ content: body, title: item.title }, item.url);
+  return { url: item.url, reason: 'ok', source: 'feed', ...(tidied.skipped && { tidy: 'skipped' }), content: clean(tidied.content, item.url) };
+};
+
 // What the reader gets for one story: its article, or the reason there isn't one. `body`: the whole article from its
-// feed (build.py, feed_articles), the fallback when the page can't be read.
+// feed (build.py, feed_articles). The feed's text comes first: it's what the publisher chose to send, and it costs the
+// site no request. The page is read when the feed has only an excerpt, or an entry that looks cut off.
 export async function readArticle(item, body) {
   const { url } = item;
+  if (body && !looksCut(body)) return fromFeed(item, body);
   const result = { url, reason: 'error' };
   try {
     const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'text/html,application/xhtml+xml' }, signal: AbortSignal.timeout(PAGE_TIMEOUT) });
@@ -296,9 +309,7 @@ export async function readArticle(item, body) {
   } catch (e) {
     result.reason = e?.name === 'TimeoutError' || e?.name === 'AbortError' ? 'timeout' : 'error';
   }
-  if (!body) return result;
-  const tidied = tidy({ content: body, title: item.title }, url);
-  return { url, reason: 'ok', source: 'feed', ...(tidied.skipped && { tidy: 'skipped' }), content: clean(tidied.content, url) };
+  return body ? fromFeed(item, body) : result;  // a page that can't be read: even a cut-off entry beats a link
 }
 
 export function kvClient({ CF_API_TOKEN, CF_ACCOUNT_ID, CF_KV_NAMESPACE_ID }) {
@@ -335,10 +346,11 @@ export function kvClient({ CF_API_TOKEN, CF_ACCOUNT_ID, CF_KV_NAMESPACE_ID }) {
   };
 }
 
-// An article's text, plain, for the build to summarize.
-export const plainText = html => (parseHTML(`<!doctype html><html><body>${html
+// An article's text, plain: all of it, and capped for the build to summarize.
+const allText = html => (parseHTML(`<!doctype html><html><body>${html
   .replace(/<\/(p|div|li|h[1-6]|tr|td|th|pre|blockquote|figcaption|section|ul|ol|dd|dt)>/gi, '$& ').replace(/<br\s*\/?>/gi, ' ')}</body></html>`).document.body.textContent || '')
-  .replace(/\s+/g, ' ').trim().slice(0, MAX_TEXT);
+  .replace(/\s+/g, ' ').trim();
+export const plainText = html => allText(html).slice(0, MAX_TEXT);
 
 // Stores what's new or was blocked last time, and reports every story's word count. 0 means blocked; no entry means try again.
 export async function run({ items, feeds = {}, textFor = [] }, kv) {

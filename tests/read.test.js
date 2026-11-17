@@ -62,10 +62,25 @@ test('readArticle gives a reason for every outcome', async () => {
 
 const wholeArticle = `<script>x()</script><p>${words(400)}</p>`;
 
-test('readArticle falls back to a whole-article feed, cleaned the same way', async () => {
-  const r = await read({ 'https://x.test/a': page(403, {}, 'blocked') }, wholeArticle);
+test('readArticle takes a whole-article feed first, cleaned the same way, without fetching the page', async () => {
+  const r = await read({ 'https://x.test/a': new Error('the page was fetched') }, wholeArticle);
   assert.equal(r.reason, 'ok'); assert.equal(r.source, 'feed');
   assert.doesNotMatch(r.content, /script/);
+  // Longer than the text handed to the build: the check reads the real ending, not where that cap falls.
+  assert.equal((await read({}, `<p>${words(9000)}</p><p>The end.</p>`)).source, 'feed');
+  // WordPress follows every post with its own line, which says nothing about whether the post was cut.
+  assert.equal((await read({}, `<p>${words(400)}</p><p>The post T appeared first on Site.</p>`)).source, 'feed');
+});
+
+test('readArticle reads the page when a long feed entry looks cut off, and falls back to the entry if it must', async () => {
+  for (const end of ['…', '[…]', '[...]', 'and so on...', '<a href="/a">Read more</a>', 'Continue reading →', 'Read the full report on our site.',
+    '[…]</p><p>The post T appeared first on Site.']) {
+    const cut = `<p>${words(400)} ${end}</p>`;
+    const r = await read({ 'https://x.test/a': page(200, {}, article) }, cut);
+    assert.equal(r.source, undefined, end);  // the page's article
+    assert.match(r.content, /A proper sentence/, end);
+    assert.equal((await read({ 'https://x.test/a': page(403, {}, 'blocked') }, cut)).source, 'feed', end);  // blocked: the entry beats a link
+  }
 });
 
 function fakeKv(initial = []) {
