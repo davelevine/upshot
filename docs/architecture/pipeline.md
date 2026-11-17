@@ -10,9 +10,9 @@ The pipeline is everything the hourly build does to turn the feeds into the hand
 4. **Keep the notable ones.** A story is published if it clears its category's bar (`MIN_RELEVANCE` in [Configuration](../setup/configuration.md)) and isn't a repeat. There are no quotas, so a big security day shows as one and a slow day stays short. A 20-story daily cap exists only to catch a malfunction. Nothing published is taken down.
 5. **Drop repeats.** The model flags a story already on the site from the past week, such as the same launch from another outlet. The code checks the claim, so one copy always survives.
 6. **Flag exploited flaws.** See below.
-7. **Pick the essentials.** Once a day, the model chooses the week's five essentials.
+7. **Pick the essentials.** Once a day, the model ranks the week's most important stories, and the top five become the essentials, no more than three from one topic. Each gets a line on what to do. For an exploited flaw the model is told its remedy, and a line that says to patch a flaw with no patch is replaced with one that fits it.
 8. **Extract.** [`extract.mjs`](../../extract.mjs) stores each new story's text in Cloudflare KV for the reader, described in [The site](site.md).
-9. **Publish.** The build writes [`site/data.json`](../../site/data.json) and [`site/rss.xml`](../../site/rss.xml), records seen URLs in `state.json`, and commits. Cloudflare deploys the push.
+9. **Publish.** The build writes [`site/data.json`](../../site/data.json) and [`site/rss.xml`](../../site/rss.xml), records seen URLs in `state.json`, and commits. An RSS item carries the summary, the upshot and, for an essential, what to do. Cloudflare deploys the push.
 
 Anything older than 90 days is pruned.
 

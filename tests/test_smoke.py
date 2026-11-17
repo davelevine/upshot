@@ -552,13 +552,18 @@ def test_articles_are_set_in_mercury_by_theme_without_downloading_fonts_each_tim
         pg.on("response", lambda r: fonts.append(r.url.rsplit("/", 1)[-1]) if "/fonts/" in r.url else None)
         pg.goto(URL)
         enter_list(pg)
-        pg.wait_for_function("() => Object.keys(frameFonts).length === Object.keys(FRAME_FONTS).length")  # every face, fetched once, after the list
-        assert {f"Mercury-Text{g}{s}" for g in ("G1", "G2") for s in ("Roman", "Italic", "Bold")} <= set(fonts)
-        before = len(fonts)
+        other = "G1" if grade == "G2" else "G2"
+        pg.wait_for_timeout(1500)  # past the page's idle time
+        assert not [f for f in fonts if f.startswith("Mercury")], "no Mercury until a story opens"
+        before = None
         for n in (0, 1, 0):  # including one opened again
             pg.evaluate("n => openReader(items[n])", n)
             frame = pg.frame_locator("#reader-body iframe:not(.loading)")
             frame.locator("p").nth(29).wait_for()
+            if before is None:  # the first story fetches this theme's grade
+                assert {f"Mercury-Text{grade}{s}" for s in ("Roman", "Italic", "Bold")} <= set(fonts)
+                assert not [f for f in fonts if f.startswith(f"Mercury-Text{other}")]  # the other grade waits for that theme
+                before = len(fonts)
             faces = frame.locator("body").evaluate("() => document.fonts.ready.then(() => [...document.fonts].filter(f => f.status === 'loaded').map(f => f.family.replace(/\"/g, '')))")
             assert f"Mercury Text {grade}" in faces and "Sohne" in faces  # the article in Mercury, the upshot and date line in Söhne
             assert {f for f in faces if f.startswith("Mercury")} == {f"Mercury Text {grade}", "Mercury Display"}  # this theme's grade, and the headline cut
@@ -567,6 +572,9 @@ def test_articles_are_set_in_mercury_by_theme_without_downloading_fonts_each_tim
             assert frame.locator("main p").nth(3).evaluate("e => getComputedStyle(e).fontFamily").startswith(f'"Mercury Text {grade}"')
         # A sandboxed frame caches apart every time, so fonts loaded there by URL came down again for every article.
         assert fonts[before:] == []
+        pg.evaluate(f"pickTheme('{'dark' if theme == 'light' else 'light'}')")  # a switch fetches the other grade, once
+        pg.wait_for_function("() => Object.keys(frameFonts).length === Object.keys(FRAME_FONTS).length")
+        assert {f"Mercury-Text{other}{s}" for s in ("Roman", "Italic", "Bold")} <= set(fonts[before:])
         ctx.close()
 
 
@@ -862,6 +870,29 @@ def test_the_format_menu_picks_light_dark_or_the_systems_theme(browser):
     assert pg.problems == []
 
 
+def test_the_list_showing_is_in_the_address(browser):
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    pg.click("#filters .filter-btn[data-f='security']")
+    assert pg.evaluate("location.search") == "?topic=security"
+    pg.evaluate("openReader(shown[0])")
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    assert pg.evaluate("location.pathname.startsWith('/read/') && location.search === '?topic=security'")
+    pg.reload()
+    pg.wait_for_selector("#items a.card")
+    assert pg.evaluate("filter") == "security" and pg.locator("#filters .filter-btn[data-f='security']").get_attribute("aria-pressed") == "true"
+    pg.click("#filters .filter-btn[data-f='all']")
+    assert pg.evaluate("location.search") == ""
+    pg.goto(URL + "?topic=nonsense")
+    pg.wait_for_selector("#items a.card")
+    assert pg.evaluate("filter") == "all" and pg.evaluate("location.search") == ""
+    # A phone opens a list from its address in place of the topics, and the topics page drops it.
+    ph = open_site(browser, url=URL + "?topic=essentials", viewport={"width": 390, "height": 844})
+    assert ph.evaluate("filter") == "essentials" and not ph.evaluate("document.body.classList.contains('home')")
+    ph.click("#list-back")
+    assert ph.evaluate("document.body.classList.contains('home') && location.search === ''")
+    assert pg.problems == [] and ph.problems == []
+
+
 def test_hide_read_stories_from_the_menu(browser):
     """Hide read stories is a switch in the menu. A story read while the list shows stays until the list is drawn afresh;
     the list's end says read stories are hidden, with a way to show them; Read later ignores it; it survives a reload."""
@@ -902,7 +933,7 @@ def test_hide_read_stories_from_the_menu(browser):
     wait_until_closed(pg)
     pg.click("#filters .filter-btn[data-f='later']")
     assert pg.locator(f'#items a.card[href="{urls[0]}"]').count() == 1 and note.is_hidden(), "Read later lists saved stories, read or not"
-    pg.reload()
+    pg.goto(URL)  # the bare address: All, not the Read later list in the address now
     enter_list(pg)
     assert pg.evaluate("hideRead") and pg.locator(f'#items a.card[href="{urls[0]}"]').count() == 0, "kept across a reload"
     pg.evaluate("markAllRead(shown)")

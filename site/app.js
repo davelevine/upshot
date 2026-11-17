@@ -121,6 +121,13 @@ function renderFilters() {
   $('list-name').textContent = label(filter);  // phones: the list's name above it, so a filter never makes stories look missing
   syncReadAll();
   document.title = filter === 'all' ? 'Upshot \u00b7 The week\u2019s tech news, minus the noise' : `${label(filter)} \u00b7 Upshot`;
+  syncTopicUrl();
+}
+// The list showing is in the address (/?topic=security), so it can be bookmarked and reloaded into. A phone's topics page
+// shows no list, so its address has none.
+function syncTopicUrl() {
+  const search = filter === 'all' || (phone.matches && document.body.classList.contains('home')) ? '' : '?topic=' + filter;
+  if (search !== location.search) history.replaceState(history.state, '', location.pathname + search + location.hash);
 }
 
 // Hide read stories, a switch in the menu kept on this device, as mail apps and NetNewsWire have it. A story read while the
@@ -207,6 +214,7 @@ function swapTheme(t) {
   const swap = () => {
     root.classList.add('theme-switching');
     root.dataset.theme = t;
+    if (fontsReady) loadFrameFonts(t);
     getComputedStyle(root).color;  // commit the new colors before transitions come back
     root.classList.remove('theme-switching');
     syncThemeColor();
@@ -255,6 +263,7 @@ function syncHome() {
   document.querySelector('.logo-h').inert = phone.matches && !home;
   syncTicker();
   if (st?.f && st.f !== filter && exists(st.f)) { filter = st.f; renderFilters(); renderItems(); }
+  syncTopicUrl();
 }
 let lastList = null;  // the list a swipe left on the topics goes back into (the filter is still set to it)
 const setPd = v => (v == null ? document.documentElement.style.removeProperty('--pd') : document.documentElement.style.setProperty('--pd', v));
@@ -856,6 +865,10 @@ function load() {
     icons = new Set(data.icons || []);
     iconArt = data.iconArt || {};
     pruneRead();
+    if (!refresh) {  // a list named in the address: opened in place of the topics, on a phone too
+      const t = new URLSearchParams(location.search).get('topic');
+      if (t && Object.hasOwn({ all: 1, essentials: 1, exploited: 1, later: 1, ...CATS }, t)) { filter = t; if (!history.state) history.replaceState({ list: true, f: t }, ''); }
+    }
     setPicks(data.weekly);
     renderFilters();
     renderItems(refresh);
@@ -864,7 +877,6 @@ function load() {
       syncFromUrl(); syncHome(); showList(false);  // opens on the stories
       requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('paging')));
       if (passDue()) { if (document.hidden) tickOnShow = true; else playTicker(); }  // opened, not just refreshed: one pass
-      (window.requestIdleCallback || (f => setTimeout(f, 1000)))(loadFrameFonts);  // ahead of the first article
     }
     (window.requestIdleCallback || (f => setTimeout(f, 1000)))(prefetchArticles);  // the new top stories, after a refresh too
   });
@@ -946,16 +958,22 @@ const MERCURY_FACES = ['G1', 'G2'].flatMap(g => MERCURY.map(([style, weight, sla
 const SOHNE = [['Buch', '100 549'], ['Kraftig', '550 649'], ['Halbfett', '650 900']];  // as on the page (index.html)
 const FRAME_FONTS = { display: '/fonts/licensed/Mercury-DisplaySemibold', ...Object.fromEntries(SOHNE.map(([n]) => ['sohne' + n, `/fonts/licensed/Sohne-${n}`])), ...Object.fromEntries(MERCURY_FACES.map(f => [f.key, f.url])) };
 const frameFonts = {};
+// Fetched when the first story opens, not with the page: a visit that opens nothing never downloads them. That story's
+// frame waits for them (briefly; then it loads them by URL), so it doesn't draw in a fallback first.
+let fontsReady = null, fontsDone = false;
+const frameFontsReady = () => (fontsReady ||= Promise.race([loadFrameFonts(), new Promise(done => setTimeout(done, 1500))]).then(() => { fontsDone = true; }));
 const frameFont = k => frameFonts[k] || location.origin + FRAME_FONTS[k];
-function loadFrameFonts() {
-  for (const [k, url] of Object.entries(FRAME_FONTS)) {
+// Only the theme's grade: the other is fetched if the theme changes (swapTheme). Until then, a frame loads a face by URL.
+const GRADE = { light: 'G2', dark: 'G1' };
+function loadFrameFonts(theme = document.documentElement.dataset.theme) {
+  const other = GRADE[theme] === 'G1' ? 'G2' : 'G1';
+  return Promise.all(Object.entries(FRAME_FONTS).filter(([k]) => !k.startsWith(other) && !frameFonts[k]).map(([k, url]) =>
     // Without credentials, as the page's preload of Söhne asks, so the preloaded copy is reused rather than fetched again.
     fetch(url, { credentials: 'omit' }).then(r => (r.ok ? r.blob() : Promise.reject())).then(b => new Promise(done => {
       const read = new FileReader();
       read.onload = () => { frameFonts[k] = read.result; done(); };
       read.readAsDataURL(b);
-    })).catch(() => {});  // the URL still works
-  }
+    })).catch(() => {})));  // the URL still works
 }
 // The article frame can't see the page's CSS variables, so it gets both palettes, read from the page's own
 // tokens, and the relay flips data-theme on it when the theme changes.
@@ -1042,6 +1060,7 @@ const storyCard = (i, status, loading) => `<div${loading ? ' class="late"' : ''}
 <a class="pill" href="${esc(i.url)}" target="_blank" rel="noopener">Read it on ${esc(domain(i.url))}</a></div>`;
 // Scripts run only by nonce (the swipe reporter); without allow-same-origin the frame can't touch this page.
 function showInReader(i, html, why, minutes, byline) {
+  if (!fontsDone) return void frameFontsReady().then(() => { if (readerFor === i.url) showInReader(i, html, why, minutes, byline); });
   const frame = document.createElement('iframe');
   frame.sandbox = 'allow-scripts allow-popups allow-popups-to-escape-sandbox';
   frame.title = i.title;
@@ -1130,8 +1149,8 @@ function openReader(i, { fromHash = false } = {}) {
   if (docked.matches) cardFor(i.url)?.scrollIntoView({ block: 'nearest' });
   // pushed: this entry sits on top of the feed, so closing goes back. Opened from a link, it doesn't, or it would leave
   // the site. Kept in the entry, so it survives back and forward.
-  if (fresh && !fromHash) history.pushState({ reader: true, pushed: true }, '', readPath(i.url));
-  else history.replaceState({ ...history.state, reader: true }, '', readPath(i.url));
+  if (fresh && !fromHash) history.pushState({ reader: true, pushed: true }, '', readPath(i.url) + location.search);
+  else history.replaceState({ ...history.state, reader: true }, '', readPath(i.url) + location.search);
   if (fresh && !docked.matches) (lastInput === 'key' ? $('reader-close') : $('reader')).focus({ preventScroll: true });  // no ring after a tap; docked, focus stays in the list
   if (articles.has(i.url)) return;  // read once already this visit: articles don't change once stored
   let unreadable = 'The reader view isn\u2019t available right now.';

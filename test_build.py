@@ -623,3 +623,33 @@ def test_rss_titles_carry_the_label():
                      {**base, "url": "c", "exploited": {"kind": "compromise"}}, {**base, "url": "d"}])
     titles = [t.text for t in ET.fromstring(out).iter("title")][1:]
     assert titles == ["Exploited: T", "Exploited, no patch yet: T", "Compromised: T", "T"]
+
+
+def test_essentials_take_at_most_three_per_topic_in_the_models_order(monkeypatch):
+    week = [{"url": f"https://x.test/{n}", "title": f"T{n}", "publisher": "P", "summary": "S", "date": "2026-11-17",
+             "category": "security" if n < 5 else "ai"} for n in range(7)]
+    monkeypatch.setattr(build, "llm", lambda system, user, schema: [{"id": n, "why": "w"} for n in (0, 1, 1, 2, 3, 4, 5, 6, 99)])
+    got = [p["url"].rsplit("/", 1)[1] for p in build.pick_weekly(week, date(2026, 11, 17))["items"]]
+    assert got == ["0", "1", "2", "5", "6"]  # a repeat and an unknown id skipped, the 4th and 5th security picks passed over
+
+
+def test_what_to_do_never_says_patch_for_a_flaw_without_one(monkeypatch):
+    flaw = lambda fix: {"url": f"https://x.test/{fix}", "title": "T", "publisher": "P", "summary": "S", "date": "2026-11-17",
+                        "category": "security", "exploited": {"kind": "flaw", "fix": fix}}
+    week = [flaw("mitigation"), flaw("none"), flaw("patch")]
+    sent = {}
+    monkeypatch.setattr(build, "llm", lambda system, user, schema: sent.update(p=json.loads(user)) or
+                        [{"id": n, "why": "Patch N-central now; exploitation began within hours."} for n in range(3)])
+    got = [p["why"] for p in build.pick_weekly(week, date(2026, 11, 17))["items"]]
+    assert [p.get("remedy") for p in sent["p"]] == ["mitigation only", "no patch yet", "patch"]
+    assert got == [build.NO_PATCH_WHY["mitigation"], build.NO_PATCH_WHY["none"], "Patch N-central now; exploitation began within hours."]
+    assert build.checked_why("Apply the vendor's mitigation until a patch ships.", "mitigation").startswith("Apply")
+    assert build.checked_why("Apply the hotfix today.", "none") == build.NO_PATCH_WHY["none"]
+
+
+def test_rss_items_carry_the_upshot_and_what_to_do():
+    item = {"date": "2026-11-05", "title": "T", "url": "https://x.test/a", "summary": "S & s", "category": "ai", "tldr": ["One <b>", "Two"]}
+    xml = build.rss([item, {**item, "url": "https://x.test/b", "tldr": []}], {"items": [{"url": "https://x.test/a", "why": "Do it."}]})
+    a, b = (e.find("description").text for e in ET.fromstring(xml).iter("item"))
+    assert a == "<p>S &amp; s</p><ul><li>One &lt;b&gt;</li><li>Two</li></ul><p><b>What to do:</b> Do it.</p>"
+    assert b == "<p>S &amp; s</p>"

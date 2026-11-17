@@ -14,7 +14,7 @@ From 641px up, the list stays live while an article is open, so `j`/`k` and clic
 
 ## Lists and labels
 
-Lists run newest first; stories of the same age keep the build's order, most relevant first. The essentials are an entry in the topics, so no story is listed twice.
+The list showing is in the address (`/?topic=security`), so it can be bookmarked or reloaded into; All and a phone's topics page have none. Lists run newest first; stories of the same age keep the build's order, most relevant first. The essentials are an entry in the topics, so no story is listed twice.
 
 A row carries at most one label, the same in every list:
 
@@ -51,6 +51,7 @@ Each build extracts new stories with Mozilla's [Readability](https://github.com/
 - **It opens with the upshot.** Two to four bullets written by the build from the article. A bullet with a figure (a CVE, version, date or count) that isn't in the article word for word is dropped.
 - **It isn't a proxy.** The Worker never fetches anything; it returns only what the build stored. A story without stored text shows its summary and a link to the original.
 - **Nothing from the source runs.** Extracted HTML is stripped of scripts, frames, styles and event handlers, then shown in a sandboxed frame. The only script inside is the site's own relay, admitted by a per-render nonce.
+- **Reader links name their story.** `/read/<slug>` serves the home page, so the Worker rewrites its title, description, canonical link and link-preview tags with the story's headline and summary. It finds the story by the same slug rules as `app.js`, and a test keeps the two in step.
 - **A strict Content-Security-Policy** in [`site/_headers`](../../site/_headers) backs this up. A test keeps its script hashes in step with the code.
 - **No login, no tracking.** What you've read stays in your browser's local storage unless you turn on [sync](sync.md).
 
@@ -58,6 +59,6 @@ Stored text expires after 100 days, shortly after a story leaves the site.
 
 ## Typography
 
-Articles are set in Mercury, the publisher's words; everything else is in Söhne, Upshot's own. Both are licensed, so they live in a private R2 bucket, `upshot-fonts`, and the Worker serves them from `/fonts/licensed/`. The page fetches each font once and hands it to the sandboxed reader frame as a `data:` URL, so articles don't download fonts again. Without the bucket, as in a fork, the site uses system fonts; [Configuration](../setup/configuration.md) covers adding them.
+Articles are set in Mercury, the publisher's words; everything else is in Söhne, Upshot's own. Both are licensed, so they live in a private R2 bucket, `upshot-fonts`, and the Worker serves them from `/fonts/licensed/`. Once the page is idle, it fetches the reader's fonts once and hands them to the sandboxed reader frame as `data:` URLs, so articles don't download fonts again. Mercury Text comes in two grades, one per theme, and only the theme's grade is fetched until the theme changes. Without the bucket, as in a fork, the site uses system fonts; [Configuration](../setup/configuration.md) covers adding them.
 
 The article column is 35.5em wide, about 70 characters a line at every text size, and stays that wide in full screen unless fluid width is on.

@@ -407,11 +407,19 @@ def find_repeats(batch, recent):
     return {batch[r["id"]]["url"]: r.get("duplicate_of") for r in res if 0 <= r["id"] < len(batch)}
 
 
-WEEKLY_PROMPT = """From this week's tech news, pick the 5 items a busy senior engineer most needs to know about.
-Prefer concrete releases, incidents and shifts over opinion. Avoid picking two items about the same story.
+WEEKLY_PICKS, WEEKLY_PER_CATEGORY = 5, 3  # a heavy week in one topic still leads, without crowding out the rest
+WEEKLY_PROMPT = """From this week's tech news, pick the 8 items a busy senior engineer most needs to know about, most
+important first. Prefer concrete releases, incidents and shifts over opinion. Avoid picking two items about the same story.
 For each give the item id and "why": what a reader should do or what the consequence is, in one sentence of at
 most 15 words. Don't restate the headline or describe the story; assume they've just read the title.
+An item with a "remedy" is an exploited flaw: "why" must fit it. Say to patch only when the remedy is "patch"; for
+"mitigation only" or "no patch yet", say what to do until a patch exists.
 Return JSON: {"picks": [{"id", "why"}, ...]}."""
+REMEDY = {"patch": "patch", "mitigation": "mitigation only", "none": "no patch yet"}
+# "What to do" when the model's line tells a reader to patch a flaw that has no patch.
+NO_PATCH_WHY = {"mitigation": "No patch yet: apply the vendor's mitigation and check for compromise.",
+                "none": "No patch yet: limit exposure to it and check for compromise."}
+SAYS_PATCH = re.compile(r"^(patch|update|upgrade|install)\b|\b(apply|install) (the |its |vendor'?s? )?(patch|update|hotfix|fix)", re.I)
 
 WEEKLY_SCHEMA = {
     "type": "object",
@@ -429,11 +437,30 @@ def pick_weekly(items, today):
     week = [i for i in items if i["date"] >= start]
     if not week:
         return None
-    payload = [{"id": n, "title": i["title"], "publisher": i["publisher"], "summary": i["summary"]}
-               for n, i in enumerate(week)]
+    payload = [{"id": n, "title": i["title"], "publisher": i["publisher"], "category": i["category"], "summary": i["summary"]}
+               | ({"remedy": REMEDY[f]} if (f := flaw_fix(i)) else {}) for n, i in enumerate(week)]
     res = llm(WEEKLY_PROMPT, json.dumps(payload), WEEKLY_SCHEMA)
-    picks = [{"url": week[p["id"]]["url"], "why": p["why"]} for p in res if 0 <= p["id"] < len(week)]
-    return {"window_start": start, "window_end": today.isoformat(), "items": picks[:5]}
+    picks, per_cat = [], {}
+    for p in res:
+        if not 0 <= p["id"] < len(week) or any(q["url"] == week[p["id"]]["url"] for q in picks):
+            continue
+        i = week[p["id"]]
+        if per_cat.get(i["category"], 0) < WEEKLY_PER_CATEGORY and len(picks) < WEEKLY_PICKS:
+            per_cat[i["category"]] = per_cat.get(i["category"], 0) + 1
+            picks.append({"url": i["url"], "why": checked_why(p["why"], flaw_fix(i))})
+    return {"window_start": start, "window_end": today.isoformat(), "items": picks}
+
+
+def flaw_fix(item):
+    """An exploited flaw's remedy ("patch", "mitigation" or "none"), else None."""
+    x = item.get("exploited") or {}
+    return x.get("fix") if x.get("kind", "flaw") == "flaw" else None
+
+
+def checked_why(why, fix):
+    """The pick's "what to do", unless it says to patch a flaw that has no patch: then a line that fits its remedy."""
+    # ponytail: a pattern for the usual wordings ("Patch X now", "Apply the hotfix"); a line it misses still shows
+    return NO_PATCH_WHY[fix] if fix in NO_PATCH_WHY and SAYS_PATCH.search(why) else why
 
 
 OG = {"w": 1200, "h": 630, "pad": 72, "bg": "#15161e", "text": "#eceff4", "muted": "#a3abbb", "accent": "#73dbcc", "dot": "#d9485a",
@@ -619,12 +646,20 @@ def rss_label(i):
     return "Exploited, no patch yet: " if x.get("fix") == "none" else "Exploited: "
 
 
-def rss(items):
+def rss_body(i, why=None):
+    """The item as the reader opens it: the summary, the upshot, and an essential's "what to do", as HTML."""
+    e = html.escape
+    return (f"<p>{e(i['summary'])}</p>" + (f"<ul>{''.join(f'<li>{e(b)}</li>' for b in i['tldr'])}</ul>" if i.get("tldr") else "")
+            + (f"<p><b>What to do:</b> {e(why)}</p>" if why else ""))
+
+
+def rss(items, weekly=None):
     def esc(s):
         return html.escape(s, quote=False)
+    why = {p["url"]: p["why"] for p in (weekly or {}).get("items", [])}
     entries = "".join(
         f"<item><title>{esc(rss_label(i) + i['title'])}</title><link>{esc(i['url'])}</link><guid>{esc(i['url'])}</guid>"
-        f"<description>{esc(i['summary'])}</description><category>{i['category']}</category>"
+        f"<description>{esc(rss_body(i, why.get(i['url'])))}</description><category>{i['category']}</category>"
         f"<pubDate>{format_datetime(published(i))}</pubDate></item>"
         for i in items[:50]
     )
@@ -1050,7 +1085,7 @@ def main():
     data["icons"] = fetch_icons({i["publisher"] for i in data["items"]} | set(SITE_LINKS))
     data["iconArt"] = {s: art for s in data["icons"] if (art := icon_art(ICONS / f"{s}.png"))}
     data_path.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n")
-    (SITE / "rss.xml").write_text(rss(data["items"]))
+    (SITE / "rss.xml").write_text(rss(data["items"], data.get("weekly")))
     write_og(data, today)
     STATE.write_text(json.dumps(state, indent=1, sort_keys=True) + "\n")
     names = {u: t for t, u in feeds}

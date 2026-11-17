@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { MAX_WRITES, classify, clean, extract, kvClient, linkShare, readArticle, run, tidy } from '../extract.mjs';
-import worker, { dispatchBuild, keyFor } from '../worker.js';
+import { readFileSync } from 'node:fs';
+import worker, { dispatchBuild, keyFor, storyFor } from '../worker.js';
 
 test('clean strips active content and makes links absolute', () => {
   const out = clean(`<p onclick="x()" style="color:red">Hi<script>alert(1)</script></p>
@@ -372,4 +373,21 @@ test('the licensed fonts come from R2, only as .woff2, and only to the site and 
   assert.equal((await as('empty')).status, 200);  // the fetch that inlines fonts into the reader frame
   const unbound = await worker.fetch(new Request('https://site.test/fonts/licensed/Mercury-TextG2Roman'), {});
   assert.equal(unbound.status, 404);  // a fork without the bucket: the reader falls back to the system serif
+});
+
+test('the Worker finds a reader link\'s story by the same slugs as app.js', () => {
+  // app.js isn't a module: its slug code is read from the source and run as written.
+  const src = readFileSync(new URL('../site/app.js', import.meta.url), 'utf8');
+  const grab = re => src.match(re)[0] + '\n';
+  const appSlugs = new Function('items', grab(/^const slugBase = [\s\S]*?;$(?=\nconst shortHash)/m) + grab(/^const shortHash = .*;$/m)
+    + 'let slugs;\n' + grab(/^function indexSlugs\(\) \{[\s\S]*?\n\}/m) + 'indexSlugs(); return slugs;');
+  const twins = [{ title: 'Same words here', url: 'https://a.test/first-post' }, { title: 'Same words here', url: 'https://b.test/news/2' }];
+  const site = JSON.parse(readFileSync(new URL('../site/data.json', import.meta.url), 'utf8')).items;
+  for (const items of [site, twins]) {
+    const slugs = appSlugs(items);
+    assert.equal(slugs.size, items.length);
+    for (const [slug, url] of slugs) assert.equal(storyFor(items, slug)?.url, url, slug);
+  }
+  assert.equal(storyFor(twins, 'same-words-here'), undefined);  // a clash: each has a hash, and neither answers to the words alone
+  assert.equal(storyFor(site, 'no-such-story'), undefined);
 });
