@@ -15,6 +15,31 @@
   },
   {
    "date": "2026-11-17",
+   "published": "2026-11-17T22:00:00+00:00",
+   "title": "Two malicious agent-framework releases hit PyPI in 33 minutes",
+   "url": "https://www.aikido.dev/blog/two-malicious-agent-framework-releases-hit-pypi-in-33-minutes",
+   "publisher": "Aikido",
+   "cves": [],
+   "category": "security",
+   "summary": "Two malicious agent-framework releases on PyPI ran a credential stealer on every Python start, targeting Azure, Azure DevOps and GitHub Actions secrets.",
+   "relevance": 8,
+   "added": "2026-11-17T22:18:08+00:00",
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-17T22:18:05+00:00",
+    "kind": "compromise",
+    "quote": "Two malicious agent-framework releases on PyPI ran a credential stealer on every Python start"
+   },
+   "minutes": 10,
+   "tldr": [
+    "Malicious agent-framework 1.26.1 and 1.26.2 on PyPI run a credential stealer on every Python start. Both have been removed.",
+    "Affected: anyone who installed either version between 20:35 and about 21:20 UTC on Nov 17, including via loose pins like agent-framework>=1.26, especially CI runners.",
+    "Pin agent-framework==1.26.0, rebuild affected environments, and rotate every secret those machines could reach.",
+    "Check site-packages for agent_framework_meta.pth or af_runtime_diag.pth and search proxy and DNS logs for webhook[.]site."
+   ]
+  },
+  {
+   "date": "2026-11-17",
    "published": "2026-11-17T06:29:27+00:00",
    "title": "ConnectWise Warns ScreenConnect Attacks Continue as SCKit Targets Unpatched Systems",
    "url": "https://thehackernews.com/2026/11/connectwise-warns-screenconnect-attacks.html",
@@ -461,6 +486,25 @@
     "Hydrogen outperforms Gemini Robotics ER 2 on ERQA spatial reasoning tasks, and Google recommends ER 2 users try it for these workloads.",
     "To install, select gemini-4-hydrogen in Antigravity and add the Robotics plugin from Customizations; Antigravity requires a paid Google AI Pro or Ultra subscription.",
     "Gemini API developers can call gemini-4-hydrogen through the Interactions API, with day-one google-genai SDK support."
+   ]
+  },
+  {
+   "date": "2026-11-16",
+   "published": "2026-11-17T00:00:00+00:00",
+   "title": "How good are Fable 5.2 and GPT-6.2 Astra at real work?",
+   "url": "https://epoch.ai/publications/how-good-are-fable-5-2-and-gpt-6-2-astra-at-real-work",
+   "publisher": "Epoch AI",
+   "cves": [],
+   "category": "ai",
+   "summary": "Epoch AI tested six models, including Fable 5.2 and GPT-6.2 Astra, on real work tasks; none met its employee standard, even the top two on its ECI.",
+   "relevance": 7,
+   "added": "2026-11-17T22:18:08+00:00",
+   "minutes": 17,
+   "tldr": [
+    "No model met Epoch's employee standard on any task in its updated Automation Reports.",
+    "Fable 5.2 and Opus 5.5 reach contractor level on AI data center analysis; Epoch is considering shifting contractor time to reviewing AI outputs.",
+    "GPT-6.2 Astra averaged 65%, 17 points below Fable 5.2, and was overly cautious on data center analysis, omitting estimates it could have supported.",
+    "Models still reuse existing ideas, rely on first attempts, and prefer their own outputs over higher-quality human work."
    ]
   },
   {
@@ -4328,7 +4372,7 @@
    }
   ]
  },
- "generated_at": "2026-11-17T21:18:46+00:00",
+ "generated_at": "2026-11-17T22:18:19+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
