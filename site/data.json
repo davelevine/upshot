@@ -32,6 +32,44 @@
   },
   {
    "date": "2026-11-17",
+   "published": "2026-11-17T12:05:43+00:00",
+   "title": "Formal Verification of the Signal Protocol Using AI",
+   "url": "https://www.schneier.com/blog/archives/2026/11/formal-verification-of-the-signal-protocol-using-ai.html",
+   "publisher": "Schneier on Security",
+   "cves": [],
+   "category": "ai",
+   "summary": "Google DeepMind used agentic AI to formally verify several key cryptographic guarantees of the Signal protocol in a four-week proof-of-concept.",
+   "relevance": 7,
+   "added": "2026-11-17T12:18:06+00:00",
+   "minutes": 1,
+   "tldr": [
+    "Google DeepMind used agentic AI and its AlphaProof Code framework to formally verify several Signal protocol cryptographic guarantees in four weeks.",
+    "No new vulnerabilities were found in the examined portions, but the tool correctly identified known, long-fixed flaws in older Signal versions.",
+    "Agents generated over six million lines of Lean proofs and flagged about one percent of the codebase for human review.",
+    "Researchers are releasing the Signal specification and proof to aid other formal verification work."
+   ]
+  },
+  {
+   "date": "2026-11-17",
+   "published": "2026-11-17T11:50:00+00:00",
+   "title": "Microsoft Releases .NET 11: C# 15 Union Types, Native AOT CLI Host, and CoreCLR by Default in MAUI",
+   "url": "https://www.infoq.com/news/2026/11/dotnet-11-release/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Microsoft released .NET 11, a two-year Standard Term Support release adding C# 15 union types, a Native AOT CLI host, and CoreCLR as the MAUI default.",
+   "relevance": 7,
+   "added": "2026-11-17T12:18:06+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Microsoft released .NET 11, a two-year STS version shipping with C# 15, ASP.NET Core 11, .NET MAUI and EF Core 11.",
+    "C# 15 is the default for .NET 11 projects, adding union types with exhaustiveness-checked switch expressions; EF Core 11 requires .NET 11.",
+    "Teams on .NET 8 or .NET 9 are past end of support as of November 10, 2026; .NET 10 remains the LTS option.",
+    "Review the official breaking-changes list before upgrading; ASP.NET Core 11 now generates OpenAPI 3.2 documents by default."
+   ]
+  },
+  {
+   "date": "2026-11-17",
    "published": "2026-11-17T07:02:53+00:00",
    "title": "pnpm Introduces New Lockfile Format to Reduce Git Merge Conflicts",
    "url": "https://socket.dev/blog/pnpm-introduces-new-lockfile-format",
@@ -4061,7 +4099,7 @@
    }
   ]
  },
- "generated_at": "2026-11-17T11:18:12+00:00",
+ "generated_at": "2026-11-17T12:18:16+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
