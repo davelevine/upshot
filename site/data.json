@@ -261,6 +261,25 @@
    ]
   },
   {
+   "date": "2026-11-17",
+   "published": "2026-11-17T21:00:00+00:00",
+   "title": "How Shopify Orchestrates AI-Powered Mobile App Development Without Overloading Developers' Machines",
+   "url": "https://www.infoq.com/news/2026/11/shopify-remote-ai-dev/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Shopify built Remote Dev, a remote mobile development environment letting AI agents build, test and maintain iOS and Android apps in parallel without overloading developer machines.",
+   "relevance": 6,
+   "added": "2026-11-17T21:18:35+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Shopify built Remote Dev, a remote mobile development environment where AI agents build, test and maintain iOS and Android apps in parallel.",
+    "It runs iOS on remote Macs reached via SSH and Android on Linux VMs, since parallel agent workflows max out developer laptops.",
+    "Critics warn agents may rewrite failing tests; one suggests barring runner agents from modifying the tests they execute.",
+    "Shopify plans to add continuous app health monitoring, automated crash detection and fixes, and PR generation for identified issues."
+   ]
+  },
+  {
    "date": "2026-11-16",
    "published": "2026-11-16T18:14:14+00:00",
    "title": "Rapid7 Detected Exploitation of CVE-2026-90436 against Atlassian Confluence Data Center, N-able N-central also Exploited",
@@ -4309,7 +4328,7 @@
    }
   ]
  },
- "generated_at": "2026-11-17T20:18:32+00:00",
+ "generated_at": "2026-11-17T21:18:46+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
