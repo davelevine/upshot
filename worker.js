@@ -66,6 +66,42 @@ function withNonce(res) {
   return out;
 }
 
+// Reader links (/read/<slug>) serve the home page (site/_redirects), so a shared link would unfurl as the site. This names
+// the story instead: its headline and summary in the title, description and link-preview tags. The slug rules are
+// app.js's; tests/read.test.js keeps the two in step.
+const slugBase = t => t.toLowerCase().normalize('NFKD').replace(/[̀-ͯ'’]/g, '').replace(/[^a-z0-9]+/g, ' ')
+  .trim().split(' ').slice(0, 8).join('-').slice(0, 60).replace(/-+$/, '');
+const shortHash = s => { let h = 5381; for (const c of s) h = (h * 33 + c.charCodeAt(0)) >>> 0; return h.toString(36).slice(0, 5); };
+export function storyFor(items, slug) {
+  const count = new Map();
+  for (const i of items) count.set(slugBase(i.title), (count.get(slugBase(i.title)) || 0) + 1);
+  return items.find(i => {
+    const base = slugBase(i.title);
+    return (base && count.get(base) === 1 ? base : [base, shortHash(i.url)].filter(Boolean).join('-')) === slug;
+  });
+}
+async function storyPage(request, env, res) {
+  const url = new URL(request.url);
+  let slug;
+  try { slug = decodeURIComponent(url.pathname.slice('/read/'.length)); } catch { return res; }
+  const data = await env.ASSETS.fetch(new URL('/data.json', url)).then(r => r.json()).catch(() => null);
+  const item = data && storyFor(data.items || [], slug);
+  if (!item || !res.headers.get('Content-Type')?.startsWith('text/html')) return res;
+  const content = v => ({ element: el => el.setAttribute('content', v) });
+  const here = attr => ({ element: el => el.setAttribute(attr, new URL(url.pathname, el.getAttribute(attr)).href) });  // the site's own address, read from the page
+  return new HTMLRewriter()
+    .on('title', { element: el => el.setInnerContent(`${item.title} · Upshot`) })
+    .on('meta[name="description"]', content(item.summary))
+    .on('meta[property="og:type"]', content('article'))
+    .on('meta[property="og:title"]', content(item.title))
+    .on('meta[property="og:description"]', content(item.summary))
+    .on('meta[property="og:url"]', here('content'))
+    .on('link[rel="canonical"]', here('href'))
+    .on('meta[property^="og:image"]', { element: el => el.remove() })  // the card shows the week's #1, not this story
+    .on('meta[name="twitter:card"]', content('summary'))
+    .transform(res);
+}
+
 // GitHub's own scheduler starts the build late or skips it under load; Cloudflare's cron (wrangler.jsonc) fires on
 // time, so it starts the build instead, and the GitHub schedule stays as a fallback. A fork without the token skips it.
 export async function dispatchBuild(env) {
@@ -88,7 +124,8 @@ export default {
     if (path === '/api/read') return read(request, env);
     if (path === '/api/sync' || path.startsWith('/api/auth/')) return toSync(request, env);
     if (path.startsWith(FONT_PREFIX)) return font(request, path, env);
-    return withNonce(await env.ASSETS.fetch(request));
+    const res = await env.ASSETS.fetch(request);
+    return withNonce(path.startsWith('/read/') ? await storyPage(request, env, res) : res);
   },
   async scheduled(event, env) {
     await dispatchBuild(env);
