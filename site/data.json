@@ -428,6 +428,19 @@
   },
   {
    "date": "2026-11-13",
+   "published": "2026-11-13T13:47:42+00:00",
+   "title": "Microsoft blames monster email outage on software defect introduced in July fix",
+   "url": "https://www.theregister.com/saas/2026/11/16/microsoft-blames-monster-email-outage-on-software-defect-introduced-in-july-fix/5310026",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Microsoft attributes a large email outage to a software defect introduced in a July fix.",
+   "relevance": 8,
+   "added": "2026-11-13T14:18:09+00:00",
+   "minutes": 0
+  },
+  {
+   "date": "2026-11-13",
    "published": "2026-11-13T05:43:28+00:00",
    "title": "Hackers Exploit N-central Flaws to Infect 21 Servers, Including 19 Running Hotfix 2",
    "url": "https://thehackernews.com/2026/11/hackers-exploit-n-central-flaws-to.html",
@@ -571,24 +584,6 @@
     "Code calling the removed ops needs updating; the changelog shows examples adapted to the removal of ggml_diag_mask_inf.",
     "Adds ggml_rope_set_truncate and ggml_rope_get_truncate for YaRN correction-bound rounding, plus OCP FP8 support on CUDA.",
     "Broad performance work lands across CUDA, Metal, Vulkan, SYCL, OpenCL, WebGPU, Hexagon and CPU backends."
-   ]
-  },
-  {
-   "date": "2026-11-13",
-   "published": "2026-11-13T13:47:42+00:00",
-   "title": "Microsoft Struggles to Restore Email and Other Services in a Global Outage",
-   "url": "https://www.securityweek.com/microsoft-struggles-to-restore-email-and-other-services-in-a-global-outage/",
-   "publisher": "SecurityWeek",
-   "cves": [],
-   "category": "infrastructure",
-   "summary": "Microsoft is working to identify the cause of a global outage and restore email and other services using a measured repair approach.",
-   "relevance": 7,
-   "added": "2026-11-13T14:18:09+00:00",
-   "minutes": 4,
-   "tldr": [
-    "Microsoft 365 outage disrupted Outlook, Teams and Copilot worldwide, with email affected for governments, hospitals, businesses and airlines across Asia, Europe and the U.S.",
-    "Microsoft said the outage is not caused by malicious activity and is more like the 2024 CrowdStrike incident, an update gone awry, but recovery is still ongoing and service health remains variable.",
-    "The article gives no workaround; Microsoft said it is working through recovery in phases, and UK police urged people to call emergency responders for urgent reports."
    ]
   },
   {
@@ -3996,7 +3991,7 @@
    }
   ]
  },
- "generated_at": "2026-11-17T07:18:25+00:00",
+ "generated_at": "2026-11-17T08:18:18+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
