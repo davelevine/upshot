@@ -40,8 +40,8 @@ Upshot is a news digest for AI, security, infrastructure, software engineering a
 - **Exploited flaws flagged.** Flaws under active attack are tagged **Exploited**, with whether a patch is out; supply-chain attacks are tagged **Compromised**.
 - **Weekly essentials.** Five picks from the last seven days, each with what to do about it.
 - **Built-in reader.** Articles open in a clean pane that starts with the upshot: what happened, who's affected and what to do.
-- **Read state, Read later and sync.** Read stories are dimmed, the reader's bookmark sets a story aside in Read later, and sync keeps both the same across your devices with a code. No account.
-- **Phone and desktop.** Install it as an app on a phone; `⌘K` search and `j`/`k` navigation on a desktop. Light and dark themes, and an RSS feed.
+- **Read state, Read later and sync.** Read stories are dimmed (or hidden, if you'd rather), the reader's bookmark sets a story aside in Read later, and sync keeps both the same across your devices with a code. No account.
+- **Phone and desktop.** Install it as an app on a phone; `⌘K` search, `j`/`k` and `Space` to move through stories, and a full-screen reader on a desktop. Light, dark or the system's theme, and an RSS feed.
 
 ## How it works
 
@@ -71,3 +71,4 @@ This project was built using AI-assisted development with [Claude](https://claud
 - [watch.edebost.com](https://watch.edebost.com/) — the inspiration, design language and palette
 - [Mozilla Readability](https://github.com/mozilla/readability) and [linkedom](https://github.com/WebReflection/linkedom) — article extraction
 - [feedparser](https://github.com/kurtmckee/feedparser) — making sense of every feed format there is
+- [Feedbin](https://github.com/feedbin/feedbin) — the reader's display options icon (MIT License, © 2013 Ben Ubois)
