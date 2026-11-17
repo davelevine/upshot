@@ -1,6 +1,36 @@
 {
  "items": [
   {
+   "date": "2026-11-17",
+   "published": "2026-11-17T06:29:27+00:00",
+   "title": "ConnectWise Warns ScreenConnect Attacks Continue as SCKit Targets Unpatched Systems",
+   "url": "https://thehackernews.com/2026/11/connectwise-warns-screenconnect-attacks.html",
+   "publisher": "The Hacker News",
+   "cves": [
+    "CVE-2026-84869"
+   ],
+   "category": "security",
+   "summary": "ConnectWise says attacks on ScreenConnect continue, with SCKit targeting unpatched on-premises systems where third-party extensions remain enabled.",
+   "relevance": 8,
+   "added": "2026-11-17T07:18:16+00:00",
+   "exploited": {
+    "kev": [
+     "CVE-2026-84869"
+    ],
+    "at": "2026-11-17T07:18:13+00:00",
+    "kind": "flaw",
+    "quote": "ScreenConnect Attacks Continue",
+    "fix": "patch"
+   },
+   "minutes": 2,
+   "tldr": [
+    "ConnectWise says attacks on ScreenConnect continue, with the SCKit toolkit spreading to MSP technicians via flaw CVE-2026-84869.",
+    "Huntress reported a November 13, 2026 SCKit spike affecting 205 hosts across 41 organizations.",
+    "On-premises partners with identified third-party extensions still enabled and ScreenConnect not updated are at risk. Disable the extensions, update to version 26.6.5 or later, and keep them disabled until further guidance.",
+    "Disabling extensions and updating do not remove existing unauthorized access or persistence."
+   ]
+  },
+  {
    "date": "2026-11-16",
    "published": "2026-11-16T18:14:14+00:00",
    "title": "Rapid7 Detected Exploitation of CVE-2026-90436 against Atlassian Confluence Data Center, N-able N-central also Exploited",
@@ -3966,7 +3996,7 @@
    }
   ]
  },
- "generated_at": "2026-11-17T06:18:14+00:00",
+ "generated_at": "2026-11-17T07:18:25+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
