@@ -106,6 +106,24 @@
   },
   {
    "date": "2026-11-17",
+   "published": "2026-11-17T14:33:00+00:00",
+   "title": "Deterministic Simulation Testing",
+   "url": "https://martinfowler.com/articles/deterministic-simulation-testing.html",
+   "publisher": "Martin Fowler",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Martin Fowler's article by Unmesh Joshi explains deterministic simulation testing for distributed systems, using a quorum key-value store as a worked example.",
+   "relevance": 6,
+   "added": "2026-11-17T15:18:17+00:00",
+   "minutes": 31,
+   "tldr": [
+    "The article explains why live fault injection misses distributed bugs and how deterministic simulation testing makes them reproducible.",
+    "Chaos tests check availability, but correctness needs client-visible histories checked for consistency, as Jepsen does.",
+    "Run the cluster on one thread with simulated clock, network and disk, and seed the fault PRNG so failing runs replay."
+   ]
+  },
+  {
+   "date": "2026-11-17",
    "published": "2026-11-17T09:00:00+00:00",
    "title": "Ten Years On, Google Updates the SRE Book for the AI Era",
    "url": "https://www.infoq.com/news/2026/11/google-sre-book-ai-era/",
@@ -4135,7 +4153,7 @@
    }
   ]
  },
- "generated_at": "2026-11-17T14:18:35+00:00",
+ "generated_at": "2026-11-17T15:18:25+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
