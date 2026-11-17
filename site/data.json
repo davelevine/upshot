@@ -31,6 +31,25 @@
    ]
   },
   {
+   "date": "2026-11-17",
+   "published": "2026-11-17T09:00:00+00:00",
+   "title": "Ten Years On, Google Updates the SRE Book for the AI Era",
+   "url": "https://www.infoq.com/news/2026/11/google-sre-book-ai-era/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Google announced a fully rewritten second edition of its Site Reliability Engineering book, ten years after the original, covering cloud, platform engineering and AI workloads.",
+   "relevance": 6,
+   "added": "2026-11-17T09:18:09+00:00",
+   "minutes": 5,
+   "tldr": [
+    "Google has released a rewritten second edition of its SRE book, covering cloud, platform engineering and AI workloads.",
+    "Teams practising SRE should note revised guidance: user-centred, multi-tiered SLOs, dynamic burn-rate alerting, and continuous resilience checks in delivery pipelines.",
+    "AI is covered both as infrastructure to operate, including GPU and TPU clusters, and as a tool for incident triage.",
+    "The book is available in print through Google Books and digitally from O'Reilly."
+   ]
+  },
+  {
    "date": "2026-11-16",
    "published": "2026-11-16T18:14:14+00:00",
    "title": "Rapid7 Detected Exploitation of CVE-2026-90436 against Atlassian Confluence Data Center, N-able N-central also Exploited",
@@ -61,12 +80,12 @@
   {
    "date": "2026-11-16",
    "published": "2026-11-17T02:12:17+00:00",
-   "title": "Optimizely supply chain attack infects major brands' sites with malware",
-   "url": "https://www.bleepingcomputer.com/news/security/optimizely-supply-chain-attack-infects-major-brands-sites-with-malware/",
-   "publisher": "BleepingComputer",
+   "title": "Optimizely compromised, served malware on Zoom, GitLab",
+   "url": "https://blog.report-uri.com/worlds-largest-brands-infected-with-malware-via-optimizely/",
+   "publisher": "Hacker News 300+",
    "cves": [],
    "category": "security",
-   "summary": "A suspected supply chain attack on Optimizely injected malicious JavaScript into major brands' websites, including Zoom, CNN, BBC and GitLab.",
+   "summary": "Optimizely was compromised and used to serve malware to websites of large brands including Zoom and GitLab.",
    "relevance": 9,
    "added": "2026-11-17T02:18:04+00:00",
    "exploited": {
@@ -75,11 +94,12 @@
     "kind": "compromise",
     "quote": "A suspected supply chain attack targeting Optimizely has led to malicious JavaScript being loaded on numerous popular websites"
    },
-   "minutes": 3,
+   "minutes": 15,
    "tldr": [
-    "A suspected supply chain attack on Optimizely injected malicious JavaScript into 188 scripts across 178 organizations, including Zoom, CNN, BBC, and GitLab.",
-    "The injected track.js script hijacks cryptocurrency wallet addresses, skims payment card data, and delivers iOS exploit kits to visitors.",
-    "Check for scripts loading 1688360[.]cc/track.js; Helme said only one of 188 infected files still held malicious code as of 21:52 UTC November 16."
+    "Attackers injected malicious JavaScript into Optimizely Web projects on 16 November, served to visitors of 178 organisations including Zoom, BBC, HSBC and GitLab.",
+    "Payload swapped crypto addresses, skimmed cards, stole cookies and screenshots, and delivered Coruna and DarkSword iOS exploit kits to iPhones and iPads.",
+    "Check Project JavaScript and experiment code for 1688360.cc and atob(, then review and rotate Optimizely write-access credentials.",
+    "Deploy a restrictive script-src and connect-src CSP, avoiding unsafe-eval where possible; update iPhones and iPads to iOS 18.7.3 or later, or 26.3 or later."
    ]
   },
   {
@@ -437,7 +457,13 @@
    "summary": "Microsoft attributes a large email outage to a software defect introduced in a July fix.",
    "relevance": 8,
    "added": "2026-11-13T14:18:09+00:00",
-   "minutes": 0
+   "minutes": 3,
+   "tldr": [
+    "Microsoft's preliminary report blames a defect from a July 2026 gateway update for the November 12 Microsoft 365 outage, which disrupted Exchange Online.",
+    "The defect exhausted CPU and memory on gateway servers under load, and lock contention worsened on machines with more cores and newer hardware.",
+    "Microsoft says its load testing focused on weaker hardware with fewer cores; more than 80 percent of servers were unresponsive at the low point.",
+    "Fix: Microsoft applied an update reverting the defective change; a final post-incident report is due November 20."
+   ]
   },
   {
    "date": "2026-11-13",
@@ -3991,7 +4017,7 @@
    }
   ]
  },
- "generated_at": "2026-11-17T08:18:18+00:00",
+ "generated_at": "2026-11-17T09:18:28+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
