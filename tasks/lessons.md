@@ -296,3 +296,23 @@
 - When the user reports how something looks, reproduce that exact screen (same width, same state, same steps) before offering a cause. A matching icon in the code isn't evidence that it's the one on screen.
 - When a report names a trigger ("when search opens"), test that trigger first; a cause that ignores it is probably wrong.
 - Anything positioned to cover another control (`position: fixed` at a set offset) must be checked with every optional neighbor present: sync on and off, the reader open and closed.
+
+## 2026-11-16 — Copy the reference UI's structure, not just its idea
+
+**Mistake:** Asked to move reader buttons into a submenu "like Feedbin's", I built a short list (four A's, then "Dark mode" and "Full screen" rows) from a text description of Feedbin's features. The user said it wasn't the answer and sent a screenshot: Feedbin's Format panel has headed sections (Theme as swatches, a Smaller/Larger pair, Display with switches showing their shortcut), and the Format button sits last in the bar.
+
+**Rules:**
+- When the user names another product's UI as the model, get a look at that UI (ask for a screenshot if there isn't one) before building, and match its structure: sections, headings, control types, order, placement.
+- Say which parts of the model are left out and why (here, Typeface and extra themes), rather than quietly building a smaller version.
+- **Amended the same day:** the literal copy was rejected too ("way too literal like Feedbin"). The model sets what the menu holds and roughly where it goes; the look comes from Upshot's own components (here, the Share menu's rows). When a request names a model but the taste is unclear, offer two or three concrete directions with previews before building, not after two misses.
+- When the user's words don't match what the code shows ("the sync button in the article view" when the phone reader has none), reproduce it with the user's state (sync on, phone width) and state the reading taken: here it was the story list's header.
+
+## 2026-11-16 — Reproduce at the user's sizes, and get the recording early
+
+**Mistake:** The user reported that full screen made the story slide into place. I reproduced at 1440px, where the reader pane is 759px wide, saw nothing, and built a fix for a guessed cause (a cross-process frame showing its old layout). It changed the symptom from "slides right" to "drops down". Their screen recording showed a pane under 600px: the article frame's phone padding (18px sides, 24px top) changes at 600px, and the `transition` I had put on `main`'s padding, meant for fluid width, animated that change on every resize.
+
+**Rules:**
+- When a visual bug doesn't reproduce, ask for a screen recording (or the window size and settings) before guessing a cause. Measure the panes in the recording first.
+- Test layout changes across breakpoints, including the article frame's own (600px) and the page's (640, 1024, 1280, 1440), not only at one desktop width.
+- Scope transitions to the change that should animate (a class set for that change), not to the element: a transition on a property that media queries also change animates every resize.
+- A `.mov` from macOS can't be decoded by Playwright's ffmpeg; an H.264 `.mp4` plays in Playwright's Chromium, and frames come from seeking the `<video>` and taking screenshots (a `file://` canvas is tainted).
