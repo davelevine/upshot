@@ -722,8 +722,8 @@ def words_in(html):
 
 
 def feed_articles(fetched):
-    """{url: html} for feed entries that carry the whole article, which some feeds do for sites the reader can't get into.
-    extract.mjs falls back to these when a page is blocked."""
+    """{url: html} for feed entries long enough to be the whole article. extract.mjs uses these in place of the page,
+    unless an entry ends like a cut-off excerpt."""
     out = {}
     for res in fetched.values():
         for e in (res[1] if res else ()):
