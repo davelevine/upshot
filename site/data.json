@@ -89,6 +89,19 @@
   },
   {
    "date": "2026-11-17",
+   "published": "2026-11-17T16:21:00+00:00",
+   "title": "NSA Internal Network Down",
+   "url": "https://www.reuters.com/technology/highly-classified-us-national-security-communications-network-is-down-cnn-2026-11-17/",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Reports say a highly classified US national security communications network is down, per a CNN story carried by Reuters.",
+   "relevance": 7,
+   "added": "2026-11-17T17:18:17+00:00",
+   "minutes": 0
+  },
+  {
+   "date": "2026-11-17",
    "published": "2026-11-17T11:50:00+00:00",
    "title": "Microsoft Releases .NET 11: C# 15 Union Types, Native AOT CLI Host, and CoreCLR by Default in MAUI",
    "url": "https://www.infoq.com/news/2026/11/dotnet-11-release/",
@@ -199,6 +212,19 @@
   },
   {
    "date": "2026-11-17",
+   "published": "2026-11-17T19:24:07+00:00",
+   "title": "Apple Services Down",
+   "url": "https://developer.apple.com/system-status/",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Apple services were reported down, as shown on Apple's developer system status page.",
+   "relevance": 6,
+   "added": "2026-11-17T20:18:22+00:00",
+   "minutes": 0
+  },
+  {
+   "date": "2026-11-17",
    "published": "2026-11-17T09:00:00+00:00",
    "title": "Ten Years On, Google Updates the SRE Book for the AI Era",
    "url": "https://www.infoq.com/news/2026/11/google-sre-book-ai-era/",
@@ -232,24 +258,6 @@
     "Qwik 2.0 Release Candidate (@qwik.dev/core@2.0.0-rc.0) drops HTML comment markers for compressed qwik/state and qwik/vnode script blocks.",
     "Run pnpm qwik migrate-v2, which also handles the move to @qwik.dev/core and @qwik.dev/router; new projects can use pnpm create qwik@rc.",
     "Out-of-order streaming is experimental and opt-in through qwikVite experimental flags in vite.config.ts, including pendingBoundary and catchBoundary."
-   ]
-  },
-  {
-   "date": "2026-11-17",
-   "published": "2026-11-17T16:21:00+00:00",
-   "title": "NSA Net, agency’s classified internal network, faces unspecified disruptions",
-   "url": "https://therecord.media/nsa-net-disruptions",
-   "publisher": "The Record",
-   "cves": [],
-   "category": "infrastructure",
-   "summary": "NSA ordered staggered arrivals at Fort Meade as technicians work to restore NSA Net, its classified internal network, after unspecified disruptions.",
-   "relevance": 6,
-   "added": "2026-11-17T17:18:17+00:00",
-   "minutes": 2,
-   "tldr": [
-    "The NSA's classified internal network, NSA Net, is running intermittently after a suspected technical fault, not believed to be a cyberattack.",
-    "Staff at Fort Meade headquarters are arriving in staggered shifts to ease sign-in load, and the system has reportedly been unstable for weeks.",
-    "NSA backup centers across the country are expected to pick up the slack and continue signals intelligence collection during the disruption."
    ]
   },
   {
@@ -525,6 +533,24 @@
     "Google open-sourced ABFS, a content-addressable build filesystem that cuts Android checkouts from ~36 minutes to under 8 seconds.",
     "Full Android builds drop from ~80 minutes to just over 2 minutes, and the shared cache reuses up to 100% of build actions.",
     "Teams running large Git-based builds, including Android developers and agents, can explore ABFS, CASFS, and Ninja-go on GitHub or contact abfs@google.com."
+   ]
+  },
+  {
+   "date": "2026-11-16",
+   "published": "2026-11-17T00:00:00+00:00",
+   "title": "Build full-stack Android apps with Gemini in Google AI Studio",
+   "url": "https://developers.googleblog.com/build-full-stack-android-apps-with-gemini-in-google-ai-studio/",
+   "publisher": "Google AI",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Google AI Studio now generates full-stack Kotlin Android apps from one prompt, with Firestore, Firebase Auth, Firebase AI Logic, and direct Play publishing.",
+   "relevance": 6,
+   "added": "2026-11-17T20:18:22+00:00",
+   "minutes": 5,
+   "tldr": [
+    "Google AI Studio's Build agent now turns one prompt into a full-stack Kotlin Android app with Cloud Firestore, Google Sign-In, and Gemini features.",
+    "Gemini API keys stay out of the APK via Firebase AI Logic and App Check; apps can ship to a personal Google Play library.",
+    "To start, open Google AI Studio Build, select the Android chip, and describe your app; the backend is provisioned after you confirm."
    ]
   },
   {
@@ -4283,7 +4309,7 @@
    }
   ]
  },
- "generated_at": "2026-11-17T19:18:32+00:00",
+ "generated_at": "2026-11-17T20:18:32+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
