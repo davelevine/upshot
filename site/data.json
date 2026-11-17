@@ -3941,32 +3941,32 @@
   }
  ],
  "weekly": {
-  "window_start": "2026-11-10",
-  "window_end": "2026-11-16",
+  "window_start": "2026-11-11",
+  "window_end": "2026-11-17",
   "items": [
    {
-    "url": "https://www.aikido.dev/blog/compromised-github-accounts-push-ci-secret-stealer-to-tens-of-thousands-of-repositories",
-    "why": "Rotate CI secrets and audit workflows for the stealer if your repositories were touched."
+    "url": "https://www.bleepingcomputer.com/news/security/new-n-able-4everable2shell-zero-day-exploited-hours-after-poc-released/",
+    "why": "Patch N-central now; exploitation began within hours of the public proof-of-concept."
    },
    {
-    "url": "https://thehackernews.com/2026/11/hackers-exploit-n-central-flaws-to.html",
-    "why": "Patch N-central immediately; exploits came within hours of PoC, and N-able is restricting features meanwhile."
+    "url": "https://www.aikido.dev/blog/compromised-github-accounts-push-ci-secret-stealer-to-tens-of-thousands-of-repositories",
+    "why": "Rotate CI secrets and audit workflows in repos touched by the compromised accounts."
+   },
+   {
+    "url": "https://www.bleepingcomputer.com/news/security/check-point-patches-zero-day-that-lets-hackers-get-root-access/",
+    "why": "Apply Check Point hotfixes now; attackers have held root access since late October."
+   },
+   {
+    "url": "https://www.bleepingcomputer.com/news/security/active-screenconnect-attacks-breach-msps-impact-dozens-of-organizations/",
+    "why": "Audit ScreenConnect technician accounts and remove unknown remote-access clients from customer devices."
    },
    {
     "url": "https://www.wordfence.com/blog/2026/11/cve-2026-119618-apache-http2/",
-    "why": "Patch Apache HTTP Server now; this critical HTTP/2 flaw can enable remote code execution."
-   },
-   {
-    "url": "https://www.bleepingcomputer.com/news/security/cursor-confirms-security-breach-led-to-malicious-claude-code-extension/",
-    "why": "Audit Claude Code extensions you installed from Cursor's marketplace and remove any suspicious ones."
-   },
-   {
-    "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-november-2026-patch-tuesday-fixes-1-235-flaws-outlook-zero-day/",
-    "why": "Prioritize this month's patches; the record batch includes an Outlook zero-day already exploited."
+    "why": "Patch Apache HTTP Server immediately; the critical HTTP/2 flaw can lead to remote code execution."
    }
   ]
  },
- "generated_at": "2026-11-17T04:18:09+00:00",
+ "generated_at": "2026-11-17T05:18:33+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
