@@ -10,7 +10,7 @@ The layout follows desktop feed readers such as Feedbin:
 - **641–1023px** docks the reader on the right, with the topics and the list as two pages of one left pane.
 - **1024px and up** puts the sidebar, list and reader side by side. Dragging an edge resizes a column, and a double-click resets it.
 
-From 641px up, the list stays live while an article is open, so `j`/`k` and clicks move through it.
+From 641px up, the list stays live while an article is open, so `j`/`k` and clicks move through it. Full screen (`Shift F`, or the reader's display options) hides the topics and the list until it's turned off, `Esc` is pressed or the story closes.
 
 ## Lists and labels
 
@@ -30,6 +30,8 @@ Unread titles are bold, and the sidebar counts unread stories. A first visit sta
 
 A toolbar after Feedbin's holds **Read**, which marks the list showing as read after you confirm (`Shift A` too), beside **Shortcuts** on a desktop or **Top** on a phone. The `…` on the selected story marks everything above or below it.
 
+**Hide read stories**, a switch at the top of the menu, lists only unread stories, and the choice is kept on this device. A story read while a list shows stays in it until the list is drawn again (another list, or the switch turned off), so rows don't disappear while you read. Where a list ends, a line says read stories are hidden, with a link that shows them. Read later ignores the setting: stories are saved from the reader, so a saved story is always read.
+
 ## Read later
 
 The bookmark in the reader's bar (`s` too) saves a story to **Read later**, an entry under the essentials that's always listed, since it's the reader's own list rather than one the news fills. It counts saved stories, read or not: the list empties as stories are removed, not as they're read. A saved row shows a small bookmark beside its age.
@@ -44,6 +46,8 @@ When Upshot opens, or returns after 15 minutes away, the wordmark's spot runs on
 
 Each build extracts new stories with Mozilla's [Readability](https://github.com/mozilla/readability) and stores the text in Cloudflare KV. Opening an article calls `/api/read`, which the Worker answers from KV. The page also fetches the top six unread stories in the list ahead, once it's idle (not when the browser asks to save data), so those open at once; a stored article is kept by the browser for a day. Parsing happens in the build because it costs more CPU than the Worker gets per request on the free plan.
 
+- **`Space` reads through the list.** It scrolls the article a screen at a time and, at the end, opens the next unread story in the list. Keys pressed inside the article reach the page through the frame's relay script.
+- **Display options**, Feedbin's format icon at the end of the reader's bar, there on a desktop even with no story open: the theme (light, dark, or the system's; it's set only here), the text size, and from 641px up, full screen and fluid width. Fluid width lets the article fill the pane, its margins growing with it, never narrower than the fixed column; where the pane is no wider than that column, the menu says it needs a wider reader pane. Each is kept on this device.
 - **It opens with the upshot.** Two to four bullets written by the build from the article. A bullet with a figure (a CVE, version, date or count) that isn't in the article word for word is dropped.
 - **It isn't a proxy.** The Worker never fetches anything; it returns only what the build stored. A story without stored text shows its summary and a link to the original.
 - **Nothing from the source runs.** Extracted HTML is stripped of scripts, frames, styles and event handlers, then shown in a sandboxed frame. The only script inside is the site's own relay, admitted by a per-render nonce.
@@ -55,3 +59,5 @@ Stored text expires after 100 days, shortly after a story leaves the site.
 ## Typography
 
 Articles are set in Mercury, the publisher's words; everything else is in Söhne, Upshot's own. Both are licensed, so they live in a private R2 bucket, `upshot-fonts`, and the Worker serves them from `/fonts/licensed/`. The page fetches each font once and hands it to the sandboxed reader frame as a `data:` URL, so articles don't download fonts again. Without the bucket, as in a fork, the site uses system fonts; [Configuration](../setup/configuration.md) covers adding them.
+
+The article column is 35.5em wide, about 70 characters a line at every text size, and stays that wide in full screen unless fluid width is on.

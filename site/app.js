@@ -123,11 +123,28 @@ function renderFilters() {
   document.title = filter === 'all' ? 'Upshot \u00b7 The week\u2019s tech news, minus the noise' : `${label(filter)} \u00b7 Upshot`;
 }
 
+// Hide read stories, a switch in the menu kept on this device, as mail apps and NetNewsWire have it. A story read while the
+// list shows stays in it until the list is drawn afresh, so reading never pulls rows out from under you. Read later ignores
+// it: a story is saved from the reader, so it's always read.
+let hideRead = localStorage.getItem('hideRead') === '1';
+const held = new Set();
+const hidesRead = () => hideRead && filter !== 'later';
 function renderItems(keepLimit) {
-  shown = items.filter(i => inList(i, filter));  // searching is the palette's job: the search bar only opens it
-  if (!keepLimit) limit = PAGE;
+  if (!keepLimit) { limit = PAGE; held.clear(); }
+  // searching is the palette's job: the search bar only opens it
+  shown = items.filter(i => inList(i, filter) && (!hidesRead() || isUnread(i) || held.has(i.url) || i.url === readerFor));
   renderPage();
 }
+function setHideRead(on) {
+  hideRead = on;
+  localStorage.setItem('hideRead', on ? '1' : '0');
+  $('hide-read').setAttribute('aria-checked', String(on));
+  renderItems();
+  $('status').textContent = on ? 'Read stories hidden' : 'Read stories shown';
+}
+$('hide-read').setAttribute('aria-checked', String(hideRead));
+$('hide-read').onclick = () => setHideRead(!hideRead);
+document.addEventListener('click', e => { if (e.target.closest('.show-read')) setHideRead(false); });
 
 // Renders the first `limit` matches; the sentinel below the list raises it as you scroll.
 function renderPage() {
@@ -143,7 +160,7 @@ function renderPage() {
         <div class="card-foot">${ageHtml(i)}${SAVED_MARK}</div>
       </div>
     </a>`; }).join('')}`
-    : `<p class="empty">${filter === 'later' ? 'Nothing saved yet. Open a story and use its bookmark to save it here.' : 'Nothing in this list right now.'}</p>`;
+    : `<p class="empty">${filter === 'later' ? 'Nothing saved yet. Open a story and use its bookmark to save it here.' : hidesRead() && items.some(i => inList(i, filter)) ? 'No unread stories here. Read stories are hidden. <button type="button" class="sync-link-btn show-read">Show them</button>' : 'Nothing in this list right now.'}</p>`;
   // Without sync, saves stay in this browser: said once, under the list, rather than on every save. showSync hides it once syncing.
   if (filter === 'later') $('items').insertAdjacentHTML('beforeend', `<p class="later-note"${syncOn ? ' hidden' : ''}>Saved on this device only. <button type="button" class="sync-link-btn">Turn on sync</button> to see them on your other devices.</p>`);
   $('items').removeAttribute('aria-busy');
@@ -153,12 +170,13 @@ function renderPage() {
   io.observe($('sentinel'));
   const ended = shown.length && limit >= shown.length;
   $('end').hidden = !ended;
+  $('hidden-note').hidden = !(hidesRead() && items.filter(i => inList(i, filter)).length > shown.length);  // say so where the list ends
   if (ended) {
     const n = shown.length, what = listNoun(n);
     const days = Math.min(KEEP_DAYS, Math.ceil((Date.now() - Date.parse(items.reduce((o, i) => (i.date < o ? i.date : o), items[0].date))) / 864e5));
     const scope = filter === 'all' ? ` from the last ${days} days`
       : filter === 'essentials' && weekly?.window_start ? ` from ${weekRange(weekly)}` : filter === 'exploited' ? ` from the last ${EXPLOITED_DAYS} days` : '';  // the real span: a young site hasn't reached KEEP_DAYS
-    $('end-msg').textContent = `That\u2019s ${n === 1 ? 'the only' : `all ${n}`} ${what}${scope}.`;
+    $('end-msg').textContent = `That\u2019s ${n === 1 ? 'the only' : `all ${n}`} ${hidesRead() ? 'unread ' : ''}${what}${scope}.`;
   }
 }
 
@@ -178,15 +196,14 @@ function setPicks(weekly) {
 const syncThemeColor = () => {
   // Both media variants: the theme toggle can disagree with the system setting they're keyed to.
   document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', css('--bg')));
-  const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-  for (const b of [$('theme'), $('reader-theme')]) { b.setAttribute('aria-label', `Switch to ${next} mode`); b.title = `Switch to ${next} mode`; }
 };
 // Swap every color in one frame, then let a view transition crossfade the whole page; per-element
 // transitions would fade some parts and snap others. The article frame switches by message, so the
 // crossfade waits for it to confirm (briefly): otherwise its "after" picture shows the old article.
 let frameThemed = null;
-$('theme').onclick = $('reader-theme').onclick = () => {
-  const root = document.documentElement, t = root.dataset.theme === 'dark' ? 'light' : 'dark';
+function swapTheme(t) {
+  const root = document.documentElement;
+  if (root.dataset.theme === t) return;
   const swap = () => {
     root.classList.add('theme-switching');
     root.dataset.theme = t;
@@ -201,8 +218,17 @@ $('theme').onclick = $('reader-theme').onclick = () => {
   };
   if (document.startViewTransition) document.startViewTransition(swap);
   else swap();
-  localStorage.setItem('theme', t);
-};
+}
+// Light, dark, or (Auto) the system's, followed as it changes: the display options' Theme.
+const systemDark = matchMedia('(prefers-color-scheme: dark)');
+function pickTheme(pick) {
+  if (pick === 'auto') localStorage.removeItem('theme'); else localStorage.setItem('theme', pick);
+  swapTheme(pick === 'auto' ? (systemDark.matches ? 'dark' : 'light') : pick);
+  markTheme();
+}
+const markTheme = () => $('format-pop').querySelectorAll('[data-pick]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pick === (localStorage.getItem('theme') || 'auto'))));
+markTheme();
+systemDark.addEventListener('change', () => { if (!localStorage.getItem('theme')) swapTheme(systemDark.matches ? 'dark' : 'light'); });
 $('filters').onclick = e => {
   const b = e.target.closest('.filter-btn');
   if (!b) return;
@@ -371,44 +397,30 @@ function signedOut(notice = '') {
   disconnectLive();
   showSync();  // the sync button goes
 }
-// What the header's sync button shows: 'busy', 'ok' (with when), or 'error'.
+// Sync's state: 'busy', 'ok' (with when), or 'error'. Sync runs by itself, so it has no button: the state is a line under
+// the menu's Sync settings, and a dot on the menu's button while it's failing.
 let syncState = 'ok', syncedAt = 0;
-// Two circling arrows (Lucide's refresh-cw, as index.html's menu item draws it): still when synced, turning while it works,
-// struck through when it can't reach Upshot. Round, so it sits evenly beside the reader's unread circle.
-const SYNC_ARROWS = '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>';
-const syncIcon = () => `<svg viewBox="0 0 24 24" aria-hidden="true">${SYNC_ARROWS}${syncState === 'error' ? '<path d="m2 2 20 20"/>' : ''}</svg>`;
-const syncLabel = () => syncState === 'busy' ? 'Syncing\u2026' : syncState === 'error' ? 'Not synced: Upshot couldn\u2019t be reached'
+const syncLabel = () => syncState === 'busy' ? 'Syncing\u2026' : syncState === 'error' ? 'Couldn\u2019t reach Upshot'
   : `Synced ${syncedAt ? agoText((Date.now() - syncedAt) / 60e3) : ''}`.trim();
-// The header's sync button: there only while this device syncs (set up from the menu, nameSheet), and a tap syncs
-// now (syncByHand). Every sync, asked for or not, turns its arrows at least once round and stops on a whole turn, so even
-// one that takes a moment shows; a failure shows at once.
-const SPIN = 1000;  // one turn, as index.html's .sync-ind.busy animation
-let spinFrom = 0, spinUntil = 0, spinTimer;
 function showSync() {
-  const b = $('sync-ind'), now = Date.now();
-  let shown = syncState;
-  clearTimeout(spinTimer);
-  if (syncState === 'busy') { if (!b.classList.contains('busy')) spinFrom = now; spinUntil = 0; }
-  else if (syncState === 'ok' && b.classList.contains('busy')) {
-    spinUntil ||= spinFrom + Math.max(1, Math.ceil((now - spinFrom) / SPIN)) * SPIN;
-    if (spinUntil > now) { shown = 'busy'; spinTimer = setTimeout(showSync, spinUntil - now); }
-  }
-  b.hidden = !syncOn;
-  b.className = `icon-btn sync-ind ${shown}`;
-  const err = String(syncState === 'error');
-  if (b.dataset.err !== err) { b.dataset.err = err; b.innerHTML = syncIcon(); }  // only when it changes: a new icon would restart the turn
-  b.title = `${syncLabel()}. Sync now`; b.setAttribute('aria-label', b.title);
+  const failing = syncOn && syncState === 'error', line = $('sync-status');
+  line.hidden = !syncOn;
+  line.textContent = syncLabel();
+  line.classList.toggle('error', failing);
+  $('menu-btn').classList.toggle('sync-error', failing);
+  $('menu-btn').setAttribute('aria-label', failing ? 'Menu. Not synced' : 'Menu'); $('menu-btn').title = $('menu-btn').getAttribute('aria-label');
   nameSheet();
   for (const n of document.querySelectorAll('.later-note')) n.hidden = syncOn;
 }
-// The menu item and its sheet: an invitation while this device doesn't sync, and once it does (the header's button doing
-// the syncing), where its devices and codes are kept, as a browser's "Sign in" becomes its account.
+$('menu').addEventListener('toggle', e => { if (e.newState === 'open') showSync(); });  // "Synced 2m ago" as of now
+// The menu item and its sheet: an invitation while this device doesn't sync, and once it does, where its devices and codes
+// are kept, as a browser's "Sign in" becomes its account.
 function nameSheet() {
   const name = syncOn ? 'Sync settings' : 'Sync your reading';
   $('sync-btn').querySelector('.menu-label').textContent = $('sync-title').textContent = name;
 }
 nameSheet();
-// Sync now, from the header's button or the sheet's Try again. Unreachable, this retries at once rather than waiting out
+// Sync now, from the sheet's Try again. Unreachable, this retries at once rather than waiting out
 // the reconnect's backoff (connectLive); one already under way is left to finish.
 const syncByHand = () => syncState === 'busy' || (live ? syncNow() : connectLive());
 function setSync(state) {
@@ -665,7 +677,6 @@ async function joinWithCode() {
 const openSheet = () => { $('sync').showModal(); renderSync(); if (!syncOn && maySync()) syncNow().then(() => { if (syncOn && syncViewName === 'out') renderSync(); }); };
 $('sync-btn').onclick = () => { $('menu').hidePopover(); openSheet(); };
 $('items').addEventListener('click', e => { if (e.target.closest('.later-note button')) openSheet(); });  // Read later's note, without sync
-$('sync-ind').onclick = syncByHand;
 setInterval(() => { if (syncOn && !document.hidden) showSync(); }, 60e3);  // "Synced 3m ago" stays true
 $('sync').addEventListener('click', e => {
   if (e.target === $('sync')) return $('sync').close();  // the backdrop
@@ -691,6 +702,7 @@ function markRead(url) {
   readSet.delete(url); readSet.add(url); saveRead();
   if (kept.delete(url)) saveKept();  // most recent last: the search panel's "Recently read" reads it backwards
   noteMark(url, 1, 1);
+  if (shown.some(i => i.url === url)) held.add(url);  // stays listed under Unread only
   if (!was) renderFilters();
   const card = cardFor(url);
   card?.classList.add('read');
@@ -698,8 +710,9 @@ function markRead(url) {
 // Feedbin's Read button and its "Mark above/below as read". These go in at the oldest end of the read list, so the search
 // panel's "Recently read" still starts with what was actually opened.
 function markAllRead(list) {
+  for (const i of list) held.delete(i.url);  // under Unread only, Read clears what was opened here too
   const urls = list.filter(isUnread).map(i => i.url);
-  if (!urls.length) return;
+  if (!urls.length) return renderItems(true);
   const rest = [...readSet];
   readSet.clear();
   for (const u of [...urls, ...rest]) readSet.add(u);
@@ -857,10 +870,10 @@ function load() {
   });
 }
 let readerFor = null;
-// Docked, the list stays usable while an article is open.
+// Docked, the list stays usable while an article is open, unless the reader's full screen; the header's menu stays either way.
 const setInert = () => {
-  const off = document.body.classList.contains('reading') && !docked.matches;
-  document.querySelectorAll('.feed, #top').forEach(el => { el.inert = off; });
+  const off = document.body.classList.contains('reading') && !docked.matches, full = document.body.classList.contains('full') && docked.matches;
+  document.querySelectorAll('.feed, #top').forEach(el => { el.inert = off || (full && el.tagName !== 'HEADER'); });  // the header's hidden but its controls (CSS)
   $('reader').setAttribute('aria-modal', String(!docked.matches));
 };
 docked.addEventListener('change', setInert);  // resizing never strands an inert list
@@ -899,11 +912,26 @@ addEventListener('message', e => {  // the page's theme toggle
     getComputedStyle(document.body).color;  // apply the new colors now, not at a paint the page's crossfade is holding back
     parent.postMessage({ tw: 'themed' }, '*');
   }
-  if (e.source === parent && e.data && e.data.tw === 'size') document.documentElement.dataset.size = e.data.size;
+  if (e.source === parent && e.data && (e.data.tw === 'size' || e.data.tw === 'fluid')) {
+    const root = document.documentElement, k = e.data.tw;
+    if (root.dataset[k] === e.data[k]) return;
+    root.classList.add('glide'); clearTimeout(glideTimer); glideTimer = setTimeout(() => root.classList.remove('glide'), 400);  // see main's glide
+    root.dataset[k] = e.data[k];
+  }
 });
+let glideTimer;
+// Space pages through the article; at its end, the page opens the next unread story.
+const page = up => {
+  if (!up && scrollY + innerHeight >= document.documentElement.scrollHeight - 2) return parent.postMessage({ tw: 'next' }, '*');
+  scrollBy({ top: (up ? -1 : 1) * (innerHeight - 40), behavior: 'smooth' });
+};
+addEventListener('message', e => { if (e.source === parent && e.data && e.data.tw === 'page') page(e.data.up); });
 addEventListener('keydown', e => {  // keys pressed while the article has focus never reach the page
   const k = e.key.toLowerCase(), mod = e.metaKey || e.ctrlKey;
-  if (!e.altKey && (['escape', 'j', 'k', 'm', 's', 'arrowleft', 'arrowright', '?', '/'].includes(k) || (k === 'a' && e.shiftKey && !mod))) { e.preventDefault(); parent.postMessage({ tw: 'key', key: k, mod: mod, shift: e.shiftKey }, '*'); }
+  if (e.altKey) return;
+  if (k === ' ' && !mod) { e.preventDefault(); return page(e.shiftKey); }
+  // Letters only without ⌘/Ctrl, so the browser keeps ⌘L, ⌘A and the rest.
+  if (['escape', 'j', 'k', 'm', 's', 'arrowleft', 'arrowright', '?', '/'].includes(k) || (!mod && (['v', 'g', 'e', 'l', 'a'].includes(k) || (e.shiftKey && (k === 'c' || k === 'f'))))) { e.preventDefault(); parent.postMessage({ tw: 'key', key: k, mod: mod, shift: e.shiftKey }, '*'); }
 });`;
 
 // The article frame's fonts: Mercury Text for the article and Mercury Display, its headline cut, for the title; Söhne for
@@ -965,13 +993,14 @@ function summaryBox(tldr, why) {
   return `<div class="todo tldr"><b>The upshot</b><ul>${tldr.map(t => `<li>${esc(t)}</li>`).join('')}</ul>${why ? `<p class="do"><b>What to do</b>${esc(why)}</p>` : ''}</div>`;
 }
 function articleDoc(i, html, nonce, why, minutes, byline) {
-  return `<!doctype html><html data-theme="${document.documentElement.dataset.theme}" data-size="${textSize}"><head><meta charset="utf-8">
+  return `<!doctype html><html data-theme="${document.documentElement.dataset.theme}" data-size="${textSize}" data-fluid="${fluid}"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${location.origin} data:; img-src https: data:; media-src https:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'">
 <base target="_blank"><style>
 :root { ${frameVars('light')} } :root[data-theme="dark"] { ${frameVars('dark')} }
 :root { --serif: "Mercury Text G2", "Iowan Old Style", Charter, Georgia, serif; }
 body { margin: 0; background: var(--bg); color: var(--text); font: 1.125rem/1.65 var(--serif); overflow-wrap: break-word; }
-main { max-width: 640px; margin: 0 auto; padding: 32px 24px 96px; }
+main { --pad: 24px; box-sizing: border-box; max-width: calc(35.5em + 2 * var(--pad)); margin: 0 auto; padding: 32px var(--pad) 96px; }  /* em, not px: about 70 characters a line at every text size (640px at the default) */
+.glide main { transition: max-width .3s ease, padding .3s ease; }  /* a change of text size or fluid width glides, as Feedbin's; a resize (full screen, the columns) doesn't, or the padding that changes at 600px would slide the story into place */
 a { color: var(--accent); }
 h1 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 0 -.1em .4em; padding: 0 .1em; font-size: clamp(1.4rem, 1rem + 2vw, 1.75rem); font-weight: 600; line-height: 1.25; }  /* the clamp's overflow clips: 1.25, not 1.2, leaves room for Mercury Display's descenders (g, p, y reach 0.235em below the baseline; 1.2 left 0.233em), and the side padding, canceled by the margin, for a line-initial f, whose tip reaches left of its box */
 h1 a { color: inherit; text-decoration: none; } h1 a:hover { text-decoration: underline; text-decoration-thickness: 2px; }
@@ -1003,7 +1032,8 @@ hr { border: 0; border-top: 1px solid var(--border); }
 .late { animation: late .2s ease .4s both; } @keyframes late { from { opacity: 0; } }
 .status { color: var(--text-muted); font: 370 .9375rem/1.5 Sohne, system-ui, sans-serif; }
 .pill { display: inline-block; padding: 10px 18px; border: 1px solid var(--accent); border-radius: 999px; font: 600 .9375rem/1.4 Sohne, system-ui, sans-serif; text-decoration: none; }
-@media (max-width: 600px) { main { padding: 24px 18px 80px; } .pill { padding: 12px 18px; } }
+@media (max-width: 600px) { main { --pad: 18px; padding-top: 24px; padding-bottom: 80px; } .pill { padding: 12px 18px; } }
+[data-fluid="1"] main { max-width: 100%; padding-left: max(var(--pad), 6% - 20px); padding-right: max(var(--pad), 6% - 20px); }  /* Fluid width: the pane's width, its margins growing with it (66px at 1440), never narrower than the column it replaces */
 </style><script nonce="${nonce}">${SWIPE_REPORTER}<\/script></head><body><main><h1><a href="${esc(i.url)}" target="_blank" rel="noopener" title="Open the original">${esc(i.title)}</a></h1>${storyMeta(i, byline, minutes || i.minutes)}${summaryBox(i.tldr, why)}${html}</main></body></html>`;
 }
 // What we already know about a story, from data.json: shown at once, and all that's left if the article can't be fetched.
@@ -1022,9 +1052,10 @@ function showInReader(i, html, why, minutes, byline) {
     if (!frame.parentNode) return;
     while (frame.previousSibling) frame.previousSibling.remove();
     frame.classList.remove('loading');
-    // Its srcdoc baked in the theme and size from when it was built; either may have changed while it loaded.
+    // Its srcdoc baked in the theme, size and width from when it was built; any may have changed while it loaded.
     frame.contentWindow.postMessage({ tw: 'theme', theme: document.documentElement.dataset.theme }, '*');
     frame.contentWindow.postMessage({ tw: 'size', size: String(textSize) }, '*');
+    frame.contentWindow.postMessage({ tw: 'fluid', fluid: String(fluid) }, '*');
   };
   $('reader-body').append(frame);
 }
@@ -1121,29 +1152,53 @@ function openReader(i, { fromHash = false } = {}) {
     showInReader(i, storyCard(i, unreadable), why);
   });
 }
-// Article text size, kept on this device: small, medium (the default), large, larger.
+// The reader's display options: the theme (above), the text size, and full screen and fluid width, each kept on this device.
+// Text sizes: small, medium (the default), large, larger.
 const SIZES = ['small', 'medium', 'large', 'larger'];
 let textSize = Math.min(3, Math.max(0, +(localStorage.getItem('textSize') ?? 1) || 0));
-const markSize = () => $('size-pop').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.size === textSize)));
+let fluid = localStorage.getItem('fluid') === '1' ? 1 : 0;
+const toFrame = msg => $('reader-body').querySelector('iframe[srcdoc]')?.contentWindow.postMessage(msg, '*');
+const markSize = () => $('format-pop').querySelectorAll('[data-size]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.size === textSize)));
 markSize();
-const closeSize = () => { $('size-pop').hidden = true; $('reader-size').setAttribute('aria-expanded', 'false'); };
-$('reader-size').onclick = e => {
+$('format-fluid').setAttribute('aria-checked', String(!!fluid));
+// Fluid width has nothing to fill when the reader pane is no wider than the article's column: the menu says so rather than
+// leaving a switch that seems to do nothing. The numbers are the article frame's (articleDoc): its text sizes in px, the
+// 35.5em column, padding 18px up to 600px wide and 24px above, and fluid margins of max(padding, 6% - 20px).
+const FRAME_PX = [17, 18, 20, 22];
+function fluidGain(w = $('reader-body').clientWidth) {
+  const pad = w <= 600 ? 18 : 24, column = 35.5 * FRAME_PX[textSize];
+  return (w - 2 * Math.max(pad, 0.06 * w - 20)) - Math.min(column, w - 2 * pad);
+}
+const syncFluidHint = () => { $('fluid-hint').hidden = fluidGain() >= 8; };
+addEventListener('resize', () => { if (!$('format-pop').hidden) syncFluidHint(); });
+const closeFormat = () => { $('format-pop').hidden = true; $('reader-format').setAttribute('aria-expanded', 'false'); };
+$('reader-format').onclick = e => {
   e.stopPropagation();
-  const open = $('size-pop').hidden;
+  const open = $('format-pop').hidden;
   closeMenus();  // one menu at a time: these clicks don't reach the page-wide close
-  $('size-pop').hidden = !open;
-  $('reader-size').setAttribute('aria-expanded', String(open));
-  if (open) $('size-pop').querySelector('[aria-pressed="true"]').focus({ preventScroll: true });
+  $('format-pop').hidden = !open;
+  $('reader-format').setAttribute('aria-expanded', String(open));
+  if (open) syncFluidHint();
+  if (open) $('format-pop').querySelector('[aria-pressed="true"]').focus({ preventScroll: true });  // the theme, at the top
 };
-$('size-pop').onclick = e => {
-  e.stopPropagation();
+$('format-pop').onclick = e => {
+  e.stopPropagation();  // it stays open, to see each change
   const b = e.target.closest('button');
-  if (!b) return;
-  textSize = +b.dataset.size;
-  localStorage.setItem('textSize', textSize);
-  markSize();
-  $('status').textContent = `Text size ${SIZES[textSize]}`;
-  $('reader-body').querySelector('iframe[srcdoc]')?.contentWindow.postMessage({ tw: 'size', size: String(textSize) }, '*');
+  if (b?.dataset.pick) pickTheme(b.dataset.pick);
+  else if (b?.dataset.size) {
+    textSize = +b.dataset.size;
+    localStorage.setItem('textSize', textSize);
+    markSize();
+    $('status').textContent = `Text size ${SIZES[textSize]}`;
+    syncFluidHint();  // a bigger size needs a wider column
+    toFrame({ tw: 'size', size: String(textSize) });
+  } else if (b?.id === 'format-full') setFull(!document.body.classList.contains('full'));
+  else if (b?.id === 'format-fluid') {
+    fluid = fluid ? 0 : 1;
+    localStorage.setItem('fluid', String(fluid));
+    b.setAttribute('aria-checked', String(!!fluid));
+    toFrame({ tw: 'fluid', fluid: String(fluid) });
+  }
 };
 let lastInput = 'pointer';
 addEventListener('pointerdown', () => { lastInput = 'pointer'; }, true);
@@ -1156,6 +1211,7 @@ function closeReader() {
   lastClosed = url;
   readerFor = null;
   document.body.classList.remove('reading');
+  setFull(false);  // full screen is the open story's
   $('reader').setAttribute('aria-hidden', 'true');
   setInert();
   // Read later holds still while a story is open, so the list doesn't shift under the reader; closing it, a story unsaved
@@ -1241,6 +1297,7 @@ addEventListener('message', e => {
   else if (e.data.tw === 'end') dragEnd();
   else if (e.data.tw === 'key') { lastInput = 'key'; onKey(e.data.key, !!e.data.mod, { shiftKey: !!e.data.shift, preventDefault() {} }); }  // a key in the article: the keyboard's in use
   else if (e.data.tw === 'themed') frameThemed?.();
+  else if (e.data.tw === 'next') nextUnread();  // Space at the article's end
 });
 
 // Phone swipes, after Feedbin's: the topics sit left of a list, and a list left of its story, and each page follows the
@@ -1301,6 +1358,24 @@ function step(dir) {
   target?.focus({ preventScroll: true });
   target?.scrollIntoView({ block: 'nearest' });
 }
+// Space: the article scrolls a screen at a time (in its frame, which reports back when it's at the end); then the next
+// unread story in the list, after the one open or focused, as Feedbin's Space does.
+const pageArticle = up => toFrame({ tw: 'page', up });
+function nextUnread() {
+  const from = shown.findIndex(i => i.url === (readerFor ?? document.activeElement?.closest('a.card')?.getAttribute('href')));
+  const at = shown.findIndex((i, n) => n > from && isUnread(i));
+  if (at < 0) { $('status').textContent = 'No more unread stories in this list'; return; }
+  if (at >= limit) { limit = at + PAGE; renderPage(); }
+  openReader(shown[at]);
+}
+// Full screen (Shift F, or the display options): the reader takes the whole window, the topics and the list hidden.
+function setFull(on) {
+  document.body.classList.toggle('full', on);
+  syncFluidHint();
+  $('format-full').setAttribute('aria-checked', String(on));
+  setInert();
+}
+let goAt = 0;
 function onKey(key, mod, e) {
   const reading = document.body.classList.contains('reading');
   if ($('keys').open && key === '?') { e?.preventDefault(); return $('keys').close(); }  // ? shows the list and hides it again
@@ -1309,17 +1384,29 @@ function onKey(key, mod, e) {
     if (key === 'k' && mod) { e?.preventDefault(); openPalette(); }
     return;
   }
-  if (key === 'escape' && !$('size-pop').hidden) { closeSize(); return $('reader-size').focus(); }
+  if (key === 'escape' && !$('format-pop').hidden) { closeFormat(); return $('reader-format').focus(); }
   if (key === 'escape' && !$('send-pop').hidden) { closeShare(); return $('reader-send').focus(); }
   if (key === 'escape' && !morePop.hidden) { closeMore(); return moreBtn.focus(); }
+  if (key === 'escape' && $('menu').matches(':popover-open')) return;  // the header's menu closes itself, and only that
+  if (key === 'escape' && document.body.classList.contains('full')) return setFull(false);  // out of full screen first, then the reader
   if (key === 'escape' && reading) return dismiss();
   if (key === 'k' && mod) { e?.preventDefault(); return openPalette(); }
   if (mod || e?.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;
+  if (key === ' ' && document.activeElement?.closest('button, [role="menuitem"]')) return;  // Space presses a focused button
+  // Feedbin's "go to" pairs: g, then a, e or l within a moment.
+  const go = Date.now() - goAt < 1500 && { a: 'all', e: 'essentials', l: 'later' }[key];
+  goAt = key === 'g' ? Date.now() : 0;
+  if (go) { e?.preventDefault(); return $('filters').querySelector(`[data-f="${go}"]`)?.click(); }  // as a click: closes the story, slides to the list
+  const url = readerFor ?? document.activeElement?.closest('a.card')?.getAttribute('href');  // the story open, or the row focused
   if (key === '?') { e?.preventDefault(); $('keys').showModal(); }
   else if (key === '/') { e?.preventDefault(); openPalette(); }
   else if (key === 'm' && reading) { e?.preventDefault(); toggleRead(); }
   else if (key === 's' && reading) { e?.preventDefault(); toggleLater(); }
   else if (key === 'a' && e?.shiftKey) { e.preventDefault(); confirmReadAll(); }  // Feedbin's: the list's Read button
+  else if (key === ' ' && (reading || !e?.shiftKey)) { e?.preventDefault(); if (reading) pageArticle(e?.shiftKey); else nextUnread(); }  // Shift Space on the list scrolls it, as usual
+  else if (key === 'v' && url) { e?.preventDefault(); window.open(url, '_blank', 'noopener'); }
+  else if (key === 'c' && e?.shiftKey && url) { e.preventDefault(); copyLink(url); }
+  else if (key === 'f' && e?.shiftKey && reading && docked.matches) { e.preventDefault(); setFull(!document.body.classList.contains('full')); }
   else if (key === 'j' || key === 'arrowright') { e?.preventDefault(); step(1); }
   else if (key === 'k' || key === 'arrowleft') { e?.preventDefault(); step(-1); }
 }
@@ -1351,7 +1438,7 @@ $('reader-send').onclick = async e => {
   $('reader-send').setAttribute('aria-expanded', 'true');
   $('send-copy').focus({ preventScroll: true });
 };
-function closeMenus() { closeSize(); closeShare(); closeMore(); }
+function closeMenus() { closeFormat(); closeShare(); closeMore(); }
 // A click anywhere closes them (clicks on their own buttons stop short of this); so does a tap into the article, which lands
 // in its frame and blurs this window.
 document.addEventListener('click', closeMenus);
@@ -1373,17 +1460,15 @@ $('send-pop').onclick = e => {
   if (url.startsWith('mailto:')) location.href = url;
   else window.open(url, '_blank', 'noopener,noreferrer');
 };
-$('send-copy').onclick = async () => {
-  closeShare();
-  const i = items.find(x => x.url === readerFor);
-  if (!i) return;
+$('send-copy').onclick = () => { closeShare(); if (readerFor) copyLink(readerFor); };
+async function copyLink(url) {
   let msg = 'Copied';
-  try { await navigator.clipboard.writeText(i.url); } catch { msg = 'Couldn\u2019t copy'; }
+  try { await navigator.clipboard.writeText(url); } catch { msg = 'Couldn\u2019t copy'; }
   const done = $('send-done');
   done.textContent = msg; done.hidden = false; $('status').textContent = msg === 'Copied' ? 'Link copied' : msg;
   clearTimeout(done.timer);
   done.timer = setTimeout(() => { done.hidden = true; }, 1600);
-};
+}
 
 // Cmd/Ctrl+K palette: find any article and open it in the reader. Works over the reader too.
 // A native modal <dialog>: the page behind goes inert, and Esc or the phone's back button close it.

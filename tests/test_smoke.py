@@ -134,15 +134,12 @@ def test_feed_renders(browser):
 
 def test_phone_menu(browser):
     pg = open_site(browser, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
-    assert pg.locator("#theme").is_hidden()
+    assert pg.locator("#hide-read").is_hidden()
     assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
     pg.tap("#menu-btn")
-    assert pg.locator("#menu a[href='/rss.xml']").is_visible()
-    theme = pg.evaluate("document.documentElement.dataset.theme")
-    pg.tap("#theme")
-    pg.wait_for_function("t => document.documentElement.dataset.theme !== t", arg=theme)  # swaps inside a view transition
+    assert pg.locator("#menu a[href='/rss.xml']").is_visible() and pg.locator("#theme").count() == 0, "the theme lives in the display options"
     pg.keyboard.press("Escape")
-    pg.locator("#theme").wait_for(state="hidden")  # after the closing fade
+    pg.locator("#hide-read").wait_for(state="hidden")  # after the closing fade
     # Tapping away closes the menu without opening the article underneath.
     pg.tap("#menu-btn")  # before measuring: playwright's tap may scroll the page to reach the button
     x, y = pg.evaluate("""() => { const r = [...document.querySelectorAll('a.card')].map(c => c.getBoundingClientRect())
@@ -150,7 +147,7 @@ def test_phone_menu(browser):
     assert pg.evaluate("document.getElementById('menu').getBoundingClientRect().width") == 320  # full width
     pg.wait_for_function("() => !document.getElementById('menu').getAnimations().length")  # the drawer has finished opening
     pg.touchscreen.tap(x, y)
-    pg.locator("#theme").wait_for(state="hidden")
+    pg.locator("#hide-read").wait_for(state="hidden")
     assert not reading(pg)
     pg.touchscreen.tap(x, y)
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
@@ -164,7 +161,7 @@ def test_animations_run_under_reduced_motion(browser):
         assert pg.evaluate(running, selector), selector
     pg.tap("#menu-btn")
     pg.wait_for_function("() => document.getElementById('menu').getAnimations().length > 0 || getComputedStyle(document.getElementById('menu')).clipPath.includes('-40px')")
-    pg.evaluate("document.getElementById('theme').click()")
+    pg.evaluate("pickTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark')")
     pg.wait_for_function("() => document.getAnimations().some(a => a.effect.pseudoElement?.includes('view-transition'))")
     assert pg.problems == []
 
@@ -356,7 +353,7 @@ def test_end_of_feed_message(browser):
         pg.mouse.wheel(0, 3000)
         pg.wait_for_timeout(100)
     assert re.fullmatch(r"That\u2019s all \d+ stories from the last \d+ days\.", pg.inner_text("#end-msg"))
-    assert end.locator("a, button").count() == 0  # just the line: RSS and GitHub live in the menu
+    assert end.locator("a:visible, button:visible").count() == 0  # just the line: RSS and GitHub live in the menu (Show them, only while read stories are hidden)
     # It respects what's on screen.
     pg.evaluate("scroller().scrollTo({top:0,behavior:'instant'})")
     pg.click("#filters .filter-btn[data-f='security']")
@@ -590,7 +587,13 @@ def test_question_mark_lists_the_shortcuts(browser):
     enter_list(pg)
     pg.keyboard.press("?")
     assert pg.locator("#keys").is_visible()
-    assert "Search every article" in pg.locator("#keys").inner_text()
+    assert "Mark the list as read" in pg.locator("#keys").inner_text()
+    # After Journalistic's sheet: a titled header, sections with labels, keys as caps, and how to close it.
+    assert pg.locator("#keys h3").all_inner_texts() == ["NAVIGATION", "ACTIONS", "GENERAL"]
+    row = pg.locator("#keys .sc-row", has_text="Next story")
+    assert row.locator("kbd").all_inner_texts() == ["J", "→"] and row.locator(".sc-sep").inner_text() == "or"
+    assert pg.evaluate("getComputedStyle(document.querySelector('#keys .sc-mod'), '::after').content") == '"Ctrl"', "Ctrl here; \u2318 on a Mac"
+    assert pg.inner_text("#keys .sc-foot") == "Press Esc or click outside to close"
     pg.keyboard.press("j")  # inert while the list is open
     pg.keyboard.press("Escape")
     assert not pg.locator("#keys").is_visible()
@@ -622,6 +625,312 @@ def test_page_shortcuts_work_from_inside_an_open_article(browser):
     assert reading(pg) and pg.problems == []
 
 
+def frame_scroll(pg):
+    return pg.frames[-1].evaluate("scrollY")  # the article's frame, the page's last
+
+
+def test_space_pages_the_article_then_opens_the_next_unread(browser):
+    """Space scrolls the open article a screen at a time, from the list or from inside the article; at its end it opens the
+    next unread story, skipping read ones. Shift Space scrolls back. With nothing open, Space opens the next unread."""
+    pg = open_site(browser, viewport={"width": 1300, "height": 700})
+    urls = pg.evaluate("shown.map(i => i.url)")
+    pg.evaluate("u => markRead(u)", urls[1])  # read already: Space passes over it
+    pg.locator("a.card").first.focus()
+    pg.keyboard.press("Enter")
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.locator("a.card").first.focus()  # docked, the keyboard stays in the list
+    pg.keyboard.press(" ")
+    pg.wait_for_timeout(600)  # the smooth scroll
+    down = frame_scroll(pg)
+    assert down > 300 and pg.evaluate("readerFor") == urls[0], "a screen down, in the frame, on the same story"
+    pg.keyboard.press("Shift+ ")
+    pg.wait_for_timeout(600)
+    assert frame_scroll(pg) < down, "Shift Space goes back up"
+    frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+    frame.locator("main p").first.click()  # from inside the article too
+    for _ in range(40):
+        if pg.evaluate("readerFor") != urls[0]:
+            break
+        pg.keyboard.press(" ")
+        pg.wait_for_timeout(250)
+    assert pg.evaluate("readerFor") == urls[2], "at the end, the next unread story, past the read one"
+    pg.keyboard.press("Escape")
+    wait_until_closed(pg)
+    pg.locator(f'a.card[href="{urls[2]}"]').focus()
+    pg.keyboard.press(" ")  # nothing open: the next unread after the row focused
+    assert until(pg, "readerFor") and pg.evaluate("readerFor") == urls[3]
+    pg.keyboard.press("Escape")
+    wait_until_closed(pg)
+    pg.locator("#read-all").focus()
+    pg.keyboard.press(" ")  # a focused button keeps Space
+    pg.locator("#confirm-read").wait_for()
+    pg.keyboard.press("Escape")
+    assert not reading(pg) and pg.problems == []
+
+
+def test_v_opens_the_original_and_shift_c_copies_its_link(browser):
+    ctx = browser.new_context(viewport={"width": 1300, "height": 900})
+    ctx.grant_permissions(["clipboard-read", "clipboard-write"])
+    ctx.add_init_script("try { localStorage.setItem('since', '1970-01-01T00:00:00Z'); } catch {}")
+    ctx.route("**/api/read?*", lambda r: r.fulfill(json={"url": "x", "content": BODY}))
+    pg = ctx.new_page()
+    pg.problems = []
+    pg.on("pageerror", lambda e: pg.problems.append(f"page error: {e}"))
+    pg.goto(URL)
+    enter_list(pg)
+    card = pg.locator("a.card").nth(1)
+    url = card.get_attribute("href")
+    ctx.route(url, lambda r: r.fulfill(body="<title>original</title>", content_type="text/html"))
+    card.focus()
+    with ctx.expect_page() as opened:
+        pg.keyboard.press("v")  # the focused row, with nothing open
+    assert opened.value.url == url
+    opened.value.close()
+    card.click()
+    frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+    frame.locator("main p").first.click()  # from inside the article: the frame forwards the key
+    with ctx.expect_page() as opened:
+        pg.keyboard.press("v")
+    assert opened.value.url == url
+    opened.value.close()
+    pg.evaluate("navigator.clipboard.writeText('')")
+    frame.locator("main p").first.click()
+    pg.keyboard.press("Shift+C")
+    pg.locator("#send-done", has_text="Copied").wait_for()
+    assert pg.evaluate("navigator.clipboard.readText()") == url and pg.inner_text("#status") == "Link copied"
+    assert pg.problems == []
+
+
+@pytest.mark.parametrize("width", [1280, 1440, 1728])
+def test_fluid_width_widens_the_docked_reader(browser, width):
+    """Fluid width shows beside the list too, not only full screen: the column is never narrower than the fixed one, and wider
+    wherever the pane has room. (8% margins, as Feedbin's, left a 759px pane's column the same width.)"""
+    pg = open_site(browser, viewport={"width": width, "height": 900})
+    pg.evaluate("openReader(shown[0])")
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    main = lambda: pg.frames[-1].evaluate("(() => { const m = document.querySelector('main'), cs = getComputedStyle(m); return [innerWidth, m.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)]; })()")
+    pane, fixed = main()
+    pg.evaluate("$('format-fluid').click()")
+    pg.wait_for_timeout(500)  # past the glide
+    _, fluid = main()
+    assert pane - 2 * 24 > fixed + 1, "the list leaves the reader more than its column, even at 1280 (a 320px list there)"
+    assert fluid > fixed + 30, (width, pane, fixed, fluid)
+    assert pg.problems == []
+
+
+@pytest.mark.parametrize("width", [1100, 1186, 1440, 1728])
+def test_fluid_width_says_when_the_pane_has_no_room(browser, width):
+    """Where the reader pane is no wider than the article's column, Fluid width has nothing to fill: the menu says so under
+    the switch. The hint is computed from the frame's numbers; this checks it against what the frame really does."""
+    pg = open_site(browser, viewport={"width": width, "height": 800})
+    pg.evaluate("openReader(shown[0])")
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    main = lambda: pg.frames[-1].evaluate("(() => { const m = document.querySelector('main'), cs = getComputedStyle(m); return m.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); })()")
+    pg.click("#reader-format")
+    hint = pg.locator("#fluid-hint")
+    idle = hint.is_visible()
+    fixed = main()
+    pg.click("#format-fluid")
+    pg.wait_for_timeout(500)  # past the glide
+    gain = main() - fixed
+    assert idle == (gain < 8), (width, gain, idle)
+    if idle:
+        assert hint.inner_text() == "Needs a wider reader pane" and pg.get_attribute("#format-fluid", "aria-describedby") == "fluid-hint"
+        pg.keyboard.press("Escape")
+        pg.keyboard.press("Shift+F")  # full screen gives it room
+        pg.click("#reader-format")
+        assert hint.is_hidden(), "room in full screen"
+    assert pg.problems == []
+
+
+def test_full_screen_snaps_into_place_from_a_narrow_pane(browser):
+    """Below 600px the article has a phone's padding (18px sides, 24px top), so full screen from a narrow pane changes it.
+    That change lands at once: only a change of text size or fluid width glides. (A glide here slid the story right and
+    dropped it 8px into place.)"""
+    pg = open_site(browser, viewport={"width": 1100, "height": 800})
+    pg.evaluate("openReader(shown[0])")
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    frame = lambda js: pg.frames[-1].evaluate(js)
+    assert frame("innerWidth") < 600 and frame("getComputedStyle(document.querySelector('main')).paddingTop") == "24px"
+    pg.keyboard.press("Shift+F")
+    assert until(pg, "document.body.classList.contains('full')")
+    pg.wait_for_timeout(50)  # the frame resized, well inside any glide
+    assert frame("getComputedStyle(document.querySelector('main')).paddingTop") == "32px", "the new padding at once"
+    assert frame("document.getAnimations().length") == 0, "nothing gliding"
+    pg.keyboard.press("Shift+F")
+    pg.wait_for_timeout(50)
+    assert frame("getComputedStyle(document.querySelector('main')).paddingTop") == "24px" and frame("document.getAnimations().length") == 0
+    assert pg.problems == []
+
+
+def test_full_screen_reader(browser):
+    """Shift F or the Format menu puts the reader over the topics and the list, with the header's menu still there.
+    Esc leaves full screen before it closes the reader, and closing the reader leaves it too. Phones have no such entry."""
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    pg.keyboard.press("Shift+F")  # nothing open: nothing to show full screen
+    assert not pg.evaluate("document.body.classList.contains('full')")
+    pg.locator("a.card").first.click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    btn = pg.locator("#format-full")
+    pg.locator("#reader-format").click()
+    assert btn.is_visible() and btn.get_attribute("role") == "switch" and btn.get_attribute("aria-checked") == "false"
+    assert btn.locator("kbd").inner_text() == "⇧F", "with its shortcut"
+    assert pg.get_attribute("#reader-format", "aria-label") == "Display options"
+    pg.keyboard.press("Escape")
+    narrow = pg.locator("#reader").bounding_box()["width"]
+    pg.keyboard.press("Shift+F")
+    r = pg.locator("#reader").bounding_box()
+    assert r["x"] == 0 and r["width"] == 1440 and narrow < 1440
+    assert pg.evaluate("document.getElementById('items').inert && document.querySelector('.side').inert && !document.querySelector('header').inert")
+    assert pg.locator("#resize-list").is_hidden() and pg.locator("#reader-close").is_visible()
+    # The article keeps its line length, centered: about 70 characters at every size, so a bigger size gets a wider column.
+    main = lambda: pg.frames[-1].evaluate("(() => { const m = document.querySelector('main'), cs = getComputedStyle(m); return m.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); })()")
+    def settled():  # changes of size and width glide, as Feedbin's: measured once the frame's transitions end
+        for _ in range(30):
+            pg.wait_for_timeout(50)
+            if not pg.frames[-1].evaluate("document.getAnimations().length"):
+                return
+        raise AssertionError("the column never settled")
+    assert main() == 639
+    pg.locator("#reader-format").click()
+    assert btn.get_attribute("aria-checked") == "true"
+    pg.locator("#format-pop [data-size='3']").click()
+    settled()
+    assert main() == 781  # 35.5em at 22px
+    # Fluid width, after Feedbin's: the pane less 8% each side, easing there rather than jumping.
+    pg.locator("#format-fluid").click()
+    gliding = lambda: "max-width" in pg.frames[-1].evaluate("document.getAnimations().map(a => a.transitionProperty)")
+    assert any(gliding() or pg.wait_for_timeout(10) for _ in range(30)), "it glides"
+    settled()
+    assert pg.locator("#format-fluid").get_attribute("aria-checked") == "true" and abs(main() - (1440 - 2 * (0.06 * 1440 - 20))) < 1  # 66px margins
+    pg.locator("#format-fluid").click()
+    settled()
+    assert main() == 781
+    pg.keyboard.press("Escape")  # the Format menu
+    pg.locator("#menu-btn").click()  # the header's menu stays reachable over the reader
+    assert pg.locator("#menu").is_visible()
+    pg.keyboard.press("Escape")
+    pg.locator("#menu").wait_for(state="hidden")
+    assert pg.evaluate("document.body.classList.contains('full')"), "Esc closed only the menu"
+    pg.keyboard.press("j")  # stepping keeps full screen
+    assert pg.evaluate("document.body.classList.contains('full')") and pg.evaluate("readerFor") == pg.evaluate("shown[1].url")
+    pg.keyboard.press("Escape")
+    assert reading(pg) and not pg.evaluate("document.body.classList.contains('full')"), "Esc leaves full screen first"
+    assert pg.locator("#reader").bounding_box()["width"] == narrow and not pg.evaluate("document.getElementById('items').inert")
+    pg.locator("#reader-format").click()
+    btn.click()
+    assert pg.evaluate("document.body.classList.contains('full')") and btn.get_attribute("aria-checked") == "true"
+    assert pg.locator("#format-pop").is_visible(), "it stays open, to see the change"
+    pg.keyboard.press("Escape")
+    pg.locator("#reader-close").click()
+    wait_until_closed(pg)
+    assert not pg.evaluate("document.body.classList.contains('full')")
+    pg.set_viewport_size({"width": 400, "height": 800})
+    pg.evaluate("openReader(items[0])")
+    pg.locator("#reader-format").click()
+    assert pg.locator("#format-pop [data-pick='dark']").is_visible() and btn.is_hidden() and pg.locator("#format-fluid").is_hidden(), "a phone's reader is full screen already"
+    assert pg.problems == []
+
+
+def test_the_format_menu_picks_light_dark_or_the_systems_theme(browser):
+    ctx = browser.new_context(viewport={"width": 1300, "height": 900}, color_scheme="light")
+    pg = ctx.new_page()
+    pg.problems = []
+    pg.on("pageerror", lambda e: pg.problems.append(f"page error: {e}"))
+    pg.goto(URL)
+    enter_list(pg)
+    pg.locator("a.card").first.click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.locator("#reader-format").click()
+    pick = lambda t: pg.locator(f"#format-pop [data-pick='{t}']")
+    theme = lambda: pg.evaluate("document.documentElement.dataset.theme")
+    assert pick("auto").get_attribute("aria-pressed") == "true" and theme() == "light", "nothing chosen: the system's"
+    heads = pg.evaluate("[...document.querySelectorAll('#format-pop .fmt-head')].map(h => [h.textContent, h.nextElementSibling.className.split(' ')[0]])")
+    assert heads == [["Theme", "fmt-themes"], ["Text size", "format-sizes"], ["Display", "fmt-row"]], "each section labeled, the theme at the top"
+    assert pg.locator(".fmt-themes button").all_inner_texts() == ["Auto", "Light", "Dark"], "each swatch captioned"
+    pick("dark").click()
+    assert until(pg, "document.documentElement.dataset.theme === 'dark'"), "the swap lands in a view transition, a frame later"
+    assert pick("dark").get_attribute("aria-pressed") == "true" and pg.evaluate("localStorage.getItem('theme')") == "dark"
+    assert pg.locator("#format-pop").is_visible(), "it stays open, to see the change"
+    pick("auto").click()
+    assert until(pg, "document.documentElement.dataset.theme === 'light'") and pg.evaluate("localStorage.getItem('theme')") is None
+    pg.emulate_media(color_scheme="dark")  # Auto follows the system as it changes
+    assert until(pg, "document.documentElement.dataset.theme === 'dark'")
+    pick("light").click()  # a chosen theme holds, whatever the system says
+    assert until(pg, "document.documentElement.dataset.theme === 'light'") and pick("light").get_attribute("aria-pressed") == "true"
+    assert pg.problems == []
+    assert pg.problems == []
+
+
+def test_hide_read_stories_from_the_menu(browser):
+    """Hide read stories is a switch in the menu. A story read while the list shows stays until the list is drawn afresh;
+    the list's end says read stories are hidden, with a way to show them; Read later ignores it; it survives a reload."""
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    urls = pg.evaluate("shown.map(i => i.url)")
+    pg.evaluate("u => markRead(u)", urls[0])
+    assert pg.locator("#list-bar .bar-btn:visible").count() == 2, "the toolbar keeps Shortcuts and Read"
+    pg.click("#menu-btn")
+    switch = pg.locator("#hide-read")
+    assert switch.get_attribute("role") == "switch" and switch.get_attribute("aria-checked") == "false"
+    assert pg.evaluate("document.getElementById('menu').firstElementChild.id") == "hide-read"
+    switch.click()
+    assert switch.get_attribute("aria-checked") == "true" and pg.inner_text("#status") == "Read stories hidden"
+    pg.keyboard.press("Escape")
+    assert pg.locator(f'#items a.card[href="{urls[0]}"]').count() == 0 and pg.locator(f'#items a.card[href="{urls[1]}"]').count() == 1
+    pg.locator(f'#items a.card[href="{urls[1]}"]').click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.keyboard.press("j")
+    pg.keyboard.press("Escape")
+    wait_until_closed(pg)
+    assert pg.locator(f'#items a.card[href="{urls[1]}"]').count() == 1 and pg.locator(f'#items a.card[href="{urls[2]}"]').count() == 1, "read here, so still listed"
+    pg.click("#filters .filter-btn[data-f='all']")
+    assert pg.locator(f'#items a.card[href="{urls[1]}"]').count() == 0, "drawn afresh, they go"
+    # A short list, read down to its end: it says what's hidden, and shows it again on a click.
+    topic = pg.evaluate("Object.keys(CATS).map(c => [c, items.filter(i => cat(i.category) === c).length]).filter(([, n]) => n > 1 && n < 30).sort((a, b) => a[1] - b[1])[0][0]")
+    pg.evaluate("t => markRead(items.find(i => cat(i.category) === t).url)", topic)
+    pg.click(f"#filters .filter-btn[data-f='{topic}']")
+    pg.evaluate("document.getElementById('col').scrollTo(0, 1e6)")
+    note = pg.locator("#hidden-note")
+    assert until(pg, "!document.getElementById('end').hidden") and note.is_visible() and note.inner_text() == "Read stories are hidden. Show them"
+    note.locator("button").click()
+    assert not pg.evaluate("hideRead") and note.is_hidden() and pg.evaluate("t => shown.length === items.filter(i => cat(i.category) === t).length", topic)
+    pg.click("#menu-btn")
+    switch.click()
+    pg.keyboard.press("Escape")
+    pg.evaluate("u => { openReader(items.find(i => i.url === u)); toggleLater(); }", urls[0])
+    pg.keyboard.press("Escape")
+    wait_until_closed(pg)
+    pg.click("#filters .filter-btn[data-f='later']")
+    assert pg.locator(f'#items a.card[href="{urls[0]}"]').count() == 1 and note.is_hidden(), "Read later lists saved stories, read or not"
+    pg.reload()
+    enter_list(pg)
+    assert pg.evaluate("hideRead") and pg.locator(f'#items a.card[href="{urls[0]}"]').count() == 0, "kept across a reload"
+    pg.evaluate("markAllRead(shown)")
+    assert pg.inner_text("#items .empty") == "No unread stories here. Read stories are hidden. Show them"
+    pg.locator("#items .empty button").click()
+    assert pg.locator("#items a.card").count() > 0
+    assert pg.problems == []
+
+
+def test_g_goes_to_a_list(browser):
+    pg = open_site(browser, viewport={"width": 1300, "height": 900})
+    pg.keyboard.press("g")
+    pg.keyboard.press("l")
+    assert pg.evaluate("filter") == "later"
+    pg.keyboard.press("l")  # without the g first: nothing
+    pg.keyboard.press("g")
+    pg.keyboard.press("a")
+    assert pg.evaluate("filter") == "all"
+    pg.locator("a.card").first.click()
+    frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+    frame.locator("main p").first.click()
+    pg.keyboard.press("g")
+    pg.keyboard.press("e")  # from inside an article, which closes
+    assert pg.evaluate("picks.size") and until(pg, "filter === 'essentials'")
+    wait_until_closed(pg)
+    assert pg.problems == []
+
+
 def test_share_copies_the_publishers_url_on_desktop(browser):
     ctx = browser.new_context(viewport={"width": 1300, "height": 900})
     ctx.grant_permissions(["clipboard-read", "clipboard-write"])
@@ -643,10 +952,10 @@ def test_share_copies_the_publishers_url_on_desktop(browser):
     opened = [u for u in pg.evaluate("window.__opened") if u]
     assert opened[0].startswith("https://bsky.app/intent/compose?text=") and enc in opened[1] and enc in opened[2]
     assert pg.locator("#send-pop [role=menuitem]:not([hidden]) svg").count() == 5  # an icon for each; no "More…" without a share sheet
-    pg.locator("#reader-size").click()  # opening the text size menu closes this one
-    assert pg.locator("#send-pop").is_hidden() and pg.locator("#size-pop").is_visible()
+    pg.locator("#reader-format").click()  # opening the Format menu closes this one
+    assert pg.locator("#send-pop").is_hidden() and pg.locator("#format-pop").is_visible()
     pg.locator("#reader-send").click()  # and the other way round
-    assert pg.locator("#size-pop").is_hidden() and pg.locator("#send-pop").is_visible()
+    assert pg.locator("#format-pop").is_hidden() and pg.locator("#send-pop").is_visible()
     pg.keyboard.press("Escape")  # closes the menu, not the reader
     assert pg.locator("#send-pop").is_hidden() and pg.evaluate("document.body.classList.contains('reading')")
     pg.locator("#reader-send").click()
@@ -769,23 +1078,23 @@ def test_text_size_steps_and_is_remembered(browser):
     frame.locator("h1").wait_for()
     size = lambda: frame.locator("body").evaluate("e => parseFloat(getComputedStyle(e).fontSize)")
     start = size()
-    pg.locator("#reader-size").tap()
-    sizes = pg.locator("#size-pop button")
-    assert sizes.count() == 4 and pg.locator("#size-pop [aria-pressed='true']").get_attribute("data-size") == "1"
+    pg.locator("#reader-format").tap()
+    sizes = pg.locator("#format-pop [data-size]")
+    assert sizes.count() == 4 and pg.locator("#format-pop [data-size][aria-pressed='true']").get_attribute("data-size") == "1"
     sizes.nth(3).tap()  # straight to the largest, no cycling through the others
     frame.locator("html[data-size='3']").wait_for(state="attached")
     assert size() > start
-    assert pg.locator("#size-pop [aria-pressed='true']").get_attribute("data-size") == "3"
+    assert pg.locator("#format-pop [data-size][aria-pressed='true']").get_attribute("data-size") == "3"
     sizes.nth(2).tap()
     frame.locator("html[data-size='2']").wait_for(state="attached")
     pg.keyboard.press("Escape")  # closes the panel, not the reader
-    assert not pg.locator("#size-pop").is_visible() and pg.evaluate("document.body.classList.contains('reading')")
+    assert not pg.locator("#format-pop").is_visible() and pg.evaluate("document.body.classList.contains('reading')")
     pg.reload()
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
     assert pg.frame_locator("#reader-body iframe:not(.loading)").locator("html").get_attribute("data-size") == "2"
-    pg.locator("#reader-size").tap()
+    pg.locator("#reader-format").tap()
     pg.mouse.click(200, 600)  # a tap on the article closes the panel
-    pg.wait_for_function("() => document.getElementById('size-pop').hidden")
+    pg.wait_for_function("() => document.getElementById('format-pop').hidden")
 
 
 def test_ages_count_days_in_the_sites_time_zone_whatever_the_device_reports(browser):
@@ -840,12 +1149,12 @@ def test_reader_opens_with_the_tldr_and_what_to_do_last(browser):
     # The text size control scales the box and the byline with the article, not just the body text.
     sizes = """() => ['body', '.tldr > b', '.tldr li', '.tldr .do', '.tldr .do b', '.meta'].map(s => parseFloat(getComputedStyle(document.querySelector(s)).fontSize))"""
     before = frame.locator("body").evaluate(f"({sizes})")
-    pg.locator("#reader-size").click()
-    pg.locator("#size-pop button[data-size='3']").click()
+    pg.locator("#reader-format").click()
+    pg.locator("#format-pop [data-size='3']").click()
     frame.locator("html[data-size='3']").wait_for(state="attached")
     after = frame.locator("body").evaluate(f"({sizes})")
     assert all(abs(a / b - after[0] / before[0]) < 0.02 for a, b in zip(after, before))  # all grow by the body's ratio
-    pg.keyboard.press("Escape")  # closes the size menu, leaving the reader open
+    pg.keyboard.press("Escape")  # closes the Format menu, leaving the reader open
     pg.keyboard.press("Escape")
     wait_until_closed(pg)  # Esc closes through history.back(), which lands a moment later: click before it and the tile is still inert
     second = pg.locator(f'a.card:not([href="{picked[0]}"])').first
@@ -903,13 +1212,16 @@ def test_the_reader_endpoint_reaches_the_worker(browser):
 
 def test_wide_screens_keep_the_controls_in_a_small_menu(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 900})
-    assert pg.locator("#menu-btn").is_visible() and pg.locator("#theme").is_hidden()  # tucked away, as in Feedbin
+    assert pg.locator("#menu-btn").is_visible() and pg.locator("#hide-read").is_hidden()  # tucked away, as in Feedbin
     pg.click("#menu-btn")
     menu = pg.locator("#menu").bounding_box()
-    assert pg.locator("#menu a[href='/rss.xml']").is_visible() and pg.locator("#theme").is_visible()
+    assert pg.locator("#menu a[href='/rss.xml']").is_visible() and pg.locator("#hide-read").is_visible()
     assert menu["width"] < 300 and menu["x"] + menu["width"] <= 1300 and menu["y"] >= 52  # a dropdown at the top right, not a drawer
     pg.keyboard.press("Escape")
-    pg.locator("#theme").wait_for(state="hidden")
+    pg.locator("#hide-read").wait_for(state="hidden")
+    # With no story open, the display options (and the theme in them) are still there; full screen, which needs a story, isn't.
+    pg.click("#reader-format")
+    assert pg.locator("#format-pop [data-pick='dark']").is_visible() and pg.locator("#format-full").is_hidden()
     assert pg.problems == []
 
 
@@ -928,9 +1240,8 @@ def test_wcag(browser, scheme):
     pg.tap("#menu-btn")
     pg.wait_for_function("() => !document.getElementById('menu').getAnimations().length")  # let the drawer finish opening
     assert violations() == [] and pg.evaluate(small) == []
-    assert pg.get_attribute("#theme", "aria-label") == f"Switch to {'light' if scheme == 'dark' else 'dark'} mode"
     pg.keyboard.press("Escape")
-    pg.locator("#theme").wait_for(state="hidden")
+    pg.locator("#hide-read").wait_for(state="hidden")
     pg.tap("#list-back")  # the topics, which phones open on
     pg.wait_for_function("() => !document.getAnimations().length")  # once the pages and header have settled, as a reader sees them
     assert violations() == [] and pg.evaluate(small) == []
@@ -1338,8 +1649,10 @@ def test_the_reader_marks_a_story_unread_and_read_again(browser):
     assert not pg.evaluate("u => readSet.has(u)", url) and pg.inner_text("#status") == "Marked as unread"
     pg.keyboard.press("m")  # the shortcut toggles it back
     assert "read" in card.get_attribute("class").split() and pg.evaluate("u => readSet.has(u)", url)
-    # Docked under the header, the reader doesn't repeat the theme switch in the header's menu.
-    assert pg.locator("#reader-theme").is_hidden() and pg.locator("#menu-btn").is_visible()
+    # The reader's bar keeps four story buttons; the theme and full screen are in its Format menu.
+    assert pg.locator(".reader-bar .icon-btn:visible").count() == 5  # with Close
+    assert pg.evaluate("document.querySelector('.reader-bar .format-wrap').previousElementSibling.id") == "reader-unread", "display options last"
+    assert pg.locator("#menu-btn").is_visible()
     assert pg.problems == []
 
 
@@ -2018,7 +2331,7 @@ def test_tab_passes_through_search_and_the_shortcuts_sheet_has_a_close_button(br
     pg.keyboard.press("Tab")
     assert focused() == "all"
     pg.click("#bar-keys")
-    pg.locator("#keys .keys-close").click()
+    pg.locator("#keys .sc-close").click()
     pg.locator("#keys").wait_for(state="hidden")
     assert pg.problems == []
 
@@ -2135,41 +2448,49 @@ def test_sync_by_code_between_devices(browser):
     assert a.problems == [] and b.problems == []
 
 
-def test_the_sync_button_leaves_the_readers_controls_clear(browser):
-    """On wide screens the menu button floats at the end of the reader bar, and while syncing the sync button joins it:
-    the bar keeps room for both, so neither covers the story's own buttons, and they're spaced as one row."""
+def test_sync_has_no_button_of_its_own(browser):
+    """Sync runs by itself, so it takes no place in the header or the reader's bar: its state is a line under the menu's Sync
+    settings, and the menu's button carries a dot only while sync is failing. The reader's buttons and the menu stay one row."""
     a = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900})
     turn_on(a)
     a.keyboard.press("Escape")
+    assert until(a, "!pending.size && syncState === 'ok'")
+    assert a.locator("#sync-ind").count() == 0
+    a.click("#menu-btn")
+    assert a.inner_text("#sync-status") == "Synced just now" and a.locator("#sync-status").is_visible()
+    assert not a.evaluate("document.getElementById('menu-btn').classList.contains('sync-error')")
+    a.keyboard.press("Escape")
+    a.route("**/api/sync", lambda route: route.abort("internetdisconnected"))
+    a.evaluate("syncNow()")
+    assert until(a, "document.getElementById('menu-btn').classList.contains('sync-error')"), "failing: a dot on the menu"
+    assert a.get_attribute("#menu-btn", "aria-label") == "Menu. Not synced"
+    a.click("#menu-btn")
+    assert a.inner_text("#sync-status") == "Couldn\u2019t reach Upshot"
+    a.keyboard.press("Escape")
+    a.unroute("**/api/sync")
+    a.evaluate("syncNow()")
+    assert until(a, "!document.getElementById('menu-btn').classList.contains('sync-error')"), "and gone once it works"
     a.evaluate("openReader(items[0])")
     a.wait_for_selector("#reader-body iframe:not(.loading)")
-    # Gaps between the visible buttons right of the reader bar's spacer (the story's) and the floating ones, in order.
     gaps = """() => {
       const from = document.querySelector('.reader-bar .reader-spacer').getBoundingClientRect().right;
       const r = [...document.querySelectorAll('.reader-bar .icon-btn, .controls > .icon-btn')].filter(b => b.checkVisibility())
         .map(b => b.getBoundingClientRect()).filter(x => x.left >= from).sort((x, y) => x.left - y.left);
       return r.slice(1).map((x, i) => x.left - r[i].right);
     }"""
-    spaced = a.evaluate(gaps)
-    assert len(spaced) >= 3 and set(spaced) == {8}, f"the story's buttons, the sync button and the menu, evenly spaced: {spaced}"
-    a.evaluate("document.getElementById('sync-ind').hidden = true")
-    assert set(a.evaluate(gaps)) == {8}, f"and with sync off: {a.evaluate(gaps)}"
-    assert a.problems == []
+    assert len(a.evaluate(gaps)) == 4 and set(a.evaluate(gaps)) == {8}, f"the story's four buttons and the menu, evenly spaced: {a.evaluate(gaps)}"
+    assert [p for p in a.problems if "Failed to load resource" not in p] == []
 
-
-def test_the_sync_arrows_match_the_search_icon_on_phones(browser):
-    """On a phone the sync button sits beside search: the arrows are drawn as large as the magnifier, at the same 2px stroke."""
+def test_phones_keep_sync_in_the_menu_not_the_header(browser):
+    """Sync runs by itself, so on a phone its button doesn't take a place in the header: the menu's Sync settings is enough.
+    Search's close button still covers search."""
     a = open_site(browser, url=SYNC_URL, viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
     turn_on(a)
     a.keyboard.press("Escape")
-    # Measured at rest: turning, a sync's arrows have a wider box (each sync turns them at least once round).
-    assert until(a, "syncState === 'ok' && !document.getElementById('sync-ind').classList.contains('busy')")
-    ink = a.evaluate("""() => ['search-btn', 'sync-ind'].map(id => {
-      const g = document.querySelector(`#${id} svg`), k = g.getBoundingClientRect().width / g.viewBox.baseVal.width, b = g.getBBox();
-      return [Math.round(b.width * k * 10) / 10, Math.round(b.height * k * 10) / 10, Math.round(parseFloat(getComputedStyle(g).strokeWidth) * k * 10) / 10];
-    })""")
-    assert ink[0] == ink[1] == [16, 16, 2], f"search, then sync: width, height, stroke in px: {ink}"
-    # Search's close button covers search wherever it sits: syncing, that's a button further left, not over the sync arrows.
+    assert a.evaluate("syncOn") and a.locator("#sync-ind").count() == 0
+    a.tap("#menu-btn")
+    assert a.locator("#sync-btn .menu-label").inner_text() == "Sync settings"
+    a.keyboard.press("Escape")
     enter_list(a)
     a.tap("#search-btn")
     a.locator("#palette").wait_for()
@@ -2192,8 +2513,8 @@ def test_sync_survives_cleared_storage_and_deletes(browser):
     enter_list(a)
     assert until(a, "syncOn"), "still syncing"
     assert until(a, "u => readSet.has(u)", url), "the read list comes back"
-    # The header's sync button: there while syncing, saying when it last synced.
-    assert until(a, "/^Synced/.test(document.getElementById('sync-ind').title) && !document.getElementById('sync-ind').hidden")
+    # The menu says when it last synced.
+    assert until(a, "/^Synced/.test(document.getElementById('sync-status').textContent) && !document.getElementById('sync-status').hidden")
     open_sync(a)
     assert a.inner_text("#sync-last").startswith("Synced")
     assert a.problems == []
@@ -2208,7 +2529,7 @@ def test_the_sheet_says_when_upshot_cant_be_reached_and_tries_again(browser):
     assert until(a, "!pending.size && syncState === 'ok'")
     a.route("**/api/sync", lambda route: route.abort("internetdisconnected"))
     a.evaluate("syncNow()")
-    assert until(a, "document.getElementById('sync-ind').classList.contains('error')")
+    assert until(a, "document.getElementById('menu-btn').classList.contains('sync-error')")
     open_sync(a)
     a.wait_for_selector("[data-view=in]:not([hidden])")
     assert a.inner_text("#sync-last").startswith("Couldn\u2019t reach Upshot. Last synced")
@@ -2221,40 +2542,8 @@ def test_the_sheet_says_when_upshot_cant_be_reached_and_tries_again(browser):
     assert until(a, "syncState === 'ok' && document.getElementById('sync-retry').hidden")
     assert a.inner_text("#sync-last") == "Synced just now. To add a device, generate a sync code."
     assert a.evaluate("document.activeElement.id") == "sync-add-device"
-    assert a.evaluate("!document.getElementById('sync-ind').classList.contains('error')")
+    assert a.evaluate("!document.getElementById('menu-btn').classList.contains('sync-error')")
     # The blocked requests are logged as failed loads, as they would be offline; nothing else may be.
-    assert [p for p in a.problems if "Failed to load resource" not in p] == []
-
-
-def test_the_header_sync_button_syncs_now_and_shows_it(browser):
-    """Set up from the menu; then the header's button syncs on a tap, turning at least once round even when the sync is
-    quick, and a tap while unreachable retries at once."""
-    a = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900})
-    turn_on(a)
-    a.keyboard.press("Escape")
-    assert until(a, "!pending.size && syncState === 'ok' && !document.getElementById('sync-ind').classList.contains('busy')")
-    # Each change of the busy class, timed in the page: the assertion can't race the sync, however long it takes. On the
-    # app's clock (Date.now), because an observer runs only once the task that changed the class is done, which stamps the
-    # start late: the turn is measured from the app's own spinFrom instead.
-    a.evaluate("""() => { const b = document.getElementById('sync-ind'); window.__spin = [];
-      new MutationObserver(() => { const on = b.classList.contains('busy'); if (window.__spin.at(-1)?.[0] !== on) window.__spin.push([on, Date.now()]); })
-        .observe(b, { attributes: true, attributeFilter: ['class'] }); }""")
-    with a.expect_request(lambda r: r.url.endswith("/api/sync") and r.method == "POST"):
-        a.click("#sync-ind")
-    assert not a.evaluate("document.getElementById('sync').open"), "a tap syncs; it doesn't open the sheet"
-    assert until(a, "syncState === 'ok'"), "the sync itself is quick"
-    assert until(a, "!document.getElementById('sync-ind').classList.contains('busy')", timeout=3000), "then it stops"
-    spin = a.evaluate("window.__spin")
-    spin_from = a.evaluate("spinFrom")
-    assert [on for on, _ in spin] == [True, False] and spin[1][1] - spin_from >= 1000, f"a whole turn at least: {spin}, from {spin_from}"
-    assert a.get_attribute("#sync-ind", "aria-label").startswith("Synced just now. Sync now")
-    # Unreachable: the tap retries now, not after the reconnect's wait.
-    a.route("**/api/sync", lambda route: route.abort("internetdisconnected"))
-    a.evaluate("syncNow()")
-    assert until(a, "syncState === 'error'")
-    a.unroute("**/api/sync")
-    a.click("#sync-ind")
-    assert until(a, "syncState === 'ok'")
     assert [p for p in a.problems if "Failed to load resource" not in p] == []
 
 
@@ -2264,7 +2553,7 @@ def test_turning_sync_off_works_before_the_device_list_loads(browser):
     name = lambda: a.evaluate("[document.querySelector('#sync-btn .menu-label').textContent, document.getElementById('sync-title').textContent]")
     assert name() == ["Sync your reading"] * 2, "an invitation while off"
     turn_on(a)
-    assert name() == ["Sync settings"] * 2, "settings once on: the header's button does the syncing"
+    assert name() == ["Sync settings"] * 2, "settings once on: it syncs by itself"
     a.keyboard.press("Escape")
     a.route("**/api/auth/me", lambda route: None)  # never answers
     open_sync(a)
@@ -2791,7 +3080,7 @@ def _group(browser, n):
 
 def _off(d, timeout=4000):
     """Stopped syncing by itself: no sync button, and the reason it'll show (in the sheet now, or the next time it opens)."""
-    assert until(d, "!syncOn && document.getElementById('sync-ind').hidden", timeout=timeout), "stops by itself"
+    assert until(d, "!syncOn && document.getElementById('sync-status').hidden", timeout=timeout), "stops by itself"
     return d.evaluate("syncNotice || document.getElementById('sync-msg').textContent")
 
 
@@ -2849,7 +3138,7 @@ def test_a_device_in_the_background_catches_up_when_shown(browser):
     b.wait_for_timeout(1000)
     assert b.evaluate("syncOn"), "hidden: it hasn't heard (its connection is closed, at no cost)"
     b.evaluate(hide, False)
-    assert until(b, "!syncOn && document.getElementById('sync-ind').hidden", timeout=5000), "shown: it finds out"
+    assert until(b, "!syncOn && document.getElementById('sync-status').hidden", timeout=5000), "shown: it finds out"
     open_sync(b)
     assert "Sync is off on this device" in b.inner_text("#sync-msg")
     assert a.problems == [] and b.problems == []
