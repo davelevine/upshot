@@ -160,6 +160,24 @@
    ]
   },
   {
+   "date": "2026-11-17",
+   "published": "2026-11-17T16:21:00+00:00",
+   "title": "NSA Net, agency’s classified internal network, faces unspecified disruptions",
+   "url": "https://therecord.media/nsa-net-disruptions",
+   "publisher": "The Record",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "NSA ordered staggered arrivals at Fort Meade as technicians work to restore NSA Net, its classified internal network, after unspecified disruptions.",
+   "relevance": 6,
+   "added": "2026-11-17T17:18:17+00:00",
+   "minutes": 2,
+   "tldr": [
+    "The NSA's classified internal network, NSA Net, is running intermittently after a suspected technical fault, not believed to be a cyberattack.",
+    "Staff at Fort Meade headquarters are arriving in staggered shifts to ease sign-in load, and the system has reportedly been unstable for weeks.",
+    "NSA backup centers across the country are expected to pick up the slack and continue signals intelligence collection during the disruption."
+   ]
+  },
+  {
    "date": "2026-11-16",
    "published": "2026-11-16T18:14:14+00:00",
    "title": "Rapid7 Detected Exploitation of CVE-2026-90436 against Atlassian Confluence Data Center, N-able N-central also Exploited",
@@ -4153,7 +4171,7 @@
    }
   ]
  },
- "generated_at": "2026-11-17T16:18:25+00:00",
+ "generated_at": "2026-11-17T17:18:25+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
