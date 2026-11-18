@@ -40,6 +40,25 @@
   },
   {
    "date": "2026-11-17",
+   "published": "2026-11-17T21:11:28+00:00",
+   "title": "Java4Shell: RCE in OpenJDK when processing Base64",
+   "url": "https://calif.io/java4shell/",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "security",
+   "summary": "Researchers disclosed Java4Shell, a remote code execution flaw in OpenJDK triggered when processing Base64 input.",
+   "relevance": 8,
+   "added": "2026-11-18T00:18:26+00:00",
+   "minutes": 10,
+   "tldr": [
+    "Java4Shell: an out-of-bounds write in OpenJDK's x86-64 Base64 intrinsic can be chained into remote code execution.",
+    "Affects OpenJDK 17.0.6 or newer and distributions built from it, on x86-64 CPUs with AVX-512 VBMI. ARM64 is not affected.",
+    "Update immediately. OpenJDK released a security advisory and Oracle released a patch on Nov 17, 2026.",
+    "Until patched, mitigate with -XX:-UseBASE64Intrinsics or -XX:UseAVX=2, on x86-64 hosts only."
+   ]
+  },
+  {
+   "date": "2026-11-17",
    "published": "2026-11-17T06:29:27+00:00",
    "title": "ConnectWise Warns ScreenConnect Attacks Continue as SCKit Targets Unpatched Systems",
    "url": "https://thehackernews.com/2026/11/connectwise-warns-screenconnect-attacks.html",
@@ -4372,7 +4391,7 @@
    }
   ]
  },
- "generated_at": "2026-11-17T23:18:19+00:00",
+ "generated_at": "2026-11-18T00:18:35+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
