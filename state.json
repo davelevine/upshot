@@ -1,8 +1,5 @@
 {
- "failing_since": {
-  "https://cloudblog.withgoogle.com/rss/": "2026-11-18",
-  "https://cloudblog.withgoogle.com/topics/threat-intelligence/rss/": "2026-11-18"
- },
+ "failing_since": {},
  "seen": {
   "http://groundworkcollaborative.org/news/amazons-decoy-deals-groundwork-investigation-reveals-nearly-1-in-3-black-friday-and-cyber-monday-deals-advertised-by-amazon-offered-no-savings-to-shoppers-nearly-1-in-10-w/": "2026-11-16",
   "http://muratbuffalo.blogspot.com/2026/11/writing-as-thinking-tool.html": "2026-11-08",
@@ -1477,6 +1474,7 @@
   "https://www.bleepingcomputer.com/news/security/cyberattack-disrupts-blood-storage-refrigeration-systems-in-france/": "2026-11-04",
   "https://www.bleepingcomputer.com/news/security/d-link-warns-of-multiple-zero-days-in-dgs-3130-series-switches/": "2026-11-06",
   "https://www.bleepingcomputer.com/news/security/digicert-data-breach-exposes-customer-information-identity-documents/": "2026-11-05",
+  "https://www.bleepingcomputer.com/news/security/dizigom-illegal-streaming-service-with-21m-monthly-visits-shuts-down/": "2026-11-18",
   "https://www.bleepingcomputer.com/news/security/dreamhost-confirms-data-breach-exposed-ftp-logins-and-webmail-sessions/": "2026-11-04",
   "https://www.bleepingcomputer.com/news/security/ebpf-rootkits-why-underground-actors-are-taking-notice/": "2026-11-11",
   "https://www.bleepingcomputer.com/news/security/emudhra-revokes-8-more-ca-certificates-after-private-key-mishap/": "2026-11-11",
@@ -1870,6 +1868,7 @@
   "https://www.schneier.com/blog/archives/2026/11/ais-hacking-the-law.html": "2026-11-03",
   "https://www.schneier.com/blog/archives/2026/11/another-way-police-are-locating-people-from-their-smartphones.html": "2026-11-12",
   "https://www.schneier.com/blog/archives/2026/11/formal-verification-of-the-signal-protocol-using-ai.html": "2026-11-17",
+  "https://www.schneier.com/blog/archives/2026/11/france-is-blaming-iran-for-the-fridge-cyberattack.html": "2026-11-18",
   "https://www.schneier.com/blog/archives/2026/11/friday-squid-blogging-new-jurassic-squid-predecessors.html": "2026-11-06",
   "https://www.schneier.com/blog/archives/2026/11/friday-squid-blogging-pacific-flying-squid-populations-dropping-in-korean-waters.html": "2026-11-13",
   "https://www.schneier.com/blog/archives/2026/11/new-openssh-vulnerability.html": "2026-11-10",
@@ -1899,9 +1898,11 @@
   "https://www.securityweek.com/brava-security-emerges-from-stealth-with-15-million-in-funding/": "2026-11-08",
   "https://www.securityweek.com/california-sues-openai-seeking-court-ordered-changes-after-the-hugging-face-hack/": "2026-11-17",
   "https://www.securityweek.com/chipmaker-patch-tuesday-over-200-vulnerabilities-addressed-by-intel-amd/": "2026-11-11",
+  "https://www.securityweek.com/chrome-158-patches-204-vulnerabilities/": "2026-11-18",
   "https://www.securityweek.com/chrome-firefox-updates-patch-180-vulnerabilities/": "2026-11-12",
   "https://www.securityweek.com/chrome-update-patches-exploited-xml-zero-day-eighth-this-year/": "2026-11-10",
   "https://www.securityweek.com/cisco-watchguard-release-patches-sonicwall-wont-fix-gms-flaws/": "2026-11-05",
+  "https://www.securityweek.com/ciso-conversations-patti-degnan-part-of-the-job-is-deciding-what-not-to-do/": "2026-11-18",
   "https://www.securityweek.com/ciso-conversations-ryan-davis-the-unknown-is-where-security-meets-reality/": "2026-11-05",
   "https://www.securityweek.com/citrix-ivanti-patch-critical-and-high-severity-vulnerabilities/": "2026-11-11",
   "https://www.securityweek.com/citrix-patches-10-critical-netscaler-vulnerabilities/": "2026-11-13",
@@ -1948,6 +1949,7 @@
   "https://www.securityweek.com/microsoft-agent-framework-releases-poisoned-with-credential-stealer/": "2026-11-18",
   "https://www.securityweek.com/microsoft-rules-out-cyberattack-in-outage-warns-of-phishing-campaign/": "2026-11-16",
   "https://www.securityweek.com/microsoft-struggles-to-restore-email-and-other-services-in-a-global-outage/": "2026-11-13",
+  "https://www.securityweek.com/microsoft-takes-perception-agentic-security-platform-out-of-preview/": "2026-11-18",
   "https://www.securityweek.com/msp-screenconnect-servers-targeted-in-month-long-campaign/": "2026-11-17",
   "https://www.securityweek.com/n-able-kills-legacy-apis-patches-17-n-central-zero-days/": "2026-11-17",
   "https://www.securityweek.com/n-able-takes-n-central-offline-as-researcher-drops-over-30-zero-days/": "2026-11-10",
