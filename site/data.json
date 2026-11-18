@@ -546,7 +546,9 @@
    "relevance": 9,
    "added": "2026-11-16T19:18:09+00:00",
    "exploited": {
-    "kev": [],
+    "kev": [
+     "CVE-2026-90436"
+    ],
     "at": "2026-11-16T19:18:06+00:00",
     "kind": "flaw",
     "quote": "Detected Exploitation of CVE-2026-90436 against Atlassian Confluence Data Center",
@@ -1099,7 +1101,9 @@
    "relevance": 8,
    "added": "2026-11-13T06:18:24+00:00",
    "exploited": {
-    "kev": [],
+    "kev": [
+     "CVE-2026-90436"
+    ],
     "at": "2026-11-13T06:18:20+00:00",
     "kind": "flaw",
     "quote": "Hackers Exploit N-central Flaws to Infect 21 Servers",
@@ -3019,7 +3023,16 @@
    ],
    "cves": [
     "CVE-2026-40217"
-   ]
+   ],
+   "exploited": {
+    "at": "2026-11-18T20:18:27+00:00",
+    "kind": "flaw",
+    "kev": [
+     "CVE-2026-40217"
+    ],
+    "fix_read": true,
+    "fix": "patch"
+   }
   },
   {
    "date": "2026-11-02",
@@ -4637,7 +4650,7 @@
    }
   ]
  },
- "generated_at": "2026-11-18T19:18:26+00:00",
+ "generated_at": "2026-11-18T20:18:29+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
