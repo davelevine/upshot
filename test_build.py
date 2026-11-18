@@ -84,7 +84,14 @@ def test_stories_are_dated_in_the_site_time_zone():
     late = {"link": "https://x.test/a", "title": "T", "published_parsed": time.strptime("2026-11-07 01:00", "%Y-%m-%d %H:%M")}  # 8pm on the 6th, Eastern
     (item,) = build.candidates("P", [late], {}, datetime(2026, 11, 1, tzinfo=timezone.utc))
     assert item["date"] == "2026-11-06"
-    assert item["published"] == "2026-11-07T01:00:00+00:00"  # the exact time too, for "5h ago" on the page
+    assert item["published"] == "2026-11-07T01:00:00+00:00"  # the exact time too, for the publish date on hover
+
+
+def test_a_feed_that_gives_only_a_date_keeps_that_date():
+    import time
+    dated = {"link": "https://x.test/a", "title": "T", "published_parsed": time.strptime("2026-11-17 00:00", "%Y-%m-%d %H:%M")}  # "Tue, 17 Nov 2026 00:00:00 +0000"
+    (item,) = build.candidates("P", [dated], {}, datetime(2026, 11, 1, tzinfo=timezone.utc))
+    assert item["date"] == "2026-11-17"  # not the 16th: midnight UTC is 7pm the evening before in New York
 
 
 def test_icon_art_flags_only_single_color_artwork_on_transparency(tmp_path):

@@ -131,6 +131,13 @@ def entry_time(e):
     return None
 
 
+def site_date(when):
+    """The day it was published, in the site's time zone. A feed that gives only a date says midnight UTC: that date as
+    given, not the evening before in New York."""
+    midnight = (when.hour, when.minute, when.second) == (0, 0, 0) and when.utcoffset() == timedelta(0)
+    return (when.date() if midnight else when.astimezone(SITE_TZ).date()).isoformat()
+
+
 def candidates(publisher, entries, seen, cutoff):
     """New, dated, recent entries from one feed, newest first, capped at PER_FEED."""
     out = []
@@ -145,7 +152,7 @@ def candidates(publisher, entries, seen, cutoff):
             "url": url,
             "title": clean_text(e["title"], 300),
             "publisher": publisher,
-            "date": when.astimezone(SITE_TZ).date().isoformat(),
+            "date": site_date(when),
             "published": when.isoformat(timespec="seconds"),  # the page shows how long ago, as feed readers do
             "excerpt": clean_text(e.get("summary") or e.get("description")),
         })

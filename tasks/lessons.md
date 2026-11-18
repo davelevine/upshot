@@ -325,3 +325,12 @@
 - A control whose target silently depends on the view state is hidden behavior. When there are several destinations, list them all where they can be seen (a submenu, a list), each with its own name.
 - Prefer the familiar pattern (a submenu of choices) over a clever one that saves a menu row.
 - **Amended the same day:** asked for "hover and a submenu appears", I built a flyout. The menu sits at the screen's right edge, so the flyout opened to the left while its arrow pointed right, and the user asked for a click that opens the list under the row instead. Before building a submenu, check where it can open from the menu's position and whether the arrow matches; when the literal request leads somewhere awkward, say so and show the in-place option first.
+
+## 2026-11-18 — Research practice before citing it, and trace a late item to its source
+
+**Mistake:** Asked how other readers order stories that arrive late, I answered from memory ("Feedbin sorts by publish date", "Miniflux lets you choose") and recommended from that. The user asked for real homework, and asked why the story took a day, which I hadn't checked. The feed's own history answered it: the community scraper (Olshansk/rss-feeds) didn't add the story until 18:36 UTC, and Upshot took it on the next build.
+
+**Rules:**
+- When asked what's standard, search and cite sources before answering; name the products whose behavior couldn't be confirmed instead of filling in from memory.
+- When something shows up late, find when it first appeared upstream (the feed's git history, its `lastBuildDate`) before explaining or redesigning around it.
+- **Amended the same day:** the user picked arrival order and arrival-age stamps from a text preview, then rejected the built version on sight ("feels so odd"). For a change to how the main list looks or orders, put it in the preview on real data before writing tests and docs, and show that before asking for a final choice.
