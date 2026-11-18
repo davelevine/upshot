@@ -24,9 +24,9 @@ def entry(url, title, hours_ago=2, excerpt="", when=None):
     return e
 
 
-def score(category, relevance, summary="It happened.", exploited=False, kind="flaw", evidence="", fix="unknown", fix_evidence=""):
+def score(category, relevance, exploited=False, kind="flaw", evidence="", fix="unknown", fix_evidence=""):
     """What the model returns for one story."""
-    return {"category": category, "relevance": relevance, "summary": summary, "exploited": exploited, "kind": kind,
+    return {"category": category, "relevance": relevance, "summary": "It happened.", "exploited": exploited, "kind": kind,
             "evidence": evidence, "fix": fix, "fix_evidence": fix_evidence}
 
 
@@ -54,7 +54,7 @@ class Sandbox:
         self.upshot_fix = {"fix": "unknown", "fix_evidence": ""}
         self.kev = {}
         self.extract = {"words": {}, "texts": {}, "error": None}
-        self.calls = []    # (kind, payload) for every model call
+        self.scored = []   # the title of every scoring call
         monkeypatch.setattr(build, "fetch", self.fetch)
         monkeypatch.setattr(build, "llm", self.llm)
         monkeypatch.setattr(build, "fetch_kev", lambda: dict(self.kev))
@@ -76,13 +76,13 @@ class Sandbox:
     def llm(self, system, user, schema, whole=False, model=None):
         payload = json.loads(user)
         if system == build.CLASSIFY_PROMPT:
-            self.calls.append(("classify", payload))
+            assert len(payload) == 1, "each story is scored alone"
+            self.scored.append(payload[0]["title"])
             got = self.scores[payload[0]["title"]]
             if isinstance(got, Exception):
                 raise got
             return [got | {"id": 0}]
         if system == build.REPEATS_PROMPT:
-            self.calls.append(("repeats", payload))
             if self.repeat_error:
                 raise self.repeat_error
             ids = {i["title"]: i["id"] for i in payload["items"]}
@@ -93,17 +93,14 @@ class Sandbox:
                 out.append({"id": i["id"], "duplicate_of": str(ids[target]) if earlier else target})
             return out
         if system == build.WEEKLY_PROMPT:
-            self.calls.append(("weekly", payload))
             if self.weekly_error:
                 raise self.weekly_error
             ranked = sorted(payload, key=lambda i: ("remedy" not in i, i["id"]))  # flagged flaws first
             return [{"id": i["id"], "why": "Patch it now."} for i in ranked]
         if system.startswith(build.TLDR_PROMPT):
-            self.calls.append(("tldr", payload))
             bullets = ["Something happened to a widely used product.", "Teams running it should update now."]
             return {"bullets": bullets, "fix": "unknown", "fix_evidence": ""} if whole else bullets
         if system == build.UPSHOT_FIX_PROMPT:
-            self.calls.append(("upshot_fix", payload))
             return dict(self.upshot_fix)
         raise AssertionError(f"unexpected prompt: {system[:60]}")
 
@@ -114,21 +111,15 @@ class Sandbox:
     def run(self):
         opml = "".join(f'<outline type="rss" text="{t}" xmlUrl="{self.url(t)}"/>' for t in self.feeds)
         (self.root / "feeds.opml").write_text(f'<?xml version="1.0"?><opml version="2.0"><body>{opml}</body></opml>\n')
-        self.calls.clear()
+        self.scored.clear()
         build.main()
-        return self.data(), json.loads((self.root / "state.json").read_text())
-
-    def data(self):
-        return json.loads((self.site / "data.json").read_text())
-
-    def scored(self):
-        return [p[0]["title"] for k, p in self.calls if k == "classify"]
+        return json.loads((self.site / "data.json").read_text()), json.loads((self.root / "state.json").read_text())
 
 
-def story(title, publisher, date, url=None, category="ai", relevance=8, **extra):
+def story(title, publisher, date, category="ai", relevance=8, **extra):
     """A story already on the site."""
     return {"date": date.isoformat(), "published": f"{date.isoformat()}T12:00:00+00:00", "title": title,
-            "url": url or f"https://{publisher.lower().replace(' ', '')}.test/{title.lower().replace(' ', '-')}",
+            "url": f"https://{publisher.lower().replace(' ', '')}.test/{title.lower().replace(' ', '-')}",
             "publisher": publisher, "cves": [], "category": category, "summary": f"{title}.", "relevance": relevance,
             "added": f"{date.isoformat()}T12:00:00+00:00", **extra}
 
@@ -146,7 +137,8 @@ def check_contract(data):
             assert isinstance(i.get(k), str) and i[k], f"{k} missing on {i.get('url')}"
         assert i["url"].startswith(("https://", "http://"))
         assert i["category"] in build.CATEGORIES
-        datetime.fromisoformat(i["published"]), datetime.fromisoformat(i["added"])
+        for k in ("published", "added"):
+            datetime.fromisoformat(i[k])
         assert isinstance(i.get("minutes", 0), int)
         assert isinstance(i.get("tldr", []), list)
         if x := i.get("exploited"):
@@ -228,12 +220,11 @@ def test_two_builds_follow_every_pipeline_rule(box):
     # Fetch: a broken feed is skipped, and recorded.
     assert state["failing_since"] == {box.url("Broken Feed"): today.isoformat()}
     # Filter: too old, undated, unsafe and already-seen entries are never scored.
-    scored = box.scored()
+    scored = box.scored
     assert not {"Ten days old", "Undated story", "Script link", "Already seen"} & set(scored)
     # Score: one call per new story, each alone; a failed call is tried three times.
     assert len(set(scored)) == 11
     assert {t: scored.count(t) for t in scored if scored.count(t) > 1} == {"Scoring fails here": 3}
-    assert all(len(p) == 1 for k, p in box.calls if k == "classify")
     # Bars: at the bar, and an unpatched exploited flaw a point under it, publish; below it, and a patched flaw a point
     # under it, don't, but are still seen.
     assert "Cluster scheduler at the bar" in s and "Zero-day in Gizmo, no patch yet" in s
@@ -263,7 +254,7 @@ def test_two_builds_follow_every_pipeline_rule(box):
     # Essentials: at most five, three per topic, each with what to do; "patch" is never the advice for an unpatched flaw.
     w = data["weekly"]
     assert w["window_end"] == today.isoformat() and 0 < len(w["items"]) <= build.WEEKLY_PICKS
-    cats = [s_["category"] for p in w["items"] for s_ in data["items"] if s_["url"] == p["url"]]
+    cats = [{i["url"]: i["category"] for i in data["items"]}[p["url"]] for p in w["items"]]
     assert max(cats.count(c) for c in set(cats)) <= build.WEEKLY_PER_CATEGORY
     picks = {p["url"]: p["why"] for p in w["items"]}
     assert picks[u("zero-day")] == build.NO_PATCH_WHY["none"]
@@ -294,7 +285,7 @@ def test_two_builds_follow_every_pipeline_rule(box):
     data, state = box.run()
     check_contract(data)
     s = by_title(data)
-    assert sorted(box.scored()) == ["Gizmo fixes CVE-2026-3333", "Scoring fails here"]
+    assert sorted(box.scored) == ["Gizmo fixes CVE-2026-3333", "Scoring fails here"]
     assert "Gizmo fixes CVE-2026-3333" not in s and s["Zero-day in Gizmo, no patch yet"]["exploited"]["fix"] == "patch"
     assert "Scoring fails here" in s and u("fails") in state["seen"]
     router = s["Router flaw CVE-2026-1111 disclosed"]["exploited"]
@@ -334,7 +325,7 @@ def test_a_reader_outage_still_publishes_and_is_reported(box):
 
 def test_a_failed_essentials_pick_keeps_last_weeks(box):
     old = {"window_start": "2026-11-10", "window_end": "2026-11-16", "items": [{"url": "https://vendorblog.test/a", "why": "Read it."}]}
-    box.seed(items=[story("A", "Vendor Blog", NOW.date() - DAY, url="https://vendorblog.test/a")], weekly=old)
+    box.seed(items=[story("A", "Vendor Blog", NOW.date() - DAY)], weekly=old)
     box.feeds = {"Vendor Blog": []}
     box.weekly_error = RuntimeError("overloaded")
     data, _ = box.run()
