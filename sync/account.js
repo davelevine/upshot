@@ -94,6 +94,12 @@ const validMap = ok => map => !!map && typeof map === 'object' && !Array.isArray
   && Object.entries(map).every(([u, m]) => u.length <= MAX_URL && /^https?:\/\//.test(u) && ok(m));
 export const validMarks = validMap(isMark);
 export const validLater = later => later === undefined || validMap(isSave)(later);  // a page from before Read later sends none
+// Display preferences: {key: [value, when]}. Any short key and value, so a new setting on the page needs no change here
+// (sync/ deploys only from main); the page ignores what it doesn't know.
+const MAX_PREFS = 8;
+export const validPrefs = prefs => prefs === undefined || (!!prefs && typeof prefs === 'object' && !Array.isArray(prefs)
+  && Object.keys(prefs).length <= MAX_PREFS && Object.entries(prefs).every(([k, p]) => /^[a-zA-Z]{1,16}$/.test(k) && Array.isArray(p)
+  && p.length === 2 && typeof p[0] === 'string' && /^[a-z0-9-]{1,24}$/.test(p[0]) && Number.isSafeInteger(p[1]) && p[1] >= 0));  // a page from before preferences sends none
 
 const routes = {
   // Turning sync on: a new reader, with this device as its first.
@@ -173,9 +179,9 @@ const routes = {
 async function sync(request, env, me) {
   if (!me) return json({ signedIn: false });
   const b = await body(request);
-  if (!b || !validMarks(b.marks) || !validLater(b.later) || !Number.isSafeInteger(b.cursor) || b.cursor < 0) return fail(400, 'bad request');
+  if (!b || !validMarks(b.marks) || !validLater(b.later) || !validPrefs(b.prefs) || !Number.isSafeInteger(b.cursor) || b.cursor < 0) return fail(400, 'bad request');
   const since = typeof b.since === 'string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d{3})?Z$/.test(b.since) ? b.since : null;  // UTC ISO dates compare as text
-  const res = await readerOf(env, me.user).sync(me.hash, b.marks, b.cursor, since, b.later ?? {});
+  const res = await readerOf(env, me.user).sync(me.hash, b.marks, b.cursor, since, b.later ?? {}, b.prefs ?? {});
   if (!res) return goneRes(json({ signedIn: false }));
   return json(res, 200, cookies(`${me.user}.${me.token}`, COOKIE_AGE));  // renewed on every sync: a device in use never expires
 }

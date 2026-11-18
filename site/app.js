@@ -142,12 +142,14 @@ function renderItems(keepLimit) {
   shown = items.filter(i => inList(i, filter) && (!hidesRead() || isUnread(i) || held.has(i.url) || i.url === readerFor));
   renderPage();
 }
-function setHideRead(on) {
+function setHideRead(on, fromSync = false) {
   hideRead = on;
   localStorage.setItem('hideRead', on ? '1' : '0');
   $('hide-read').setAttribute('aria-checked', String(on));
   renderItems();
+  if (fromSync) return;
   $('status').textContent = on ? 'Read stories hidden' : 'Read stories shown';
+  notePref('hideRead');
 }
 $('hide-read').setAttribute('aria-checked', String(hideRead));
 $('hide-read').onclick = () => setHideRead(!hideRead);
@@ -324,6 +326,14 @@ let syncOn, marks, pending, cursor, takeSince, pushTimer, syncGen = 0, syncNotic
 // Read later: stories set aside, {url: [saved, when]}, kept with or without sync, and leaving with the story itself. With
 // sync on, unsaving keeps [0, when] so it reaches the other devices; `laterPending` is what this device hasn't sent.
 let later, laterPending;
+// Display preferences that follow the reader: the theme and Hide read stories. Each keeps its value where it always has
+// (the theme is read before first paint, index.html); with sync on, `prefAt` says when it was set here and `prefsPending`
+// what's unsent. Text size, fluid width and full screen suit a screen, not a reader, so they stay with the device.
+let prefAt, prefsPending;
+const PREFS = {
+  theme: { get: () => localStorage.getItem('theme') || 'auto', ok: v => ['auto', 'light', 'dark'].includes(v), set: v => pickTheme(v) },
+  hideRead: { get: () => (hideRead ? '1' : '0'), ok: v => v === '0' || v === '1', set: v => setHideRead(v === '1', true) },
+};
 // Every tab shares what's stored, and storage events tell a tab of another's writes only after a moment (much later for a
 // tab frozen in the background). So a tab rereads before it changes the marks, rather than writing back its own older copy
 // over another tab's newer marks, or its unsent ones. Finding sync turned on or off that way, it acts on it here.
@@ -332,6 +342,7 @@ const loadSync = () => {
   syncOn = !!localStorage.getItem('syncOn'); marks = stored('marks', {}); pending = new Set(stored('syncPending', []));
   cursor = +localStorage.getItem('syncCursor') || 0; takeSince = !!localStorage.getItem('syncTakeSince');
   later = stored('later', {}); laterPending = new Set(stored('laterPending', []));
+  prefAt = stored('prefAt', {}); prefsPending = new Set(stored('prefsPending', []));
   if (was === undefined || syncOn === was) return;  // undefined: loading the page
   syncOn ? setTimeout(connectLive) : disconnectLive();  // later: this may be partway through a sync
   if ($('sync').open && syncViewName !== 'code') renderSync();
@@ -345,11 +356,19 @@ const saveLater = () => {
   localStorage.setItem('later', JSON.stringify(later));
   localStorage.setItem('laterPending', JSON.stringify([...laterPending]));
 };
+const savePrefs = () => {
+  localStorage.setItem('prefAt', JSON.stringify(prefAt));
+  localStorage.setItem('prefsPending', JSON.stringify([...prefsPending]));
+};
 const isSaved = url => later[url]?.[0] === 1;
 const maySync = () => syncOn || /(?:^|;\s*)upshot_sync=1/.test(document.cookie);
 // Another tab changed what's stored: take it up, so this tab never writes its older copy back over it.
 addEventListener('storage', e => {
-  if (!['syncOn', 'marks', 'syncPending', 'syncCursor', 'syncTakeSince', 'since', 'read', 'kept', 'later', 'laterPending'].includes(e.key)) return;
+  // The theme and Hide read, set in another tab by hand or by sync: shown here too. A synced one is applied by the first tab to
+  // hear of it; the rest find their stored value already matching, so this is how they follow.
+  if (e.key === 'theme') { swapTheme(e.newValue || (systemDark.matches ? 'dark' : 'light')); markTheme(); return; }
+  if (e.key === 'hideRead') { if (hideRead !== (e.newValue === '1')) setHideRead(e.newValue === '1', true); return; }
+  if (!['syncOn', 'marks', 'syncPending', 'syncCursor', 'syncTakeSince', 'since', 'read', 'kept', 'later', 'laterPending', 'prefAt', 'prefsPending'].includes(e.key)) return;
   loadSync();
   since = localStorage.getItem('since');
   readSet.clear(); for (const u of stored('read', [])) readSet.add(u);
@@ -363,6 +382,12 @@ function noteMark(url, read, opened) {
   if (!syncOn) return;
   marks[url] = [read, Date.now(), opened]; pending.add(url); saveMarks();
   clearTimeout(pushTimer); pushTimer = setTimeout(syncNow, SYNC_DELAY);  // a burst of marks goes as one request
+}
+function notePref(key) {
+  loadSync();
+  if (!syncOn) return;
+  prefAt[key] = Date.now(); prefsPending.add(key); savePrefs();
+  clearTimeout(pushTimer); pushTimer = setTimeout(syncNow, SYNC_DELAY);
 }
 // Turning sync on (or finding this browser's storage cleared): what it already knows goes in as marks older than any real
 // change, so other devices' changes win, and its order holds ("Recently read" lists them in it). Joining by code doesn't.
@@ -392,6 +417,9 @@ function signedIn(joined = false) {
   marks = {}; cursor = 0; localStorage.setItem('syncCursor', 0);
   if (joined) { pending = new Set(); saveMarks(); } else seedMarks();
   laterPending = new Set(Object.keys(later)); saveLater();  // saves are explicit, so a union is safe even on joining
+  // Joining takes the sync's preferences, so a new device looks like the others; the first device's go in, older than any change.
+  if (joined) { prefAt = {}; prefsPending = new Set(); } else { for (const k in PREFS) prefAt[k] ??= 1; prefsPending = new Set(Object.keys(PREFS)); }
+  savePrefs();
   takeSince = joined; joined ? localStorage.setItem('syncTakeSince', 1) : localStorage.removeItem('syncTakeSince');  // stored: another tab, or a reload, mustn't send the old cutoff either
   disconnectLive(); setTimeout(connectLive);  // a new session: its own connection, once the cookie is set
 }
@@ -401,6 +429,7 @@ function signedOut(notice = '') {
   for (const k of ['syncOn', 'marks', 'syncPending', 'syncCursor', 'syncTakeSince']) localStorage.removeItem(k);
   for (const u in later) if (!later[u][0]) delete later[u];  // keeps what's saved; unsaves were only for the other devices
   laterPending.clear(); saveLater();
+  prefAt = {}; prefsPending.clear(); savePrefs();  // the settings stay as they are
   syncNotice = notice;
   disconnectLive();
   showSync();  // the sync button goes
@@ -458,7 +487,8 @@ async function syncNow() {
   for (const u of laterPending) if (!sendable(later, u)) laterPending.delete(u);
   const sent = Object.fromEntries([...pending].slice(0, SYNC_BATCH).map(u => [u, marks[u]]));
   const sentLater = Object.fromEntries([...laterPending].slice(0, SYNC_BATCH - Object.keys(sent).length).map(u => [u, later[u]]));  // one batch between them
-  const body = JSON.stringify({ marks: sent, later: sentLater, cursor, since: takeSince ? null : since }), gen = syncGen;
+  const sentPrefs = Object.fromEntries([...prefsPending].filter(k => Object.hasOwn(PREFS, k)).map(k => [k, [PREFS[k].get(), prefAt[k] ?? 1]]));
+  const body = JSON.stringify({ marks: sent, later: sentLater, prefs: sentPrefs, cursor, since: takeSince ? null : since }), gen = syncGen;
   if (syncOn) setSync('busy');
   // keepalive lets a send finish after the tab is hidden or closed, but only up to 64 KB.
   syncing = fetch('/api/sync', { method: 'POST', keepalive: body.length < 6e4, headers: { 'Content-Type': 'application/json' }, body })
@@ -467,7 +497,7 @@ async function syncNow() {
   syncing = null;
   if (gen !== syncGen) return;  // this device joined or left a sync meanwhile
   loadSync();  // another tab may have written meanwhile
-  if (res?.status === 400) { for (const u in sent) pending.delete(u); for (const u in sentLater) laterPending.delete(u); saveMarks(); saveLater(); }  // malformed: it would never get through
+  if (res?.status === 400) { for (const u in sent) pending.delete(u); for (const u in sentLater) laterPending.delete(u); prefsPending.clear(); saveMarks(); saveLater(); savePrefs(); }  // malformed: it would never get through
   if (!res?.data) { if (syncOn) setSync('error'); return; }  // offline: the marks stay pending, sent when it's back
   if (res.data.signedIn === false) {  // removed elsewhere, or never in
     if (syncOn) { signedOut(STOPPED); if ($('sync').open && ['in', 'show'].includes(syncViewName)) syncView('out'); }
@@ -489,6 +519,14 @@ async function syncNow() {
       later[u] = m; changed = true;
     }
     saveLater();
+  }
+  if (res.data.prefs) {  // the server's merge, as with marks: it wins unless the setting changed here since. One from before preferences sends none
+    for (const [k, p] of Object.entries(sentPrefs)) if (prefAt[k] === p[1]) prefsPending.delete(k);
+    for (const [k, [v]] of Object.entries(res.data.prefs)) {
+      if (!Object.hasOwn(PREFS, k) || prefsPending.has(k) || !PREFS[k].ok(v) || PREFS[k].get() === v) continue;
+      PREFS[k].set(v);
+    }
+    savePrefs();
   }
   if (res.data.since && (takeSince || !since || res.data.since < since)) { localStorage.setItem('since', since = res.data.since); changed = true; }
   if (takeSince) { takeSince = false; localStorage.removeItem('syncTakeSince'); changed = true; }  // joined: the read list is the sync's, even with nothing in it
@@ -1196,7 +1234,7 @@ $('reader-format').onclick = e => {
 $('format-pop').onclick = e => {
   e.stopPropagation();  // it stays open, to see each change
   const b = e.target.closest('button');
-  if (b?.dataset.pick) pickTheme(b.dataset.pick);
+  if (b?.dataset.pick) { pickTheme(b.dataset.pick); notePref('theme'); }
   else if (b?.dataset.size) {
     textSize = +b.dataset.size;
     localStorage.setItem('textSize', textSize);
