@@ -137,7 +137,10 @@ def test_phone_menu(browser):
     assert pg.locator("#hide-read").is_hidden()
     assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
     pg.tap("#menu-btn")
-    assert pg.locator("#menu a[href='/rss.xml']").is_visible() and pg.locator("#theme").count() == 0, "the theme lives in the display options"
+    assert pg.locator("#menu a[href='/rss.xml']").is_hidden() and pg.locator("#theme").count() == 0, "the theme lives in the display options"
+    pg.tap("#feeds summary")  # the feeds open in place, under their row
+    feeds = pg.evaluate("[...document.querySelectorAll('#feeds a')].map(a => [a.getAttribute('href'), a.getBoundingClientRect().width])")
+    assert [h for h, _ in feeds] == ["/rss.xml", "/essentials.xml", "/exploited.xml"] and all(w > 300 for _, w in feeds)
     pg.keyboard.press("Escape")
     pg.locator("#hide-read").wait_for(state="hidden")  # after the closing fade
     # Tapping away closes the menu without opening the article underneath.
@@ -151,6 +154,26 @@ def test_phone_menu(browser):
     assert not reading(pg)
     pg.touchscreen.tap(x, y)
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    assert pg.problems == []
+
+
+def test_rss_feeds_submenu(browser):
+    pg = open_site(browser, viewport={"width": 1280, "height": 800})
+    assert pg.evaluate("[...document.querySelectorAll('link[rel=alternate]')].map(l => l.getAttribute('href'))") == ["/rss.xml", "/essentials.xml", "/exploited.xml"]
+    pg.click("#menu-btn")
+    pg.hover("#feeds summary")
+    assert pg.locator("#feeds a[href='/rss.xml']").is_hidden(), "a click opens it, not a hover"
+    pg.click("#feeds summary")  # the feeds open in place, under their row
+    row, first = (pg.locator(s).bounding_box() for s in ("#feeds summary", "#feeds a[href='/rss.xml']"))
+    assert first["y"] >= row["y"] + row["height"] and first["width"] == row["width"]
+    pg.click("#feeds summary")
+    pg.locator("#feeds a[href='/rss.xml']").wait_for(state="hidden")
+    pg.focus("#feeds summary")  # and by keyboard: Space opens it, rather than moving to the next story
+    pg.keyboard.press(" ")
+    assert pg.locator("#feeds a[href='/exploited.xml']").is_visible() and not reading(pg)
+    pg.keyboard.press("Escape")
+    pg.click("#menu-btn")
+    assert pg.locator("#feeds a[href='/rss.xml']").is_hidden(), "shut again when the menu reopens"
     assert pg.problems == []
 
 
@@ -1340,7 +1363,7 @@ def test_wide_screens_keep_the_controls_in_a_small_menu(browser):
     assert pg.locator("#menu-btn").is_visible() and pg.locator("#hide-read").is_hidden()  # tucked away, as in Feedbin
     pg.click("#menu-btn")
     menu = pg.locator("#menu").bounding_box()
-    assert pg.locator("#menu a[href='/rss.xml']").is_visible() and pg.locator("#hide-read").is_visible()
+    assert pg.locator("#feeds summary").is_visible() and pg.locator("#hide-read").is_visible()
     assert menu["width"] < 300 and menu["x"] + menu["width"] <= 1300 and menu["y"] >= 52  # a dropdown at the top right, not a drawer
     pg.keyboard.press("Escape")
     pg.locator("#hide-read").wait_for(state="hidden")

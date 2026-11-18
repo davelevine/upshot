@@ -456,6 +456,8 @@ function showSync() {
   for (const n of document.querySelectorAll('.later-note')) n.hidden = syncOn;
 }
 $('menu').addEventListener('toggle', e => { if (e.newState === 'open') showSync(); });  // "Synced 2m ago" as of now
+// RSS feeds: the list under its row starts shut each time the menu opens.
+$('menu').addEventListener('toggle', e => { if (e.newState === 'closed') $('feeds').open = false; });
 // The menu item and its sheet: an invitation while this device doesn't sync, and once it does, where its devices and codes
 // are kept, as a browser's "Sign in" becomes its account.
 function nameSheet() {
@@ -1508,7 +1510,7 @@ function onKey(key, mod, e) {
   if (key === 'escape' && reading) return dismiss();
   if (key === 'k' && mod) { e?.preventDefault(); return openPalette(); }
   if (mod || e?.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;
-  if (key === ' ' && document.activeElement?.closest('button, [role="menuitem"]')) return;  // Space presses a focused button
+  if (key === ' ' && document.activeElement?.closest('button, summary, [role="menuitem"]')) return;  // Space presses a focused button
   // Feedbin's "go to" pairs: g, then a, e or l within a moment.
   const go = Date.now() - goAt < 1500 && { a: 'all', e: 'essentials', l: 'later' }[key];
   goAt = key === 'g' ? Date.now() : 0;
