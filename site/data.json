@@ -4366,32 +4366,32 @@
   }
  ],
  "weekly": {
-  "window_start": "2026-11-11",
-  "window_end": "2026-11-17",
+  "window_start": "2026-11-12",
+  "window_end": "2026-11-18",
   "items": [
    {
-    "url": "https://www.bleepingcomputer.com/news/security/new-n-able-4everable2shell-zero-day-exploited-hours-after-poc-released/",
-    "why": "Patch N-central now; exploitation began within hours of the public proof-of-concept."
+    "url": "https://www.aikido.dev/blog/two-malicious-agent-framework-releases-hit-pypi-in-33-minutes",
+    "why": "If installed, remove the package and rotate Azure, Azure DevOps and GitHub Actions secrets."
    },
    {
-    "url": "https://www.aikido.dev/blog/compromised-github-accounts-push-ci-secret-stealer-to-tens-of-thousands-of-repositories",
-    "why": "Rotate CI secrets and audit workflows in repos touched by the compromised accounts."
+    "url": "https://www.rapid7.com/blog/post/etr-rapid7-detected-exploitation-of-cve-2026-90436-against-atlassian-confluence-data-center-n-able-n-central-also-exploited",
+    "why": "Patch Confluence Data Center and N-central now; unauthenticated RCE is being exploited."
    },
    {
     "url": "https://www.bleepingcomputer.com/news/security/check-point-patches-zero-day-that-lets-hackers-get-root-access/",
-    "why": "Apply Check Point hotfixes now; attackers have held root access since late October."
+    "why": "Patch Check Point gateways now, then hunt for root persistence since late October."
    },
    {
-    "url": "https://www.bleepingcomputer.com/news/security/active-screenconnect-attacks-breach-msps-impact-dozens-of-organizations/",
-    "why": "Audit ScreenConnect technician accounts and remove unknown remote-access clients from customer devices."
+    "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-windows-server-2016-reaches-end-of-support-in-60-days/",
+    "why": "Migrate off Windows Server 2016 now; security updates stop when support ends."
    },
    {
-    "url": "https://www.wordfence.com/blog/2026/11/cve-2026-119618-apache-http2/",
-    "why": "Patch Apache HTTP Server immediately; the critical HTTP/2 flaw can lead to remote code execution."
+    "url": "https://openai.com/index/introducing-gpt-6-2-astra-sol",
+    "why": "Evaluate GPT-6.2 Astra and Sol on your coding and agent workloads before adopting."
    }
   ]
  },
- "generated_at": "2026-11-18T04:18:10+00:00",
+ "generated_at": "2026-11-18T05:18:19+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
