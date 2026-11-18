@@ -17,6 +17,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="canonical" href="https://upshot.me/">
 <link rel="alternate" type="application/rss+xml" title="Upshot" href="/rss.xml">
+<link rel="alternate" type="application/rss+xml" title="Upshot: Essentials" href="/essentials.xml">
+<link rel="alternate" type="application/rss+xml" title="Upshot: Exploited" href="/exploited.xml">
 <link rel="preload" href="/fonts/licensed/Sohne-Buch" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -338,6 +340,12 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   .menu .hide-read::after { content: ""; position: absolute; inset: auto 4px -4px; border-top: 1px solid var(--border); }  /* a setting for the lists, apart from the links below */
   .menu #sync-btn { position: relative; margin-top: 7px; }
   .menu #sync-btn::before { content: ""; position: absolute; inset: -4px 4px auto; border-top: 1px solid var(--border); }
+  /* RSS feeds: one row that opens the list of feeds under it, like a disclosure. */
+  .feeds > summary { list-style: none; cursor: default; }
+  .feeds > summary::-webkit-details-marker { display: none; }
+  .feeds .chev { width: 16px; height: 16px; margin-left: auto; transform: rotate(90deg); }
+  .feeds[open] .chev { transform: rotate(-90deg); }
+  .feeds-list .icon-btn { padding-left: 40px; }  /* under the row's label */
   @media (max-width: 480px) {
     /* A drawer: full width under the header, its bottom edge wiping down while the rows stay still. */
     .menu { inset: 52px 0 auto; width: 100%; padding: 4px; border: 0; border-bottom: 1px solid var(--border-strong); border-radius: 0;
@@ -355,6 +363,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
     .menu #sync-btn { min-height: 48px; }  /* its status line lets it grow, from the same height */
     .menu .icon-btn svg { width: 22px; height: 22px; }
     .menu-label { font-size: 16px; }
+    .feeds-list .icon-btn { padding-left: 44px; }
   }
   @media (hover: hover) {
     .icon-btn:hover { border-color: var(--border); background: var(--bg-card-hover); color: var(--accent); }
@@ -624,10 +633,18 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.7 5.1A10.4 10.4 0 0 1 12 5c7 0 10 7 10 7a13.2 13.2 0 0 1-1.7 2.7M6.6 6.6A13.5 13.5 0 0 0 2 12s3 7 10 7a9.7 9.7 0 0 0 5.4-1.6M9.9 9.9a3 3 0 1 0 4.2 4.2M2 2l20 20"/></svg>
       <span class="menu-label">Hide read stories</span><span class="switch" aria-hidden="true"></span>
     </button>
-    <a class="icon-btn" href="/rss.xml" title="RSS feed" aria-label="RSS feed">
-      <svg viewBox="0 0 24 24"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
-      <span class="menu-label">RSS feed</span>
-    </a>
+    <details class="feeds" id="feeds">
+      <summary class="icon-btn">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+        <span class="menu-label">RSS feeds</span>
+        <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+      </summary>
+      <div class="feeds-list">
+        <a class="icon-btn" href="/rss.xml"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span class="menu-label">All stories</span></a>
+        <a class="icon-btn" href="/essentials.xml"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span class="menu-label">Essentials</span></a>
+        <a class="icon-btn" href="/exploited.xml"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 2.5 20h19z"/><path d="M12 10v4M12 17h.01"/></svg><span class="menu-label">Exploited</span></a>
+      </div>
+    </details>
     <a class="icon-btn" href="https://github.com/davelevine/upshot" target="_blank" rel="noopener" title="Source on GitHub" aria-label="Source on GitHub">
       <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.75c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
       <span class="menu-label">GitHub</span>
@@ -802,6 +819,6 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
 </dialog>
 <button class="back-to-top" id="top" type="button" aria-label="Scroll to the top" title="Scroll to the top" hidden><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <!-- Versioned by its contents (tests/assets.test.js), so browsers keep it for a year. -->
-<script src="/app.js?v=7613a24b1c"></script>
+<script src="/app.js?v=edc0c76b92"></script>
 </body>
 </html>

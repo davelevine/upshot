@@ -12,7 +12,7 @@ The pipeline is everything the hourly build does to turn the feeds into the hand
 6. **Flag exploited flaws.** See below.
 7. **Pick the essentials.** Once a day, the model ranks the week's most important stories, and the top five become the essentials, no more than three from one topic. Each gets a line on what to do. For an exploited flaw the model is told its remedy, and a line that says to patch a flaw with no patch is replaced with one that fits it.
 8. **Extract.** [`extract.mjs`](../../extract.mjs) stores each new story's text in Cloudflare KV for the reader, described in [The site](site.md).
-9. **Publish.** The build writes [`site/data.json`](../../site/data.json) and [`site/rss.xml`](../../site/rss.xml), records seen URLs in `state.json`, and commits. An RSS item carries the summary, the upshot and, for an essential, what to do. Cloudflare deploys the push.
+9. **Publish.** The build writes [`site/data.json`](../../site/data.json) and three RSS feeds, records seen URLs in `state.json`, and commits. [`site/rss.xml`](../../site/rss.xml) has every story, [`site/essentials.xml`](../../site/essentials.xml) the week's essentials, and [`site/exploited.xml`](../../site/exploited.xml) the stories flagged as exploited or compromised. Each holds its newest 50 and carries the site's icon as its `<image>`. An RSS item carries the summary, the upshot and, for an essential, what to do. Cloudflare deploys the push.
 
 Anything older than 90 days is pruned.
 

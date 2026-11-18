@@ -32,6 +32,8 @@ A toolbar after Feedbin's holds **Read**, which marks the list showing as read a
 
 **Hide read stories**, a switch at the top of the menu, lists only unread stories. The choice is kept on this device and, with sync on, on the others too. A story read while a list shows stays in it until the list is drawn again (another list, or the switch turned off), so rows don't disappear while you read. Where a list ends, a line says read stories are hidden, with a link that shows them. Read later ignores the setting: stories are saved from the reader, so a saved story is always read.
 
+**RSS feeds**, the menu's next row, opens under itself to list the three feeds: All stories, Essentials and Exploited. The page also advertises each with `<link rel="alternate">`, so a feed reader given the site's address offers all three.
+
 ## Read later
 
 The bookmark in the reader's bar (`s` too) saves a story to **Read later**, an entry under the essentials that's always listed, since it's the reader's own list rather than one the news fills. It counts saved stories, read or not: the list empties as stories are removed, not as they're read. A saved row shows a small bookmark beside its age.

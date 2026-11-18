@@ -621,8 +621,25 @@ def test_rss_titles_carry_the_label():
     base = {"url": "u", "summary": "s", "category": "security", "date": "2026-11-12", "title": "T"}
     out = build.rss([{**base, "url": "a", "exploited": {"kind": "flaw", "fix": "patch"}}, {**base, "url": "b", "exploited": {"kind": "flaw", "fix": "none"}},
                      {**base, "url": "c", "exploited": {"kind": "compromise"}}, {**base, "url": "d"}])
-    titles = [t.text for t in ET.fromstring(out).iter("title")][1:]
+    titles = [i.findtext("title") for i in ET.fromstring(out).iter("item")]
     assert titles == ["Exploited: T", "Exploited, no patch yet: T", "Compromised: T", "T"]
+
+
+def test_section_feeds_hold_only_their_own_stories():
+    base = {"summary": "s", "category": "security", "date": "2026-11-12"}
+    items = [{**base, "url": "https://x.test/e", "title": "E"}, {**base, "url": "https://x.test/x", "title": "X", "exploited": {"kind": "flaw", "fix": "patch"}},
+             {**base, "url": "https://x.test/o", "title": "O"}]
+    feeds = build.feeds_for(items, {"items": [{"url": "https://x.test/e", "why": "Patch it."}]})
+    links = {name: [i.findtext("link") for i in ET.fromstring(xml).iter("item")] for name, xml in feeds.items()}
+    assert links["rss.xml"] == ["https://x.test/e", "https://x.test/x", "https://x.test/o"]
+    assert links["essentials.xml"] == ["https://x.test/e"]
+    assert links["exploited.xml"] == ["https://x.test/x"]
+    assert ET.fromstring(feeds["exploited.xml"]).findtext("channel/link") == f"{build.SITE_URL}/?topic=exploited"
+    assert "What to do:" in ET.fromstring(feeds["essentials.xml"]).find("channel/item/description").text
+    for xml in feeds.values():  # each carries the site's icon, titled and linked as its channel
+        channel = ET.fromstring(xml).find("channel")
+        assert channel.findtext("image/url") == f"{build.SITE_URL}/apple-touch-icon.png"
+        assert [channel.findtext("image/title"), channel.findtext("image/link")] == [channel.findtext("title"), channel.findtext("link")]
 
 
 def test_essentials_take_at_most_three_per_topic_in_the_models_order(monkeypatch):
