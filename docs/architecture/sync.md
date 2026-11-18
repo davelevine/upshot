@@ -1,6 +1,6 @@
 # Sync
 
-Sync keeps what you've read, and what you've saved for later, the same on every device, with no account, email or password. It runs in a second Worker, `upshot-sync` ([`sync/`](../../sync/)), which the Site Worker reaches over a service binding.
+Sync keeps what you've read, what you've saved for later and how Upshot looks the same on every device, with no account, email or password. It runs in a second Worker, `upshot-sync` ([`sync/`](../../sync/)), which the Site Worker reaches over a service binding.
 
 ## Pairing
 
@@ -18,9 +18,10 @@ Once a device syncs, the menu item becomes **Sync settings**, with a line under 
 - **Sessions.** Each device holds a session cookie the page can't read (`HttpOnly`, 400 days, renewed with use). Only a hash of its token is stored.
 - **One Durable Object per reader** holds their devices and read state in SQLite. It handles one call at a time, so two devices syncing at once can't overwrite each other. A second Durable Object holds the codes.
 - **The server's merge wins.** The page sends only what changed, and takes the server's answer over its own unless that story changed again locally. A device with a wrong clock still ends up agreeing.
-- **A joining device takes the sync's read state.** Entering a code replaces the device's read state rather than merging it, so a new phone can't mark a laptop's unread stories as read.
+- **A joining device takes the sync's read state.** Entering a code replaces the device's read state rather than merging it, so a new phone can't mark a laptop's unread stories as read. It takes the sync's preferences too, so it looks like the other devices from the start.
 - **Changes are pushed.** While a tab is visible, the page holds a WebSocket to the Durable Object, using Cloudflare's hibernation API, so a quiet connection isn't billed. Hiding the tab closes it.
 - **Read later syncs on its own.** Saves go in the same request as read state but are merged apart from it, each story's newest save or removal winning, so saving a story on one device never changes whether another has read it. Joining by code keeps the device's saves and adds the sync's, since a save is never an absence.
+- **Preferences follow the reader.** The theme and Hide read stories sync, each one's newest change winning, and every open tab follows. Text size, fluid width and full screen stay with the device, since they suit a screen rather than a reader. The sync server stores them as one small record and accepts any short setting name and value, so a new preference on the page needs no change there.
 - **No cost without sync.** A browser that never turns sync on never calls `/api/sync`.
 
 ## Managing devices

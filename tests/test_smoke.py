@@ -2996,6 +2996,65 @@ def test_a_mark_reaches_the_other_open_device_on_its_own(browser):
     assert a.problems == [] and b.problems == []
 
 
+PICK = "p => document.querySelector(`#format-pop [data-pick='${p}']`).click()"  # the theme buttons, as a click on one
+
+
+def test_preferences_reach_the_other_open_device_and_screen_settings_stay(browser):
+    """The theme and Hide read stories follow the reader to an open device, pushed like a mark. Text size and fluid width
+    suit a screen, so they stay with the device that set them."""
+    a, b = _pair(browser)
+    a.evaluate(PICK, "dark")
+    a.evaluate("$('hide-read').click()")  # the switch in the menu
+    a.evaluate("document.querySelector(\"#format-pop [data-size='3']\").click(); $('format-fluid').click()")
+    a.evaluate("syncNow()")
+    assert until(a, "!prefsPending.size")
+    assert until(b, "document.documentElement.dataset.theme === 'dark' && localStorage.getItem('theme') === 'dark'", timeout=8000), "pushed, then pulled"
+    assert until(b, "hideRead && $('hide-read').getAttribute('aria-checked') === 'true'")
+    assert b.evaluate("[textSize, fluid, prefsPending.size]") == [1, 0, 0], "screen settings stay; applying isn't a change of b's own"
+    a.evaluate(PICK, "auto")  # back to the system's, which is stored as no theme at all
+    a.evaluate("syncNow()")
+    assert until(b, "localStorage.getItem('theme') === null", timeout=8000)
+    assert a.problems == [] and b.problems == []
+
+
+def test_every_open_tab_follows_a_synced_preference(browser):
+    """A synced theme reaches each of a browser's open tabs. The first to hear of it stores it; the others find the stored
+    value already matching, so they follow by the storage event. (They once kept the old theme showing.)"""
+    a, b = _pair(browser)
+    a2 = a.context.new_page()
+    a2.problems = []
+    a2.goto(SYNC_URL)
+    enter_list(a2)
+    assert until(a2, "live?.readyState === 1")
+    b.evaluate(PICK, "dark")
+    b.evaluate("$('hide-read').click()")
+    b.evaluate("syncNow()")
+    for tab in (a, a2):
+        assert until(tab, "document.documentElement.dataset.theme === 'dark' && hideRead", timeout=8000)
+        assert until(tab, "document.querySelector(\"#format-pop [data-pick='dark']\").getAttribute('aria-pressed') === 'true'")
+    assert a.problems == [] and a2.problems == [] and b.problems == []
+
+
+def test_a_joining_device_takes_the_syncs_preferences(browser):
+    """The first device's settings go in when it turns sync on, and a device joining by code takes them over its own, as it
+    takes the sync's read state: a new phone looks like the others."""
+    size = {"viewport": {"width": 1300, "height": 900}}
+    a = open_site(browser, url=SYNC_URL, **size)
+    a.evaluate(PICK, "light")
+    a.evaluate("$('hide-read').click()")
+    code = turn_on(a)
+    assert until(a, "!prefsPending.size"), "sent with the first sync"
+    b = open_site(browser, url=SYNC_URL, color_scheme="dark", **size)
+    b.evaluate(PICK, "dark")
+    join(b, code)
+    assert until(b, "localStorage.getItem('theme') === 'light' && document.documentElement.dataset.theme === 'light' && hideRead"), "the sync's, not its own"
+    assert b.evaluate("prefsPending.size") == 0
+    b.evaluate(PICK, "dark")  # and from then on, its changes are everyone's
+    b.evaluate("syncNow()")
+    assert until(a, "localStorage.getItem('theme') === 'dark'", timeout=8000)
+    assert a.problems == [] and b.problems == []
+
+
 def test_hiding_the_tab_closes_the_connection_and_showing_it_catches_up(browser):
     a, b = _pair(browser)
     hide = "v => { Object.defineProperty(document, 'hidden', { value: v, configurable: true }); document.dispatchEvent(new Event('visibilitychange')); }"

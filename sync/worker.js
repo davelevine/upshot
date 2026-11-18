@@ -8,6 +8,7 @@ import { account } from './account.js';
 const DAY = 864e5;
 const KEEP = 120 * DAY;  // stories leave the site after 90 days (build.py KEEP_DAYS); a mark untouched this long is for one that's gone
 const MAX_MARKS = 2000;  // the site holds about 450 stories at once; this bounds what one reader can store
+const MAX_PREFS = 16;  // display preferences: the page has a handful, and this bounds the row whatever a client sends
 const MAX_LATER = 500;  // stories saved for later: a story leaves with the site's, so a reader never needs more
 const IDLE = 400 * DAY;  // as long as a session cookie lasts unused
 
@@ -135,7 +136,9 @@ export class Reader extends DurableObject {
   // shared by both tables, so one cursor covers marks and stories saved for later.
   // `since`: the earliest first-visit cutoff of the reader's devices (site/app.js), so all of them count the same older
   // stories as read.
-  sync(hash, changes, cursor, since, later = {}) {
+  // `prefs`: display preferences, {key: [value, when]}, each key's newest kept. A handful at most, so they're one row of
+  // meta and the whole set goes back with every answer: no cursor needed.
+  sync(hash, changes, cursor, since, later = {}, prefs = {}) {
     if (!this.checkSession(hash)) return null;
     const now = Date.now();
     this.sql.exec('UPDATE sessions SET seen = ? WHERE hash = ?', now, hash);  // every sync, for the device list's "Last synced"
@@ -162,7 +165,15 @@ export class Reader extends DurableObject {
     const refusedLater = merge('later', later, MAX_LATER, (url, [saved], t, s) => this.sql.exec(`INSERT INTO later VALUES (?, ?, ?, ?, ?)
       ON CONFLICT (url) DO UPDATE SET saved = excluded.saved, at = excluded.at, seq = excluded.seq, touched = excluded.touched`,
       url, saved, t, s, now));
-    if (seq !== was) this.#tell('marks', hash);  // the other devices' pages pull
+    const settings = JSON.parse(this.#get('prefs') ?? '{}');
+    let prefsChanged = false;
+    for (const [k, [v, at]] of Object.entries(prefs)) {
+      const t = Math.min(at, now), had = Object.hasOwn(settings, k);  // as above: a clock running ahead can't win every future change
+      if (had ? settings[k][1] >= t : Object.keys(settings).length >= MAX_PREFS) continue;  // a new key once full: turned down
+      settings[k] = [v, t]; prefsChanged = true;
+    }
+    if (prefsChanged) this.#set('prefs', JSON.stringify(settings));
+    if (seq !== was || prefsChanged) this.#tell('marks', hash);  // the other devices' pages pull
     this.#set('seq', seq);
     this.#arm();
     const kept = this.#get('since');
@@ -175,7 +186,7 @@ export class Reader extends DurableObject {
     return {
       marks: Object.fromEntries(unseen('url, read, at, opened', 'marks', refusedMarks).map(r => [r.url, [r.read, r.at, r.opened]])),
       later: Object.fromEntries(unseen('url, saved, at', 'later', refusedLater).map(r => [r.url, [r.saved, r.at]])),
-      cursor: seq, since: this.#get('since'),
+      cursor: seq, since: this.#get('since'), prefs: settings,
     };
   }
 

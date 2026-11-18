@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import site from '../worker.js';
-import { account, deviceLabel, readCookie, validLater, validMarks } from '../sync/account.js';
+import { account, deviceLabel, readCookie, validLater, validMarks, validPrefs } from '../sync/account.js';
 
 const worker = { fetch: account };  // the upshot-sync Worker's handler
 
@@ -51,6 +51,16 @@ test('validLater takes saves and unsaves, and a body without any', () => {
   for (const bad of [null, [], { 'javascript:x': [1, 1] }, { 'https://x.test/': [2, 1] }, { 'https://x.test/': [1, -1] },
     { 'https://x.test/': [1, 1, 1] }, { 'https://x.test/': [1] }, { 'https://x.test/': [1, 1.5] },
     Object.fromEntries(Array.from({ length: 301 }, (_, i) => [`https://x.test/${i}`, [1, 1]]))]) assert.equal(validLater(bad), false);
+});
+
+test('validPrefs takes short keys and values, each with when, and a body without any', () => {
+  assert.ok(validPrefs(undefined), 'a page from before preferences');
+  assert.ok(validPrefs({}));
+  assert.ok(validPrefs({ theme: ['dark', Date.now()], hideRead: ['1', 1], font: ['literata', 5] }), 'a key the server has never heard of');
+  for (const bad of [null, [], { theme: 'dark' }, { theme: ['dark'] }, { theme: ['dark', 1, 1] }, { theme: ['Dark', 1] },
+    { theme: ['<b>', 1] }, { theme: ['x'.repeat(25), 1] }, { theme: [1, 1] }, { theme: ['dark', -1] }, { theme: ['dark', 1.5] },
+    { 'the-me': ['dark', 1] }, { ['k'.repeat(17)]: ['dark', 1] }, { __proto__x: ['dark', 1] },
+    Object.fromEntries(Array.from({ length: 9 }, (_, i) => ['k' + 'abcdefghi'[i], ['v', 1]]))]) assert.equal(validPrefs(bad), false, JSON.stringify(bad));
 });
 
 test('signed out costs no Durable Object call, and sync says so without an error status', async () => {
