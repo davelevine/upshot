@@ -538,7 +538,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   .format-sizes button:hover { background: var(--bg-card-hover); color: var(--text); }
   .format-sizes button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
   .format-sizes [data-size="0"] { font-size: 13px; } .format-sizes [data-size="1"] { font-size: 16px; } .format-sizes [data-size="2"] { font-size: 20px; } .format-sizes [data-size="3"] { font-size: 24px; }
-  .send-pop > .format-sizes:hover, .send-pop > .fmt-themes:hover, .send-pop > .fmt-head:hover, .send-pop > .fmt-hint:hover { background: none; cursor: default; }
+  .send-pop > .format-sizes:hover, .send-pop > .fmt-themes:hover, .send-pop > .fmt-fonts:hover, .send-pop > .fmt-head:hover, .send-pop > .fmt-hint:hover { background: none; cursor: default; }
   .send-pop > .fmt-hint { min-height: 0; margin: -6px 0 0; padding: 0 12px 8px 42px; color: var(--text-muted); font-size: .8125rem; }  /* under Fluid width, aligned with its label */
   .send-pop > .fmt-hint[hidden] { display: none; }  /* rows of buttons: the buttons are the targets */
   .send-pop > .fmt-head { min-height: 0; margin: 0; padding: 16px 12px 8px; color: var(--text-muted); font-size: .8125rem; font-weight: 600; }  /* as the sidebar's Topics */
@@ -546,6 +546,21 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   /* The theme as swatches, after Feedbin's, each captioned. Their colors are the themes' own --bg (in :root and
      [data-theme="dark"]), fixed: each swatch shows its theme whichever is on. */
   .fmt-themes { display: flex; justify-content: space-between; padding: 2px 6px 4px; }
+  /* The typefaces, after Feedbin's: sans on the left, serif on the right, each name in its own face; the system's first, then
+     the open fonts, then the licensed ones. Their fonts are declared
+     here only for the names, so the browser fetches them when the menu first shows them, never otherwise. */
+  @font-face { font-family: "Domaine Text"; src: url("/fonts/licensed/Domaine-TextRegular") format("woff2"); size-adjust: 104%; font-display: swap; }
+  @font-face { font-family: Literata; src: url("/fonts/licensed/Literata-Roman-Latin") format("woff2"); font-weight: 400 700; font-display: swap; }
+  @font-face { font-family: "Atkinson Hyperlegible Next"; src: url("/fonts/licensed/AtkinsonNext-Roman-Latin") format("woff2"); font-weight: 400 700; font-display: swap; }
+  .send-pop > .fmt-fonts { display: grid; grid-template-columns: 1fr 1fr; gap: 0 4px; min-height: 0; padding: 0 6px 4px; }
+  .fmt-fonts button { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 6px; border: 0; border-radius: var(--radius-sm); background: none;
+    color: var(--text); font-size: .9375rem; font-weight: 400; text-align: left; white-space: nowrap; cursor: pointer; }  /* 400: the variable fonts would draw the menu's 500, which Domaine has no face for */
+  .fmt-fonts button::before { content: ""; flex: none; box-sizing: border-box; width: 16px; height: 16px; border: 1.5px solid var(--border-strong); border-radius: 50%; }
+  .fmt-fonts button:hover { background: var(--bg-card-hover); }
+  .fmt-fonts button[aria-pressed="true"]::before { border: 5px solid var(--accent); }
+  .fmt-fonts [data-font="system"] { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; } .fmt-fonts [data-font="serif"] { font-family: ui-serif, "New York", "Iowan Old Style", Charter, Georgia, serif; }
+  .fmt-fonts [data-font="atkinson"] { font-family: "Atkinson Hyperlegible Next", sans-serif; } .fmt-fonts [data-font="domaine"] { font-family: "Domaine Text", serif; }
+  .fmt-fonts [data-font="literata"] { font-family: Literata, serif; }  /* Söhne is the menu's own */
   .fmt-themes button { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 64px; padding: 0; border: 0; background: none;
     color: var(--text-muted); font: 500 .8125rem Sohne, system-ui, sans-serif; cursor: pointer; }
   .swatch { width: 52px; height: 40px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: #e3e6ec; }
@@ -679,6 +694,8 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
       <div class="popover send-pop format-pop" id="format-pop" role="group" aria-label="Display options" hidden>
         <h3 class="fmt-head" id="fmt-theme-h">Theme</h3>
         <div class="fmt-themes" role="group" aria-labelledby="fmt-theme-h"><button type="button" data-pick="auto" aria-pressed="false" title="Match the system"><span class="swatch" aria-hidden="true"></span>Auto</button><button type="button" data-pick="light" aria-pressed="false"><span class="swatch" aria-hidden="true"></span>Light</button><button type="button" data-pick="dark" aria-pressed="false"><span class="swatch" aria-hidden="true"></span>Dark</button></div>
+        <h3 class="fmt-head" id="fmt-font-h">Typeface</h3>
+        <div class="fmt-fonts" role="group" aria-labelledby="fmt-font-h"><button type="button" data-font="system" aria-pressed="false">System</button><button type="button" data-font="serif" aria-pressed="false">System Serif</button><button type="button" data-font="atkinson" aria-pressed="false" title="Atkinson Hyperlegible Next">Atkinson</button><button type="button" data-font="literata" aria-pressed="false">Literata</button><button type="button" data-font="sohne" aria-pressed="false">Söhne</button><button type="button" data-font="domaine" aria-pressed="false">Domaine</button></div>
         <h3 class="fmt-head" id="fmt-size-h">Text size</h3>
         <div class="format-sizes" role="group" aria-labelledby="fmt-size-h"><button type="button" data-size="0" aria-label="Small" title="Small">A</button><button type="button" data-size="1" aria-label="Medium" title="Medium">A</button><button type="button" data-size="2" aria-label="Large" title="Large">A</button><button type="button" data-size="3" aria-label="Larger" title="Larger">A</button></div>
         <h3 class="fmt-head fmt-wide">Display</h3>
@@ -785,6 +802,6 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
 </dialog>
 <button class="back-to-top" id="top" type="button" aria-label="Scroll to the top" title="Scroll to the top" hidden><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <!-- Versioned by its contents (tests/assets.test.js), so browsers keep it for a year. -->
-<script src="/app.js?v=90498c51f6"></script>
+<script src="/app.js?v=f0c19664c4"></script>
 </body>
 </html>

@@ -39,8 +39,8 @@ Upshot is a news digest for AI, security, infrastructure, software engineering a
 - **Only what matters.** A handful of stories on a big day, none on a slow one, each with a one-line summary.
 - **Exploited flaws flagged.** Flaws under active attack are tagged **Exploited**, with whether a patch is out; supply-chain attacks are tagged **Compromised**.
 - **Weekly essentials.** Five picks from the last seven days, each with what to do about it.
-- **Built-in reader.** Articles open in a clean pane that starts with the upshot: what happened, who's affected and what to do.
-- **Read state, Read later and sync.** Read stories are dimmed (or hidden, if you'd rather), the reader's bookmark sets a story aside in Read later, and sync keeps both, and the theme, the same across your devices with a code. No account.
+- **Built-in reader.** Articles open in a clean pane that starts with the upshot: what happened, who's affected and what to do. Set them in a serif or a sans, from six typefaces.
+- **Read state, Read later and sync.** Read stories are dimmed (or hidden, if you'd rather), the reader's bookmark sets a story aside in Read later, and sync keeps both, and the theme and typeface, the same across your devices with a code. No account.
 - **Phone and desktop.** Install it as an app on a phone; `⌘K` search, `j`/`k` and `Space` to move through stories, and a full-screen reader on a desktop. Light, dark or the system's theme, and an RSS feed.
 
 ## How it works
@@ -71,4 +71,5 @@ This project was built using AI-assisted development with [Claude](https://claud
 - [watch.edebost.com](https://watch.edebost.com/) — the inspiration, design language and palette
 - [Mozilla Readability](https://github.com/mozilla/readability) and [linkedom](https://github.com/WebReflection/linkedom) — article extraction
 - [feedparser](https://github.com/kurtmckee/feedparser) — making sense of every feed format there is
-- [Feedbin](https://github.com/feedbin/feedbin) — the reader's display options icon (MIT License, © 2013 Ben Ubois)
+- [Feedbin](https://github.com/feedbin/feedbin) — the reader's display options icon (MIT License, © 2013 Ben Ubois) and the layout of its typefaces
+- [Literata](https://github.com/googlefonts/literata) (TypeTogether) and [Atkinson Hyperlegible Next](https://github.com/googlefonts/atkinson-hyperlegible-next) (Braille Institute) — two of the article typefaces (SIL Open Font License 1.1)

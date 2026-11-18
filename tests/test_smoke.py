@@ -573,6 +573,102 @@ def test_articles_are_set_in_domaine_without_downloading_fonts_each_time(browser
     ctx.close()
 
 
+TYPEFACES = {  # Display options' typefaces: the article's first family, its files, and whether it has italics of its own
+    "system": ("system-ui", set(), False), "serif": ("ui-serif", set(), False),
+    "atkinson": ('"Atkinson Hyperlegible Next"', {"AtkinsonNext-Roman-Latin", "AtkinsonNext-Italic-Latin"}, True),
+    "literata": ("Literata", {"Literata-Roman-Latin", "Literata-Italic-Latin"}, True),
+    "sohne": ("Sohne", {"Sohne-BuchKursiv", "Sohne-HalbfettKursiv"}, True),
+    "domaine": ('"Domaine Text"', {f"Domaine-Text{s}" for s in ("Regular", "Italic", "Bold", "BoldItalic")} | {"Domaine-DisplayMedium"}, True),
+}
+SOHNE_UPRIGHT = {"Sohne-Buch", "Sohne-Kraftig", "Sohne-Halbfett"}
+
+
+@pytest.mark.parametrize("face", list(TYPEFACES))
+def test_each_typeface_sets_the_article_and_fetches_only_its_own_fonts(browser, face):
+    """A typeface chosen in Display options sets the article and its headline. Only its own fonts download, with Söhne's
+    for the upshot and date line, and latin-ext only for an article that needs it."""
+    family, files, italics = TYPEFACES[face]
+    ctx = browser.new_context(viewport={"width": 1440, "height": 900})
+    ctx.add_init_script(f"try {{ localStorage.setItem('font', '{face}') }} catch {{}}")
+    ctx.route("**/api/read?*", lambda route: route.fulfill(json={"content": f"{BODY}<p><em>An italic line.</em></p>"}))
+    pg = ctx.new_page()
+    fonts = []
+    pg.on("request", lambda r: fonts.append(r.url.rsplit("/", 1)[-1]) if "/fonts/licensed/" in r.url else None)
+    pg.goto(URL)
+    enter_list(pg)
+    pg.evaluate("openReader(items[0])")
+    frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+    frame.locator("em").wait_for()
+    body = frame.locator("main p").nth(3).evaluate("e => getComputedStyle(e).fontFamily")
+    assert body.startswith(family), body
+    head = frame.locator("h1").evaluate("e => getComputedStyle(e).fontFamily")
+    assert head.startswith('"Domaine Display"' if face == "domaine" else family), head
+    if italics:  # a real italic face, not a slanted upright
+        name = family.strip('"')
+        assert frame.locator("em").evaluate(f"() => document.fonts.ready.then(() => [...document.fonts].some(f => f.family.replace(/\"/g, '') === '{name}' && f.style === 'italic' && f.status === 'loaded'))")
+    assert set(fonts) - {"Sohne-Buch"} == (files | SOHNE_UPRIGHT) - {"Sohne-Buch"}, sorted(fonts)  # Buch: the page's own preload
+    assert not [f for f in fonts if f.endswith("LatinExt")], "no latin-ext for an English article"
+    if face == "literata":
+        pg.unroute("**/api/read?*")
+        ctx.route("**/api/read?*", lambda route: route.fulfill(json={"content": "<p>Łódź and Gdańsk.</p>"}))
+        pg.evaluate("articles.clear(); openReader(items[1])")
+        assert any("Literata-Roman-LatinExt" in fonts or pg.wait_for_timeout(100) for _ in range(50)), sorted(fonts)
+        assert "Literata-Italic-LatinExt" not in fonts, "only the faces with letters to draw"
+    ctx.close()
+
+
+def test_a_typeface_set_with_no_story_open_downloads_nothing_until_one_opens(browser):
+    """A typeface arriving by sync (or picked before any story) fetches no fonts: a visit that opens nothing never downloads
+    them. The next story fetches its typeface as it opens."""
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    fonts = []
+    pg.on("request", lambda r: fonts.append(r.url.rsplit("/", 1)[-1]) if "/fonts/licensed/" in r.url else None)
+    pg.evaluate("setFont('literata', true)")  # as sync applies it
+    pg.wait_for_timeout(500)
+    assert fonts == [], fonts
+    pg.evaluate("openReader(shown[0])")
+    frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+    assert frame.locator("main p").nth(3).evaluate("e => getComputedStyle(e).fontFamily").startswith("Literata")
+    assert {"Literata-Roman-Latin", "Literata-Italic-Latin"} <= set(fonts), fonts
+    assert pg.problems == []
+
+
+def test_a_typeface_changes_the_open_article_in_place_and_is_kept(browser):
+    """Picking a typeface sets the open article in it without a new frame, so it keeps its place; the choice is kept on this
+    device, and the menu shows it."""
+    pg = open_site(browser, viewport={"width": 1440, "height": 900})
+    pg.evaluate("openReader(shown[0])")
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    frame = lambda js: pg.frames[-1].evaluate(js)
+    assert any(frame("document.querySelectorAll('main p').length") > 20 or pg.wait_for_timeout(50) for _ in range(40)), "the article, not the card"
+    frame("scrollTo(0, 900)")
+    # The paragraph at the top of the view, and where it sits: the reader's place, to the pixel.
+    at = lambda: frame("(() => { const ps = [...document.querySelectorAll('main p')], i = ps.findIndex(p => p.getBoundingClientRect().bottom > 0); return [i, ps[i].getBoundingClientRect().top]; })()")
+    same = lambda a, b: a[0] == b[0] and abs(a[1] - b[1]) < 2
+    reading = at()
+    text = frame("document.querySelector('main').textContent")
+    pg.evaluate("document.querySelector('#reader-body iframe').dataset.mark = 'before'")
+    pg.click("#reader-format")
+    assert pg.get_attribute("#format-pop [data-font='domaine']", "aria-pressed") == "true", "Domaine until another is picked"
+    pg.click("#format-pop [data-font='literata']")
+    assert any(frame("getComputedStyle(document.querySelector('main p:nth-of-type(5)')).fontFamily").startswith("Literata") or pg.wait_for_timeout(50) for _ in range(40))
+    assert pg.evaluate("[...document.querySelectorAll('#reader-body iframe')].map(f => f.dataset.mark)") == ["before"], "the same frame"
+    assert reading[0] > 5 and same(at(), reading), ("the same place: the browser's scroll anchoring holds it through the reflow", reading, at())
+    reading = at()
+    assert frame("document.querySelector('main').textContent") == text
+    assert pg.get_attribute("#format-pop [data-font='literata']", "aria-pressed") == "true" and pg.inner_text("#status") == "Typeface Literata"
+    frame("document.documentElement.style.overflowAnchor = 'none'")  # as in a browser without scroll anchoring: the relay holds it
+    pg.click("#format-pop [data-font='system']")
+    assert any(frame("getComputedStyle(document.querySelector('main p:nth-of-type(5)')).fontFamily").startswith("system-ui") or pg.wait_for_timeout(50) for _ in range(40))
+    pg.wait_for_timeout(200)
+    assert same(at(), reading), ("held without the browser's help", reading, at())
+    pg.click("#format-pop [data-font='literata']")
+    pg.reload()
+    enter_list(pg)
+    assert pg.evaluate("[font, localStorage.getItem('font')]") == ["literata", "literata"]
+    assert pg.problems == []
+
+
 def test_escape_returns_focus_to_the_row_for_the_keyboard(browser):
     pg = open_site(browser, viewport={"width": 1024, "height": 800})
     pg.locator("a.card").nth(1).focus()
@@ -852,7 +948,7 @@ def test_the_format_menu_picks_light_dark_or_the_systems_theme(browser):
     theme = lambda: pg.evaluate("document.documentElement.dataset.theme")
     assert pick("auto").get_attribute("aria-pressed") == "true" and theme() == "light", "nothing chosen: the system's"
     heads = pg.evaluate("[...document.querySelectorAll('#format-pop .fmt-head')].map(h => [h.textContent, h.nextElementSibling.className.split(' ')[0]])")
-    assert heads == [["Theme", "fmt-themes"], ["Text size", "format-sizes"], ["Display", "fmt-row"]], "each section labeled, the theme at the top"
+    assert heads == [["Theme", "fmt-themes"], ["Typeface", "fmt-fonts"], ["Text size", "format-sizes"], ["Display", "fmt-row"]], "each section labeled, the theme at the top"
     assert pg.locator(".fmt-themes button").all_inner_texts() == ["Auto", "Light", "Dark"], "each swatch captioned"
     pick("dark").click()
     assert until(pg, "document.documentElement.dataset.theme === 'dark'"), "the swap lands in a view transition, a frame later"
@@ -3000,16 +3096,18 @@ PICK = "p => document.querySelector(`#format-pop [data-pick='${p}']`).click()"  
 
 
 def test_preferences_reach_the_other_open_device_and_screen_settings_stay(browser):
-    """The theme and Hide read stories follow the reader to an open device, pushed like a mark. Text size and fluid width
+    """The theme, the typeface and Hide read stories follow the reader to an open device, pushed like a mark. Text size and fluid width
     suit a screen, so they stay with the device that set them."""
     a, b = _pair(browser)
     a.evaluate(PICK, "dark")
+    a.evaluate("document.querySelector(\"#format-pop [data-font='literata']\").click()")
     a.evaluate("$('hide-read').click()")  # the switch in the menu
     a.evaluate("document.querySelector(\"#format-pop [data-size='3']\").click(); $('format-fluid').click()")
     a.evaluate("syncNow()")
     assert until(a, "!prefsPending.size")
     assert until(b, "document.documentElement.dataset.theme === 'dark' && localStorage.getItem('theme') === 'dark'", timeout=8000), "pushed, then pulled"
     assert until(b, "hideRead && $('hide-read').getAttribute('aria-checked') === 'true'")
+    assert until(b, "font === 'literata' && localStorage.getItem('font') === 'literata' && document.querySelector(\"#format-pop [data-font='literata']\").getAttribute('aria-pressed') === 'true'")
     assert b.evaluate("[textSize, fluid, prefsPending.size]") == [1, 0, 0], "screen settings stay; applying isn't a change of b's own"
     a.evaluate(PICK, "auto")  # back to the system's, which is stored as no theme at all
     a.evaluate("syncNow()")
