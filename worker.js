@@ -28,8 +28,8 @@ function toSync(request, env) {
   return env.SYNC ? env.SYNC.fetch(request) : Response.json({ error: 'sync is off' }, { status: 503 });  // a fork without it
 }
 
-// The site's fonts (Söhne, Domaine Text and Domaine Display) are licensed, so they can't be in this public repo with the
-// rest of site/. They live in a private R2 bucket (upshot-fonts; docs/setup/configuration.md) and are served from here, on the site's
+// The site's fonts: Söhne and Domaine are licensed, so they can't be in this public repo with the rest of site/, and Literata
+// and Atkinson Hyperlegible Next, though open, sit beside them so no font request leaves the site. They live in a private R2 bucket (upshot-fonts; docs/setup/configuration.md) and are served from here, on the site's
 // own origin. Cached for a year, so a changed font needs a new name (docs/setup/configuration.md). The URLs have
 // no extension, so the Worker runs for them (run_worker_first in wrangler.jsonc); the bucket's keys are the file names,
 // with .woff2.
