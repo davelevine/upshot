@@ -1,6 +1,25 @@
 {
  "items": [
   {
+   "date": "2026-11-18",
+   "published": "2026-11-18T09:00:00+00:00",
+   "title": "Yelp Migrates Cassandra to EKS by Moving EBS Volumes",
+   "url": "https://www.infoq.com/news/2026/11/kubernetes-cassandra-eks/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Yelp migrated its Cassandra fleet from self-managed Kubernetes clusters to Amazon EKS by reattaching existing EBS volumes to new pods instead of streaming data between nodes.",
+   "relevance": 6,
+   "added": "2026-11-18T09:18:09+00:00",
+   "minutes": 4,
+   "tldr": [
+    "Yelp moved about 90 Cassandra clusters to Amazon EKS by reattaching existing EBS volumes to new pods, with no downtime or data loss.",
+    "It works because EBS volumes bind to an Availability Zone, not a cluster; Yelp says it applies to any AZ-pinned stateful Kubernetes workload.",
+    "Before starting, audit repair state, backup IAM roles and alert severity; build explicit timeouts for stalled detach and attach steps.",
+    "The one mechanism-specific failure was a stale VolumeAttachment left by the AWS CSI controller; deleting it fixed the stuck pod."
+   ]
+  },
+  {
    "date": "2026-11-17",
    "published": "2026-11-17T17:45:00+00:00",
    "title": "Introducing GPT-6.2 Astra and Sol",
@@ -267,6 +286,31 @@
    "summary": "Apple services were reported down, as shown on Apple's developer system status page.",
    "relevance": 6,
    "added": "2026-11-17T20:18:22+00:00",
+   "minutes": 0
+  },
+  {
+   "date": "2026-11-17",
+   "published": "2026-11-17T23:18:49+00:00",
+   "title": "Microsoft's ONNX Runtime has disappeared from GitHub",
+   "url": "https://github.com/microsoft/onnxruntime",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Microsoft's ONNX Runtime repository reportedly is no longer available on GitHub.",
+   "relevance": 6,
+   "added": "2026-11-18T09:18:09+00:00"
+  },
+  {
+   "date": "2026-11-17",
+   "published": "2026-11-17T18:56:17+00:00",
+   "title": "Solid 2.0",
+   "url": "https://www.solidjs.com/blog/solid-2-0-the-long-hold/",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Solid 2.0, a major version of the Solid JavaScript UI framework, has been announced in a blog post.",
+   "relevance": 6,
+   "added": "2026-11-18T09:18:09+00:00",
    "minutes": 0
   },
   {
@@ -4393,7 +4437,7 @@
    }
   ]
  },
- "generated_at": "2026-11-18T08:18:23+00:00",
+ "generated_at": "2026-11-18T09:18:19+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
