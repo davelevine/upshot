@@ -2,6 +2,28 @@
  "items": [
   {
    "date": "2026-11-18",
+   "published": "2026-11-18T13:56:42+00:00",
+   "title": "CVE-2026-123007: Critical NGINX HTTP/2 Integer Underflow Leads to RCE (FIXED)",
+   "url": "https://www.rapid7.com/blog/post/ve-cve-2026-123007-critical-nginx-http-2-integer-underflow-leads-to-rce-fixed",
+   "publisher": "Rapid7",
+   "cves": [
+    "CVE-2026-123007",
+    "CVE-2026-123633"
+   ],
+   "category": "security",
+   "summary": "Rapid7 and F5 disclosed CVE-2026-123007, a critical nginx HTTP/2 integer underflow allowing unauthenticated remote code execution under certain conditions; a fix is available.",
+   "relevance": 9,
+   "added": "2026-11-18T16:18:08+00:00",
+   "minutes": 16,
+   "tldr": [
+    "CVE-2026-123007, a critical nginx HTTP/2 integer underflow, can allow unauthenticated remote code execution under certain conditions.",
+    "Affects NGINX Open Source 1.9.5 through 1.30.6 and 1.31.0 through 1.31.8.",
+    "NGINX Plus 37.0.0 and 37.1.0, plus R34 and R36, are also affected; R34 and R36 have no fix.",
+    "Upgrade NGINX Open Source to 1.31.9 or 1.30.7, or NGINX Plus to 37.0.8.1, 37.2.0.1 or 37.3.0.1."
+   ]
+  },
+  {
+   "date": "2026-11-18",
    "published": "2026-11-18T08:24:31+00:00",
    "title": "Hackers Exploiting Critical Puppet RCE Flaw Affecting Enterprise Management Servers",
    "url": "https://thehackernews.com/2026/11/hackers-exploiting-critical-puppet-rce.html",
@@ -849,6 +871,24 @@
     "Agent Substrate 1.0 is generally available on GKE and can park idle agent sessions by snapshotting actors to object storage and freeing their workers.",
     "Agent Substrate does not suspend idle actors by itself, so your harness must call the SuspendActor API after an idle timeout.",
     "Size the warm pool for busiest-hour working sessions. Around 4.5 prompts an hour, one Pod per session becomes the cheaper option, so measure your prompt rate first."
+   ]
+  },
+  {
+   "date": "2026-11-15",
+   "published": "2026-11-16T00:00:00+00:00",
+   "title": "How the Claude Code team thinks about verification",
+   "url": "https://claude.dev/blog/how-the-claude-code-team-thinks-about-verification/",
+   "publisher": "Claude Blog",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Claude Blog describes how the Claude Code team uses end-to-end, property and differential tests so coding agents can verify their work, and how it keeps verifiers reliable.",
+   "relevance": 6,
+   "added": "2026-11-18T16:18:08+00:00",
+   "minutes": 10,
+   "tldr": [
+    "The Claude Code team explains how it verifies agent-written code, with about 90% of its code written and reviewed by Claude.",
+    "Engineers running agent-written code should prioritize end-to-end tests, property tests, and differential tests, and avoid flaky or slow tests.",
+    "Teams can give Claude a verify skill to smoke test changes end to end, and add hooks or CLAUDE.md rules so recurring issues are caught."
    ]
   },
   {
@@ -4540,7 +4580,7 @@
    }
   ]
  },
- "generated_at": "2026-11-18T15:18:49+00:00",
+ "generated_at": "2026-11-18T16:18:21+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
