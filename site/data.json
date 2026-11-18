@@ -105,6 +105,24 @@
    ]
   },
   {
+   "date": "2026-11-18",
+   "published": "2026-11-18T15:05:00+00:00",
+   "title": "LinkedIn Cuts Daily Spark Shuffle Fetch Failures from 750 to 20 with Apache Celeborn",
+   "url": "https://www.infoq.com/news/2026/11/linkedin-celeborn-remote-shuffle/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "LinkedIn deployed Apache Celeborn as a shared remote shuffle service for Spark and Flink, cutting daily shuffle fetch failures from about 750 to 20.",
+   "relevance": 6,
+   "added": "2026-11-18T15:18:37+00:00",
+   "minutes": 2,
+   "tldr": [
+    "LinkedIn deployed Apache Celeborn across the majority of its Spark and Flink workloads, cutting daily shuffle fetch failures from about 750 to 20.",
+    "Compared with its previous Magnet implementation, the change also lowered compute costs by 10% and improved application runtimes by 14%.",
+    "Action: LinkedIn moved shuffle storage to NVMe SSDs, cutting shuffle duration 40%, and switched from LZ4 to Zstandard."
+   ]
+  },
+  {
    "date": "2026-11-17",
    "published": "2026-11-17T17:45:00+00:00",
    "title": "Introducing GPT-6.2 Astra and Sol",
@@ -4522,7 +4540,7 @@
    }
   ]
  },
- "generated_at": "2026-11-18T14:18:25+00:00",
+ "generated_at": "2026-11-18T15:18:49+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
