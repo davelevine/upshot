@@ -54,12 +54,21 @@ The saved page's text is scrambled. Check the diff of `tests/fixtures/expected.j
 
 ## Fonts
 
-Söhne, Domaine Text and Domaine Display are licensed, so a fork shows system fonts.
+Söhne, Domaine Text and Domaine Display are licensed, so a fork shows system fonts. Literata and Atkinson Hyperlegible Next are open, but are served from the same bucket so no font request leaves the site; without them, those two typefaces fall back to the system's.
 
-To use them, create a private R2 bucket named `upshot-fonts`, used for nothing else (the Worker's binding can write to all of it). Upload the `.woff2` files at the top level: `Sohne-Buch`, `Sohne-Kraftig`, `Sohne-Halbfett`, `Domaine-DisplayMedium`, `Domaine-TextRegular`, `Domaine-TextItalic`, `Domaine-TextBold` and `Domaine-TextBoldItalic`.
+To use them, create a private R2 bucket named `upshot-fonts`, used for nothing else (the Worker's binding can write to all of it). Upload the `.woff2` files at the top level: `Sohne-Buch`, `Sohne-Kraftig`, `Sohne-Halbfett`, `Sohne-BuchKursiv`, `Sohne-HalbfettKursiv`, `Domaine-DisplayMedium`, `Domaine-TextRegular`, `Domaine-TextItalic`, `Domaine-TextBold` and `Domaine-TextBoldItalic`.
+
+The open fonts are Google Fonts' latin and latin-ext subsets, each roman and italic, named `Literata-Roman-Latin`, `Literata-Roman-LatinExt`, `Literata-Italic-Latin`, `Literata-Italic-LatinExt`, and the same four for `AtkinsonNext`. Google picks files by browser, so ask as a current Chrome; the CSS lists each subset's file under a `/* latin */` or `/* latin-ext */` comment:
+
+```bash
+curl -A 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36' \
+  'https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400..700;1,7..72,400..700&family=Atkinson+Hyperlegible+Next:ital,wght@0,400..700;1,400..700'
+```
+
+Their `unicode-range` values are in `site/app.js` (`LATIN`, `LATIN_EXT`); a new download with different ranges needs them updated there.
 
 Browsers keep each font for a year without checking it again, so never upload a changed font over an existing name: give it a new one, and update its references in `site/index.html`, `site/404.html` and `site/app.js`.
 
 ```bash
-for f in Sohne-*.woff2 Domaine-*.woff2; do npx wrangler r2 object put "upshot-fonts/$f" --file "$f" --content-type font/woff2 --remote; done
+for f in Sohne-*.woff2 Domaine-*.woff2 Literata-*.woff2 AtkinsonNext-*.woff2; do npx wrangler r2 object put "upshot-fonts/$f" --file "$f" --content-type font/woff2 --remote; done
 ```

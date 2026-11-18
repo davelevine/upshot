@@ -209,11 +209,13 @@ const syncThemeColor = () => {
 // Swap every color in one frame, then let a view transition crossfade the whole page; per-element
 // transitions would fade some parts and snap others. The article frame switches by message, so the
 // crossfade waits for it to confirm (briefly): otherwise its "after" picture shows the old article.
-let frameThemed = null;
+let frameThemed = null, themeTo = null;  // themeTo: the theme a transition is on its way to, which data-theme shows only once it runs
 function swapTheme(t) {
   const root = document.documentElement;
-  if (root.dataset.theme === t) return;
+  if ((themeTo ?? root.dataset.theme) === t) return;
+  themeTo = t;
   const swap = () => {
+    themeTo = null;
     root.classList.add('theme-switching');
     root.dataset.theme = t;
     getComputedStyle(root).color;  // commit the new colors before transitions come back
@@ -225,7 +227,8 @@ function swapTheme(t) {
     frame.contentWindow.postMessage({ tw: 'theme', theme: t }, '*');
     return themed.then(() => { frameThemed = null; });
   };
-  if (document.startViewTransition) document.startViewTransition(swap);
+  // A swap that lands before the last one ran skips that one's crossfade (its colors still apply), rejecting its `ready`.
+  if (document.startViewTransition) document.startViewTransition(swap).ready.catch(() => {});
   else swap();
 }
 // Light, dark, or (Auto) the system's, followed as it changes: the display options' Theme.
@@ -326,13 +329,15 @@ let syncOn, marks, pending, cursor, takeSince, pushTimer, syncGen = 0, syncNotic
 // Read later: stories set aside, {url: [saved, when]}, kept with or without sync, and leaving with the story itself. With
 // sync on, unsaving keeps [0, when] so it reaches the other devices; `laterPending` is what this device hasn't sent.
 let later, laterPending;
-// Display preferences that follow the reader: the theme and Hide read stories. Each keeps its value where it always has
-// (the theme is read before first paint, index.html); with sync on, `prefAt` says when it was set here and `prefsPending`
-// what's unsent. Text size, fluid width and full screen suit a screen, not a reader, so they stay with the device.
+// Display preferences that follow the reader: the theme, the article's typeface and Hide read stories. Each keeps its value
+// where it always has (the theme is read before first paint, index.html); with sync on, `prefAt` says when it was set here
+// and `prefsPending` what's unsent. Text size, fluid width and full screen suit a screen, not a reader, so they stay with
+// the device.
 let prefAt, prefsPending;
 const PREFS = {
   theme: { get: () => localStorage.getItem('theme') || 'auto', ok: v => ['auto', 'light', 'dark'].includes(v), set: v => pickTheme(v) },
   hideRead: { get: () => (hideRead ? '1' : '0'), ok: v => v === '0' || v === '1', set: v => setHideRead(v === '1', true) },
+  font: { get: () => font, ok: v => Object.hasOwn(TYPEFACES, v), set: v => setFont(v, true) },
 };
 // Every tab shares what's stored, and storage events tell a tab of another's writes only after a moment (much later for a
 // tab frozen in the background). So a tab rereads before it changes the marks, rather than writing back its own older copy
@@ -364,10 +369,11 @@ const isSaved = url => later[url]?.[0] === 1;
 const maySync = () => syncOn || /(?:^|;\s*)upshot_sync=1/.test(document.cookie);
 // Another tab changed what's stored: take it up, so this tab never writes its older copy back over it.
 addEventListener('storage', e => {
-  // The theme and Hide read, set in another tab by hand or by sync: shown here too. A synced one is applied by the first tab to
+  // The theme, typeface and Hide read, set in another tab by hand or by sync: shown here too. A synced one is applied by the first tab to
   // hear of it; the rest find their stored value already matching, so this is how they follow.
   if (e.key === 'theme') { swapTheme(e.newValue || (systemDark.matches ? 'dark' : 'light')); markTheme(); return; }
   if (e.key === 'hideRead') { if (hideRead !== (e.newValue === '1')) setHideRead(e.newValue === '1', true); return; }
+  if (e.key === 'font') { if (font !== e.newValue && Object.hasOwn(TYPEFACES, e.newValue)) setFont(e.newValue, true); return; }
   if (!['syncOn', 'marks', 'syncPending', 'syncCursor', 'syncTakeSince', 'since', 'read', 'kept', 'later', 'laterPending', 'prefAt', 'prefsPending'].includes(e.key)) return;
   loadSync();
   since = localStorage.getItem('since');
@@ -943,7 +949,7 @@ const markCurrent = url => {
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 // Inside the article frame, the only script allowed is this one. It must pass two policies: the frame's own (by nonce)
 // and the page's, which a srcdoc frame inherits (by hash, in site/_headers; tests/csp.test.js keeps it current). It reports rightward swipes to the
-// page so the reader can follow the finger, forwards Escape, j/k, ←/→ and Cmd/Ctrl+K, and takes theme changes. The frame has no same-origin access; it can only postMessage.
+// page so the reader can follow the finger, forwards Escape, j/k, ←/→ and Cmd/Ctrl+K, and takes theme and typeface changes. The frame has no same-origin access; it can only postMessage.
 const SWIPE_REPORTER = `let s = null;
 const send = (tw, t) => parent.postMessage({ tw, x: t && t.screenX }, '*');
 addEventListener('touchstart', e => { const t = e.touches[0]; s = { x: t.screenX, y: t.screenY, ax: null }; }, { passive: true });
@@ -960,6 +966,13 @@ addEventListener('message', e => {  // the page's theme toggle
     document.documentElement.dataset.theme = e.data.theme;
     getComputedStyle(document.body).color;  // apply the new colors now, not at a paint the page's crossfade is holding back
     parent.postMessage({ tw: 'themed' }, '*');
+  }
+  if (e.source === parent && e.data && e.data.tw === 'font') {  // a typeface picked: its stylesheet in place of the last, in this frame
+    // The text reflows, so the block at the top of the view is held there, as scroll anchoring does where the browser has it.
+    const held = [...document.querySelector('main').children].find(n => n.getBoundingClientRect().bottom > 0), was = held && held.getBoundingClientRect().top;
+    document.getElementById('faces').textContent = e.data.css;
+    document.documentElement.dataset.font = e.data.font;
+    if (held) document.fonts.ready.then(() => scrollBy(0, held.getBoundingClientRect().top - was));
   }
   if (e.source === parent && e.data && (e.data.tw === 'size' || e.data.tw === 'fluid')) {
     const root = document.documentElement, k = e.data.tw;
@@ -983,27 +996,62 @@ addEventListener('keydown', e => {  // keys pressed while the article has focus 
   if (['escape', 'j', 'k', 'm', 's', 'arrowleft', 'arrowright', '?', '/'].includes(k) || (!mod && (['v', 'g', 'e', 'l', 'a'].includes(k) || (e.shiftKey && (k === 'c' || k === 'f'))))) { e.preventDefault(); parent.postMessage({ tw: 'key', key: k, mod: mod, shift: e.shiftKey }, '*'); }
 });`;
 
-// The article frame's fonts: Domaine Text for the article and Domaine Display, its headline cut, for the title; Söhne for
-// the rest (the upshot, the date line), as on the page. All three are licensed, so they aren't in site/; the Worker
-// serves them from R2 (worker.js). A sandboxed frame has an opaque origin, which the browser caches apart every time, so
-// a font loaded there by URL would download afresh for every frame (two per article) and flash the fallback meanwhile.
-// The page fetches each once instead, cached as usual, and hands it to every frame inline. Until one arrives, a frame
-// loads it by URL. Domaine Text has no 500 or 600: the flag line's 600 resolves to Bold, the mitigation's 500 to Regular.
-const DOMAINE = [['Regular', 400, 'normal'], ['Italic', 400, 'italic'], ['Bold', 700, 'normal'], ['BoldItalic', 700, 'italic']];
-const SOHNE = [['Buch', '100 549'], ['Kraftig', '550 649'], ['Halbfett', '650 900']];  // as on the page (index.html)
-const FRAME_FONTS = { display: '/fonts/licensed/Domaine-DisplayMedium', ...Object.fromEntries(SOHNE.map(([n]) => ['sohne' + n, `/fonts/licensed/Sohne-${n}`])), ...Object.fromEntries(DOMAINE.map(([n]) => ['text' + n, `/fonts/licensed/Domaine-Text${n}`])) };
+// The article frame's fonts. The article is set in the reader's typeface (Display options; it syncs, PREFS.font), Domaine
+// by default, and the rest (the upshot, the date line) in Söhne, as on the page. Domaine and Söhne are licensed, Literata
+// and Atkinson Hyperlegible Next open; all four are served from R2 by the Worker (worker.js), so no request leaves the
+// site. A sandboxed frame has an opaque origin, which the browser caches apart every time, so a font loaded there by URL
+// would download afresh for every frame (two per article) and flash the fallback meanwhile. The page fetches each once
+// instead, cached as usual, and hands it to every frame inline. Until one arrives, a frame loads it by URL.
+// Literata and Atkinson come as Google's latin and latin-ext subsets. Only latin is handed over; latin-ext stays a URL, so
+// the browser fetches it just for an article with one of its letters (ł, ő).
+const LATIN = 'U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD';
+const LATIN_EXT = 'U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF';
+const face = (file, family, weight, style = 'normal', more = {}) => ({ file, family, weight, style, ...more });
+const openFaces = (file, family) => ['Roman', 'Italic'].flatMap(n => [
+  face(`${file}-${n}-Latin`, family, '400 700', n === 'Roman' ? 'normal' : 'italic', { range: LATIN }),
+  face(`${file}-${n}-LatinExt`, family, '400 700', n === 'Roman' ? 'normal' : 'italic', { range: LATIN_EXT, byUrl: true }),
+]);
+// Söhne's three uprights, as on the page (index.html): every frame has them, for the upshot and the date line.
+const SOHNE = [['Buch', '100 549'], ['Kraftig', '550 649'], ['Halbfett', '650 900']].map(([n, w]) => face(`Sohne-${n}`, 'Sohne', w, 'normal', { css: 'size-adjust: 108%;' }));
+const SANS = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif', SERIF = 'ui-serif, "New York", "Iowan Old Style", Charter, Georgia, serif';
+// `text` and `head`: the article's and the headline's families. Domaine is tuned with size-adjust (an x-height of 0.505em),
+// Söhne as on the page; the others, system fonts included, are brought to Domaine's x-height by font-size-adjust (articleDoc).
+const TYPEFACES = {
+  system: { text: SANS, faces: [] },
+  serif: { text: SERIF, faces: [] },
+  atkinson: { text: `"Atkinson Hyperlegible Next", ${SANS}`, faces: openFaces('AtkinsonNext', '"Atkinson Hyperlegible Next"') },
+  domaine: {
+    text: `"Domaine Text", ${SERIF}`, head: `"Domaine Display", "Domaine Text", ${SERIF}`,  // Domaine's headline cut, finer than Text at this size
+    faces: [
+      ...[['Regular', 400, 'normal'], ['Italic', 400, 'italic'], ['Bold', 700, 'normal'], ['BoldItalic', 700, 'italic']].map(([n, w, slant]) => face(`Domaine-Text${n}`, '"Domaine Text"', w, slant, { css: 'size-adjust: 104%;' })),
+      // The Medium, declared 600 for the h1: Domaine's Semibold sets heavier than the rest of the site. Its own ascent (1.08em)
+      // drops the baseline so low in a 1.25 line that the clamp clips g's tail; 97% leaves room for both g (0.233em down) and Å (0.948em up).
+      face('Domaine-DisplayMedium', '"Domaine Display"', 600, 'normal', { css: 'size-adjust: 104%; ascent-override: 97%;' }),
+    ],
+  },
+  // The page's Söhne, with its two italics; Kräftig has none, so a 600 italic takes Halbfett's.
+  sohne: { text: `Sohne, ${SANS}`, faces: [face('Sohne-BuchKursiv', 'Sohne', '100 549', 'italic', { css: 'size-adjust: 108%;' }), face('Sohne-HalbfettKursiv', 'Sohne', '550 900', 'italic', { css: 'size-adjust: 108%;' })] },
+  literata: { text: `Literata, ${SERIF}`, faces: openFaces('Literata', 'Literata') },
+};
+const savedFont = localStorage.getItem('font');
+let font = Object.hasOwn(TYPEFACES, savedFont) ? savedFont : 'domaine';
 const frameFonts = {};
-// Fetched when the first story opens, not with the page: a visit that opens nothing never downloads them. That story's
-// frame waits for them (briefly; then it loads them by URL), so it doesn't draw in a fallback first.
-let fontsReady = null, fontsDone = false;
-const frameFontsReady = () => (fontsReady ||= Promise.race([loadFrameFonts(), new Promise(done => setTimeout(done, 1500))]).then(() => { fontsDone = true; }));
-const frameFont = k => frameFonts[k] || location.origin + FRAME_FONTS[k];
-function loadFrameFonts() {
-  return Promise.all(Object.entries(FRAME_FONTS).map(([k, url]) =>
+const frameFont = f => (!f.byUrl && frameFonts[f.file]) || `${location.origin}/fonts/licensed/${f.file}`;
+const facesFor = k => [...SOHNE, ...TYPEFACES[k].faces];
+// The frame's @font-face rules and families for a typeface, as one stylesheet: the relay swaps it in place to change typeface.
+const facesCss = k => facesFor(k).map(f => `@font-face { font-family: ${f.family}; src: url("${frameFont(f)}") format("woff2"); font-weight: ${f.weight}; font-style: ${f.style};${f.range ? ` unicode-range: ${f.range};` : ''} ${f.css || ''} font-display: swap; }`).join('\n')
+  + `\n:root { --face: ${TYPEFACES[k].text}; --face-head: ${TYPEFACES[k].head || 'var(--face)'}; }`;
+// Fetched when the first story opens, or a typeface is picked: a visit that opens nothing never downloads them, and only
+// the typeface in use is fetched. That story's frame waits for them (briefly; then it loads them by URL), so it doesn't draw
+// in a fallback first.
+const fontsReady = {}, fontsDone = new Set();
+const frameFontsReady = k => (fontsReady[k] ||= Promise.race([loadFrameFonts(facesFor(k)), new Promise(done => setTimeout(done, 1500))]).then(() => { fontsDone.add(k); }));
+function loadFrameFonts(faces) {
+  return Promise.all(faces.filter(f => !f.byUrl && !frameFonts[f.file]).map(f =>
     // Without credentials, as the page's preload of Söhne asks, so the preloaded copy is reused rather than fetched again.
-    fetch(url, { credentials: 'omit' }).then(r => (r.ok ? r.blob() : Promise.reject())).then(b => new Promise(done => {
+    fetch(frameFont(f), { credentials: 'omit' }).then(r => (r.ok ? r.blob() : Promise.reject())).then(b => new Promise(done => {
       const read = new FileReader();
-      read.onload = () => { frameFonts[k] = read.result; done(); };
+      read.onload = () => { frameFonts[f.file] = read.result; done(); };
       read.readAsDataURL(b);
     })).catch(() => {})));  // the URL still works
 }
@@ -1043,21 +1091,18 @@ function summaryBox(tldr, why) {
   return `<div class="todo tldr"><b>The upshot</b><ul>${tldr.map(t => `<li>${esc(t)}</li>`).join('')}</ul>${why ? `<p class="do"><b>What to do</b>${esc(why)}</p>` : ''}</div>`;
 }
 function articleDoc(i, html, nonce, why, minutes, byline) {
-  return `<!doctype html><html data-theme="${document.documentElement.dataset.theme}" data-size="${textSize}" data-fluid="${fluid}"><head><meta charset="utf-8">
+  return `<!doctype html><html data-theme="${document.documentElement.dataset.theme}" data-size="${textSize}" data-fluid="${fluid}" data-font="${font}"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src ${location.origin} data:; img-src https: data:; media-src https:; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'">
-<base target="_blank"><style>
+<base target="_blank"><style id="faces">${facesCss(font)}</style><style>
 :root { ${frameVars('light')} } :root[data-theme="dark"] { ${frameVars('dark')} }
-:root { --serif: "Domaine Text", "Iowan Old Style", Charter, Georgia, serif; }
-body { margin: 0; background: var(--bg); color: var(--text); font: 1.125rem/1.65 var(--serif); overflow-wrap: break-word; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 1.125rem/1.65 var(--face); overflow-wrap: break-word; }
+:root:is([data-font="system"], [data-font="serif"], [data-font="atkinson"], [data-font="literata"]) body { font-size-adjust: 0.505; } .meta, .todo, .status, .pill { font-size-adjust: none; }  /* at Domaine's x-height (TYPEFACES), so a text size reads the same in each. Söhne keeps the page's tuning, which reads small at its x-height; the upshot and date line stay as they are */
 main { --pad: 24px; box-sizing: border-box; max-width: calc(35.5em + 2 * var(--pad)); margin: 0 auto; padding: 32px var(--pad) 96px; }  /* em, not px: about 70 characters a line at every text size (640px at the default) */
 .glide main { transition: max-width .3s ease, padding .3s ease; }  /* a change of text size or fluid width glides, as Feedbin's; a resize (full screen, the columns) doesn't, or the padding that changes at 600px would slide the story into place */
 a { color: var(--accent); }
 h1 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 0 -.1em .4em; padding: 0 .1em; font-size: clamp(1.2444em, .8889em + 2vw, 1.5556em); font-weight: 600; line-height: 1.25; }  /* the clamp's overflow clips, so Domaine Display's ascent-override (below) keeps g, p and y inside the line; the side padding, canceled by the margin, is for a line-initial f, whose tip reaches left of its box; em, so it follows the text size (22.4–28px at the default 18px) */
 h1 a { color: inherit; text-decoration: none; } h1 a:hover { text-decoration: underline; text-decoration-thickness: 2px; }
-${SOHNE.map(([n, w]) => `@font-face { font-family: Sohne; src: url("${frameFont('sohne' + n)}") format("woff2"); font-weight: ${w}; size-adjust: 108%; font-display: swap; }`).join('\n')}
-@font-face { font-family: "Domaine Display"; src: url("${frameFont('display')}") format("woff2"); font-weight: 600; size-adjust: 104%; ascent-override: 97%; font-display: swap; }  /* the Medium, declared 600 for the h1: Domaine's Semibold sets heavier than the rest of the site. Its own ascent (1.08em) drops the baseline so low in a 1.25 line that the clamp clips g's tail; 97% leaves room for both g (0.233em down) and Å (0.948em up) */
-${DOMAINE.map(([n, w, slant]) => `@font-face { font-family: "Domaine Text"; src: url("${frameFont('text' + n)}") format("woff2"); font-weight: ${w}; font-style: ${slant}; size-adjust: 104%; font-display: swap; }`).join('\n')}
-h1 { font-family: "Domaine Display", var(--serif); }  /* Domaine's headline cut, finer than Text at this size */
+h1 { font-family: var(--face-head); }
 [data-size="0"] body { font-size: 1.0625rem; } [data-size="2"] body { font-size: 1.25rem; } [data-size="3"] body { font-size: 1.375rem; }  /* sized for an x-height of about half the em: Domaine Text's is 0.486, which size-adjust: 104% above brings to 0.505 */
 .meta { margin-bottom: 1.8em; color: var(--text-muted); font: 370 .88em/1.45 Sohne, system-ui, sans-serif; }  /* em: follows the text size */
 .todo { margin: 0 0 1.8em; padding: 12px 16px; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; background: var(--bg-card); }
@@ -1091,10 +1136,11 @@ const storyCard = (i, status, loading) => `<div${loading ? ' class="late"' : ''}
 <a class="pill" href="${esc(i.url)}" target="_blank" rel="noopener">Read it on ${esc(domain(i.url))}</a></div>`;
 // Scripts run only by nonce (the swipe reporter); without allow-same-origin the frame can't touch this page.
 function showInReader(i, html, why, minutes, byline) {
-  if (!fontsDone) return void frameFontsReady().then(() => { if (readerFor === i.url) showInReader(i, html, why, minutes, byline); });
+  if (!fontsDone.has(font)) return void frameFontsReady(font).then(() => { if (readerFor === i.url) showInReader(i, html, why, minutes, byline); });
   const frame = document.createElement('iframe');
   frame.sandbox = 'allow-scripts allow-popups allow-popups-to-escape-sandbox';
   frame.title = i.title;
+  const built = font;
   frame.srcdoc = articleDoc(i, html, btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16)))), why, minutes, byline);  // not randomUUID: that needs HTTPS, which a dev server reached by address isn't
   // It loads behind whatever's showing and takes over once drawn, so the pane never blinks empty between frames.
   frame.classList.add('loading');
@@ -1102,7 +1148,8 @@ function showInReader(i, html, why, minutes, byline) {
     if (!frame.parentNode) return;
     while (frame.previousSibling) frame.previousSibling.remove();
     frame.classList.remove('loading');
-    // Its srcdoc baked in the theme, size and width from when it was built; any may have changed while it loaded.
+    // Its srcdoc baked in the theme, size, width and typeface from when it was built; any may have changed while it loaded.
+    if (font !== built) setFrameFont();
     frame.contentWindow.postMessage({ tw: 'theme', theme: document.documentElement.dataset.theme }, '*');
     frame.contentWindow.postMessage({ tw: 'size', size: String(textSize) }, '*');
     frame.contentWindow.postMessage({ tw: 'fluid', fluid: String(fluid) }, '*');
@@ -1202,12 +1249,30 @@ function openReader(i, { fromHash = false } = {}) {
     showInReader(i, storyCard(i, unreadable), why);
   });
 }
-// The reader's display options: the theme (above), the text size, and full screen and fluid width, each kept on this device.
+// The reader's display options: the theme (above), the typeface, the text size, and full screen and fluid width, each kept
+// on this device.
 // Text sizes: small, medium (the default), large, larger.
 const SIZES = ['small', 'medium', 'large', 'larger'];
 let textSize = Math.min(3, Math.max(0, +(localStorage.getItem('textSize') ?? 1) || 0));
 let fluid = localStorage.getItem('fluid') === '1' ? 1 : 0;
 const toFrame = msg => $('reader-body').querySelector('iframe[srcdoc]')?.contentWindow.postMessage(msg, '*');
+// The typeface: the open article changes in place once its fonts are in (they're fetched on first use, frameFontsReady).
+const markFont = () => $('format-pop').querySelectorAll('[data-font]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.font === font)));
+// With no article showing, nothing is fetched: the next story fetches its typeface as it opens.
+const setFrameFont = () => {
+  const k = font;
+  if ($('reader-body').querySelector('iframe[srcdoc]')) frameFontsReady(k).then(() => { if (font === k) toFrame({ tw: 'font', font: k, css: facesCss(k) }); });
+};
+function setFont(k, fromSync = false) {
+  font = k;
+  localStorage.setItem('font', k);
+  markFont();
+  setFrameFont();
+  if (fromSync) return;
+  $('status').textContent = `Typeface ${$('format-pop').querySelector(`[data-font="${k}"]`).textContent}`;
+  notePref('font');
+}
+markFont();
 const markSize = () => $('format-pop').querySelectorAll('[data-size]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.size === textSize)));
 markSize();
 $('format-fluid').setAttribute('aria-checked', String(!!fluid));
@@ -1235,6 +1300,7 @@ $('format-pop').onclick = e => {
   e.stopPropagation();  // it stays open, to see each change
   const b = e.target.closest('button');
   if (b?.dataset.pick) { pickTheme(b.dataset.pick); notePref('theme'); }
+  else if (b?.dataset.font) setFont(b.dataset.font);
   else if (b?.dataset.size) {
     textSize = +b.dataset.size;
     localStorage.setItem('textSize', textSize);
