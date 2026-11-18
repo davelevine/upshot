@@ -27,10 +27,10 @@ The two `-c` flags run the site's Worker and `upshot-sync` together, bound as th
 
 Sync's session cookie is `Secure`, which browsers waive only for `localhost`. To try sync on another device, serve the site over HTTPS (add `--local-protocol https --upstream-protocol https`) at an address that device can reach.
 
-**Fonts.** `wrangler dev` uses an empty local copy of the R2 bucket, so the site shows system fonts. If you have the licensed fonts, load them once:
+**Fonts.** `wrangler dev` uses an empty local copy of the R2 bucket, so the site shows system fonts. To see the real ones, load the files once (the list is in [Configuration](setup/configuration.md#fonts)):
 
 ```bash
-for f in /path/to/fonts/{Sohne,Domaine}-*.woff2; do npx wrangler r2 object put "upshot-fonts/$(basename "$f")" --file "$f" --content-type font/woff2 --local; done
+for f in /path/to/fonts/{Sohne,Domaine,Literata,AtkinsonNext}-*.woff2; do npx wrangler r2 object put "upshot-fonts/$(basename "$f")" --file "$f" --content-type font/woff2 --local; done
 ```
 
 They stay in `.wrangler/state`. A server started with its own `--persist-to` needs the same step with that flag.
@@ -53,7 +53,7 @@ The browser smoke test runs against the dev server above:
 SMOKE_URL=http://127.0.0.1:8788 .venv/bin/pytest -q -n auto tests/test_smoke.py
 ```
 
-It loads the site in Chromium under its real CSP and checks the feed, the reader, search, swipe-back, sync between two browsers, and WCAG 2.2 AA with axe. It fails on any CSP violation, console error or page error. It serves Public Sans from `fonts/` in place of the licensed fonts. Drop `-n auto` to run tests one at a time when debugging.
+It loads the site in Chromium under its real CSP and checks the feed, the reader, search, swipe-back, sync between two browsers, and WCAG 2.2 AA with axe. It fails on any CSP violation, console error or page error. It serves Public Sans from `fonts/` in place of every font in R2. Drop `-n auto` to run tests one at a time when debugging.
 
 ## Things to know
 
