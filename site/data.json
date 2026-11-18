@@ -31,6 +31,25 @@
   },
   {
    "date": "2026-11-18",
+   "published": "2026-11-18T12:30:00+00:00",
+   "title": "Optimizing Kubernetes admission control: Where Kyverno’s CEL admission cost actually goes",
+   "url": "https://www.cncf.io/blog/2026/11/18/optimizing-kubernetes-admission-control-where-kyvernos-cel-admission-cost-actually-goes/",
+   "publisher": "CNCF",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Profiling of Kyverno's Kubernetes admission path found most cost is not in CEL policy evaluation, as the team had expected.",
+   "relevance": 6,
+   "added": "2026-11-18T13:18:10+00:00",
+   "minutes": 9,
+   "tldr": [
+    "Kyverno's CEL policy engines parsed the admitted object once per matched policy, so cost grew with policy count; fixed in 1.19.2.",
+    "Affects Kyverno's ValidatingPolicy and MutatingPolicy engines and image verification; in the article's engine-only benchmark, 64 policies dropped from 20.01 ms to 0.36 ms.",
+    "Upgrade to Kyverno 1.19.2, which also fixes the legacy ClusterPolicy regression introduced between 1.16.4 and 1.17.0.",
+    "Benchmarks are single-machine and engine-only, excluding webhook, API server and etcd, so measure in your own environment."
+   ]
+  },
+  {
+   "date": "2026-11-18",
    "published": "2026-11-18T09:00:00+00:00",
    "title": "Yelp Migrates Cassandra to EKS by Moving EBS Volumes",
    "url": "https://www.infoq.com/news/2026/11/kubernetes-cassandra-eks/",
@@ -4503,7 +4522,7 @@
    }
   ]
  },
- "generated_at": "2026-11-18T12:18:04+00:00",
+ "generated_at": "2026-11-18T13:18:20+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
