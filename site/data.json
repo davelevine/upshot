@@ -7,8 +7,11 @@
    "url": "https://www.rapid7.com/blog/post/ve-cve-2026-123007-critical-nginx-http-2-integer-underflow-leads-to-rce-fixed",
    "publisher": "Rapid7",
    "cves": [
+    "CVE-2026-113425",
+    "CVE-2026-121810",
     "CVE-2026-123007",
-    "CVE-2026-123633"
+    "CVE-2026-123633",
+    "CVE-2026-123634"
    ],
    "category": "security",
    "summary": "Rapid7 and F5 disclosed CVE-2026-123007, a critical nginx HTTP/2 integer underflow allowing unauthenticated remote code execution under certain conditions; a fix is available.",
@@ -49,6 +52,23 @@
     "CISA added the critical Perforce Puppet flaw CVE-2026-115731 (CVSS 9.4) to its KEV catalog, citing active exploitation.",
     "Attackers with any CA-signed agent certificate can run code on Puppet Server via crafted reports; OpenVox is also affected.",
     "Upgrade to Puppet Enterprise 2026.0.1, 2025.12.1, or 2023.8.13, or Puppet Core 9.1.3 or 8.22.2. FCEB agencies are advised to apply fixes by December 1, 2026."
+   ]
+  },
+  {
+   "date": "2026-11-18",
+   "published": "2026-11-18T18:00:00+00:00",
+   "title": "Genie 4 is now available",
+   "url": "https://blog.google/innovation-and-ai/models-and-research/google-deepmind/genie-4-now-available-project-genie/",
+   "publisher": "Google Blog",
+   "cves": [],
+   "category": "ai",
+   "summary": "Google announced that its Genie 4 model is now available.",
+   "relevance": 7,
+   "added": "2026-11-18T18:18:36+00:00",
+   "minutes": 3,
+   "tldr": [
+    "Google launched a new Project Genie experience with Genie 4, its most realistic and interactive world model yet, for eligible Google AI Ultra subscribers.",
+    "Eligible Google AI Ultra subscribers can try the experience starting today; Google AI Pro members can join the waitlist on the same page."
    ]
   },
   {
@@ -4598,7 +4618,7 @@
    }
   ]
  },
- "generated_at": "2026-11-18T17:18:30+00:00",
+ "generated_at": "2026-11-18T18:18:42+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
