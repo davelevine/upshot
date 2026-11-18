@@ -14,7 +14,7 @@ From 641px up, the list stays live while an article is open, so `j`/`k` and clic
 
 ## Lists and labels
 
-The list showing is in the address (`/?topic=security`), so it can be bookmarked or reloaded into; All and a phone's topics page have none. Lists run newest first; stories of the same age keep the build's order, most relevant first. The essentials are an entry in the topics, so no story is listed twice.
+The list showing is in the address (`/?topic=security`), so it can be bookmarked or reloaded into; All and a phone's topics page have none. Lists run newest first; stories of the same age keep the build's order, most relevant first. The tab's title starts with the unread count, as in `(3) Upshot`. The essentials are an entry in the topics, so no story is listed twice.
 
 A row carries at most one label, the same in every list:
 

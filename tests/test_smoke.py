@@ -221,7 +221,7 @@ def test_phones_open_on_the_topics(browser):
     # Its list, as a page: a back chevron and its name in the header, in place of the logo, and the topics out of reach.
     assert pg.evaluate("document.getElementById('filters').inert") and pg.locator("#list-back").is_visible() and pg.inner_text("#list-name") == "Security"
     assert pg.evaluate("shown.length > 0 && shown.every(i => cat(i.category) === 'security')")
-    assert pg.title() == "Security \u00b7 Upshot"
+    assert re.fullmatch(r"(\(\d+\) )?Security \u00b7 Upshot", pg.title())
     pg.go_back()  # the phone's back button
     pg.wait_for_function(aside)
     pg.go_forward()  # and forward again, to the same list
@@ -357,6 +357,16 @@ def test_each_story_says_how_long_ago_it_was_published(browser):
     enter_list(pg)
     old = "Jan 5" if now.year == 2026 else "Jan 5, 2026"
     assert pg.locator("a.card .card-age").all_text_contents() == ["5m", "2h", "5h", "20h", "2d", "3d", old]  # newest first
+
+
+def test_the_tab_shows_the_unread_count(browser):
+    pg = open_site(browser)
+    n = int(re.search(r"\d+", pg.locator("#filters .filter-btn[data-f='all'] .f-count").text_content())[0])
+    assert pg.title() == f"({n}) Upshot \u00b7 The week\u2019s tech news, minus the noise"
+    pg.locator("a.card:not(.read)").first.click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    assert pg.title().startswith(f"({n - 1}) ")  # down as you read
+    assert pg.problems == []
 
 
 def one_other(data):

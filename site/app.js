@@ -120,7 +120,8 @@ function renderFilters() {
     '<h2 class="f-head">Topics</h2>' + Object.keys(CATS).filter(c => counts[c] || filter === c).map(c => btn(c, unread[c] || 0, `<span class="dot" style="--c:var(--cat-${c})"></span>`)).join('');
   $('list-name').textContent = label(filter);  // phones: the list's name above it, so a filter never makes stories look missing
   syncReadAll();
-  document.title = filter === 'all' ? 'Upshot \u00b7 The week\u2019s tech news, minus the noise' : `${label(filter)} \u00b7 Upshot`;
+  // The unread count in the tab, as mail and feed readers have it: it rises when a build lands while the tab is open.
+  document.title = (unreadAll ? `(${unreadAll}) ` : '') + (filter === 'all' ? 'Upshot \u00b7 The week\u2019s tech news, minus the noise' : `${label(filter)} \u00b7 Upshot`);
   syncTopicUrl();
 }
 // The list showing is in the address (/?topic=security), so it can be bookmarked and reloaded into. A phone's topics page
