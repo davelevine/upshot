@@ -41,7 +41,7 @@ Upshot is a news digest for AI, security, infrastructure, software engineering a
 - **Weekly essentials.** Five picks from the last seven days, each with what to do about it.
 - **Built-in reader.** Articles open in a clean pane that starts with the upshot: what happened, who's affected and what to do. Set them in a serif or a sans, from six typefaces.
 - **Read state, Read later and sync.** Read stories are dimmed (or hidden, if you'd rather), the reader's bookmark sets a story aside in Read later, and sync keeps both, and the theme and typeface, the same across your devices with a code. No account.
-- **Phone and desktop.** Install it as an app on a phone; `⌘K` search, `j`/`k` and `Space` to move through stories, and a full-screen reader on a desktop. Light, dark or the system's theme, and an RSS feed.
+- **Phone and desktop.** Install it as an app on a phone; `⌘K` search, `j`/`k` and `Space` to move through stories, and a full-screen reader on a desktop. Light, dark or the system's theme, and RSS feeds for every story, the essentials, and exploited flaws.
 
 ## How it works
 

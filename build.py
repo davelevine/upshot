@@ -653,7 +653,7 @@ def rss_body(i, why=None):
             + (f"<p><b>What to do:</b> {e(why)}</p>" if why else ""))
 
 
-def rss(items, weekly=None):
+def rss(items, weekly=None, title="Upshot", link="/", description="The week’s tech news, minus the noise."):
     def esc(s):
         return html.escape(s, quote=False)
     why = {p["url"]: p["why"] for p in (weekly or {}).get("items", [])}
@@ -663,9 +663,23 @@ def rss(items, weekly=None):
         f"<pubDate>{format_datetime(published(i))}</pubDate></item>"
         for i in items[:50]
     )
-    return ('<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Upshot</title>'
-            f"<link>{SITE_URL}/</link><description>The week’s tech news, minus the noise.</description>"
+    return (f'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>{esc(title)}</title>'
+            f"<link>{esc(SITE_URL + link)}</link><description>{esc(description)}</description>"
+            # The feed's icon, for readers that don't look for it on the site; RSS asks that its title and link match the channel's.
+            f"<image><url>{SITE_URL}/apple-touch-icon.png</url><title>{esc(title)}</title><link>{esc(SITE_URL + link)}</link></image>"
             f"{entries}</channel></rss>\n")
+
+
+def feeds_for(items, weekly=None):
+    """Each RSS feed the site offers, by file name: every story, the week's essentials, and the exploited flaws."""
+    picks = {p["url"] for p in (weekly or {}).get("items", [])}
+    return {
+        "rss.xml": rss(items, weekly),
+        "essentials.xml": rss([i for i in items if i["url"] in picks], weekly, "Upshot: Essentials", "/?topic=essentials",
+                              "The week’s essential stories, with what to do about each."),
+        "exploited.xml": rss([i for i in items if i.get("exploited")], weekly, "Upshot: Exploited", "/?topic=exploited",
+                             "Flaws being exploited and products compromised, as Upshot flags them."),
+    }
 
 
 def norm(title):
@@ -1085,7 +1099,8 @@ def main():
     data["icons"] = fetch_icons({i["publisher"] for i in data["items"]} | set(SITE_LINKS))
     data["iconArt"] = {s: art for s in data["icons"] if (art := icon_art(ICONS / f"{s}.png"))}
     data_path.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n")
-    (SITE / "rss.xml").write_text(rss(data["items"], data.get("weekly")))
+    for name, xml in feeds_for(data["items"], data.get("weekly")).items():
+        (SITE / name).write_text(xml)
     write_og(data, today)
     STATE.write_text(json.dumps(state, indent=1, sort_keys=True) + "\n")
     names = {u: t for t, u in feeds}
