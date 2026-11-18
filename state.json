@@ -1,5 +1,8 @@
 {
- "failing_since": {},
+ "failing_since": {
+  "https://cloudblog.withgoogle.com/rss/": "2026-11-18",
+  "https://cloudblog.withgoogle.com/topics/threat-intelligence/rss/": "2026-11-18"
+ },
  "seen": {
   "http://groundworkcollaborative.org/news/amazons-decoy-deals-groundwork-investigation-reveals-nearly-1-in-3-black-friday-and-cyber-monday-deals-advertised-by-amazon-offered-no-savings-to-shoppers-nearly-1-in-10-w/": "2026-11-16",
   "http://muratbuffalo.blogspot.com/2026/11/writing-as-thinking-tool.html": "2026-11-08",
@@ -818,6 +821,7 @@
   "https://news.cornell.edu/stories/2026/10/sheep-grazing-solar-fields-offers-farmers-economic-ecological-gains": "2026-11-16",
   "https://news.ycombinator.com/item?id=50471668": "2026-11-12",
   "https://nfsu2.xyz/": "2026-11-07",
+  "https://nicolasbouliane.com/blog/death-by-ai": "2026-11-18",
   "https://notesbylex.com/fable-5-2-one-shotted-my-nephews-dream-game": "2026-11-09",
   "https://noyb.eu/en/ai-eu-member-states-approve-digital-expropriation-europeans-ai-companies": "2026-10-23",
   "https://noyb.eu/en/ai-training-platform-outlier-illegally-surveils-european-platform-workers": "2026-10-27",
@@ -1133,6 +1137,7 @@
   "https://thehackernews.com/2026/11/china-aligned-hackers-hijack-sogou.html": "2026-11-04",
   "https://thehackernews.com/2026/11/cisa-confirms-hackers-exploiting.html": "2026-11-04",
   "https://thehackernews.com/2026/11/cisa-flags-sonicwall-sonicos-mfa-bypass.html": "2026-11-09",
+  "https://thehackernews.com/2026/11/cisa-urges-immediate-patching-of.html": "2026-11-18",
   "https://thehackernews.com/2026/11/cisa-warns-of-active-exploitation-of.html": "2026-11-10",
   "https://thehackernews.com/2026/11/cisco-broadworks-and-openwave-flaws.html": "2026-11-11",
   "https://thehackernews.com/2026/11/citrix-patches-12-netscaler-and-secure.html": "2026-11-12",
@@ -1172,6 +1177,7 @@
   "https://thehackernews.com/2026/11/hackers-exploit-php2shell-flaws-in.html": "2026-11-13",
   "https://thehackernews.com/2026/11/hackers-exploit-quboles-trusted-aws.html": "2026-11-09",
   "https://thehackernews.com/2026/11/hackers-exploited-openssh-sshole-flaw.html": "2026-11-06",
+  "https://thehackernews.com/2026/11/hackers-exploiting-critical-puppet-rce.html": "2026-11-18",
   "https://thehackernews.com/2026/11/hackers-found-way-around-github-sha.html": "2026-11-17",
   "https://thehackernews.com/2026/11/hackers-hide-linux-backdoor-in-control.html": "2026-11-06",
   "https://thehackernews.com/2026/11/hackers-steal-about-27-million-from.html": "2026-11-01",
@@ -1258,6 +1264,7 @@
   "https://therecord.media/california-sues-openai-hugging-face": "2026-11-16",
   "https://therecord.media/ceo-spoofing-scammers-charged": "2026-11-06",
   "https://therecord.media/chinese-state-group-developing-automated-attack-tool-espionage": "2026-11-17",
+  "https://therecord.media/cisa-issues-java4shell-alert": "2026-11-17",
   "https://therecord.media/city-of-osaka-japan-email-data-breach": "2026-11-13",
   "https://therecord.media/connectwise-screenconnect-breaches-third-party-tool": "2026-11-12",
   "https://therecord.media/cyberattack-germany-ai-mittwald": "2026-11-09",
@@ -1429,6 +1436,7 @@
   "https://www.bleepingcomputer.com/news/hardware/flipper-devices-launches-399-flipper-one-linux-based-multi-tool/": "2026-11-17",
   "https://www.bleepingcomputer.com/news/linux/new-noisytcp-linux-kernel-flaw-lets-attackers-crash-servers/": "2026-11-16",
   "https://www.bleepingcomputer.com/news/microsoft/massive-microsoft-365-outage-disrupts-outlook-teams-copilot-worldwide/": "2026-11-12",
+  "https://www.bleepingcomputer.com/news/microsoft/microsoft-announces-windows-server-2028-with-hardened-security/": "2026-11-18",
   "https://www.bleepingcomputer.com/news/microsoft/microsoft-confirms-kb5132061-installation-issues-0x80070306-0x800f0989-0x800f0993-errors/": "2026-11-12",
   "https://www.bleepingcomputer.com/news/microsoft/microsoft-confirms-windows-activation-failures-after-november-updates/": "2026-11-13",
   "https://www.bleepingcomputer.com/news/microsoft/microsoft-fixes-exchange-sign-ins-broken-by-october-windows-server-updates/": "2026-11-11",
@@ -1710,6 +1718,7 @@
   "https://www.infoq.com/news/2026/11/aws-continuum-ga/": "2026-11-06",
   "https://www.infoq.com/news/2026/11/aws-emulator-agents/": "2026-11-16",
   "https://www.infoq.com/news/2026/11/aws-nitro-sandboxes-eks/": "2026-11-16",
+  "https://www.infoq.com/news/2026/11/aws-privatelink-tunnel-endpoints/": "2026-11-18",
   "https://www.infoq.com/news/2026/11/aws-torchneuron-trainium-pytorch/": "2026-11-09",
   "https://www.infoq.com/news/2026/11/bumpy-changesets-alternative/": "2026-11-07",
   "https://www.infoq.com/news/2026/11/claude-code-review/": "2026-11-15",

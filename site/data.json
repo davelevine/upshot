@@ -2,6 +2,35 @@
  "items": [
   {
    "date": "2026-11-18",
+   "published": "2026-11-18T08:24:31+00:00",
+   "title": "Hackers Exploiting Critical Puppet RCE Flaw Affecting Enterprise Management Servers",
+   "url": "https://thehackernews.com/2026/11/hackers-exploiting-critical-puppet-rce.html",
+   "publisher": "The Hacker News",
+   "cves": [
+    "CVE-2026-115731"
+   ],
+   "category": "security",
+   "summary": "CISA added a critical Perforce Puppet remote code execution flaw, CVE-2026-115731 (CVSS 9.4), to its Known Exploited Vulnerabilities catalog, citing active exploitation.",
+   "relevance": 8,
+   "added": "2026-11-18T10:18:41+00:00",
+   "exploited": {
+    "kev": [
+     "CVE-2026-115731"
+    ],
+    "at": "2026-11-18T10:18:38+00:00",
+    "kind": "flaw",
+    "quote": "Hackers Exploiting Critical Puppet RCE Flaw Affecting Enterprise Management Servers",
+    "fix": "patch"
+   },
+   "minutes": 2,
+   "tldr": [
+    "CISA added the critical Perforce Puppet flaw CVE-2026-115731 (CVSS 9.4) to its KEV catalog, citing active exploitation.",
+    "Attackers with any CA-signed agent certificate can run code on Puppet Server via crafted reports; OpenVox is also affected.",
+    "Upgrade to Puppet Enterprise 2026.0.1, 2025.12.1, or 2023.8.13, or Puppet Core 9.1.3 or 8.22.2. FCEB agencies are advised to apply fixes by December 1, 2026."
+   ]
+  },
+  {
+   "date": "2026-11-18",
    "published": "2026-11-18T09:00:00+00:00",
    "title": "Yelp Migrates Cassandra to EKS by Moving EBS Volumes",
    "url": "https://www.infoq.com/news/2026/11/kubernetes-cassandra-eks/",
@@ -17,6 +46,43 @@
     "It works because EBS volumes bind to an Availability Zone, not a cluster; Yelp says it applies to any AZ-pinned stateful Kubernetes workload.",
     "Before starting, audit repair state, backup IAM roles and alert severity; build explicit timeouts for stalled detach and attach steps.",
     "The one mechanism-specific failure was a stale VolumeAttachment left by the AWS CSI controller; deleting it fixed the stuck pod."
+   ]
+  },
+  {
+   "date": "2026-11-18",
+   "published": "2026-11-18T09:24:31+00:00",
+   "title": "Microsoft announces Windows Server 2028 with hardened security",
+   "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-announces-windows-server-2028-with-hardened-security/",
+   "publisher": "BleepingComputer",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Microsoft announced Windows Server 2028, its next major server operating system release, with a focus on hardened security, at Ignite 2026.",
+   "relevance": 6,
+   "added": "2026-11-18T10:18:41+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Microsoft announced Windows Server 2028 at Ignite 2026 on Tuesday, shipping with hardened Server Core by default and a new security baseline.",
+    "Admins get defaults including Kerberos over NTLM, SMB signing, and hybrid post-quantum ML-KEM key exchange; NTLM blocking is still pending.",
+    "Admins who want to test can join the Windows Insider Program for Windows Server or apply for the Windows Server Technology Adoption Program for earlier access."
+   ]
+  },
+  {
+   "date": "2026-11-18",
+   "published": "2026-11-18T09:29:00+00:00",
+   "title": "AWS PrivateLink Tunnel Endpoints Open a Whole CIDR Range to Another Account",
+   "url": "https://www.infoq.com/news/2026/11/aws-privatelink-tunnel-endpoints/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "AWS detailed PrivateLink tunnel endpoints, which give consumer VPCs access to a whole network segment in another account, with GENEVE wrapping, TCP/DNS-only traffic, and limited log attribution.",
+   "relevance": 6,
+   "added": "2026-11-18T10:18:41+00:00",
+   "minutes": 4,
+   "tldr": [
+    "AWS PrivateLink tunnel endpoints let one VPC reach every address in a CIDR range shared from another account.",
+    "Providers sharing ranges expose everything inside them, including later-created resources, and access logs omit the workload's inner source address.",
+    "Share the narrowest CIDR ranges that work, since 0.0.0.0/0 exposes everything the provider VPC can route to.",
+    "Consumers must send GENEVE over UDP 6081 in the same Availability Zone; inner traffic must be TCP, with UDP only for DNS."
    ]
   },
   {
@@ -4437,7 +4503,7 @@
    }
   ]
  },
- "generated_at": "2026-11-18T09:18:19+00:00",
+ "generated_at": "2026-11-18T10:18:51+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
