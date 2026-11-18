@@ -44,7 +44,9 @@
    "title": "Java4Shell: RCE in OpenJDK when processing Base64",
    "url": "https://calif.io/java4shell/",
    "publisher": "Hacker News 300+",
-   "cves": [],
+   "cves": [
+    "CVE-2026-114938"
+   ],
    "category": "security",
    "summary": "Researchers disclosed Java4Shell, a remote code execution flaw in OpenJDK triggered when processing Base64 input.",
    "relevance": 8,
@@ -4391,7 +4393,7 @@
    }
   ]
  },
- "generated_at": "2026-11-18T05:18:19+00:00",
+ "generated_at": "2026-11-18T06:18:23+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
