@@ -72,6 +72,24 @@
   },
   {
    "date": "2026-11-18",
+   "published": "2026-11-18T17:00:00+00:00",
+   "title": "Sashiko: Lessons from building an agentic code review system for Linux",
+   "url": "https://cloud.google.com/blog/products/application-development/lessons-from-building-sashiko-an-agentic-code-review-system/",
+   "publisher": "Google Cloud Blog",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Google Cloud describes lessons from building Sashiko, an agentic code review system aimed at easing human maintainer bottlenecks for Linux kernel patches.",
+   "relevance": 6,
+   "added": "2026-11-18T17:18:19+00:00",
+   "minutes": 10,
+   "tldr": [
+    "Google's AI & Infrastructure team built Sashiko, an open-source agentic code review system powered by Gemini, now donated to the Linux Foundation.",
+    "Over seven months, the 60-day post-merge fix rate fell from a 3.4% baseline to 2.2% in Linux 7.2, though the authors don't solely credit Sashiko.",
+    "Patches with clean Sashiko reviews needed a follow-up fix 0.9% of the time, versus 7.6% for those merged despite critical warnings. Recheck critical warnings."
+   ]
+  },
+  {
+   "date": "2026-11-18",
    "published": "2026-11-18T09:00:00+00:00",
    "title": "Yelp Migrates Cassandra to EKS by Moving EBS Volumes",
    "url": "https://www.infoq.com/news/2026/11/kubernetes-cassandra-eks/",
@@ -4580,7 +4598,7 @@
    }
   ]
  },
- "generated_at": "2026-11-18T16:18:21+00:00",
+ "generated_at": "2026-11-18T17:18:30+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
