@@ -3115,6 +3115,16 @@ def test_preferences_reach_the_other_open_device_and_screen_settings_stay(browse
     assert a.problems == [] and b.problems == []
 
 
+def test_a_second_theme_swap_before_the_first_lands_is_no_error(browser):
+    """Two swaps in a row (a synced theme and another tab's storage event can land together) leave the second theme, and no
+    error: the first transition, skipped, used to reject with nothing to catch it."""
+    pg = open_site(browser, viewport={"width": 1300, "height": 900}, color_scheme="light")
+    pg.evaluate("swapTheme('dark'); swapTheme('dark'); swapTheme('light'); swapTheme('dark')")
+    assert until(pg, "document.documentElement.dataset.theme === 'dark'")
+    pg.wait_for_timeout(500)
+    assert pg.problems == []
+
+
 def test_every_open_tab_follows_a_synced_preference(browser):
     """A synced theme reaches each of a browser's open tabs. The first to hear of it stores it; the others find the stored
     value already matching, so they follow by the storage event. (They once kept the old theme showing.)"""

@@ -209,11 +209,13 @@ const syncThemeColor = () => {
 // Swap every color in one frame, then let a view transition crossfade the whole page; per-element
 // transitions would fade some parts and snap others. The article frame switches by message, so the
 // crossfade waits for it to confirm (briefly): otherwise its "after" picture shows the old article.
-let frameThemed = null;
+let frameThemed = null, themeTo = null;  // themeTo: the theme a transition is on its way to, which data-theme shows only once it runs
 function swapTheme(t) {
   const root = document.documentElement;
-  if (root.dataset.theme === t) return;
+  if ((themeTo ?? root.dataset.theme) === t) return;
+  themeTo = t;
   const swap = () => {
+    themeTo = null;
     root.classList.add('theme-switching');
     root.dataset.theme = t;
     getComputedStyle(root).color;  // commit the new colors before transitions come back
@@ -225,7 +227,8 @@ function swapTheme(t) {
     frame.contentWindow.postMessage({ tw: 'theme', theme: t }, '*');
     return themed.then(() => { frameThemed = null; });
   };
-  if (document.startViewTransition) document.startViewTransition(swap);
+  // A swap that lands before the last one ran skips that one's crossfade (its colors still apply), rejecting its `ready`.
+  if (document.startViewTransition) document.startViewTransition(swap).ready.catch(() => {});
   else swap();
 }
 // Light, dark, or (Auto) the system's, followed as it changes: the display options' Theme.
