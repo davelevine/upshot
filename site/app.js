@@ -1014,7 +1014,7 @@ body { margin: 0; background: var(--bg); color: var(--text); font: 1.125rem/1.65
 main { --pad: 24px; box-sizing: border-box; max-width: calc(35.5em + 2 * var(--pad)); margin: 0 auto; padding: 32px var(--pad) 96px; }  /* em, not px: about 70 characters a line at every text size (640px at the default) */
 .glide main { transition: max-width .3s ease, padding .3s ease; }  /* a change of text size or fluid width glides, as Feedbin's; a resize (full screen, the columns) doesn't, or the padding that changes at 600px would slide the story into place */
 a { color: var(--accent); }
-h1 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 0 -.1em .4em; padding: 0 .1em; font-size: clamp(1.4rem, 1rem + 2vw, 1.75rem); font-weight: 600; line-height: 1.25; }  /* the clamp's overflow clips, so Domaine Display's ascent-override (below) keeps g, p and y inside the line; the side padding, canceled by the margin, is for a line-initial f, whose tip reaches left of its box */
+h1 { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin: 0 -.1em .4em; padding: 0 .1em; font-size: clamp(1.2444em, .8889em + 2vw, 1.5556em); font-weight: 600; line-height: 1.25; }  /* the clamp's overflow clips, so Domaine Display's ascent-override (below) keeps g, p and y inside the line; the side padding, canceled by the margin, is for a line-initial f, whose tip reaches left of its box; em, so it follows the text size (22.4–28px at the default 18px) */
 h1 a { color: inherit; text-decoration: none; } h1 a:hover { text-decoration: underline; text-decoration-thickness: 2px; }
 ${SOHNE.map(([n, w]) => `@font-face { font-family: Sohne; src: url("${frameFont('sohne' + n)}") format("woff2"); font-weight: ${w}; size-adjust: 108%; font-display: swap; }`).join('\n')}
 @font-face { font-family: "Domaine Display"; src: url("${frameFont('display')}") format("woff2"); font-weight: 600; size-adjust: 104%; ascent-override: 97%; font-display: swap; }  /* the Medium, declared 600 for the h1: Domaine's Semibold sets heavier than the rest of the site. Its own ascent (1.08em) drops the baseline so low in a 1.25 line that the clamp clips g's tail; 97% leaves room for both g (0.233em down) and Å (0.948em up) */
@@ -1027,15 +1027,15 @@ h1 { font-family: "Domaine Display", var(--serif); }  /* Domaine's headline cut,
 .tldr .do { margin: .8em 0 0; padding-top: .7em; border-top: 1px solid var(--border); font: 500 .94em/1.5 Sohne, system-ui, sans-serif; } .tldr .do b { font-size: .875em; }
 .todo b { display: block; margin-bottom: 2px; color: var(--accent); font: 700 .82em/1.5 Sohne, system-ui, sans-serif; letter-spacing: .07em; text-transform: uppercase; }  /* the box's sizes are em too */
 h2, h3, h4 { margin: 1.8em 0 .5em; font-weight: 700; line-height: 1.3; }
-h2 { font-size: 1.375rem; } h3 { font-size: 1.125rem; } h4 { font-size: 1rem; }
+h2 { font-size: 1.2222em; } h3 { font-size: 1em; } h4 { font-size: .8889em; }  /* em: 22, 18 and 16px at the default, scaled with the text size */
 ul, ol { padding-left: 1.4em; } li + li { margin-top: .35em; }
 img, video { max-width: 100%; height: auto; border-radius: 8px; }
 figure { margin: 1.6em 0; } figcaption { margin-top: .4em; color: var(--text-muted); font-size: .85em; }
 blockquote { margin: 1.4em 0; padding-left: 1em; border-left: 3px solid var(--border-strong); color: var(--text-muted); }
 code { padding: .1em .3em; border-radius: 4px; background: var(--bg-card); font: .875em ui-monospace, SFMono-Regular, Consolas, monospace; }
-pre { overflow-x: auto; padding: 12px 14px; border-radius: 8px; background: var(--bg-card); font: .8125rem/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre; }
+pre { overflow-x: auto; padding: 12px 14px; border-radius: 8px; background: var(--bg-card); font: .7222em/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre; }
 pre code { padding: 0; background: none; font: inherit; }
-table { display: block; overflow-x: auto; border-collapse: collapse; font-size: .875rem; } th, td { padding: 4px 8px; border: 1px solid var(--border); } th { font-weight: 700; }
+table { display: block; overflow-x: auto; border-collapse: collapse; font-size: .7778em; } th, td { padding: 4px 8px; border: 1px solid var(--border); } th { font-weight: 700; }
 hr { border: 0; border-top: 1px solid var(--border); }
 .flag { margin: 0 0 .35em; } .exploited { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; } .x-word { color: var(--text); } .exploited:has(.no-patch) .x-word { color: var(--exploited-ink); } .x-word.compromised { color: var(--caution-ink); }
 .fix-pill { padding: 1px 8px; border-radius: 999px; font-size: .9em; font-weight: 700; line-height: 1.35; }  /* a chip, as in the list; not .pill, the "Read it on" button's */ .no-patch { background: var(--exploited); color: var(--exploited-text); } .patch-out, .mitigation { padding: 0; color: var(--accent); font-size: 1em; font-weight: 600; line-height: inherit; }
