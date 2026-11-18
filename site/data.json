@@ -27,6 +27,25 @@
   },
   {
    "date": "2026-11-18",
+   "published": "2026-11-18T21:00:00+00:00",
+   "title": "Introducing Gemini 4 Neon",
+   "url": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-neon/",
+   "publisher": "Google Blog",
+   "cves": [],
+   "category": "ai",
+   "summary": "Google Blog announced Gemini 4 Neon, a new model in its Gemini family.",
+   "relevance": 8,
+   "added": "2026-11-18T22:18:18+00:00",
+   "minutes": 7,
+   "tldr": [
+    "Gemini 4 Neon is priced at $3 per million input tokens and $15 per million output tokens, with a 1 million-token context window.",
+    "It is rolling out in the Gemini API in Google AI Studio, Gemini for business, and to Pro and Ultra Gemini app subscribers.",
+    "It ranks #1 overall on the Artificial Analysis Coding Agent Index (58.6) and #1 on Vending-Bench 2 ($16,843).",
+    "Eligible Fairwind Program members get Neon for cyber over the coming days; others can request access through their Cloud account team."
+   ]
+  },
+  {
+   "date": "2026-11-18",
    "published": "2026-11-18T08:24:31+00:00",
    "title": "Hackers Exploiting Critical Puppet RCE Flaw Affecting Enterprise Management Servers",
    "url": "https://thehackernews.com/2026/11/hackers-exploiting-critical-puppet-rce.html",
@@ -4650,7 +4669,7 @@
    }
   ]
  },
- "generated_at": "2026-11-18T21:18:18+00:00",
+ "generated_at": "2026-11-18T22:18:29+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
