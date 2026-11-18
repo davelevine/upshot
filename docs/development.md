@@ -42,6 +42,8 @@ They stay in `.wrangler/state`. A server started with its own `--persist-to` nee
 node --test 'tests/*.test.js'
 ```
 
+[`test_pipeline.py`](../test_pipeline.py) runs whole builds, two in a row, over scripted feeds, a scripted model and a scripted CISA catalog, and checks the files they write against [the pipeline](architecture/pipeline.md)'s rules and the `data.json` fields `app.js` reads. The Build workflow runs it before every hourly build, so it has to stay offline and deterministic: script anything new that `main()` reaches out to.
+
 Sync's Durable Object rules are unit-tested against a real SQLite with a controllable clock, in `tests/reader.test.js`.
 
 The browser smoke test runs against the dev server above:
