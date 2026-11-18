@@ -795,11 +795,14 @@ def test_full_screen_reader(browser):
                 return
         raise AssertionError("the column never settled")
     assert main() == 639
+    title = lambda: pg.frames[-1].evaluate("parseFloat(getComputedStyle(document.querySelector('h1')).fontSize)")
+    assert abs(title() - 28) < 0.1  # 1.5556em of 18px, the clamp's top at this width
     pg.locator("#reader-format").click()
     assert btn.get_attribute("aria-checked") == "true"
     pg.locator("#format-pop [data-size='3']").click()
     settled()
     assert main() == 781  # 35.5em at 22px
+    assert abs(title() - 28 * 22 / 18) < 0.5, "the title follows the text size, as the body does"
     # Fluid width, after Feedbin's: the pane less 8% each side, easing there rather than jumping.
     pg.locator("#format-fluid").click()
     gliding = lambda: "max-width" in pg.frames[-1].evaluate("document.getAnimations().map(a => a.transitionProperty)")
