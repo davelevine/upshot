@@ -316,3 +316,12 @@
 - Test layout changes across breakpoints, including the article frame's own (600px) and the page's (640, 1024, 1280, 1440), not only at one desktop width.
 - Scope transitions to the change that should animate (a class set for that change), not to the element: a transition on a property that media queries also change animates every resize.
 - A `.mov` from macOS can't be decoded by Playwright's ffmpeg; an H.264 `.mp4` plays in Playwright's Chromium, and frames come from seeking the `<video>` and taking screenshots (a `file://` canvas is tainted).
+
+## 2026-11-18 — Don't make a link change where it goes with the view
+
+**Mistake:** Asked how the UI would offer per-section RSS feeds, I proposed making the menu's one "RSS feed" link follow the current list (Essentials feed on Essentials, the full feed elsewhere). The user said that isn't intuitive and asked for an "RSS feeds" item with a submenu that lists each feed.
+
+**Rules:**
+- A control whose target silently depends on the view state is hidden behavior. When there are several destinations, list them all where they can be seen (a submenu, a list), each with its own name.
+- Prefer the familiar pattern (a submenu of choices) over a clever one that saves a menu row.
+- **Amended the same day:** asked for "hover and a submenu appears", I built a flyout. The menu sits at the screen's right edge, so the flyout opened to the left while its arrow pointed right, and the user asked for a click that opens the list under the row instead. Before building a submenu, check where it can open from the menu's position and whether the arrow matches; when the literal request leads somewhere awkward, say so and show the in-place option first.
