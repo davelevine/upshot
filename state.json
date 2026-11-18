@@ -1,8 +1,5 @@
 {
- "failing_since": {
-  "https://cloudblog.withgoogle.com/rss/": "2026-11-18",
-  "https://cloudblog.withgoogle.com/topics/threat-intelligence/rss/": "2026-11-18"
- },
+ "failing_since": {},
  "seen": {
   "http://groundworkcollaborative.org/news/amazons-decoy-deals-groundwork-investigation-reveals-nearly-1-in-3-black-friday-and-cyber-monday-deals-advertised-by-amazon-offered-no-savings-to-shoppers-nearly-1-in-10-w/": "2026-11-16",
   "http://muratbuffalo.blogspot.com/2026/11/writing-as-thinking-tool.html": "2026-11-08",
@@ -431,6 +428,7 @@
   "https://cloud.google.com/blog/topics/public-sector/highlights-and-reflections-from-google-public-sector-summit-where-mission-meets-moonshot/": "2026-11-04",
   "https://cloud.google.com/blog/topics/retail/the-blueprint-how-authentic-brands-group-expands-creativity-with-authos/": "2026-11-10",
   "https://cloud.google.com/blog/topics/startups/building-real-time-agents-for-ev-charging-using-gemma-and-tpus/": "2026-11-11",
+  "https://cloud.google.com/blog/topics/startups/google-cloud-highlights-emea-startup-momentum-at-slush-2026/": "2026-11-18",
   "https://cloud.google.com/blog/topics/startups/sovereign-ai-on-your-terms-our-new-startup-accelerator-is-open/": "2026-11-17",
   "https://cloud.google.com/blog/topics/threat-intelligence/agentic-threat-activity-crosses-a-significant-threshold/": "2026-11-16",
   "https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-beyondtrust/": "2026-10-15",
@@ -723,6 +721,7 @@
   "https://hightouch.com/blog/llm-judges-identity-resolution": "2026-11-06",
   "https://huggingface.co/blog/3d-lora-finetuning": "2026-11-11",
   "https://huggingface.co/blog/Dharma-AI/dharma-field-extractor": "2026-11-04",
+  "https://huggingface.co/blog/Dharma-AI/predicting-fine-tuning-time": "2026-11-18",
   "https://huggingface.co/blog/Dharma-AI/vocabx-vocabulary-specialization": "2026-10-21",
   "https://huggingface.co/blog/LiquidAI/lfm25-24b-a2b": "2026-10-13",
   "https://huggingface.co/blog/LiquidAI/lfm3": "2026-10-27",
@@ -1450,6 +1449,7 @@
   "https://www.anthropic.com/research/alignment-assessment-ukaisi": "2026-10-23",
   "https://www.anthropic.com/research/attack-surface-reduction": "2026-10-20",
   "https://www.anthropic.com/research/building-strong-safety-evaluations": "2026-11-12",
+  "https://www.anthropic.com/research/claude-black-hole-physics": "2026-11-16",
   "https://www.anthropic.com/research/claude-electronics-design": "2026-11-08",
   "https://www.anthropic.com/research/claude-scorpion-toxin-binder-design": "2026-10-20",
   "https://www.anthropic.com/research/components-of-agent-memory": "2026-11-06",
@@ -1847,6 +1847,7 @@
   "https://www.infoq.com/presentations/scaling-multi-agent-llm-batch/": "2026-11-10",
   "https://www.infoq.com/presentations/sociotechnical-staff-engineer-architecture/": "2026-11-06",
   "https://www.infoq.com/presentations/zero-trust-ai-agents-production-security/": "2026-11-05",
+  "https://www.inside-db.com/": "2026-11-18",
   "https://www.joshka.net/cell-borders/": "2026-11-13",
   "https://www.mcmillen.dev/sigbovik/": "2026-11-11",
   "https://www.microsoft.com/en-us/security/blog/2026/10/29/idc-marketscape-names-microsoft-a-leader-in-the-2026-worldwide-modern-endpoint-security-for-enterprises-vendor-assessment/": "2026-10-29",

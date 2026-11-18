@@ -737,6 +737,25 @@
   },
   {
    "date": "2026-11-16",
+   "published": "2026-11-17T00:00:00+00:00",
+   "title": "Claude Fable 5.2 solves two open problems in the physics of black holes",
+   "url": "https://www.anthropic.com/research/claude-black-hole-physics",
+   "publisher": "Anthropic Research",
+   "cves": [],
+   "category": "ai",
+   "summary": "Anthropic Research reports that Claude Fable 5.2 solved two open theoretical physics problems about black holes and quantum gravity.",
+   "relevance": 7,
+   "added": "2026-11-18T19:18:14+00:00",
+   "minutes": 20,
+   "tldr": [
+    "Claude has solved two open problems in theoretical physics concerning black holes and quantum gravity.",
+    "First, it showed a temperature-driven phase transition in N=4 super Yang-Mills theory is abrupt, completing a calculation set up in 2003.",
+    "Second, it proved an exact, optimal ceiling, c/Λ with Λ ≈ 9.1266, on the lightest black hole's mass in 3D quantum gravity.",
+    "Neither result directly describes our universe or has practical applications, according to the article."
+   ]
+  },
+  {
+   "date": "2026-11-16",
    "published": "2026-11-16T09:07:00+00:00",
    "title": "AWS Nitro Sandboxes Put Each EKS Pod in Its Own MicroVM with One RuntimeClass Field",
    "url": "https://www.infoq.com/news/2026/11/aws-nitro-sandboxes-eks/",
@@ -4618,7 +4637,7 @@
    }
   ]
  },
- "generated_at": "2026-11-18T18:18:42+00:00",
+ "generated_at": "2026-11-18T19:18:26+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
