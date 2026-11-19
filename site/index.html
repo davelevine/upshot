@@ -443,7 +443,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   /* Phones: the feed slides aside under the reader and follows a swipe back, like a native back gesture. */
   @media (max-width: 640px) {
     .reader-bar .close-x { display: none; } .reader-bar .close-back { display: block; }  /* full-screen here, swiped back like a page: a back chevron */
-    .reader-icon { margin-left: -6px; }  /* sits close to the chevron, as Feedbin's does */
+    .reader-icon { margin-left: 2px; }  /* sits close to the chevron, as Feedbin's does */
     .reader .reader-nav { display: flex; }
     .reader-nav .icon-btn, .reader-bar .icon-btn, .listen-bar .icon-btn { width: 44px; height: 44px; }
     .feed { transition: transform var(--slide-out) var(--ease-out); }
@@ -524,7 +524,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   @media (min-width: 1280px) { :root { --side-w: 240px; --list-w: 320px; } }  /* a big laptop: Feedbin's list width below 1300px, so the article has room (and fluid width something to fill) */
   @media (min-width: 1440px) { :root { --list-w: 440px; } }
   .reader-bar { display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 12px; border-bottom: 1px solid var(--border); flex: 0 0 auto; }
-  @media (max-width: 340px) { .reader-bar { gap: 2px; } }  /* the 44px buttons and the icon: tighter, not smaller, on the narrowest phones */
+  @media (max-width: 640px) { .reader-bar { gap: 0; } .send-done { margin-right: 8px; } }  /* phones: the 44px targets touch, as in a native toolbar, so the 24px icons sit 20px apart */
   .reader-spacer { flex: 1; }
   .reader-source { min-width: 0; overflow: hidden; color: var(--text); font-size: .9375rem; white-space: nowrap; text-overflow: ellipsis; }  /* who it's from, beside the icon, as in Feedbin */
   #reader-unread.unread svg { fill: currentColor; }  /* a filled dot while it's unread, as in Feedbin */
