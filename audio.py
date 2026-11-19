@@ -17,7 +17,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 BUCKET = "upshot-audio"
-INDEX = "_index.json"    # which stories have audio: {key: {v, at}}, rewritten after each story
+INDEX = "_index.json"    # which stories have audio: {key: {v, at}}, rewritten after each story; the page reads it too
+INDEX_CACHE = "public, max-age=300"  # five minutes: new audio shows soon, and a visit's read is mostly served from cache
 VERSION = 1              # the audio's format. A bump voices every story again, under new names, so no cache serves the old
 VOICE = "af_heart"
 RATE = 24000             # Kokoro's samples a second
@@ -158,12 +159,12 @@ def main():
                 put(f"{name}.m4a", path, "audio/mp4", "public, max-age=31536000, immutable")
                 put_json(f"{name}.json", meta, "public, max-age=31536000, immutable")
                 index[key] = {"v": VERSION, "at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
-                put_json(INDEX, index, "no-store")  # after each story, so a run cut short keeps what it made
+                put_json(INDEX, index, INDEX_CACHE)  # after each story, so a run cut short keeps what it made
             voiced.append((i["title"], seconds, full))
             audio_s += seconds
             size += path.stat().st_size
     if not dry and index != found and not voiced:
-        put_json(INDEX, index, "no-store")  # stories that left the site
+        put_json(INDEX, index, INDEX_CACHE)  # stories that left the site
     line = (f"**Audio:** {len(voiced)} voiced ({audio_s / 60:.1f} min of audio, {size / 1e6:.1f} MB) in "
             f"{(time.monotonic() - began) / 60:.1f} min, {deferred} left for the next run, {waiting} waiting for their article"
             f"{', dry run: nothing uploaded' if dry else ''}")
