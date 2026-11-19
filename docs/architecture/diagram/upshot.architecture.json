@@ -153,7 +153,7 @@
       "id": "worker",
       "type": "cloud",
       "label": "Site Worker",
-      "sublabel": "worker.js · cron at :17",
+      "sublabel": "worker.js · cron at :27",
       "pos": [
         550,
         480
@@ -448,7 +448,7 @@
       "dot": "cyan",
       "title": "Schedule",
       "items": [
-        "The Worker's cron starts the build at :17; GitHub's schedule is the fallback",
+        "The Worker's cron starts the build at :27; GitHub's schedule is the fallback",
         "Stories are pruned after 90 days"
       ]
     },
