@@ -1,6 +1,6 @@
 # Configuration
 
-A fork runs fine on the defaults. This page is for changing them: how many stories get through, when the build runs, which feeds it reads, and the optional fonts.
+A fork runs fine on the defaults. This page is for changing them: how many stories get through, when the build runs, which feeds it reads, and the optional fonts and audio.
 
 ## Settings
 
@@ -20,6 +20,7 @@ Constants at the top of [`build.py`](../../build.py); the defaults are what the 
 | `CLAUDE_BIN` | `claude` | Path to the Claude Code CLI (env) |
 | `SITE_TZ` | `America/New_York` | Time zone for dates and "Today" (env) |
 | `SITE_URL` | `https://upshot.me` | The site's address (env) |
+| `AUDIO_URL` | none | The audio bucket's address (env); see [Audio](#audio) |
 
 ## Schedule
 
@@ -72,3 +73,28 @@ Browsers keep each font for a year without checking it again, so never upload a 
 ```bash
 for f in Sohne-*.woff2 Domaine-*.woff2 Literata-*.woff2 AtkinsonNext-*.woff2; do npx wrangler r2 object put "upshot-fonts/$f" --file "$f" --content-type font/woff2 --remote; done
 ```
+
+## Audio
+
+Listen plays audio the Audio workflow makes ([The pipeline](../architecture/pipeline.md#audio)). A fork without it has no Listen button. To turn it on:
+
+1. **Create the bucket.** In Cloudflare, **R2 → Create bucket**, named `upshot-audio` (the name is `BUCKET` in [`audio.py`](../../audio.py)).
+2. **Give it a domain.** In the bucket's **Settings → Custom Domains**, connect a subdomain of the site's zone, for example `audio.example.com`.
+3. **Expire old audio.** In **Settings → Object lifecycle rules**, delete objects 100 days after upload.
+4. **Let the page read it.** In **Settings → CORS policy**, allow `GET` and `HEAD` from the site's origin.
+5. **Block cache-busting.** In the zone's **Security → WAF → Custom rules**, block requests to the audio domain with a query string or another method: `(http.host eq "audio.example.com" and (http.request.uri.query ne "" or not http.request.method in {"GET" "HEAD"}))`.
+6. **Cache it.** In the zone's **Caching → Cache Rules**, make everything on the audio domain eligible for cache, with the edge TTL from the origin's Cache-Control.
+7. **Watch the bill.** R2 has no spending cap, so add a usage-based billing notification for R2 under **Notifications**.
+8. **Let the build write to it.** Add **Workers R2 Storage: Edit** to the API token in `CF_API_TOKEN`.
+9. **Turn it on.** Set the repository variable `AUDIO_URL` to the domain, for example `https://audio.example.com`. The Audio workflow then runs after every build, and the build tells the page where the audio is.
+
+To voice the stories already on the site, run **Actions → Audio → Run workflow** with `budget_minutes` set to `300`.
+
+Constants at the top of `audio.py`:
+
+| Setting | Default | What it does |
+| ------- | ------- | ------------ |
+| `BUDGET_MIN` | 20 | Minutes into a run after which no story starts (env: `AUDIO_BUDGET_MIN`) |
+| `MAX_READING_MIN` | 20 | Longer stories get their headline and upshot only |
+| `VOICE` | `af_heart` | Kokoro's voice |
+| `VERSION` | 1 | The audio's format; a bump voices every story again, under new names |

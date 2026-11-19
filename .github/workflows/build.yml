@@ -83,6 +83,7 @@ jobs:
           CF_KV_NAMESPACE_ID: ${{ secrets.CF_KV_NAMESPACE_ID }}
           SITE_URL: ${{ vars.SITE_URL }}  # optional; build.py has a default
           SITE_TZ: ${{ vars.SITE_TZ }}  # optional; the zone stories are dated and labeled in, default America/New_York
+          AUDIO_URL: ${{ vars.AUDIO_URL }}  # optional; Listen's audio bucket (audio.yml), so the page knows where to find it
           FRESH_DAYS: ${{ inputs.backfill_days || 3 }}
           PER_FEED: ${{ inputs.backfill_days && 100 || 10 }}
 

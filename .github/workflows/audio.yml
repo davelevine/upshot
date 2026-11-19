@@ -1,0 +1,67 @@
+# Voices Listen's audio (audio.py): after each build, the stories still without audio, newest first, read by Kokoro
+# and stored in the public audio bucket (docs/setup/configuration.md#audio). A workflow of its own, not a job in
+# build.yml: that workflow's concurrency would hold the next build back until the voicing finished.
+# Secrets: CF_API_TOKEN (with Workers R2 Storage: Edit as well as KV), CF_ACCOUNT_ID, CF_KV_NAMESPACE_ID. Variable:
+# AUDIO_URL, the bucket's address; without it nothing runs.
+name: Audio
+
+on:
+  workflow_run:
+    workflows: [Build]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      budget_minutes:
+        description: "Minutes of voicing before no new story starts (a backfill: up to 300)"
+        required: false
+  pull_request:  # a dry run: voices two stories and uploads nothing
+    paths: [audio.py, audio.mjs, requirements-audio.txt, .github/workflows/audio.yml]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('audio-pr-{0}', github.event.number) || 'audio' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  MODELS: https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0
+
+jobs:
+  voice:
+    if: vars.AUDIO_URL != '' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && 330 || 35 }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || 'main' }}  # the latest data.json, not the build's commit
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: "3.12"  # what the voicing was timed on; build.yml's 3.15 is untried with onnxruntime
+          cache: pip
+          cache-dependency-path: requirements-audio.txt
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 26
+          cache: npm
+      - run: npm ci  # linkedom for audio.mjs, and wrangler for the bucket
+      - run: pip install -r requirements-audio.txt
+      - name: Download the voice
+        run: |
+          curl -sSfLO "$MODELS/kokoro-v1.0.int8.onnx" -O "$MODELS/voices-v1.0.bin"
+          sha256sum -c <<'SUMS'
+          6e742170d309016e5891a994e1ce1559c702a2ccd0075e67ef7157974f6406cb  kokoro-v1.0.int8.onnx
+          bca610b8308e8d99f32e6fe4197e7ec01679264efed0cac9140fe9c29f1fbf7d  voices-v1.0.bin
+          SUMS
+      - run: python audio.py
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}  # wrangler's names for the same two
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_KV_NAMESPACE_ID: ${{ secrets.CF_KV_NAMESPACE_ID }}
+          AUDIO_URL: ${{ vars.AUDIO_URL }}
+          AUDIO_BUDGET_MIN: ${{ inputs.budget_minutes }}
+          AUDIO_DRY_RUN: ${{ github.event_name == 'pull_request' && '1' || '' }}

@@ -27,6 +27,7 @@ STATE = ROOT / "state.json"
 # Stories are dated, and days labeled, in one time zone, so "Today" means the same thing on every device.
 SITE_TZ = ZoneInfo(os.environ.get("SITE_TZ") or "America/New_York")
 SITE_URL = (os.environ.get("SITE_URL") or "https://upshot.me").rstrip("/")  # forks set the SITE_URL repo variable
+AUDIO_URL = (os.environ.get("AUDIO_URL") or "").rstrip("/") or None  # Listen's audio bucket (audio.py); unset, no Listen
 MODEL = os.environ.get("UPSHOT_MODEL", "claude-haiku-5-5")
 CLAUDE = os.environ.get("CLAUDE_BIN", "claude")  # Claude Code CLI
 CATEGORIES = ["ai", "security", "infrastructure", "engineering", "regulation", "other"]
@@ -1103,6 +1104,7 @@ def main():
     data["generated_at"] = now().isoformat(timespec="seconds")
     SITE.mkdir(exist_ok=True)
     data["tz"] = SITE_TZ.key
+    data["audio"] = AUDIO_URL
     data["icons"] = fetch_icons({i["publisher"] for i in data["items"]} | set(SITE_LINKS))
     data["iconArt"] = {s: art for s in data["icons"] if (art := icon_art(ICONS / f"{s}.png"))}
     data_path.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n")

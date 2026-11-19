@@ -1,0 +1,2 @@
+kokoro-onnx==0.6.1
+imageio-ffmpeg==0.8.1
