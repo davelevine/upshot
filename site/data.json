@@ -79,6 +79,26 @@
   },
   {
    "date": "2026-11-19",
+   "published": "2026-11-19T21:06:24+00:00",
+   "title": "CVE-2026-123890: Critical Authentication Bypass in VMware vCenter",
+   "url": "https://www.rapid7.com/blog/post/etr-cve-2026-123890-critical-authentication-bypass-vmware-vcenter",
+   "publisher": "Rapid7",
+   "cves": [
+    "CVE-2026-123890"
+   ],
+   "category": "security",
+   "summary": "Broadcom's VMSA-2026-0009 advisory fixes CVE-2026-123890, a CVSS 9.8 authentication bypass in vCenter's Directory Service allowing unauthenticated admin access.",
+   "relevance": 8,
+   "added": "2026-11-19T21:27:55+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Broadcom fixed CVE-2026-123890, a critical CVSS 9.8 vCenter Directory Service authentication bypass exploited in the wild.",
+    "Unauthenticated attackers with network access can gain Administrator access on affected vCenter deployments.",
+    "Apply the emergency vCenter update: 8.0 U3m, or 9.0.2.0200 and 9.1.1.0200 for Foundation releases. No workaround exists; Quick Patch cannot apply it."
+   ]
+  },
+  {
+   "date": "2026-11-19",
    "published": "2026-11-19T10:26:51+00:00",
    "title": "F5 Patches Critical NGINX2Root Flaws as PoC Exploits Go Public",
    "url": "https://www.securityweek.com/f5-patches-critical-nginx2root-flaws-as-poc-exploits-go-public/",
@@ -159,6 +179,24 @@
     "Google DeepMind and Google Research describe Streaming DiLoCo in MaxText, which trains LLMs across datacenters over WANs without per-step gradient sync stalls.",
     "On Qwen3-32B with 10 Gbit/s throttled inter-slice links, Streaming DiLoCo ran at 5.76 s/step versus 55.11 s/step for Data Parallel.",
     "Enable enable_diloco and enable_streaming_diloco in MaxText, setting num_diloco_fragments and diloco_sync_period to N_layers + 1. Ships in v0.2.5."
+   ]
+  },
+  {
+   "date": "2026-11-19",
+   "published": "2026-11-19T20:43:57+00:00",
+   "title": "PostgreSQL 19 Released",
+   "url": "https://simonwillison.net/2026/Nov/19/postgresql-19/",
+   "publisher": "Simon Willison",
+   "cves": [],
+   "category": "engineering",
+   "summary": "PostgreSQL 19 was released, adding read-your-writes consistency for standbys via a new WAIT FOR LSN command, after a delay tied to AI-reported vulnerabilities.",
+   "relevance": 6,
+   "added": "2026-11-19T21:27:55+00:00",
+   "minutes": 1,
+   "tldr": [
+    "PostgreSQL 19 is released, about two months later than its usual September schedule, adding a WAIT FOR LSN command.",
+    "WAIT FOR LSN gives applications reading from standbys read-your-writes consistency by waiting until replay reaches a given LSN.",
+    "After a write, store the value from pg_current_wal_insert_lsn() and run WAIT FOR LSN before reads; an optional TIMEOUT errors if the replica lags."
    ]
   },
   {
@@ -4884,7 +4922,7 @@
    }
   ]
  },
- "generated_at": "2026-11-19T20:28:04+00:00",
+ "generated_at": "2026-11-19T21:28:05+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
