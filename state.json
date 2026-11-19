@@ -1,5 +1,8 @@
 {
- "failing_since": {},
+ "failing_since": {
+  "https://cloudblog.withgoogle.com/rss/": "2026-11-18",
+  "https://cloudblog.withgoogle.com/topics/threat-intelligence/rss/": "2026-11-18"
+ },
  "seen": {
   "http://groundworkcollaborative.org/news/amazons-decoy-deals-groundwork-investigation-reveals-nearly-1-in-3-black-friday-and-cyber-monday-deals-advertised-by-amazon-offered-no-savings-to-shoppers-nearly-1-in-10-w/": "2026-11-16",
   "http://muratbuffalo.blogspot.com/2026/11/writing-as-thinking-tool.html": "2026-11-08",
@@ -124,6 +127,7 @@
   "https://aws.amazon.com/blogs/security/reduce-alert-fatigue-by-customizing-threat-detection-features-in-amazon-guardduty/": "2026-11-10",
   "https://aws.amazon.com/blogs/security/securely-exposing-amazon-bedrock-agentcore-runtime/": "2026-11-17",
   "https://aws.amazon.com/blogs/security/simplify-cross-partition-access-with-aws-iam-outbound-identity-federation/": "2026-11-09",
+  "https://aws.amazon.com/blogs/security/step-up-authentication-how-to-right-size-authentication-to-risk/": "2026-11-18",
   "https://aws.amazon.com/blogs/security/using-aws-waf-to-apply-mitigations-for-php2shell-rce-vulnerabilities-cve-2026-109618-and-cve-2026-109619/": "2026-10-22",
   "https://aws.amazon.com/blogs/security/using-the-aws-rmit-workbook-and-iso-compliance-guides-to-support-your-bnm-submissions/": "2026-11-17",
   "https://blog.bosscher.ch/posts/openstick/": "2026-11-07",
@@ -639,6 +643,7 @@
   "https://epoch.ai/publications/incident-report-ai-agents-attempted-exploits-on-our-website": "2026-11-12",
   "https://epoch.ai/publications/inference-performance-index": "2026-11-08",
   "https://epoch.ai/publications/open-weight-models-patch-gap": "2026-10-29",
+  "https://europeanbusinessmagazine.com/ai-agents-better-questions-kpmg/": "2026-11-18",
   "https://evanxmerz.com/post/ai-usage-generates-a-fragile-codebase/": "2026-11-10",
   "https://finance.yahoo.com/technology/ai/articles/mark-cuban-says-facebook-knowingly-213000020.html": "2026-11-05",
   "https://gatezh.com/posts/macos-secure-enclave-ssh-keys/": "2026-11-10",
@@ -881,6 +886,7 @@
   "https://openai.com/business/customer-stories/holidays-extras-codex": "2026-11-12",
   "https://openai.com/business/customer-stories/revolut": "2026-11-16",
   "https://openai.com/business/customer-stories/shield": "2026-11-13",
+  "https://openai.com/business/customer-stories/sumitomo-life": "2026-11-18",
   "https://openai.com/index/a-thousand-fewer-paths-to-root": "2026-11-04",
   "https://openai.com/index/accelerating-engineering-for-the-physical-world": "2026-11-03",
   "https://openai.com/index/advancing-chip-design-with-our-models": "2026-11-17",
@@ -977,6 +983,7 @@
   "https://openai.com/index/preparing-our-next-security-sprint-to-harden-openai": "2026-11-02",
   "https://openai.com/index/qodo-codex-plugin": "2026-11-02",
   "https://openai.com/index/radisson": "2026-10-07",
+  "https://openai.com/index/research-acceleration-jagged-frontier": "2026-11-18",
   "https://openai.com/index/retell-ai": "2026-10-27",
   "https://openai.com/index/rewarding-defenders-with-bigger-bug-bounties": "2026-11-02",
   "https://openai.com/index/ropes-gray-ai-diligence": "2026-10-29",
@@ -1457,6 +1464,7 @@
   "https://www.anthropic.com/news/ai-for-science-expands-foundations-research-institutions": "2026-10-28",
   "https://www.anthropic.com/news/an-update-on-independent-evaluators": "2026-10-15",
   "https://www.anthropic.com/news/anthropic-cyber-mission": "2026-10-08",
+  "https://www.anthropic.com/news/anthropic-prices-initial-public-offering": "2026-11-18",
   "https://www.anthropic.com/news/christopher-stubbs-joins-long-term-benefit-trust": "2026-10-21",
   "https://www.anthropic.com/news/distillation-defenses": "2026-10-12",
   "https://www.anthropic.com/news/donating-agent-skills-to-the-agentic-ai-foundation": "2026-10-22",

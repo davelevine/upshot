@@ -92,6 +92,19 @@
   },
   {
    "date": "2026-11-18",
+   "published": "2026-11-18T08:00:00+00:00",
+   "title": "Research acceleration: The jagged frontier",
+   "url": "https://openai.com/index/research-acceleration-jagged-frontier",
+   "publisher": "OpenAI",
+   "cves": [],
+   "category": "ai",
+   "summary": "OpenAI published research measuring how coding agents accelerate AI research, where their performance is uneven, and implications for recursive self-improvement.",
+   "relevance": 7,
+   "added": "2026-11-19T00:18:24+00:00",
+   "minutes": 0
+  },
+  {
+   "date": "2026-11-18",
    "published": "2026-11-18T12:30:00+00:00",
    "title": "Optimizing Kubernetes admission control: Where Kyverno’s CEL admission cost actually goes",
    "url": "https://www.cncf.io/blog/2026/11/18/optimizing-kubernetes-admission-control-where-kyvernos-cel-admission-cost-actually-goes/",
@@ -4669,7 +4682,7 @@
    }
   ]
  },
- "generated_at": "2026-11-18T23:18:14+00:00",
+ "generated_at": "2026-11-19T00:18:27+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
