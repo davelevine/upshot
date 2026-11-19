@@ -1,7 +1,6 @@
 {
  "failing_since": {
-  "https://cloudblog.withgoogle.com/rss/": "2026-11-18",
-  "https://cloudblog.withgoogle.com/topics/threat-intelligence/rss/": "2026-11-18"
+  "https://cloudblog.withgoogle.com/rss/": "2026-11-18"
  },
  "seen": {
   "http://groundworkcollaborative.org/news/amazons-decoy-deals-groundwork-investigation-reveals-nearly-1-in-3-black-friday-and-cyber-monday-deals-advertised-by-amazon-offered-no-savings-to-shoppers-nearly-1-in-10-w/": "2026-11-16",
@@ -707,6 +706,7 @@
   "https://github.blog/changelog/2026-11-18-customize-github-copilot-for-your-team": "2026-11-18",
   "https://github.blog/changelog/2026-11-18-gemini-4-neon-in-github-copilot": "2026-11-18",
   "https://github.blog/changelog/2026-11-18-security-risk-assessments-run-automatically-on-github-team": "2026-11-18",
+  "https://github.blog/changelog/2026-11-18-wait-for-pull-request-events-with-github-cli": "2026-11-18",
   "https://github.blog/engineering/architecture-optimization/inside-githubs-new-git-storage-architecture/": "2026-11-05",
   "https://github.blog/engineering/architecture-optimization/the-bridge-to-agent-scale-git-infrastructure/": "2026-10-21",
   "https://github.blog/engineering/engineering-principles/building-the-agent-host-protocol-for-sessions-that-continue-across-devices/": "2026-11-17",
