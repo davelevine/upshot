@@ -36,6 +36,19 @@ Without the secret the cron silently does nothing (Workers Logs still say `ok`).
 
 To change the schedule, change it in three places: the `cron` in `build.yml`, the cron in `wrangler.jsonc`, and `BUILD_EVERY_HOURS`/`BUILD_AT_MINUTE` in [`site/app.js`](../../site/app.js), with `STALE_MINUTES` there, which marks a build as late.
 
+## Protecting main
+
+A ruleset on `main` requires a pull request with passing `build` and `smoke` checks, and blocks force-pushes and deletion. The hourly data commit goes straight to `main`, so the Build workflow pushes it with a deploy key, the ruleset's only bypass. The ruleset is in [`main-ruleset.json`](main-ruleset.json).
+
+To set it up:
+
+1. Create a key pair: `ssh-keygen -t ed25519 -N "" -C upshot-data-push -f upshot-data-push`.
+2. Add `upshot-data-push.pub` under **Settings → Deploy keys** with **Allow write access**.
+3. Add the private key `upshot-data-push` as the Actions secret `DATA_PUSH_KEY`, then delete both files.
+4. Import `main-ruleset.json` under **Settings → Rules → Rulesets → New ruleset → Import a ruleset**.
+
+Without the secret, the build pushes with the workflow token, which the ruleset rejects.
+
 ## Feeds
 
 Each feed is one `<outline>` line in [`feeds.opml`](../../feeds.opml); its `text` is the publisher name shown on the site. Publishers without RSS come from community feeds or the Hacker News 300+ feed.
