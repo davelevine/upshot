@@ -865,6 +865,152 @@ function toggleLater() {
 }
 $('reader-later').onclick = toggleLater;
 
+// Listen (the headphones in the reader's bar, or l) plays the story's audio, made after each build by audio.py: the
+// headline, the upshot, then the article, read by Kokoro and kept in the public audio bucket (data.audio) with the second
+// each block of the page starts. The frame hands over its blocks and marks the one playing (SWIPE_REPORTER); a click on a
+// block plays from there. It's one <audio> element, so it plays on with the phone locked, with lock-screen controls
+// through the Media Session. A story without audio (not voiced yet, or a site without the bucket) has no button.
+const AUDIO_VERSION = 1;  // audio.py VERSION
+const RATES = [1, 1.25, 1.5, 2];
+let listenRate = RATES.includes(+localStorage.getItem('listenRate')) ? +localStorage.getItem('listenRate') : 1;
+let audioBase = null, voiced = new Set();  // the bucket, and the stories in its index
+let heard = null;   // the open story's audio, once its timings are in: { url, src, meta: { d, t, n, full } }
+let listen = null;  // while it plays: { url, blocks, marks: whether the frame's blocks are the ones timed, at: the block playing }
+const player = new Audio();
+player.preload = 'none';
+const audioKey = async url => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(url)))].map(b => b.toString(16).padStart(2, '0')).join('');  // worker.js keyFor
+const frameNow = () => $('reader-body').querySelector('iframe[srcdoc]:not(.loading)')?.contentWindow;
+// Which stories have audio: the bucket's index, read once a visit (kept five minutes), so the page never asks for one that isn't there.
+function loadVoiced(base) {
+  audioBase = base || null;
+  if (!audioBase) return;
+  fetch(`${audioBase}/_index.json`).then(r => r.ok ? r.json() : {}).then(index => {
+    voiced = new Set(Object.keys(index).filter(k => index[k]?.v === AUDIO_VERSION));
+    if (readerFor) findAudio(readerFor);
+  }).catch(() => {});
+}
+// The open story's timings, if it has audio; the button shows once they're in.
+async function findAudio(url) {
+  if (heard?.url === url) return void ($('reader-listen').hidden = false);
+  heard = null;
+  $('reader-listen').hidden = true;
+  if (!audioBase || !voiced.size) return;
+  const key = await audioKey(url), name = `${key}-${AUDIO_VERSION}`;
+  if (!voiced.has(key) || readerFor !== url) return;
+  try {
+    const meta = await (await fetch(`${audioBase}/${name}.json`)).json();
+    if (readerFor !== url || !Array.isArray(meta?.t) || !(meta.d > 0)) return;
+    heard = { url, src: `${audioBase}/${name}.m4a`, meta };
+    $('reader-listen').hidden = false;
+  } catch {}  // no timings, no button
+}
+function toggleListen() {
+  if (listen) return stopListening();
+  if (!heard || heard.url !== readerFor) return;
+  if (player.src !== heard.src) player.src = heard.src;
+  player.currentTime = 0;
+  player.playbackRate = listenRate;
+  player.play().catch(() => drawListen());  // in the tap itself, which Safari requires; refused, the bar offers Play
+  listen = { url: heard.url, blocks: [], marks: false, at: -1 };
+  frameNow()?.postMessage({ tw: 'listen' }, '*');  // the frame answers with its blocks (sayable)
+  setMediaSession();
+  drawListen();
+}
+// The frame's blocks: marked while the audio plays if they're the ones audio.py timed. A long story's audio stops after
+// the upshot, so its page holds more blocks than were timed.
+function heardBlocks(blocks) {
+  if (!listen || !Array.isArray(blocks)) return;
+  const { n, full } = heard.meta;
+  listen.blocks = blocks;
+  listen.marks = full ? blocks.length === n : blocks.length >= n;
+  listen.at = -1;
+  followAudio();
+}
+function blockAt(time) {
+  const t = heard.meta.t;
+  let n = 0;
+  while (n + 1 < t.length && t[n + 1] <= time + 0.05) n++;
+  return n;
+}
+function followAudio() {
+  if (!listen) return;
+  if (listen.marks) {
+    const n = blockAt(player.currentTime);
+    if (n !== listen.at) { listen.at = n; toFrame({ tw: 'said', n }); }
+  }
+  drawListen();
+}
+function seekBlock(n) {
+  if (!listen) return;
+  const t = heard.meta.t;
+  if (listen.marks) player.currentTime = t[Math.max(0, Math.min(t.length - 1, n))];
+  else player.currentTime = Math.max(0, Math.min(heard.meta.d, player.currentTime + (n < listen.at ? -15 : 15)));  // no marks: 15 seconds a step
+  if (player.paused) player.play().catch(() => {});
+  followAudio();
+}
+const stepBlock = dir => seekBlock((listen?.at ?? 0) + dir);
+function stopListening() {
+  if (!listen) return;
+  listen = null;
+  player.pause();
+  toFrame({ tw: 'said', n: -1 });
+  if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none';
+  drawListen();
+}
+function setMediaSession() {
+  if (!('mediaSession' in navigator)) return;
+  const i = items.find(x => x.url === heard.url);
+  navigator.mediaSession.metadata = new MediaMetadata({ title: i?.title || '', artist: i ? source(i) : '', album: 'Upshot',
+    artwork: [{ src: new URL('/icon-512.png', location.href).href, sizes: '512x512', type: 'image/png' }] });
+  const on = (action, fn) => { try { navigator.mediaSession.setActionHandler(action, fn); } catch {} };  // an action the browser doesn't know
+  on('play', () => player.play());
+  on('pause', () => player.pause());
+  on('stop', stopListening);
+  on('seekbackward', () => { player.currentTime = Math.max(0, player.currentTime - 15); });
+  on('seekforward', () => { player.currentTime = Math.min(heard.meta.d, player.currentTime + 15); });
+  on('previoustrack', () => stepBlock(-1));
+  on('nexttrack', () => stepBlock(1));
+}
+function drawListen() {
+  const l = listen;
+  $('listen-bar').hidden = !l;
+  $('reader-listen').setAttribute('aria-pressed', String(!!l));
+  $('reader-listen').title = $('reader-listen').ariaLabel = l ? 'Stop listening' : 'Listen';
+  if (!l) return;
+  const playing = !player.paused, { d, t, full } = heard.meta, at = Math.max(0, l.at);
+  $('listen-bar').classList.toggle('playing', playing);
+  $('listen-play').title = $('listen-play').ariaLabel = playing ? 'Pause' : 'Play';
+  if ('mediaSession' in navigator) navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
+  $('listen-prev').disabled = l.marks ? at === 0 : player.currentTime < 1;
+  $('listen-next').disabled = l.marks && at === t.length - 1;
+  // Where it is: the upshot, or the heading above (the story's own title before its first).
+  const b = l.marks && l.blocks[at];
+  $('listen-what').textContent = b?.kind === 'upshot' ? 'The upshot'
+    : (b && l.blocks.slice(0, at + 1).findLast(x => x.kind === 'title' || x.kind === 'head')?.text) || items.find(x => x.url === l.url)?.title || '';
+  const left = Math.max(0, d - player.currentTime) / listenRate;
+  $('listen-left').textContent = `${Math.max(1, Math.round(left / 60))} min left${full ? '' : ' · Summary only'}`;
+  $('listen-done').style.width = `${Math.min(100, 100 * player.currentTime / d)}%`;
+  $('listen-rate').textContent = `${listenRate}×`;
+  $('listen-rate').ariaLabel = `Speed, ${listenRate} times`;
+}
+player.addEventListener('timeupdate', followAudio);
+player.addEventListener('play', drawListen);
+player.addEventListener('pause', drawListen);
+player.addEventListener('ended', stopListening);
+player.addEventListener('error', () => { if (listen) { stopListening(); $('reader-listen').hidden = true; } });  // the file's gone: no button for it
+$('reader-listen').onclick = toggleListen;
+$('listen-play').onclick = () => player.paused ? player.play().catch(() => {}) : player.pause();
+$('listen-prev').onclick = () => stepBlock(-1);
+$('listen-next').onclick = () => stepBlock(1);
+$('listen-stop').onclick = stopListening;
+$('listen-rate').onclick = () => {
+  listenRate = RATES[(RATES.indexOf(listenRate) + 1) % RATES.length];
+  localStorage.setItem('listenRate', String(listenRate));
+  player.playbackRate = listenRate;
+  drawListen();
+};
+addEventListener('pagehide', stopListening);
+
 // "Updated 2h ago" at the top of the feed; a number that keeps growing means builds have stopped.
 const agoText = mins => (mins < 1 ? 'just now' : mins < 60 ? `${Math.floor(mins)}m ago`
   : mins < 48 * 60 ? `${Math.floor(mins / 60)}h ago` : `${Math.floor(mins / 1440)}d ago`);
@@ -902,6 +1048,7 @@ function load() {
     generatedAt = data.generated_at;
     showUpdated();
     items = data.items || [];
+    loadVoiced(data.audio);  // each build, as audio for its stories arrives
     if (!since) {  // just before the fifth newest, if the last day holds fewer
       const fifth = items.map(arrived).sort((a, b) => b - a)[FRESH_MIN - 1] ?? Infinity;
       localStorage.setItem('since', since = new Date(Math.min(Date.parse(generatedAt) - FRESH_MS, fifth - 1)).toISOString());
@@ -994,6 +1141,35 @@ const page = up => {
   scrollBy({ top: (up ? -1 : 1) * (innerHeight - 40), behavior: 'smooth' });
 };
 addEventListener('message', e => { if (e.source === parent && e.data && e.data.tw === 'page') page(e.data.up); });
+// Listen: the page plays the story's audio; this frame hands it the page's blocks (headings, paragraphs, list items,
+// quotes, and the upshot as one: audio.mjs builds the same list to time the audio), marks the block playing, and on a
+// click says which block to play from.
+let said = null;
+addEventListener('message', e => {
+  if (e.source !== parent || !e.data) return;
+  if (e.data.tw === 'listen') {
+    said = [...document.querySelectorAll('main :is(h1, h2, h3, h4, h5, h6, p, li, blockquote, dd), .todo')]
+      .filter(n => !n.parentElement.closest('p, li, blockquote, dd, .todo') && !n.closest('.meta, .status') && n.innerText.trim());
+    said.forEach(n => n.classList.add('sayable'));
+    parent.postMessage({ tw: 'sayable', blocks: said.map(n => ({
+      text: n.innerText.trim().split('\\n').map(l => l.trim()).filter(Boolean).join('. '),  // the upshot's lines: a pause after each
+      kind: n.tagName === 'H1' ? 'title' : /^H[2-6]$/.test(n.tagName) ? 'head' : n.matches('.todo') ? 'upshot' : 'text' })) }, '*');
+  }
+  if (e.data.tw === 'said') {
+    document.documentElement.classList.toggle('listening', e.data.n >= 0);
+    const was = document.querySelector('.said'), n = said && said[e.data.n];
+    if (was && was !== n) was.classList.remove('said');
+    if (!n) return;
+    n.classList.add('said');
+    const r = n.getBoundingClientRect();
+    if (r.top < 0 || r.bottom > innerHeight) n.scrollIntoView({ block: r.height > innerHeight * .8 ? 'start' : 'center', behavior: 'smooth' });
+  }
+});
+addEventListener('click', e => {
+  if (!said || !document.documentElement.classList.contains('listening') || e.target.closest('a') || !getSelection().isCollapsed) return;
+  const n = said.findIndex(b => b.contains(e.target));
+  if (n >= 0) parent.postMessage({ tw: 'seek', n: n }, '*');
+});
 addEventListener('keydown', e => {  // keys pressed while the article has focus never reach the page
   const k = e.key.toLowerCase(), mod = e.metaKey || e.ctrlKey;
   if (e.altKey) return;
@@ -1068,7 +1244,7 @@ function frameVars(theme) {
   probe.dataset.theme = theme;
   document.body.append(probe);
   const cs = getComputedStyle(probe);
-  const out = `color-scheme: ${theme}; ` + ["--accent", "--bg", "--bg-card", "--border", "--border-strong", "--text", "--text-muted", "--exploited", "--exploited-text", "--exploited-ink", "--accent-contrast", "--caution-ink"].map(v => `${v}: ${cs.getPropertyValue(v).trim()};`).join(' ');
+  const out = `color-scheme: ${theme}; ` + ["--accent", "--accent-soft", "--bg", "--bg-card", "--border", "--border-strong", "--text", "--text-muted", "--exploited", "--exploited-text", "--exploited-ink", "--accent-contrast", "--caution-ink"].map(v => `${v}: ${cs.getPropertyValue(v).trim()};`).join(' ');
   probe.remove();
   return out;
 }
@@ -1134,6 +1310,9 @@ hr { border: 0; border-top: 1px solid var(--border); }
 .pill { display: inline-block; padding: 10px 18px; border: 1px solid var(--accent); border-radius: 999px; font: 600 .9375rem/1.4 Sohne, system-ui, sans-serif; text-decoration: none; }
 @media (max-width: 600px) { main { --pad: 18px; padding-top: 24px; padding-bottom: 80px; } .pill { padding: 12px 18px; } }
 [data-fluid="1"] main { max-width: 100%; padding-left: max(var(--pad), 6% - 20px); padding-right: max(var(--pad), 6% - 20px); }  /* Fluid width: the pane's width, its margins growing with it (66px at 1440), never narrower than the column it replaces */
+/* Listen: the block being read, in a soft wash a little wider than its text; a click on any block reads from there */
+.sayable:not(.todo) { border-radius: .25em; } .sayable { transition: background-color .2s, box-shadow .2s; } .listening .sayable { cursor: pointer; }
+.said { background: var(--accent-soft); box-shadow: 0 0 0 .35em var(--accent-soft); } .todo.said { box-shadow: none; }
 </style><script nonce="${nonce}">${SWIPE_REPORTER}<\/script></head><body><main><h1><a href="${esc(i.url)}" target="_blank" rel="noopener" title="Open the original">${esc(i.title)}</a></h1>${storyMeta(i, byline, minutes || i.minutes)}${summaryBox(i.tldr, why)}${html}</main></body></html>`;
 }
 // What we already know about a story, from data.json: shown at once, and all that's left if the article can't be fetched.
@@ -1143,6 +1322,7 @@ const storyCard = (i, status, loading) => `<div${loading ? ' class="late"' : ''}
 // Scripts run only by nonce (the swipe reporter); without allow-same-origin the frame can't touch this page.
 function showInReader(i, html, why, minutes, byline) {
   if (!fontsDone.has(font)) return void frameFontsReady(font).then(() => { if (readerFor === i.url) showInReader(i, html, why, minutes, byline); });
+  if (listen && listen.url !== i.url) stopListening();  // another story; this one's article in place of its card plays on
   const frame = document.createElement('iframe');
   frame.sandbox = 'allow-scripts allow-popups allow-popups-to-escape-sandbox';
   frame.title = i.title;
@@ -1159,6 +1339,7 @@ function showInReader(i, html, why, minutes, byline) {
     frame.contentWindow.postMessage({ tw: 'theme', theme: document.documentElement.dataset.theme }, '*');
     frame.contentWindow.postMessage({ tw: 'size', size: String(textSize) }, '*');
     frame.contentWindow.postMessage({ tw: 'fluid', fluid: String(fluid) }, '*');
+    if (listen?.url === i.url) frame.contentWindow.postMessage({ tw: 'listen' }, '*');  // playing: mark this frame's blocks instead
   };
   $('reader-body').append(frame);
 }
@@ -1206,6 +1387,7 @@ let frameFor = null;  // whose article the reader's frame holds
 function openReader(i, { fromHash = false } = {}) {
   const fresh = !document.body.classList.contains('reading');
   readerFor = i.url;
+  findAudio(i.url);
   markRead(i.url);
   syncUnread();
   const why = picks.get(i.url);
@@ -1332,6 +1514,7 @@ function closeReader() {
   const url = readerFor;
   lastClosed = url;
   readerFor = null;
+  stopListening();
   document.body.classList.remove('reading');
   setFull(false);  // full screen is the open story's
   $('reader').setAttribute('aria-hidden', 'true');
@@ -1420,6 +1603,8 @@ addEventListener('message', e => {
   else if (e.data.tw === 'key') { lastInput = 'key'; onKey(e.data.key, !!e.data.mod, { shiftKey: !!e.data.shift, preventDefault() {} }); }  // a key in the article: the keyboard's in use
   else if (e.data.tw === 'themed') frameThemed?.();
   else if (e.data.tw === 'next') nextUnread();  // Space at the article's end
+  else if (e.data.tw === 'sayable' && e.source === frameNow()) heardBlocks(e.data.blocks);
+  else if (e.data.tw === 'seek' && Number.isInteger(e.data.n)) seekBlock(e.data.n);  // a click on a block
 });
 
 // Phone swipes, after Feedbin's: the topics sit left of a list, and a list left of its story, and each page follows the
@@ -1524,6 +1709,7 @@ function onKey(key, mod, e) {
   else if (key === '/') { e?.preventDefault(); openPalette(); }
   else if (key === 'm' && reading) { e?.preventDefault(); toggleRead(); }
   else if (key === 's' && reading) { e?.preventDefault(); toggleLater(); }
+  else if (key === 'l' && reading) { e?.preventDefault(); toggleListen(); }
   else if (key === 'a' && e?.shiftKey) { e.preventDefault(); confirmReadAll(); }  // Feedbin's: the list's Read button
   else if (key === ' ' && (reading || !e?.shiftKey)) { e?.preventDefault(); if (reading) pageArticle(e?.shiftKey); else nextUnread(); }  // Shift Space on the list scrolls it, as usual
   else if (key === 'v' && url) { e?.preventDefault(); window.open(url, '_blank', 'noopener'); }

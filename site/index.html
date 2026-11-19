@@ -445,7 +445,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
     .reader-bar .close-x { display: none; } .reader-bar .close-back { display: block; }  /* full-screen here, swiped back like a page: a back chevron */
     .reader-icon { margin-left: -6px; }  /* sits close to the chevron, as Feedbin's does */
     .reader .reader-nav { display: flex; }
-    .reader-nav .icon-btn, .reader-bar .icon-btn { width: 44px; height: 44px; }
+    .reader-nav .icon-btn, .reader-bar .icon-btn, .listen-bar .icon-btn { width: 44px; height: 44px; }
     .feed { transition: transform var(--slide-out) var(--ease-out); }
     body.reading .feed { transform: translateX(calc(-25% * (1 - var(--drag, 0)))); transition: transform var(--slide-in) var(--ease-in); }
     /* The topics and a list are pages the same way: the list slides over the topics, which ease a quarter aside, following a
@@ -599,6 +599,21 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   .reader-body { position: relative; flex: 1; min-height: 0; }
   .reader-body iframe { position: absolute; inset: 0; display: block; width: 100%; height: 100%; border: 0; background: var(--bg); }
   .reader-body iframe.loading { visibility: hidden; }
+  /* Listen: the player, a row of its own under the article. */
+  .listen-bar { display: flex; flex: 0 0 auto; align-items: center; gap: 4px; height: 60px; padding: 0 10px; border-top: 1px solid var(--border); background: var(--bg); }
+  .listen-bar[hidden] { display: none; }
+  .listen-bar .icon-btn:disabled { opacity: .35; cursor: default; }
+  .listen-bar .listen-play, .listen-bar .listen-play:hover { border-radius: 50%; border-color: transparent; background: var(--accent); color: var(--accent-contrast); }
+  .listen-play svg { fill: currentColor; stroke: none; }
+  .listen-bar:not(.playing) .i-pause, .listen-bar.playing .i-play { display: none; }
+  .listen-where { flex: 1; min-width: 0; padding: 0 8px; font-size: 13px; line-height: 1.35; color: var(--text-muted); }
+  .listen-where b, #listen-left { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .listen-where b { font-weight: 500; color: var(--text); }
+  .listen-progress { display: block; height: 3px; margin-top: 4px; border-radius: 2px; background: var(--border); overflow: hidden; }
+  .listen-progress i { display: block; width: 0; height: 100%; background: var(--accent); transition: width .3s; }
+  .listen-rate { min-width: 48px; height: 32px; padding: 0 8px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: none; color: var(--text); font: inherit; font-size: 13px; font-variant-numeric: tabular-nums; cursor: pointer; }
+  @media (max-width: 640px) { .listen-rate { height: 44px; } }  /* a phone's 44px targets, as the bar's buttons */
+  #reader-listen[aria-pressed="true"] { color: var(--accent); }
   /* Phones: between a list and its story the top bar stays put, as a navigation bar does, and crossfades: the list's header
      fades out and the story's bar fades in over it, while only the content beneath slides. The bar rides inside the sliding
      reader, so it's moved back by the reader's offset to hold still, on the same --drag, so a swipe moves it with the finger. */
@@ -693,6 +708,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
     <img class="src-icon reader-icon" id="reader-icon" alt="" width="22" height="22" hidden><span class="src-icon src-mono reader-icon" id="reader-mono" aria-hidden="true" hidden></span><span class="reader-source" id="reader-source"></span>
     <span class="reader-spacer"></span>
     <span class="send-done" id="send-done" hidden>Copied</span>
+    <button class="icon-btn" id="reader-listen" type="button" title="Listen" aria-label="Listen" aria-pressed="false" aria-keyshortcuts="L" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></button>
     <span class="send-wrap">
       <button class="icon-btn" id="reader-send" type="button" title="Share article" aria-label="Share article" aria-expanded="false" aria-controls="send-pop" data-kind="apple"><svg class="send-apple" viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg><svg class="send-android" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
       <span class="popover send-pop" id="send-pop" role="menu" aria-label="Share" hidden>
@@ -723,6 +739,14 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
     </div>
   </div>
   <div class="reader-body" id="reader-body" aria-live="polite"></div>
+  <div class="listen-bar" id="listen-bar" role="group" aria-label="Listen" hidden>
+    <button class="icon-btn" id="listen-prev" type="button" title="Previous paragraph" aria-label="Previous paragraph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 20 9 12l10-8zM5 19V5"/></svg></button>
+    <button class="icon-btn listen-play" id="listen-play" type="button" title="Pause" aria-label="Pause"><svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3v14H7zM14 5h3v14h-3z"/></svg><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
+    <button class="icon-btn" id="listen-next" type="button" title="Next paragraph" aria-label="Next paragraph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 4 10 8-10 8zM19 5v14"/></svg></button>
+    <div class="listen-where"><b id="listen-what"></b><span id="listen-left"></span><span class="listen-progress"><i id="listen-done"></i></span></div>
+    <button class="listen-rate" id="listen-rate" type="button" title="Speed">1×</button>
+    <button class="icon-btn" id="listen-stop" type="button" title="Stop listening" aria-label="Stop listening"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  </div>
   <div class="reader-nav">
     <button class="icon-btn" id="reader-prev" type="button" aria-label="Previous article" title="Previous article"><svg viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></svg></button>
     <button class="icon-btn" id="reader-next" type="button" aria-label="Next article" title="Next article"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
@@ -759,6 +783,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
       <h3><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Actions</h3>
       <div class="sc-row"><span>Mark as read or unread</span><span class="sc-keys"><kbd>M</kbd></span></div>
       <div class="sc-row"><span>Save to Read later</span><span class="sc-keys"><kbd>S</kbd></span></div>
+      <div class="sc-row"><span>Listen</span><span class="sc-keys"><kbd>L</kbd></span></div>
       <div class="sc-row"><span>Open the original</span><span class="sc-keys"><kbd>V</kbd></span></div>
       <div class="sc-row"><span>Copy the link</span><span class="sc-keys"><kbd>Shift</kbd><span class="sc-sep">+</span><kbd>C</kbd></span></div>
       <div class="sc-row"><span>Full screen</span><span class="sc-keys"><kbd>Shift</kbd><span class="sc-sep">+</span><kbd>F</kbd></span></div>
@@ -819,6 +844,6 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
 </dialog>
 <button class="back-to-top" id="top" type="button" aria-label="Scroll to the top" title="Scroll to the top" hidden><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <!-- Versioned by its contents (tests/assets.test.js), so browsers keep it for a year. -->
-<script src="/app.js?v=ae2067271a"></script>
+<script src="/app.js?v=fcbfc8e9c1"></script>
 </body>
 </html>
