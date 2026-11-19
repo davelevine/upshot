@@ -52,6 +52,33 @@
   },
   {
    "date": "2026-11-19",
+   "published": "2026-11-19T06:00:00+00:00",
+   "title": "Java4Shell (CVE-2026-114938): CrowdStrike Detects Exposure and Post-Exploitation Activity",
+   "url": "https://www.crowdstrike.com/en-us/blog/crowdstrike-helps-protect-against-java4shell-cve-2026-114938/",
+   "publisher": "CrowdStrike",
+   "cves": [
+    "CVE-2026-114938"
+   ],
+   "category": "security",
+   "summary": "CrowdStrike reports detecting exposure and post-exploitation activity tied to the Java4Shell flaw, CVE-2026-114938.",
+   "relevance": 8,
+   "added": "2026-11-19T18:18:26+00:00",
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-19T18:18:23+00:00",
+    "kind": "flaw",
+    "quote": "Post-Exploitation Activity",
+    "fix": "patch"
+   },
+   "minutes": 9,
+   "tldr": [
+    "CVE-2026-114938 (Java4Shell) is a HotSpot JVM memory corruption flaw in Oracle Java SE, OpenJDK, and many downstream Java distributions.",
+    "Exploitation needs an affected Java version, x86-64 AVX-512 VBMI hardware, and an app decoding attacker-supplied Base64; ARM64 and i386 are not affected.",
+    "Oracle and OpenJDK released fixes on November 17, 2026; patch internet-facing Java services first, then restart running JVMs and rebuild container images."
+   ]
+  },
+  {
+   "date": "2026-11-19",
    "published": "2026-11-19T10:26:51+00:00",
    "title": "F5 Patches Critical NGINX2Root Flaws as PoC Exploits Go Public",
    "url": "https://www.securityweek.com/f5-patches-critical-nginx2root-flaws-as-poc-exploits-go-public/",
@@ -4826,7 +4853,7 @@
    }
   ]
  },
- "generated_at": "2026-11-19T17:18:31+00:00",
+ "generated_at": "2026-11-19T18:18:35+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
