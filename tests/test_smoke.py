@@ -2562,8 +2562,8 @@ def test_opening_runs_the_wordmark_through_how_fresh_the_news_is_once(browser):
         pg.clock.run_for(400)  # into the line, past its fade
         seen.append(pg.inner_text("#ticker"))
         pg.clock.run_for(1100)
-    # The date where the site is (9am in New York), when it updated, when the next build is due (14:17 UTC), then the wordmark.
-    assert seen[:3] == ["Tuesday, November 10", "Updated 1h ago", "Next update in 17m"]
+    # The date where the site is (9am in New York), when it updated, when the next build is due (14:27 UTC), then the wordmark.
+    assert seen[:3] == ["Tuesday, November 10", "Updated 1h ago", "Next update in 27m"]
     pg.clock.run_for(400)
     assert not ticking()  # back on the wordmark, in under five seconds all told (WCAG 2.2.2), and it stays there
     pg.clock.run_for(60_000)

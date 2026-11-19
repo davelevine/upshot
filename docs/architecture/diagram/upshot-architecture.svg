@@ -458,8 +458,8 @@ rect.c-bg-rect { fill: var(--bg); }
         <text x="382.5" y="526" class="t-muted" font-size="9" text-anchor="middle">article text · 100 days</text>
         </g>
 
-        <g id="node-worker" data-node-id="worker" data-node-label="Site Worker" tabindex="0" role="button" aria-label="Focus Site Worker, worker.js · cron at :17, Cloudflare, Cloudflare" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="worker.js · cron at :17" data-node-context="Cloudflare" data-node-brand="Cloudflare" data-node-brand-id="cloudflare" data-node-brand-status="preset" data-node-brand-source="https://www.cloudflare.com/logo/">
-          <title>Site Worker · worker.js · cron at :17 · Cloudflare · Cloudflare</title>
+        <g id="node-worker" data-node-id="worker" data-node-label="Site Worker" tabindex="0" role="button" aria-label="Focus Site Worker, worker.js · cron at :27, Cloudflare, Cloudflare" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="worker.js · cron at :27" data-node-context="Cloudflare" data-node-brand="Cloudflare" data-node-brand-id="cloudflare" data-node-brand-status="preset" data-node-brand-source="https://www.cloudflare.com/logo/">
+          <title>Site Worker · worker.js · cron at :27 · Cloudflare · Cloudflare</title>
           <rect x="550" y="480" width="175" height="64" rx="6" class="c-mask"/>
           <rect x="550" y="480" width="175" height="64" rx="6" class="c-cloud" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(556 486) scale(0.6875)">
@@ -471,7 +471,7 @@ rect.c-bg-rect { fill: var(--bg); }
             <rect width="16" height="16" rx="4" class="brand-mark-frame"/>
           </g>
           <text data-node-label="" x="637.5" y="510" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Site Worker</text>
-        <text x="637.5" y="526" class="t-muted" font-size="9" text-anchor="middle">worker.js · cron at :17</text>
+        <text x="637.5" y="526" class="t-muted" font-size="9" text-anchor="middle">worker.js · cron at :27</text>
         </g>
 
         <g id="node-sync" data-node-id="sync" data-node-label="upshot-sync" tabindex="0" role="button" aria-label="Focus upshot-sync, Durable Object per reader, Cloudflare, Cloudflare" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="Durable Object per reader" data-node-context="Cloudflare" data-node-brand="Cloudflare" data-node-brand-id="cloudflare" data-node-brand-status="preset" data-node-brand-source="https://www.cloudflare.com/logo/">

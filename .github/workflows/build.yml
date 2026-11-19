@@ -8,7 +8,7 @@ name: Build
 # fallback, and skips a slot the Worker already started (the gate job), so the site builds once an hour, not twice.
 on:
   schedule:
-    - cron: "17 * * * *"
+    - cron: "27 * * * *"
   workflow_dispatch:
     inputs:
       backfill_days:
