@@ -4676,32 +4676,28 @@
   }
  ],
  "weekly": {
-  "window_start": "2026-11-12",
-  "window_end": "2026-11-18",
+  "window_start": "2026-11-13",
+  "window_end": "2026-11-19",
   "items": [
    {
+    "url": "https://thehackernews.com/2026/11/hackers-exploiting-critical-puppet-rce.html",
+    "why": "Actively exploited; patch Puppet management servers now and check for compromise."
+   },
+   {
+    "url": "https://www.rapid7.com/blog/post/ve-cve-2026-123007-critical-nginx-http-2-integer-underflow-leads-to-rce-fixed",
+    "why": "Patch nginx now; unauthenticated RCE possible under certain conditions, fix available."
+   },
+   {
     "url": "https://www.aikido.dev/blog/two-malicious-agent-framework-releases-hit-pypi-in-33-minutes",
-    "why": "If installed, remove the package and rotate Azure, Azure DevOps and GitHub Actions secrets."
-   },
-   {
-    "url": "https://www.rapid7.com/blog/post/etr-rapid7-detected-exploitation-of-cve-2026-90436-against-atlassian-confluence-data-center-n-able-n-central-also-exploited",
-    "why": "Patch Confluence Data Center and N-central now; unauthenticated RCE is being exploited."
-   },
-   {
-    "url": "https://www.bleepingcomputer.com/news/security/check-point-patches-zero-day-that-lets-hackers-get-root-access/",
-    "why": "Patch Check Point gateways now, then hunt for root persistence since late October."
+    "why": "If you installed these packages, rotate Azure, DevOps and GitHub Actions credentials immediately."
    },
    {
     "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-windows-server-2016-reaches-end-of-support-in-60-days/",
-    "why": "Migrate off Windows Server 2016 now; security updates stop when support ends."
-   },
-   {
-    "url": "https://openai.com/index/introducing-gpt-6-2-astra-sol",
-    "why": "Evaluate GPT-6.2 Astra and Sol on your coding and agent workloads before adopting."
+    "why": "Plan migration off Windows Server 2016 now; security updates stop in about two months."
    }
   ]
  },
- "generated_at": "2026-11-19T04:18:31+00:00",
+ "generated_at": "2026-11-19T05:18:34+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
@@ -4771,5 +4767,6 @@
   "openai-alignment": "dark",
   "the-github-blog": "dark",
   "watchtowr-labs": "dark"
- }
+ },
+ "audio": null
 }
