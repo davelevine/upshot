@@ -23,6 +23,38 @@
   },
   {
    "date": "2026-11-19",
+   "published": "2026-11-19T11:52:23+00:00",
+   "title": "Everything Is a Web Application, Including Your Firewall",
+   "url": "https://thehackernews.com/2026/11/everything-is-web-application-including.html",
+   "publisher": "The Hacker News",
+   "cves": [
+    "CVE-2026-109618",
+    "CVE-2026-109619"
+   ],
+   "category": "security",
+   "summary": "Palo Alto Networks confirmed attackers are exploiting two unauthenticated PHP flaws, CVE-2026-109618 and CVE-2026-109619, against internet-exposed PAN-OS management interfaces.",
+   "relevance": 8,
+   "added": "2026-11-19T13:18:14+00:00",
+   "exploited": {
+    "kev": [
+     "CVE-2026-109618",
+     "CVE-2026-109619"
+    ],
+    "at": "2026-11-19T13:18:12+00:00",
+    "kind": "flaw",
+    "quote": "attackers were exploiting the two PHP vulnerabilities",
+    "fix": "patch"
+   },
+   "minutes": 4,
+   "tldr": [
+    "Attackers exploited CVE-2026-109618 and CVE-2026-109619 against internet-exposed PAN-OS management interfaces, letting unauthenticated users execute code.",
+    "Appliances running identical, often outdated software let attackers study memory profiles in advance; one actor gained root on 25 systems.",
+    "The PHP project shipped an emergency patch the day after details leaked on October 20.",
+    "Palo Alto advises removing internet access to management interfaces and limiting them to trusted internal IP addresses."
+   ]
+  },
+  {
+   "date": "2026-11-19",
    "published": "2026-11-19T10:35:05+00:00",
    "title": "Microsoft confirms app installation, launch issues after hotpatch",
    "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-confirms-app-installation-launch-issues-after-hotpatch/",
@@ -4744,7 +4776,7 @@
    }
   ]
  },
- "generated_at": "2026-11-19T12:18:27+00:00",
+ "generated_at": "2026-11-19T13:18:25+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
