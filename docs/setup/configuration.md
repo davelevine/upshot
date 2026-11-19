@@ -16,8 +16,9 @@ Constants at the top of [`build.py`](../../build.py); the defaults are what the 
 | `PER_FEED` | 10 | Entries per feed per run (env) |
 | `KEEP_DAYS` | 90 | Days before pruning |
 | `DEAD_AFTER_DAYS` | 14 | Days of failures before a feed is reported |
-| `UPSHOT_MODEL` | `claude-haiku-5-5` | Model for all calls (env); the build fails if the CLI answers with another |
-| `CLAUDE_BIN` | `claude` | Path to the Claude Code CLI (env) |
+| `SILENT_AFTER_DAYS` | 45 | Days without a post before a feed that still loads is reported |
+| `MODEL` | `claude-haiku-5-5` | Model for all calls (env: `UPSHOT_MODEL`); the build fails if the CLI answers with another |
+| `CLAUDE` | `claude` | Path to the Claude Code CLI (env: `CLAUDE_BIN`) |
 | `SITE_TZ` | `America/New_York` | Time zone for dates and "Today" (env) |
 | `SITE_URL` | `https://upshot.me` | The site's address (env) |
 | `AUDIO_URL` | none | The audio bucket's address (env); see [Audio](#audio) |
@@ -60,9 +61,9 @@ node tests/fixtures/fetch.mjs "Publisher name"              # the name from feed
 UPDATE_EXPECTED=1 node --test tests/fixtures.test.js        # records what the reader makes of it
 ```
 
-The saved page's text is scrambled. Check the diff of `tests/fixtures/expected.json` and commit both.
+The saved page's text is scrambled. Check the diff of `tests/fixtures/expected.json` and commit it with the page and `tests/fixtures/meta.json`.
 
-**Backfilling.** Builds look back three days. To pull in a new feed's older posts, or a new fork's history, run **Actions → Build → Run workflow** with `backfill_days` set to `30`. Only unseen stories are scored, so it's safe to rerun.
+**Backfilling.** Builds look back three days. To pull in a new feed's older posts, or a new fork's history, run **Actions → Build → Run workflow** with `backfill_days` set to `30`; a backfill also reads up to 100 entries per feed instead of `PER_FEED`'s 10. Only unseen stories are scored, so it's safe to rerun.
 
 **Retracting a wrong flag.** Add the story's URL to [`not-exploited.txt`](../../not-exploited.txt), one per line. The next build drops its Exploited or Compromised flag and never sets it again. How flags are set is in [The pipeline](../architecture/pipeline.md).
 

@@ -30,7 +30,7 @@ This guide sets up your own copy of Upshot: a fork that builds every hour on Git
 
    The site's Worker binds to `upshot-sync`, so deploy that first: **Actions → Deploy sync → Run workflow**. Then, in Cloudflare, go to **Workers & Pages → Create → Import a repository**, pick your fork, and name the Worker `upshot` (it must match `name` in `wrangler.jsonc`). Leave the build command empty and the deploy commands at their defaults.
 
-5. **Set `SITE_URL`** as a repository variable (**Settings → Secrets and variables → Actions → Variables**), for example `https://news.example.com`. The build uses it for the RSS feeds' links and reading times.
+5. **Set `SITE_URL`** as a repository variable (**Settings → Secrets and variables → Actions → Variables**), for example `https://news.example.com`. The build uses it for the RSS feeds' links and the link-preview image.
 
 6. **Make it yours:** the GitHub links, `og:url` and the canonical link in `site/index.html`, the README badges, and [`feeds.opml`](../../feeds.opml).
 

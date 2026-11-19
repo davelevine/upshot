@@ -7,12 +7,12 @@ The pipeline is everything the hourly build does to turn the feeds into the hand
 1. **Fetch.** It reads every feed in [`feeds.opml`](../../feeds.opml). A broken feed is skipped, never fatal.
 2. **Filter.** It keeps dated entries from the last few days that it hasn't seen before, capped per feed.
 3. **Score.** Each new story goes to Claude Haiku (`claude-haiku-5-5`) on its own, through the Claude Code CLI, so its score never depends on what it was batched with. The model returns a category, a 1–10 relevance score within that category, a one-sentence summary, and whether the story reports an exploited flaw.
-4. **Keep the notable ones.** A story is published if it clears its category's bar (`MIN_RELEVANCE` in [Configuration](../setup/configuration.md)) and isn't a repeat. There are no quotas, so a big security day shows as one and a slow day stays short. A 20-story daily cap exists only to catch a malfunction. Nothing published is taken down.
+4. **Keep the notable ones.** A story is published if it clears its category's bar (`MIN_RELEVANCE` in [Configuration](../setup/configuration.md)) and isn't a repeat. There are no quotas, so a big security day shows as one and a slow day stays short. A daily cap of 20 new stories, which flagged stories don't count toward, exists only to catch a malfunction. Nothing published is taken down.
 5. **Drop repeats.** The model flags a story already on the site from the past week, such as the same launch from another outlet. The code checks the claim, so one copy always survives.
 6. **Flag exploited flaws.** See below.
 7. **Pick the essentials.** Once a day, the model ranks the week's most important stories, and the top five become the essentials, no more than three from one topic. Each gets a line on what to do. For an exploited flaw the model is told its remedy, and a line that says to patch a flaw with no patch is replaced with one that fits it.
 8. **Extract.** [`extract.mjs`](../../extract.mjs) stores each new story's text in Cloudflare KV for the reader, described in [The site](site.md).
-9. **Publish.** The build writes [`site/data.json`](../../site/data.json) and three RSS feeds, records seen URLs in `state.json`, and commits. [`site/rss.xml`](../../site/rss.xml) has every story, [`site/essentials.xml`](../../site/essentials.xml) the week's essentials, and [`site/exploited.xml`](../../site/exploited.xml) the stories flagged as exploited or compromised. Each holds its newest 50 and carries the site's icon as its `<image>`. An RSS item carries the summary, the upshot and, for an essential, what to do. Cloudflare deploys the push.
+9. **Publish.** The build writes [`site/data.json`](../../site/data.json) and three RSS feeds, records seen URLs in `state.json`, saves an icon for each new publisher under `site/icons/`, redraws the link-preview image `site/og.png` (pointing `og:image` in `index.html` at its new hash), and commits. [`site/rss.xml`](../../site/rss.xml) has every story, [`site/essentials.xml`](../../site/essentials.xml) the week's essentials, and [`site/exploited.xml`](../../site/exploited.xml) the stories flagged as exploited or compromised. Each holds its newest 50 and carries the site's icon as its `<image>`. An RSS item carries the summary, the upshot and, for an essential, what to do. Cloudflare deploys the push.
 
 Anything older than 90 days is pruned.
 
@@ -20,7 +20,7 @@ Anything older than 90 days is pruned.
 
 Listen's audio is made after each build by the Audio workflow, which runs [`audio.py`](../../audio.py). It's a workflow of its own because the Build workflow's concurrency would hold the next build back until the voicing finished.
 
-- **What it reads.** [`audio.mjs`](../../audio.mjs) builds each story's reader page from what extraction stored in KV and splits it into the blocks the reader marks while it plays: the headline, the upshot as one block, then the article's headings, paragraphs, list items and quotes. An article that couldn't be stored is read as its card: headline, upshot and summary.
+- **What it reads.** [`audio.mjs`](../../audio.mjs) builds each story's reader page from what extraction stored in KV and splits it into the blocks the reader marks while it plays: the headline, the upshot as one block, then the article's headings, paragraphs, list items, quotes and definitions. An article that couldn't be stored is read as its card: headline, upshot and summary.
 - **Which stories.** Stories on the site without audio, newest first. A story waits for its upshot and its stored article, so it's voiced on a later run if either is missing.
 - **Long stories.** A story over 20 minutes of reading gets its headline and upshot only.
 - **How it reads them.** Kokoro, an open text-to-speech model, in its int8 form with the `af_heart` voice, runs on the Actions runner at about three times realtime. Each block is read in turn, with a short pause between blocks, and the second each block starts is recorded.
@@ -40,7 +40,7 @@ A story is flagged in one of two ways:
 
 CVEs are taken from a story's title, excerpt, summary and upshot, never from the rest of the article, which often cites older flaws for background.
 
-**Remedies** use CISA's terms: patch, mitigation only, or no patch yet. A CISA listing rules out "no patch yet", since the catalog only takes flaws with a remedy. Only an exploited flaw with no patch yet may publish below its category's bar.
+**Remedies** use CISA's terms: patch, mitigation only, or no patch yet. A CISA listing rules out "no patch yet", since the catalog only takes flaws with a remedy. Only an exploited flaw with no patch yet may publish below its category's bar, and only one point below.
 
 **Compromised** follows GitHub and OSV, which keep malware apart from vulnerabilities. It has no patch status; what to do is in the upshot.
 

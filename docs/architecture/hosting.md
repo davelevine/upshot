@@ -8,7 +8,7 @@ Upshot is served by Cloudflare Workers and built and deployed from GitHub. This 
 
 ### Caching
 
-Pages and `data.json` are revalidated on every load, so a deploy or a new build shows at once; `index.html`'s inline script starts the `data.json` request before `app.js` has loaded. `app.js` is loaded as `/app.js?v=<hash>` and kept for a year, so a repeat visit doesn't ask for it at all: [`tests/assets.test.js`](../../tests/assets.test.js) fails until `index.html` carries the hash of the current file, and names the value. Icons are kept a day, the licensed fonts a year (a changed font gets a new name), and a stored article a day.
+Pages and `data.json` are revalidated on every load, so a deploy or a new build shows at once; `index.html`'s inline script starts the `data.json` request before `app.js` has loaded. `app.js` is loaded as `/app.js?v=<hash>` and kept for a year, so a repeat visit doesn't ask for it at all: [`tests/assets.test.js`](../../tests/assets.test.js) fails until `index.html` carries the hash of the current file, and names the value. Icons are kept a day, the fonts from R2 a year (a changed font gets a new name), and a stored article a day.
 
 ## Audio
 
@@ -33,11 +33,11 @@ Listen's audio, which the Audio workflow makes ([The pipeline](pipeline.md#audio
 | [Build](../../.github/workflows/build.yml) | Hourly, manual, PRs | Fetches, scores and publishes. On PRs it runs the Python and JavaScript tests only. Manual runs take an optional `backfill_days`. |
 | Build › smoke | PRs | The browser smoke test against `wrangler dev` ([Development](../development.md)). |
 | [Deploy sync](../../.github/workflows/deploy-sync.yml) | Push to `main`, manual | Runs sync's unit tests, then `wrangler deploy -c sync/wrangler.jsonc`. |
-| [Audio](../../.github/workflows/audio.yml) | After each build, manual, PRs | Voices stories without audio and uploads them to the audio bucket. Manual runs take an optional `budget_minutes`, for a backfill. On PRs that change it, a dry run voices two stories and uploads nothing. Runs only when `AUDIO_URL` is set. |
+| [Audio](../../.github/workflows/audio.yml) | After each build, manual, PRs | Voices stories without audio and uploads them to the audio bucket. Manual runs take an optional `budget_minutes`, for a backfill. On PRs that change it, a dry run voices two stories and uploads nothing. Outside PRs, runs only when `AUDIO_URL` is set. |
 
 ## Secrets
 
-Repository secrets: `CLAUDE_CODE_OAUTH_TOKEN` for scoring with Claude, and `CF_API_TOKEN`, `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID` for storing articles, deploying sync and uploading audio. [Getting started](../setup/getting-started.md) covers creating and renewing them. The repository variable `AUDIO_URL` is the audio bucket's address ([Configuration](../setup/configuration.md#audio)).
+Repository secrets: `CLAUDE_CODE_OAUTH_TOKEN` for scoring with Claude; `CF_API_TOKEN`, `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID` for storing articles, deploying sync and uploading audio; and `DATA_PUSH_KEY`, the deploy key that pushes the data commit past the ruleset on `main`. [Getting started](../setup/getting-started.md) covers the first four and [Configuration](../setup/configuration.md#protecting-main) the deploy key. The Worker's secret `GITHUB_DISPATCH_TOKEN` lets its cron start the build ([Configuration](../setup/configuration.md#schedule)). Repository variables: `SITE_URL` and `SITE_TZ` ([Configuration](../setup/configuration.md#settings)), and `AUDIO_URL`, the audio bucket's address ([Configuration](../setup/configuration.md#audio)).
 
 ## When something breaks
 
