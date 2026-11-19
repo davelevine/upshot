@@ -132,6 +132,37 @@
   },
   {
    "date": "2026-11-19",
+   "published": "2026-11-19T17:02:40+00:00",
+   "title": "Anthropic hits $2T in Nasdaq debut",
+   "url": "https://www.reuters.com/business/finance/anthropics-historic-debut-put-ais-promise-peril-wall-st-test-2026-11-19/",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "ai",
+   "summary": "Anthropic made its Nasdaq stock market debut and reached a valuation of about $2 trillion.",
+   "relevance": 7,
+   "added": "2026-11-19T19:18:16+00:00",
+   "minutes": 0
+  },
+  {
+   "date": "2026-11-19",
+   "published": "2026-11-19T00:00:00+00:00",
+   "title": "Distributed LLM Training Across Metros: Streaming DiLoCo in MaxText",
+   "url": "https://developers.googleblog.com/distributed-llm-training-across-metros-streaming-diloco-in-maxtext/",
+   "publisher": "Google AI",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Google AI describes Streaming DiLoCo in MaxText for training LLMs across geographically distributed TPU slices, cutting cross-slice communication over 60x.",
+   "relevance": 6,
+   "added": "2026-11-19T19:18:16+00:00",
+   "minutes": 9,
+   "tldr": [
+    "Google DeepMind and Google Research describe Streaming DiLoCo in MaxText, which trains LLMs across datacenters over WANs without per-step gradient sync stalls.",
+    "On Qwen3-32B with 10 Gbit/s throttled inter-slice links, Streaming DiLoCo ran at 5.76 s/step versus 55.11 s/step for Data Parallel.",
+    "Enable enable_diloco and enable_streaming_diloco in MaxText, setting num_diloco_fragments and diloco_sync_period to N_layers + 1. Ships in v0.2.5."
+   ]
+  },
+  {
+   "date": "2026-11-19",
    "published": "2026-11-19T10:35:05+00:00",
    "title": "Microsoft confirms app installation, launch issues after hotpatch",
    "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-confirms-app-installation-launch-issues-after-hotpatch/",
@@ -4853,7 +4884,7 @@
    }
   ]
  },
- "generated_at": "2026-11-19T18:18:35+00:00",
+ "generated_at": "2026-11-19T19:18:25+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
