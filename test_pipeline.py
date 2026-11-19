@@ -127,8 +127,9 @@ def story(title, publisher, date, category="ai", relevance=8, **extra):
 def check_contract(data):
     """The shape site/app.js reads. Run on the build's output, never on the committed data.json, so a quirk in live data
     can't block an hourly build."""
-    assert set(data) >= {"items", "weekly", "generated_at", "tz", "icons", "iconArt"}
+    assert set(data) >= {"items", "weekly", "generated_at", "tz", "icons", "iconArt", "audio"}
     datetime.fromisoformat(data["generated_at"])
+    assert data["audio"] is None or data["audio"].startswith("https://") and not data["audio"].endswith("/")
     assert isinstance(data["icons"], list) and isinstance(data["iconArt"], dict)
     urls = [i["url"] for i in data["items"]]
     assert len(urls) == len(set(urls)), "a story appears twice"
@@ -321,6 +322,17 @@ def test_a_reader_outage_still_publishes_and_is_reported(box):
     check_contract(data)
     assert [i["title"] for i in data["items"]] == ["Story A"]
     assert "KV write failed: 503" in (box.root / "reader-error.txt").read_text()
+
+
+def test_the_page_learns_where_listens_audio_is(box, monkeypatch):
+    box.seed()
+    box.feeds = {"Vendor Blog": []}
+    data, _ = box.run()
+    assert data["audio"] is None, "no AUDIO_URL: no audio, so no Listen"
+    monkeypatch.setattr(build, "AUDIO_URL", "https://audio.example.test")
+    data, _ = box.run()
+    check_contract(data)
+    assert data["audio"] == "https://audio.example.test"
 
 
 def test_a_failed_essentials_pick_keeps_last_weeks(box):
