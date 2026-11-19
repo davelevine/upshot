@@ -4697,7 +4697,7 @@
    }
   ]
  },
- "generated_at": "2026-11-19T05:18:34+00:00",
+ "generated_at": "2026-11-19T06:18:14+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
@@ -4768,5 +4768,5 @@
   "the-github-blog": "dark",
   "watchtowr-labs": "dark"
  },
- "audio": null
+ "audio": "https://audio.upshot.me"
 }
