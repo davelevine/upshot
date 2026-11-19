@@ -32,7 +32,9 @@ jobs:
   voice:
     if: vars.AUDIO_URL != '' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && 330 || 35 }}
+    # The budget (audio.py) only stops new stories from starting, so the limit leaves room after it for setup and the
+    # longest story audio.py voices whole (20 minutes of reading, about 12 minutes to voice on the slowest runner).
+    timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && 330 || 50 }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
