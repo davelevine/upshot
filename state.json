@@ -1,6 +1,7 @@
 {
  "failing_since": {
-  "https://cloudblog.withgoogle.com/rss/": "2026-11-18"
+  "https://cloudblog.withgoogle.com/rss/": "2026-11-18",
+  "https://cloudblog.withgoogle.com/topics/threat-intelligence/rss/": "2026-11-18"
  },
  "seen": {
   "http://groundworkcollaborative.org/news/amazons-decoy-deals-groundwork-investigation-reveals-nearly-1-in-3-black-friday-and-cyber-monday-deals-advertised-by-amazon-offered-no-savings-to-shoppers-nearly-1-in-10-w/": "2026-11-16",
