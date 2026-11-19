@@ -24,7 +24,7 @@ This guide sets up your own copy of Upshot: a fork that builds every hour on Git
 
 3. **Create a Workers KV namespace** for article text, before connecting Cloudflare, so the first deploy doesn't point at someone else's. Put its ID in both `kv_namespaces` entries in [`wrangler.jsonc`](../../wrangler.jsonc); it isn't a secret.
 
-   Create a Cloudflare API token with **Workers KV Storage: Edit** (the build stores articles) and **Workers Scripts: Edit** (Actions deploys `upshot-sync`). Add `CF_API_TOKEN`, `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID` as repository secrets. Without them the site still works, but the reader only shows summaries.
+   Create a Cloudflare API token with **Workers KV Storage: Edit** (the build stores articles) and **Workers Scripts: Edit** (Actions deploys `upshot-sync`), and **Workers R2 Storage: Edit** if you'll turn on Listen's audio ([Configuration](configuration.md#audio)). Add `CF_API_TOKEN`, `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID` as repository secrets. Without them the site still works, but the reader only shows summaries.
 
 4. **Connect Cloudflare Workers.** In `wrangler.jsonc`, set `routes` to your domain, or delete it and set `workers_dev` to `true`.
 

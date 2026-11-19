@@ -16,6 +16,19 @@ The pipeline is everything the hourly build does to turn the feeds into the hand
 
 Anything older than 90 days is pruned.
 
+## Audio
+
+Listen's audio is made after each build by the Audio workflow, which runs [`audio.py`](../../audio.py). It's a workflow of its own because the Build workflow's concurrency would hold the next build back until the voicing finished.
+
+- **What it reads.** [`audio.mjs`](../../audio.mjs) builds each story's reader page from what extraction stored in KV and splits it into the blocks the reader marks while it plays: the headline, the upshot as one block, then the article's headings, paragraphs, list items and quotes. An article that couldn't be stored is read as its card: headline, upshot and summary.
+- **Which stories.** Stories on the site without audio, newest first. A story waits for its upshot and its stored article, so it's voiced on a later run if either is missing.
+- **Long stories.** A story over 20 minutes of reading gets its headline and upshot only.
+- **How it reads them.** Kokoro, an open text-to-speech model, in its int8 form with the `af_heart` voice, runs on the Actions runner at about three times realtime. Each block is read in turn, with a short pause between blocks, and the second each block starts is recorded.
+- **What it stores.** Each story's audio as AAC in an `.m4a` file, about 0.4 MB a minute, and a small JSON file with its length, the start of each block, the block count and whether it's the whole page. Both go to the public audio bucket under the story's key (the SHA-256 of its URL, as for the stored article) and a format version, so a change of format gets new names and never meets a cached copy. An index in the bucket lists the stories with audio; it's rewritten after each story, so a run cut short keeps what it finished, and stories that left the site are dropped from it.
+- **Budget.** No story starts after 20 minutes of a run; the rest wait for the next run, newest first. A backfill is a manual run with a larger `budget_minutes`.
+
+The bucket, its domain and its limits are in [Hosting](hosting.md#audio).
+
 ## Exploited flags
 
 A story about a flaw under active attack is tagged **Exploited**, with its remedy. An active supply-chain attack is tagged **Compromised**.
