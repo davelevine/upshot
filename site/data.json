@@ -33,6 +33,25 @@
   },
   {
    "date": "2026-11-19",
+   "published": "2026-11-19T05:09:11+00:00",
+   "title": "Ruby2ßhell: Pre-authentication RCE on stock Rails",
+   "url": "https://verialabs.com/ruby2shell/",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "security",
+   "summary": "Researchers disclose a pre-authentication remote code execution flaw affecting stock Ruby on Rails installations.",
+   "relevance": 8,
+   "added": "2026-11-19T17:18:20+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Ruby heap overflow in case conversion of legacy single-byte encodings, reported as pre-auth RCE on stock Rails.",
+    "Rails and Sinatra classic are affected by default. Ruby 3.2 and older, 3.3.0 to 3.3.13, 3.4.0 to 3.4.12 and 4.0.0 to 4.0.9 are vulnerable.",
+    "Upgrade Ruby to 3.3.14, 3.4.13 or 4.0.10. Self-hosted products need the vendor's fixed release.",
+    "Application code that upcases strings in legacy encodings may also be vulnerable."
+   ]
+  },
+  {
+   "date": "2026-11-19",
    "published": "2026-11-19T10:26:51+00:00",
    "title": "F5 Patches Critical NGINX2Root Flaws as PoC Exploits Go Public",
    "url": "https://www.securityweek.com/f5-patches-critical-nginx2root-flaws-as-poc-exploits-go-public/",
@@ -4807,7 +4826,7 @@
    }
   ]
  },
- "generated_at": "2026-11-19T16:18:25+00:00",
+ "generated_at": "2026-11-19T17:18:31+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
