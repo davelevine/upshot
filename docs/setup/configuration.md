@@ -86,7 +86,8 @@ Listen plays audio the Audio workflow makes ([The pipeline](../architecture/pipe
 6. **Cache it.** In the zone's **Caching → Cache Rules**, make everything on the audio domain eligible for cache, with the edge TTL from the origin's Cache-Control.
 7. **Watch the bill.** R2 has no spending cap, so add a usage-based billing notification for R2 under **Notifications**.
 8. **Let the build write to it.** Add **Workers R2 Storage: Edit** to the API token in `CF_API_TOKEN`.
-9. **Turn it on.** Set the repository variable `AUDIO_URL` to the domain, for example `https://audio.example.com`. The Audio workflow then runs after every build, and the build tells the page where the audio is.
+9. **Let the page reach it.** Replace `https://audio.upshot.me` in `connect-src` in [`site/_headers`](../../site/_headers) with the domain, so the page can read the bucket's index and timings.
+10. **Turn it on.** Set the repository variable `AUDIO_URL` to the domain, for example `https://audio.example.com`. The Audio workflow then runs after every build, and the build tells the page where the audio is.
 
 To voice the stories already on the site, run **Actions → Audio → Run workflow** with `budget_minutes` set to `300`.
 
