@@ -15,13 +15,13 @@ Once a device syncs, the menu item becomes **Sync settings**, with a line under 
 
 ## How it works
 
-- **Sessions.** Each device holds a session cookie the page can't read (`HttpOnly`, 400 days, renewed with use). Only a hash of its token is stored.
+- **Sessions.** Each device holds a session cookie the page can't read (`HttpOnly`, 400 days, renewed by each sync). Only a hash of its token is stored.
 - **One Durable Object per reader** holds their devices and read state in SQLite. It handles one call at a time, so two devices syncing at once can't overwrite each other. A second Durable Object holds the codes.
 - **The server's merge wins.** The page sends only what changed, and takes the server's answer over its own unless that story changed again locally. A device with a wrong clock still ends up agreeing.
 - **A joining device takes the sync's read state.** Entering a code replaces the device's read state rather than merging it, so a new phone can't mark a laptop's unread stories as read. It takes the sync's preferences too, so it looks like the other devices from the start.
 - **Changes are pushed.** While a tab is visible, the page holds a WebSocket to the Durable Object, using Cloudflare's hibernation API, so a quiet connection isn't billed. Hiding the tab closes it.
 - **Read later syncs on its own.** Saves go in the same request as read state but are merged apart from it, each story's newest save or removal winning, so saving a story on one device never changes whether another has read it. Joining by code keeps the device's saves and adds the sync's, since a save is never an absence.
-- **Preferences follow the reader.** The theme, the article's typeface and Hide read stories sync, each one's newest change winning, and every open tab follows. Text size, fluid width and full screen stay with the device, since they suit a screen rather than a reader. The sync server stores them as one small record and accepts any short setting name and value, so a new preference on the page needs no change there.
+- **Preferences follow the reader.** The theme, the article's typeface and Hide read stories sync, each one's newest change winning, and every open tab follows. Text size, fluid width and full screen stay with the device, since they suit a screen rather than a reader. The sync server stores them as one small record and accepts any short setting name and value, up to 16 settings, so a new preference on the page needs no change there.
 - **No cost without sync.** A browser that never turns sync on never calls `/api/sync`.
 
 ## Managing devices
@@ -35,7 +35,7 @@ A sync needs two devices. When a removal leaves one, the sync and its data are d
 On the Free plan a limit makes calls fail until midnight UTC instead of adding to a bill, so the limits keep one script from using up the day cheaply:
 
 - Turning sync on and entering codes: 30 a minute per address. Syncs and live connections: 120 a minute.
-- Requests must come from the site's own origin, and a sync carries at most 300 changes.
+- Requests that change something, and live connections, must come from the site's own origin. A sync carries at most 300 read-state changes and 300 saves.
 - A reader keeps read state for at most 2,000 stories and saves for at most 500, and anything untouched for 120 days is dropped.
 - A socket that sends anything is closed.
 
