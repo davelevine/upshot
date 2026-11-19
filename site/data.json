@@ -2,6 +2,37 @@
  "items": [
   {
    "date": "2026-11-19",
+   "published": "2026-11-19T14:00:00+00:00",
+   "title": "ARMORY CASTLE Exploits vSphere",
+   "url": "https://cloud.google.com/blog/topics/threat-intelligence/armory-castle-exploits-vsphere/",
+   "publisher": "Google Cloud Blog",
+   "cves": [
+    "CVE-2026-102764",
+    "CVE-2026-123890"
+   ],
+   "category": "security",
+   "summary": "Google Threat Intelligence describes suspected PRC-nexus actor ARMORY CASTLE exploiting zero-day CVE-2026-102764 in BeyondTrust Remote Support, plus post-compromise activity against vSphere.",
+   "relevance": 8,
+   "added": "2026-11-19T15:18:25+00:00",
+   "exploited": {
+    "kev": [
+     "CVE-2026-102764"
+    ],
+    "at": "2026-11-19T15:18:22+00:00",
+    "kind": "flaw",
+    "quote": "exploited CVE-2026-102764, a zero-day vulnerability in BeyondTrust Remote Support",
+    "fix": "patch"
+   },
+   "minutes": 20,
+   "tldr": [
+    "ARMORY CASTLE, a suspected PRC-nexus actor, exploited CVE-2026-123890 in early September 2026 to compromise vCenter Server appliances.",
+    "The unauthenticated flaw, disclosed by VMware on Nov. 19, 2026, grants administrator@vsphere.local sessions.",
+    "Attackers used the BONESAW utility to exfiltrate the vCenter LMDB, forge SAML tokens, and create SSO admin accounts.",
+    "Immediately apply the security patches provided by Broadcom to remediate CVE-2026-123890."
+   ]
+  },
+  {
+   "date": "2026-11-19",
    "published": "2026-11-19T10:26:51+00:00",
    "title": "F5 Patches Critical NGINX2Root Flaws as PoC Exploits Go Public",
    "url": "https://www.securityweek.com/f5-patches-critical-nginx2root-flaws-as-poc-exploits-go-public/",
@@ -4776,7 +4807,7 @@
    }
   ]
  },
- "generated_at": "2026-11-19T14:18:21+00:00",
+ "generated_at": "2026-11-19T15:18:37+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
