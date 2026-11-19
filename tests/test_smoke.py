@@ -31,6 +31,13 @@ def serve_stand_in_font(route):
     route.fulfill(body=STAND_IN_FONT, content_type="font/woff2", headers={"Access-Control-Allow-Origin": "null"})
 
 
+# data.json names Listen's audio bucket once a build has run with AUDIO_URL, so every page asks for its index. The live
+# bucket isn't the tests' to reach (its CORS doesn't list the dev server), so every context gets an empty one: no story
+# has audio. serve_audio, routed later, wins over it.
+def no_audio(route):
+    route.fulfill(json={}, headers={"Access-Control-Allow-Origin": "*"})
+
+
 @pytest.fixture(scope="module")
 def browser():
     from playwright.sync_api import sync_playwright
@@ -40,6 +47,7 @@ def browser():
         def with_fonts(**kwargs):  # every context the tests open, however they open it
             ctx = new_context(**kwargs)
             ctx.route("**/fonts/licensed/*", serve_stand_in_font)
+            ctx.route("https://audio.upshot.me/**", no_audio)
             return ctx
         b.new_context = with_fonts
         yield b
@@ -1958,10 +1966,11 @@ def test_listen_plays_the_storys_audio(browser):
 
 def test_listen_shows_only_for_stories_with_audio(browser):
     """No bucket, or a story the bucket's index doesn't list: no button, and no request for timings that aren't there."""
-    pg = open_site(browser, viewport={"width": 1300, "height": 900})
+    pg = open_site(browser, patch=lambda data: data.update(audio=None), viewport={"width": 1300, "height": 900})
     first_card(pg)[0].click()
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
     assert pg.locator("#reader-listen").is_hidden(), "no audio bucket: no Listen"
+    assert pg.evaluate("audioBase") is None
     pg.context.close()
     pg = open_site(browser, audio={"https://elsewhere.test/a": timed(3)}, viewport={"width": 1300, "height": 900})
     first_card(pg)[0].click()
