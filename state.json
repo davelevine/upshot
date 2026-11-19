@@ -1,8 +1,5 @@
 {
- "failing_since": {
-  "https://cloudblog.withgoogle.com/rss/": "2026-11-18",
-  "https://cloudblog.withgoogle.com/topics/threat-intelligence/rss/": "2026-11-18"
- },
+ "failing_since": {},
  "seen": {
   "http://groundworkcollaborative.org/news/amazons-decoy-deals-groundwork-investigation-reveals-nearly-1-in-3-black-friday-and-cyber-monday-deals-advertised-by-amazon-offered-no-savings-to-shoppers-nearly-1-in-10-w/": "2026-11-16",
   "http://muratbuffalo.blogspot.com/2026/11/writing-as-thinking-tool.html": "2026-11-08",
@@ -1086,6 +1083,7 @@
   "https://simonwillison.net/2026/Nov/17/go-proverbs/": "2026-11-17",
   "https://simonwillison.net/2026/Nov/17/gpt62-astra-and-sol/": "2026-11-17",
   "https://simonwillison.net/2026/Nov/18/daniel-stenberg/": "2026-11-18",
+  "https://simonwillison.net/2026/Nov/18/datasette-arrows/": "2026-11-18",
   "https://simonwillison.net/2026/Nov/18/psf-end-of-year-fundraiser/": "2026-11-18",
   "https://simonwillison.net/2026/Nov/2/census-bureau-super-intelligence/": "2026-11-02",
   "https://simonwillison.net/2026/Nov/2/llm/": "2026-11-02",
@@ -1408,6 +1406,7 @@
   "https://unit42.paloaltonetworks.com/u42-threat-intelligence-highlights-oct-2026/": "2026-11-02",
   "https://unit42.paloaltonetworks.com/unwrapping-retail-cyber-threats/": "2026-10-28",
   "https://unit42.paloaltonetworks.com/web3-cloud-supply-chain-attacks/": "2026-10-07",
+  "https://violetpixel.com/blog/2026-11-17-we-need-smart-people-who-give-a-shit/": "2026-11-18",
   "https://www.ableton.com/en/live/": "2026-11-10",
   "https://www.aikido.dev/blog/ai-agent-security-in-kubernetes-prompt-injection": "2026-10-30",
   "https://www.aikido.dev/blog/ai-pentesting-existing-security-stack": "2026-10-24",
@@ -1819,6 +1818,7 @@
   "https://www.infoq.com/news/2026/11/compute-engine-api-versioning/": "2026-11-14",
   "https://www.infoq.com/news/2026/11/culture-kubernetes-bank/": "2026-11-05",
   "https://www.infoq.com/news/2026/11/datadog-ai-agent-observability/": "2026-11-17",
+  "https://www.infoq.com/news/2026/11/discord-rust-rewrite-gpui-zed/": "2026-11-18",
   "https://www.infoq.com/news/2026/11/docker-ai-agent-security/": "2026-11-04",
   "https://www.infoq.com/news/2026/11/dotnet-11-release/": "2026-11-17",
   "https://www.infoq.com/news/2026/11/dropbox-cookie-auditor/": "2026-11-13",
@@ -2059,6 +2059,7 @@
   "https://www.securityweek.com/optimizely-vulnerability-exploited-to-serve-malware-on-major-websites/": "2026-11-17",
   "https://www.securityweek.com/oracle-patches-640-vulnerabilities-with-november-2026-cspu/": "2026-11-18",
   "https://www.securityweek.com/over-a-dozen-organizations-hit-in-qubole-supply-chain-attack/": "2026-11-10",
+  "https://www.securityweek.com/palo-alto-networks-to-buy-ai-startup-applied-compute-for-4-5-billion/": "2026-11-18",
   "https://www.securityweek.com/pentagon-renames-cdao-super-intelligence-office/": "2026-11-15",
   "https://www.securityweek.com/php2shell-exploited-in-destructive-check-point-gateway-attacks/": "2026-11-13",
   "https://www.securityweek.com/plex2shell-exploited-against-qnap-nas-users/": "2026-11-09",

@@ -215,6 +215,25 @@
    ]
   },
   {
+   "date": "2026-11-18",
+   "published": "2026-11-19T03:12:00+00:00",
+   "title": "Discord Rewrites Desktop and Mobile Clients in Rust Using Zed's GPU-Accelerated Rendering Framework",
+   "url": "https://www.infoq.com/news/2026/11/discord-rust-rewrite-gpui-zed/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Discord is rewriting its desktop and mobile clients in Rust, using Zed's GPU-accelerated rendering framework, moving away from Electron and React Native.",
+   "relevance": 6,
+   "added": "2026-11-19T04:18:22+00:00",
+   "minutes": 3,
+   "tldr": [
+    "Discord is rewriting its desktop and mobile clients in Rust, dropping Electron and React Native under the codename Phoenix.",
+    "Desktop moves to GPUI, the Rust UI framework from Zed; early internal builds show about 290 MB RAM and near-instant cold start.",
+    "Mobile keeps native iOS and Android views with a shared Rust core; load time under 2 seconds versus about 5 seconds for the legacy app.",
+    "Testing with users is planned soon, according to CTO Stanislav Vishnevskiy; no release date was given."
+   ]
+  },
+  {
    "date": "2026-11-17",
    "published": "2026-11-17T17:45:00+00:00",
    "title": "Introducing GPT-6.2 Astra and Sol",
@@ -4682,7 +4701,7 @@
    }
   ]
  },
- "generated_at": "2026-11-19T03:18:13+00:00",
+ "generated_at": "2026-11-19T04:18:31+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
