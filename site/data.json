@@ -1,6 +1,45 @@
 {
  "items": [
   {
+   "date": "2026-11-19",
+   "published": "2026-11-19T10:26:51+00:00",
+   "title": "F5 Patches Critical NGINX2Root Flaws as PoC Exploits Go Public",
+   "url": "https://www.securityweek.com/f5-patches-critical-nginx2root-flaws-as-poc-exploits-go-public/",
+   "publisher": "SecurityWeek",
+   "cves": [
+    "CVE-2026-123007"
+   ],
+   "category": "security",
+   "summary": "F5 patched five critical NGINX flaws, dubbed NGINX2Root, that allow unauthenticated remote code execution; public proof-of-concept exploits have appeared.",
+   "relevance": 8,
+   "added": "2026-11-19T11:18:08+00:00",
+   "minutes": 2,
+   "tldr": [
+    "F5 patched 22 vulnerabilities, including five critical NGINX2Root bugs that can lead to unauthenticated remote code execution.",
+    "Fixed in NGINX Open Source 1.30.7 and 1.31.9, and NGINX Plus 37.0.8.1 and 37.3.0.1; upgrade to these versions.",
+    "Public PoCs exist for CVE-2026-123007, which Rapid7 says needs about 128 GB of HTTP/2 traffic; Wiz says it can bypass ASLR.",
+    "F5 also patched five other NGINX flaws and 12 BIG-IP bugs, and reports no in-the-wild exploitation."
+   ]
+  },
+  {
+   "date": "2026-11-19",
+   "published": "2026-11-19T10:35:05+00:00",
+   "title": "Microsoft confirms app installation, launch issues after hotpatch",
+   "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-confirms-app-installation-launch-issues-after-hotpatch/",
+   "publisher": "BleepingComputer",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Microsoft shared a workaround for Office and third-party app installation and launch failures following this month's Windows 11 hotpatch.",
+   "relevance": 6,
+   "added": "2026-11-19T11:18:08+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Microsoft confirmed Office and third-party apps may fail to install, launch, or run after the November 2026 Windows 11 hotpatch.",
+    "Affected are Windows 11 24H2 and later devices that installed the hotpatch through Windows Autopatch, not standard Patch Tuesday updates. Errors include ERROR_ALLOTTED_SPACE_EXCEEDED (0xC0000099).",
+    "Until a fix ships, the workaround is setting HotPatchTableSize to 2000 under HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management, then restarting. Back up the registry first."
+   ]
+  },
+  {
    "date": "2026-11-18",
    "published": "2026-11-18T13:56:42+00:00",
    "title": "CVE-2026-123007: Critical NGINX HTTP/2 Integer Underflow Leads to RCE (FIXED)",
@@ -4705,7 +4744,7 @@
    }
   ]
  },
- "generated_at": "2026-11-19T10:18:11+00:00",
+ "generated_at": "2026-11-19T11:18:19+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
