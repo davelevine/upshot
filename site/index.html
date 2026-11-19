@@ -809,11 +809,11 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
       <button type="button" class="primary" id="sync-create">Generate a sync code</button>
       <button type="button" id="sync-use-code">Already have a sync code?</button>
     </div>
-    <p class="sync-fine">No account, email or password. Upshot keeps only which stories you’ve read.</p>
+    <p class="sync-fine">No account, email or password. Upshot keeps only what you’ve read and saved, and your settings.</p>
   </div>
   <div class="sync-view" data-view="code" hidden>
     <p class="sync-lead">Enter the sync code shown on your other device.</p>
-    <p id="sync-code-switch" hidden>This device will join that device’s sync instead of its own. What it’s read comes along.</p>
+    <p id="sync-code-switch" hidden>This device will join that device’s sync instead of its own and take its read state. What it’s saved comes along.</p>
     <p id="sync-code-inapp" hidden>This opened in an app’s built-in browser, which keeps its own data. To sync your browser, open Upshot there and enter this code.</p>
     <input class="sync-input" id="sync-code" type="text" placeholder="XXXX-XXXX" maxlength="9" aria-label="Sync code" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false">
     <div class="sync-stack"><button type="button" class="primary" id="sync-code-go">Continue</button><button type="button" data-to="home">Back</button></div>
@@ -844,6 +844,6 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
 </dialog>
 <button class="back-to-top" id="top" type="button" aria-label="Scroll to the top" title="Scroll to the top" hidden><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <!-- Versioned by its contents (tests/assets.test.js), so browsers keep it for a year. -->
-<script src="/app.js?v=4484910b1d"></script>
+<script src="/app.js?v=d6f7ef85b3"></script>
 </body>
 </html>

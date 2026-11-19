@@ -493,7 +493,7 @@ async function syncNow() {
   clearTimeout(pushTimer); pushTimer = null;
   if (!items.length || !maySync()) return;
   if (syncing) return syncing.then(syncNow);  // one at a time, so each picks up where the last left off
-  const sendable = (map, u) => map[u] && u.length <= 2048 && /^https?:\/\//.test(u);  // what the server accepts
+  const sendable = (map, u) => map[u] && u.length <= 512 && /^https?:\/\//.test(u);  // what the server accepts (MAX_URL in sync/account.js)
   loadSync();
   for (const u of pending) if (!sendable(marks, u)) pending.delete(u);
   for (const u of laterPending) if (!sendable(later, u)) laterPending.delete(u);
@@ -880,7 +880,7 @@ const player = new Audio();
 player.preload = 'none';
 const audioKey = async url => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(url)))].map(b => b.toString(16).padStart(2, '0')).join('');  // worker.js keyFor
 const frameNow = () => $('reader-body').querySelector('iframe[srcdoc]:not(.loading)')?.contentWindow;
-// Which stories have audio: the bucket's index, read once a visit (kept five minutes), so the page never asks for one that isn't there.
+// Which stories have audio: the bucket's index, read on load and with each build (kept five minutes), so the page never asks for one that isn't there.
 function loadVoiced(base) {
   audioBase = base || null;
   if (!audioBase) return;
