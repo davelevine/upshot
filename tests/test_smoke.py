@@ -42,9 +42,12 @@ def browser():
         b.close()
 
 
-def open_site(browser, patch=None, url=None, **context):
-    """The site in a fresh browser, on the All list. `patch` edits data.json on its way in; `url` replaces SMOKE_URL."""
+def open_site(browser, patch=None, url=None, init=None, **context):
+    """The site in a fresh browser, on the All list. `patch` edits data.json on its way in; `url` replaces SMOKE_URL;
+    `init` is a script run before the page's own."""
     ctx = browser.new_context(**context)
+    if init:
+        ctx.add_init_script(init)
     if patch:
         def patched(route):
             data = route.fetch().json()
@@ -359,13 +362,18 @@ def test_each_story_says_how_long_ago_it_was_published(browser):
     assert pg.locator("a.card .card-age").all_text_contents() == ["5m", "2h", "5h", "20h", "2d", "3d", old]  # newest first
 
 
-def test_the_tab_shows_the_unread_count(browser):
-    pg = open_site(browser)
+def test_the_tab_and_the_app_icon_show_the_unread_count(browser):
+    # Headless Chromium isn't an installed app, so the badge call is recorded in its place.
+    pg = open_site(browser, init="window.badges = []; navigator.setAppBadge = n => (badges.push(n), Promise.resolve());")
     n = int(re.search(r"\d+", pg.locator("#filters .filter-btn[data-f='all'] .f-count").text_content())[0])
     assert pg.title() == f"({n}) Upshot \u00b7 The week\u2019s tech news, minus the noise"
+    assert pg.evaluate("badges.at(-1)") == n
     pg.locator("a.card:not(.read)").first.click()
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
     assert pg.title().startswith(f"({n - 1}) ")  # down as you read
+    assert pg.evaluate("badges.at(-1)") == n - 1
+    pg.evaluate("markAllRead(items)")
+    assert until(pg, "badges.at(-1) === 0"), "all read clears the badge"
     assert pg.problems == []
 
 
