@@ -1,10 +1,14 @@
 """Browser smoke test: the feed, reader, palette and swipe work under the real CSP, with no CSP violations,
 console errors or page errors. Runs against `npx wrangler dev` (CI starts one); skipped without SMOKE_URL.
 /api/read is stubbed because it needs the articles the build stores; tests/read.test.js covers the function."""
+import hashlib
+import io
 import json
 import os
 import re
 import urllib.parse
+import urllib.request
+import wave
 from datetime import date, datetime, timedelta, timezone
 
 import pytest
@@ -27,6 +31,13 @@ def serve_stand_in_font(route):
     route.fulfill(body=STAND_IN_FONT, content_type="font/woff2", headers={"Access-Control-Allow-Origin": "null"})
 
 
+# data.json names Listen's audio bucket once a build has run with AUDIO_URL, so every page asks for its index. The live
+# bucket isn't the tests' to reach (its CORS doesn't list the dev server), so every context gets an empty one: no story
+# has audio. serve_audio, routed later, wins over it.
+def no_audio(route):
+    route.fulfill(json={}, headers={"Access-Control-Allow-Origin": "*"})
+
+
 @pytest.fixture(scope="module")
 def browser():
     from playwright.sync_api import sync_playwright
@@ -36,22 +47,28 @@ def browser():
         def with_fonts(**kwargs):  # every context the tests open, however they open it
             ctx = new_context(**kwargs)
             ctx.route("**/fonts/licensed/*", serve_stand_in_font)
+            ctx.route("https://audio.upshot.me/**", no_audio)
             return ctx
         b.new_context = with_fonts
         yield b
         b.close()
 
 
-def open_site(browser, patch=None, url=None, init=None, **context):
+def open_site(browser, patch=None, url=None, init=None, audio=None, **context):
     """The site in a fresh browser, on the All list. `patch` edits data.json on its way in; `url` replaces SMOKE_URL;
-    `init` is a script run before the page's own."""
+    `init` is a script run before the page's own; `audio` gives stories Listen's audio (serve_audio)."""
     ctx = browser.new_context(**context)
     if init:
         ctx.add_init_script(init)
-    if patch:
+    if audio is not None:
+        serve_audio(ctx, audio)
+    if patch or audio is not None:
         def patched(route):
             data = route.fetch().json()
-            patch(data)
+            if audio is not None:
+                data["audio"] = AUDIO
+            if patch:
+                patch(data)
             route.fulfill(json=data)
         ctx.route("**/data.json*", patched)
     # A reader from before the first story, so everything counts as unread. A first visit has its own test.
@@ -69,6 +86,50 @@ def open_site(browser, patch=None, url=None, init=None, **context):
     pg.goto(url or URL)
     enter_list(pg)
     return pg
+
+
+AUDIO = "https://audio.upshot.me"
+
+
+def silence(seconds):
+    """A WAV of silence, in place of the AAC audio.py makes: Chromium plays no AAC, and goes by the file's content."""
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as w:
+        w.setnchannels(1); w.setsampwidth(1); w.setframerate(8000); w.writeframes(b"\x80" * int(8000 * seconds))
+    return buf.getvalue()
+
+
+def timed(blocks, full=True, n=None):
+    """Timings for a page of `blocks` blocks, two seconds each, as audio.py writes them."""
+    return {"v": 1, "d": blocks * 2.0, "t": [b * 2.0 for b in range(blocks)], "n": blocks if n is None else n, "full": full}
+
+
+def serve_audio(ctx, stories):
+    """The audio bucket: {url: timings} become its index, each story's timings, and audio as long as they say. Every request
+    is recorded in ctx.audio_requests."""
+    files = {}
+    for url, meta in stories.items():
+        key = hashlib.sha256(url.encode()).hexdigest()
+        files[f"{key}-1.json"] = ("application/json", json.dumps(meta).encode())
+        files[f"{key}-1.m4a"] = ("audio/wav", silence(meta["d"]))
+    index = json.dumps({hashlib.sha256(u.encode()).hexdigest(): {"v": 1} for u in stories}).encode()
+    ctx.audio_requests = []
+    def answer(route):
+        name = urllib.parse.urlsplit(route.request.url).path.lstrip("/")
+        ctx.audio_requests.append(name)
+        cors = {"Access-Control-Allow-Origin": "*"}
+        if name == "_index.json":
+            return route.fulfill(body=index, content_type="application/json", headers=cors)
+        if name not in files:
+            return route.fulfill(status=404, body=b"", headers=cors)
+        content_type, body = files[name]
+        ranged = re.fullmatch(r"bytes=(\d+)-(\d*)", route.request.headers.get("range", ""))
+        if not ranged:
+            return route.fulfill(body=body, content_type=content_type, headers=cors | {"Accept-Ranges": "bytes"})
+        start, end = int(ranged[1]), int(ranged[2] or len(body) - 1)  # as R2 answers: without ranges, media can't seek
+        route.fulfill(status=206, body=body[start:end + 1], content_type=content_type,
+                      headers=cors | {"Accept-Ranges": "bytes", "Content-Range": f"bytes {start}-{end}/{len(body)}"})
+    ctx.route(f"{AUDIO}/**", answer)
 
 
 def enter_list(pg):
@@ -1395,7 +1456,8 @@ def test_wide_screens_keep_the_controls_in_a_small_menu(browser):
 def test_wcag(browser, scheme):
     from axe_playwright_python.sync_playwright import Axe
     tags = {"runOnly": {"type": "tag", "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]}}
-    pg = open_site(browser, viewport={"width": 412, "height": 915}, has_touch=True, is_mobile=True, color_scheme=scheme)
+    [story] = with_upshot()
+    pg = open_site(browser, audio={story: timed(32)}, viewport={"width": 412, "height": 915}, has_touch=True, is_mobile=True, color_scheme=scheme)
     def violations():
         return [(v["id"], v["nodes"][0]["html"][:80]) for v in Axe().run(pg, options=tags).response["violations"]]
     assert violations() == []
@@ -1410,6 +1472,13 @@ def test_wcag(browser, scheme):
     pg.locator("#hide-read").wait_for(state="hidden")
     pg.tap("#list-back")  # the topics, which phones open on
     pg.wait_for_function("() => !document.getAnimations().length")  # once the pages and header have settled, as a reader sees them
+    assert violations() == [] and pg.evaluate(small) == []
+    pg.evaluate("u => openReader(items.find(i => i.url === u))", story)  # a story, being listened to
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.locator("#reader-listen").wait_for()
+    pg.tap("#reader-listen")
+    pg.locator("#listen-bar").wait_for()
+    pg.wait_for_function("() => !document.getAnimations().length")
     assert violations() == [] and pg.evaluate(small) == []
     assert pg.problems == []
 
@@ -1815,10 +1884,156 @@ def test_the_reader_marks_a_story_unread_and_read_again(browser):
     assert not pg.evaluate("u => readSet.has(u)", url) and pg.inner_text("#status") == "Marked as unread"
     pg.keyboard.press("m")  # the shortcut toggles it back
     assert "read" in card.get_attribute("class").split() and pg.evaluate("u => readSet.has(u)", url)
-    # The reader's bar keeps four story buttons; the theme and full screen are in its Format menu.
+    # The reader's bar keeps four story buttons (Listen joins them for a story with audio); the theme and full screen are in its Format menu.
     assert pg.locator(".reader-bar .icon-btn:visible").count() == 5  # with Close
     assert pg.evaluate("document.querySelector('.reader-bar .format-wrap').previousElementSibling.id") == "reader-unread", "display options last"
     assert pg.locator("#menu-btn").is_visible()
+    assert pg.problems == []
+
+
+def with_upshot(count=1):
+    """The newest stories with an upshot, so their pages have the upshot block: headline, upshot, then the stub article's
+    30 paragraphs. Newest, so they're in the first page of the list."""
+    data = json.load(urllib.request.urlopen(URL + "/data.json"))
+    return [i["url"] for i in sorted(data["items"], key=lambda i: i.get("published") or i["date"], reverse=True) if i.get("tldr")][:count]
+
+
+def playing(pg):
+    return pg.evaluate("!player.paused")
+
+
+def test_listen_plays_the_storys_audio(browser):
+    """The headphones play the story's audio, marking the block playing from its timings: the headline, the upshot, then
+    each paragraph. Play and pause, skipping a block either way, a click on a paragraph and the speed all move the audio,
+    and it stops with the story."""
+    [url] = with_upshot()
+    pg = open_site(browser, audio={url: timed(32)}, viewport={"width": 1440, "height": 900})
+    title = pg.evaluate("u => items.find(i => i.url === u).title", url)
+    pg.locator(f"a.card[href='{url}']").click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+    bar, said, btn = pg.locator("#listen-bar"), frame.locator(".said"), pg.locator("#reader-listen")
+    btn.wait_for()  # once its timings are in
+    assert bar.is_hidden() and btn.get_attribute("aria-pressed") == "false"
+
+    btn.click()
+    assert until(pg, "!player.paused"), "plays from the tap"
+    assert pg.evaluate("player.src").endswith(f"{hashlib.sha256(url.encode()).hexdigest()}-1.m4a")
+    assert bar.is_visible() and btn.get_attribute("aria-pressed") == "true"
+    assert until(pg, "t => document.getElementById('listen-what').textContent === t", title) and said.inner_text() == title
+    assert re.fullmatch(r"1 min left", pg.inner_text("#listen-left")), pg.inner_text("#listen-left")  # 64 seconds
+    assert pg.is_disabled("#listen-prev") and pg.get_attribute("#listen-play", "aria-label") == "Pause"
+
+    pg.evaluate("player.currentTime = 2.5")  # into the upshot's two seconds
+    assert until(pg, "document.getElementById('listen-what').textContent === 'The upshot'") and said.evaluate("n => n.matches('.todo')")
+    pg.evaluate("player.currentTime = 10.5")  # block 5: the fourth paragraph, still under the story's title
+    assert until(pg, "t => document.getElementById('listen-what').textContent === t", title) and said.inner_text().startswith("Paragraph 3 ")
+
+    pg.click("#listen-next")  # a block on: to its start
+    assert until(pg, "player.currentTime >= 12 && player.currentTime < 12.5") and said.inner_text().startswith("Paragraph 4 ")
+    pg.click("#listen-prev")
+    assert until(pg, "player.currentTime >= 10 && player.currentTime < 10.5") and said.inner_text().startswith("Paragraph 3 ")
+    frame.locator("p", has_text="Paragraph 20 ").click()  # a click on a paragraph plays from it, and scrolls it into view
+    assert until(pg, "player.currentTime >= 44 && player.currentTime < 44.5") and said.inner_text().startswith("Paragraph 20 ")
+
+    pg.click("#listen-play")  # pause and play again, where it was
+    assert until(pg, "player.paused && document.getElementById('listen-play').ariaLabel === 'Play'")
+    at = pg.evaluate("player.currentTime")
+    pg.click("#listen-play")
+    assert until(pg, "!player.paused") and pg.evaluate("player.currentTime") >= at
+
+    pg.click("#listen-rate")  # faster, at once and for next time
+    assert pg.inner_text("#listen-rate") == "1.25×" and pg.evaluate("player.playbackRate") == 1.25
+    assert pg.evaluate("localStorage.getItem('listenRate')") == "1.25"
+
+    pg.keyboard.press("l")  # l stops (from the article, where the click left focus: it arrives as a message)
+    assert until(pg, "document.getElementById('listen-bar').hidden") and playing(pg) is False
+    said.wait_for(state="detached")  # the mark goes too
+    pg.keyboard.press("l")  # and plays again from the top
+    assert until(pg, "!player.paused") and pg.evaluate("player.currentTime") < 2
+    pg.keyboard.press("j")  # another story stops it, and has no audio, so no button
+    assert until(pg, "player.paused && document.getElementById('listen-bar').hidden")
+    assert until(pg, "document.getElementById('reader-listen').hidden")
+    pg.keyboard.press("k")
+    btn.wait_for()
+    btn.click()
+    assert until(pg, "!player.paused")
+    pg.keyboard.press("Escape")  # and so does closing it
+    wait_until_closed(pg)
+    assert playing(pg) is False and bar.is_hidden()
+    assert pg.problems == []
+
+
+def test_listen_shows_only_for_stories_with_audio(browser):
+    """No bucket, or a story the bucket's index doesn't list: no button, and no request for timings that aren't there."""
+    pg = open_site(browser, patch=lambda data: data.update(audio=None), viewport={"width": 1300, "height": 900})
+    first_card(pg)[0].click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    assert pg.locator("#reader-listen").is_hidden(), "no audio bucket: no Listen"
+    assert pg.evaluate("audioBase") is None
+    pg.context.close()
+    pg = open_site(browser, audio={"https://elsewhere.test/a": timed(3)}, viewport={"width": 1300, "height": 900})
+    first_card(pg)[0].click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.wait_for_timeout(300)
+    assert pg.locator("#reader-listen").is_hidden()
+    assert pg.context.audio_requests == ["_index.json"], "only the index: nothing asked for that it doesn't list"
+    assert pg.problems == []
+
+
+def test_listen_without_matching_blocks_plays_without_marks(browser):
+    """Timings for another count of blocks (the page and the voicing disagree): it plays, marks nothing, and skips 15
+    seconds a step. A long story's headline-and-upshot audio marks just those two blocks."""
+    first, second = with_upshot(2)
+    pg = open_site(browser, audio={first: timed(40, n=20), second: timed(2, full=False)}, viewport={"width": 1440, "height": 900})
+    pg.locator(f"a.card[href='{first}']").click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+    pg.locator("#reader-listen").wait_for()
+    pg.click("#reader-listen")
+    assert until(pg, "!player.paused")
+    pg.wait_for_timeout(300)
+    assert frame.locator(".said").count() == 0, "no marks on blocks that weren't timed"
+    pg.evaluate("player.currentTime = 30")
+    pg.click("#listen-next")
+    assert until(pg, "player.currentTime >= 45 && player.currentTime < 46"), "fifteen seconds on"
+    pg.click("#listen-stop")
+
+    pg.locator(f"a.card[href='{second}']").click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.locator("#reader-listen").wait_for()
+    pg.click("#reader-listen")
+    assert until(pg, "!player.paused")
+    assert until(pg, "document.getElementById('listen-left').textContent.endsWith('· Summary only')")
+    title = pg.evaluate("u => items.find(i => i.url === u).title", second)
+    assert until(pg, "t => document.getElementById('listen-what').textContent === t", title)
+    pg.evaluate("player.currentTime = 2.5")
+    assert until(pg, "document.getElementById('listen-what').textContent === 'The upshot'"), "the timed blocks are marked"
+    assert pg.problems == []
+
+
+def test_listen_plays_on_when_the_article_replaces_its_card(browser):
+    """Listening while the article loads: the card's frame gives way to the article's, and the audio plays on, marking
+    the new frame's blocks."""
+    [url] = with_upshot()
+    pg = open_site(browser, audio={url: timed(32)}, viewport={"width": 1440, "height": 900})
+    held = []
+    pg.context.unroute("**/api/read?*")
+    pg.context.route("**/api/read?*", lambda route: held.append(route))
+    pg.evaluate("articles.clear(); fetching.clear()")
+    pg.locator(f"a.card[href='{url}']").click()
+    pg.locator("#reader-listen").wait_for()
+    pg.click("#reader-listen")  # on the card
+    assert until(pg, "!player.paused") and pg.locator("#listen-bar").is_visible()
+    assert held, "the article is still loading"
+    for route in held:
+        u = urllib.parse.parse_qs(urllib.parse.urlsplit(route.request.url).query)["url"][0]
+        route.fulfill(content_type="application/json", body=json.dumps({"url": u, "content": BODY}))
+    assert until(pg, "document.querySelectorAll('#reader-body iframe').length === 1 && !document.querySelector('#reader-body iframe.loading')")
+    pg.evaluate("player.currentTime = 10.5")
+    frame = pg.frame_locator("#reader-body iframe:not(.loading)")
+    assert until(pg, "!player.paused"), "still playing"
+    frame.locator(".said", has_text="Paragraph 3 ").wait_for()
     assert pg.problems == []
 
 

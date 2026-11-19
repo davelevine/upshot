@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { blocksFor, storyBlocks } from '../audio.mjs';
+import { BLOCKS, INSIDE, blocksFor, storyBlocks } from '../audio.mjs';
 import { readArticle } from '../extract.mjs';
 import { keyFor } from '../worker.js';
 
@@ -59,4 +59,13 @@ test('storyBlocks reads stored articles, a blocked one as its card, and leaves t
 
 test('keys match the Python side', async () => {
   assert.equal(await keyFor('https://example.test/1'), '98780052059c9103799e803c8bf1e4a75c7edd58bc3e67bae3cc0a2dd1ab224a');  // test_audio.py
+});
+
+test("the frame marks the same blocks the audio was timed by", () => {
+  // The relay in site/app.js finds a page's blocks while it plays; audio.mjs found the same ones to time the audio.
+  const app = readFileSync(new URL('../site/app.js', import.meta.url), 'utf8');
+  const relay = /const SWIPE_REPORTER = `([\s\S]*?)`;\n/.exec(app)[1];
+  const listen = relay.slice(relay.indexOf("e.data.tw === 'listen'"));
+  assert.equal(/querySelectorAll\('([^']+)'\)/.exec(listen)[1], BLOCKS, 'which elements are blocks');
+  assert.equal(/parentElement\.closest\('([^']+)'\)/.exec(listen)[1], INSIDE, 'which are read with the block around them');
 });

@@ -39,13 +39,13 @@ Upshot is a news digest for AI, security, infrastructure, software engineering a
 - **Only what matters.** A handful of stories on a big day, none on a slow one, each with a one-line summary.
 - **Exploited flaws flagged.** Flaws under active attack are tagged **Exploited**, with whether a patch is out; supply-chain attacks are tagged **Compromised**.
 - **Weekly essentials.** Five picks from the last seven days, each with what to do about it.
-- **Built-in reader.** Articles open in a clean pane that starts with the upshot: what happened, who's affected and what to do. Set them in a serif or a sans, from six typefaces.
+- **Built-in reader.** Articles open in a clean pane that starts with the upshot: what happened, who's affected and what to do. Set them in a serif or a sans, from six typefaces, or listen to one: each story is voiced after it's published.
 - **Read state, Read later and sync.** Read stories are dimmed (or hidden, if you'd rather), the reader's bookmark sets a story aside in Read later, and sync keeps both, and the theme and typeface, the same across your devices with a code. No account.
 - **Phone and desktop.** Install it as an app on a phone; `⌘K` search, `j`/`k` and `Space` to move through stories, and a full-screen reader on a desktop. Light, dark or the system's theme, and RSS feeds for every story, the essentials, and exploited flaws.
 
 ## How it works
 
-Every hour, a GitHub Actions job runs [`build.py`](build.py), which fetches the feeds in [`feeds.opml`](feeds.opml) and has Claude Haiku score and summarize each new story. The stories that clear the bar are committed to the repository as a small JSON file, and each article's text is stored in Cloudflare KV. A Cloudflare Worker serves the static front end and that stored text, so the reader never fetches from publishers. There's no server or database to look after; the [architecture overview](docs/architecture/overview.md) has a diagram and the details.
+Every hour, a GitHub Actions job runs [`build.py`](build.py), which fetches the feeds in [`feeds.opml`](feeds.opml) and has Claude Haiku score and summarize each new story. The stories that clear the bar are committed to the repository as a small JSON file, and each article's text is stored in Cloudflare KV. A Cloudflare Worker serves the static front end and that stored text, so the reader never fetches from publishers. After each build, a second job voices the new stories with Kokoro, an open text-to-speech model, and stores the audio in a public R2 bucket for Listen. There's no server or database to look after; the [architecture overview](docs/architecture/overview.md) has a diagram and the details.
 
 ## Running your own copy
 
@@ -70,6 +70,7 @@ This project was built using AI-assisted development with [Claude](https://claud
 
 - [watch.edebost.com](https://watch.edebost.com/) — the inspiration, design language and palette
 - [Mozilla Readability](https://github.com/mozilla/readability) and [linkedom](https://github.com/WebReflection/linkedom) — article extraction
+- [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) (Apache License 2.0) and [kokoro-onnx](https://github.com/thewh1teagle/kokoro-onnx) (MIT License) — Listen's voice
 - [feedparser](https://github.com/kurtmckee/feedparser) — making sense of every feed format there is
 - [Feedbin](https://github.com/feedbin/feedbin) — the reader's display options icon (MIT License, © 2013 Ben Ubois) and the layout of its typefaces
 - [Literata](https://github.com/googlefonts/literata) (TypeTogether) and [Atkinson Hyperlegible Next](https://github.com/googlefonts/atkinson-hyperlegible-next) (Braille Institute) — two of the article typefaces (SIL Open Font License 1.1)
