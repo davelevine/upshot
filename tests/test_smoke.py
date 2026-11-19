@@ -1269,6 +1269,12 @@ def test_reader_bar_after_feedbin(browser):
     assert pg.locator(".close-back").is_visible() and not pg.locator(".close-x").is_visible()
     assert pg.locator("#reader-original").count() == 0  # the title already links to the article
     assert pg.locator("#reader-icon").is_visible() and pg.locator("#reader-source").is_hidden()  # on a phone the icon alone says who
+    # The story's buttons: 44px targets that touch, as in a native toolbar, not 44px apart plus a gap.
+    btns = pg.evaluate("""[...document.querySelectorAll('.reader-bar .reader-spacer ~ * .icon-btn, .reader-bar .reader-spacer ~ .icon-btn')]
+      .filter(b => b.checkVisibility()).map(b => b.getBoundingClientRect()).sort((x, y) => x.left - y.left)
+      .map(r => [Math.round(r.left), Math.round(r.width)])""")
+    assert len(btns) >= 3 and {w for _, w in btns} == {44}, btns
+    assert [b[0] - a[0] for a, b in zip(btns, btns[1:])] == [44] * (len(btns) - 1), btns
     # Previous is off at the first story; next moves on, and back again.
     assert pg.locator("#reader-prev").is_disabled()
     before = pg.evaluate("location.pathname")
