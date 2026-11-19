@@ -122,6 +122,9 @@ function renderFilters() {
   syncReadAll();
   // The unread count in the tab, as mail and feed readers have it: it rises when a build lands while the tab is open.
   document.title = (unreadAll ? `(${unreadAll}) ` : '') + (filter === 'all' ? 'Upshot \u00b7 The week\u2019s tech news, minus the noise' : `${label(filter)} \u00b7 Upshot`);
+  // The same count on an installed app's icon, where the system draws one (Chrome and Edge on a computer); 0 clears it.
+  // Elsewhere it does nothing or refuses (iOS without notification permission, which Upshot doesn't ask for).
+  navigator.setAppBadge?.(unreadAll).catch(() => {});
   syncTopicUrl();
 }
 // The list showing is in the address (/?topic=security), so it can be bookmarked and reloaded into. A phone's topics page
