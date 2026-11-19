@@ -290,7 +290,15 @@
     "Affects OpenJDK 17.0.6 or newer and distributions built from it, on x86-64 CPUs with AVX-512 VBMI. ARM64 is not affected.",
     "Update immediately. OpenJDK released a security advisory and Oracle released a patch on Nov 17, 2026.",
     "Until patched, mitigate with -XX:-UseBASE64Intrinsics or -XX:UseAVX=2, on x86-64 hosts only."
-   ]
+   ],
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-19T09:18:15+00:00",
+    "kind": "flaw",
+    "quote": "Exploitation Attempts Begin",
+    "fix_read": true,
+    "fix": "patch"
+   }
   },
   {
    "date": "2026-11-17",
@@ -4697,7 +4705,7 @@
    }
   ]
  },
- "generated_at": "2026-11-19T08:18:22+00:00",
+ "generated_at": "2026-11-19T09:18:21+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
