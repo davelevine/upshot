@@ -334,3 +334,13 @@
 - When asked what's standard, search and cite sources before answering; name the products whose behavior couldn't be confirmed instead of filling in from memory.
 - When something shows up late, find when it first appeared upstream (the feed's git history, its `lastBuildDate`) before explaining or redesigning around it.
 - **Amended the same day:** the user picked arrival order and arrival-age stamps from a text preview, then rejected the built version on sight ("feels so odd"). For a change to how the main list looks or orders, put it in the preview on real data before writing tests and docs, and show that before asking for a final choice.
+
+## 2026-11-19 — Look for the infrastructure code before handing over dashboard steps
+
+**Mistake:** Wrangler's login couldn't manage R2 or the zone, so I wrote out eight Cloudflare dashboard steps for the audio bucket (bucket, domain, lifecycle, CORS, WAF and cache rules, billing alert, token scope). The user pointed out that `homelab-iac` manages Cloudflare as OpenTofu, and its rulesets own their phases, so dashboard rules would have been reverted on the next apply. Writing the setup as code there also found what the dashboard steps missed: the zone's generated WAF rules challenge non-US visitors on any host not skipped, which would have silently stopped `<audio>` outside the US.
+
+**Rules:**
+- Before giving the user manual steps for a cloud service, search their other repos (`~/downloads/github/`) for infrastructure code that manages it, and ask if none turns up. Change the code, not the dashboard.
+- When adding a host to a zone, read the zone's existing WAF, cache and redirect rules for what they'll do to it, not just the rules being added.
+
+**Also this day, unprompted:** I told the user the audio backfill would take "a few hours" without multiplying it out; it was about 16 runner-hours, and I corrected it after the run had started. A duration or cost estimate is arithmetic on real data (`data.json`, measured rates), done before it's stated, never a feel.
