@@ -2,6 +2,27 @@
  "items": [
   {
    "date": "2026-11-20",
+   "published": "2026-11-20T00:00:00+00:00",
+   "title": "GitLab Critical Patch Release: 19.6.1, 19.5.8, 19.4.10",
+   "url": "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-6-1-released/",
+   "publisher": "GitLab Security Releases",
+   "cves": [
+    "CVE-2026-132825"
+   ],
+   "category": "security",
+   "summary": "GitLab released patched versions 19.6.1, 19.5.8 and 19.4.10 with security and bug fixes, urging all self-managed installations to upgrade immediately.",
+   "relevance": 8,
+   "added": "2026-11-20T08:27:59+00:00",
+   "minutes": 3,
+   "tldr": [
+    "GitLab released critical patch versions 19.6.1, 19.5.8, and 19.4.10 on November 20, 2026, fixing security and bug issues.",
+    "CVE-2026-132825, a Ruby heap-based buffer overflow, affects self-managed GitLab CE/EE: all versions before 19.4.10, 19.5 before 19.5.8, 19.6 before 19.6.1.",
+    "Upgrade self-managed installs to 19.4.10, 19.5.8, or 19.6.1 immediately; self-compiled installs must rebuild Ruby with 3.3.14 or 3.4.13.",
+    "GitLab.com and GitLab Dedicated are already patched and need no action."
+   ]
+  },
+  {
+   "date": "2026-11-20",
    "published": "2026-11-20T05:30:01+00:00",
    "title": "New Unpatched Windows 0-Day FastUnlock Lets Someone Holding a Locked PC Run Programs on It",
    "url": "https://thehackernews.com/2026/11/new-unpatched-windows-0-day-fastunlock.html",
@@ -5007,7 +5028,7 @@
    }
   ]
  },
- "generated_at": "2026-11-20T07:28:07+00:00",
+ "generated_at": "2026-11-20T08:28:10+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
