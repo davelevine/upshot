@@ -23,6 +23,61 @@
   },
   {
    "date": "2026-11-20",
+   "published": "2026-11-20T10:57:43+00:00",
+   "title": "F5 releases emergency patches for critical BIG-IP RCE flaws",
+   "url": "https://www.bleepingcomputer.com/news/security/f5-releases-emergency-patches-for-critical-big-ip-rce-flaws/",
+   "publisher": "BleepingComputer",
+   "cves": [
+    "CVE-2026-120292",
+    "CVE-2026-121805"
+   ],
+   "category": "security",
+   "summary": "F5 released emergency patches for five critical BIG-IP vulnerabilities that can cause denial of service or remote code execution.",
+   "relevance": 8,
+   "added": "2026-11-20T11:27:44+00:00",
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-20T11:27:42+00:00",
+    "kind": "flaw",
+    "quote": "F5 releases emergency patches for critical BIG-IP RCE flaws",
+    "fix": "patch"
+   },
+   "minutes": 2,
+   "tldr": [
+    "F5 patched five critical BIG-IP flaws, including CVE-2026-121805 and CVE-2026-120292, enabling DoS or remote code execution by unauthenticated attackers.",
+    "Affected are BIG-IP Access Policy Manager (APM) and iRules on vulnerable configurations, where attacks can terminate TMM and execute code remotely.",
+    "Install the out-of-band hotfixes released Wednesday; F5 says it has no mitigations for these flaws. F5 has not flagged them as exploited."
+   ]
+  },
+  {
+   "date": "2026-11-20",
+   "published": "2026-11-20T10:32:50+00:00",
+   "title": "Hackers Exploit Critical Cisco Expressway Flaw, Breach Four Devices and Reach Internal Network",
+   "url": "https://thehackernews.com/2026/11/hackers-exploit-critical-cisco.html",
+   "publisher": "The Hacker News",
+   "cves": [
+    "CVE-2026-76466"
+   ],
+   "category": "security",
+   "summary": "Threat actors exploited a critical Cisco Expressway flaw (CVE-2026-76466, CVSS 9.8) shortly after PoC release, breaching a Russian organization and four devices.",
+   "relevance": 8,
+   "added": "2026-11-20T11:27:44+00:00",
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-20T11:27:42+00:00",
+    "kind": "flaw",
+    "quote": "Threat actors have been observed exploiting a recently disclosed critical security flaw in Cisco Expressway",
+    "fix": "patch"
+   },
+   "minutes": 2,
+   "tldr": [
+    "Threat actors exploited critical Cisco Expressway flaw CVE-2026-76466 (CVSS 9.8) shortly after a PoC exploit was released, breaching a Russian organization.",
+    "Attackers compromised four devices, two internet-facing and two internal cluster nodes, then moved laterally and accessed GitLab repositories to steal credentials.",
+    "Patches are available: migrate to a fixed release such as X15.5.20, audit for compromise, isolate affected systems, and block lateral movement vectors."
+   ]
+  },
+  {
+   "date": "2026-11-20",
    "published": "2026-11-20T05:30:01+00:00",
    "title": "New Unpatched Windows 0-Day FastUnlock Lets Someone Holding a Locked PC Run Programs on It",
    "url": "https://thehackernews.com/2026/11/new-unpatched-windows-0-day-fastunlock.html",
@@ -5028,7 +5083,7 @@
    }
   ]
  },
- "generated_at": "2026-11-20T10:27:55+00:00",
+ "generated_at": "2026-11-20T11:27:53+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
