@@ -1,6 +1,32 @@
 {
  "items": [
   {
+   "date": "2026-11-20",
+   "published": "2026-11-20T05:30:01+00:00",
+   "title": "New Unpatched Windows 0-Day FastUnlock Lets Someone Holding a Locked PC Run Programs on It",
+   "url": "https://thehackernews.com/2026/11/new-unpatched-windows-0-day-fastunlock.html",
+   "publisher": "The Hacker News",
+   "cves": [],
+   "category": "security",
+   "summary": "Researcher MSNightmare/Nightmare Eclipse published FastUnlock, an unpatched Windows zero-day letting someone with physical access run programs on a locked PC without signing in.",
+   "relevance": 7,
+   "added": "2026-11-20T06:12:54+00:00",
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-20T06:12:50+00:00",
+    "kind": "flaw",
+    "quote": "unpatched zero-day technique",
+    "fix": "none"
+   },
+   "minutes": 2,
+   "tldr": [
+    "FastUnlock, an unpatched Windows zero-day, lets someone with physical access start programs from a locked PC without signing in, in a limited account.",
+    "Affected: machines where an attacker has physical access and a Microsoft account is reachable through lock screen recovery, including common BitLocker setups.",
+    "No Microsoft fix exists yet; mitigate by adding a BitLocker startup PIN and shutting down or hibernating devices leaving your control.",
+    "A startup PIN does not protect a machine already sitting on the lock screen, so keep sensitive machines physically controlled."
+   ]
+  },
+  {
    "date": "2026-11-19",
    "published": "2026-11-19T14:00:00+00:00",
    "title": "ARMORY CASTLE Exploits vSphere",
@@ -4962,7 +4988,7 @@
    }
   ]
  },
- "generated_at": "2026-11-20T05:28:31+00:00",
+ "generated_at": "2026-11-20T06:13:19+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
