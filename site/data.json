@@ -124,6 +124,25 @@
   },
   {
    "date": "2026-11-20",
+   "published": "2026-11-20T08:00:00+00:00",
+   "title": "AI R&D-relevant model capabilities are improving rapidly and are getting harder to measure",
+   "url": "https://metr.org/blog/2026-11-20-q4-2026-capability-update/",
+   "publisher": "METR",
+   "cves": [],
+   "category": "ai",
+   "summary": "METR reports that AI models' capabilities relevant to AI R&D are improving quickly and becoming harder to measure.",
+   "relevance": 7,
+   "added": "2026-11-20T20:27:50+00:00",
+   "minutes": 129,
+   "tldr": [
+    "METR reports that public frontier models, up to Opus 5.5 and GPT-6 Astra, often match or outperform skilled humans on coding and optimization tasks.",
+    "Time horizons on the combined TH1.1 and TH2 suites double roughly every 3.6 months, and models perform worse on tasks METR estimates are costlier to build.",
+    "On tasks lacking clear empirical feedback, models show weaker judgment than human experts, according to METR.",
+    "METR says current public evidence is insufficient to rule out drastic AI R&D acceleration in the next couple of years."
+   ]
+  },
+  {
+   "date": "2026-11-20",
    "published": "2026-11-20T05:30:01+00:00",
    "title": "New Unpatched Windows 0-Day FastUnlock Lets Someone Holding a Locked PC Run Programs on It",
    "url": "https://thehackernews.com/2026/11/new-unpatched-windows-0-day-fastunlock.html",
@@ -279,7 +298,9 @@
    "title": "Ruby2ßhell: Pre-authentication RCE on stock Rails",
    "url": "https://verialabs.com/ruby2shell/",
    "publisher": "Hacker News 300+",
-   "cves": [],
+   "cves": [
+    "CVE-2026-132825"
+   ],
    "category": "security",
    "summary": "Researchers disclose a pre-authentication remote code execution flaw affecting stock Ruby on Rails installations.",
    "relevance": 8,
@@ -608,7 +629,12 @@
    "summary": "OpenAI published research measuring how coding agents accelerate AI research, where their performance is uneven, and implications for recursive self-improvement.",
    "relevance": 7,
    "added": "2026-11-19T00:18:24+00:00",
-   "minutes": 0
+   "minutes": 14,
+   "tldr": [
+    "OpenAI published an update on research acceleration, measuring how coding agents are changing its AI development cycle and how humans stay involved.",
+    "Median researcher agentic spend rose to about $2,400 per day at API list prices, and agent workdays per researcher rose elevenfold to 5.7, per the report.",
+    "The report says agents still have significant flaws, with lower success on tasks like building inference stacks (25%) and evaluation environments (29%), so human review remains necessary."
+   ]
   },
   {
    "date": "2026-11-18",
@@ -751,7 +777,13 @@
    "summary": "OpenAI introduced GPT-6.2 Astra and Sol, claiming better professional outputs, coding, computer use and lower-cost efficiency across ChatGPT Work, Codex and the API.",
    "relevance": 9,
    "added": "2026-11-17T18:18:26+00:00",
-   "minutes": 0
+   "minutes": 9,
+   "tldr": [
+    "OpenAI launched GPT-6.2 Astra for hardest projects and GPT-6.2 Sol for everyday work, both available today.",
+    "Plus, Pro, Enterprise, and Edu users get both in ChatGPT Work and Codex; developers can use gpt-6.2-astra and gpt-6.2-sol via the API.",
+    "To improve cache reuse on the API, keep prompt prefixes unchanged and append new instructions to the conversation.",
+    "Both meet the Critical cybersecurity threshold, so access comes with tighter safeguards that also restrict some legitimate security testing."
+   ]
   },
   {
    "date": "2026-11-17",
@@ -1223,7 +1255,13 @@
    "summary": "OpenAI began embedded assessments with Apollo Research, METR, Transluce and Goodfire to independently evaluate alignment, safeguards and monitoring systems.",
    "relevance": 7,
    "added": "2026-11-16T18:18:06+00:00",
-   "minutes": 0
+   "minutes": 7,
+   "tldr": [
+    "OpenAI has signed agreements with Apollo Research, METR, Transluce, and Goodfire for its first phase of embedded assessments.",
+    "Assessors receive access to internal resources, including model checkpoints, source code, training data, and monitoring systems, to evaluate alignment and safeguards.",
+    "Assessors handling sensitive information will work on site at OpenAI offices using OpenAI-provided devices, under Safety and Security Committee oversight.",
+    "Findings will be published, though OpenAI may redact confidential information and request responsible disclosure delays."
+   ]
   },
   {
    "date": "2026-11-16",
@@ -3000,8 +3038,14 @@
    "summary": "OpenAI describes Control Room, an internal system that tracks model workloads across its research infrastructure and can rapidly stop them over safety or security concerns.",
    "relevance": 6,
    "added": "2026-11-10T00:18:16+00:00",
-   "minutes": 0,
-   "cves": []
+   "minutes": 4,
+   "cves": [],
+   "tldr": [
+    "OpenAI built Control Room to track research model workloads and halt their output within 35 seconds of a stop or pause decision.",
+    "It covers every research inference workload, including agentic sampling for model training and evaluation, and is already deployed across research infrastructure.",
+    "Workloads must request a job_id from Control Room and pass it on every inference request; agentic inference needs an approved safety case.",
+    "Control Room fails closed: if the service goes down or is disabled, all inference requests are denied until it resumes."
+   ]
   },
   {
    "date": "2026-11-09",
@@ -3198,8 +3242,13 @@
    "summary": "OpenAI introduced GPT-6 Cyber, a model for finding exploitable vulnerabilities and developing fixes, trained to stay within authorized scope.",
    "relevance": 8,
    "added": "2026-11-06T13:34:32+00:00",
-   "minutes": 0,
-   "cves": []
+   "minutes": 9,
+   "cves": [],
+   "tldr": [
+    "Available initially through the API and Codex to approved Daybreak Red customers, with broader access to all Daybreak Red customers coming soon.",
+    "Mozilla has released fixes for many Firefox flaws found with the model, including 81 high-severity vulnerabilities.",
+    "New users and organizations can apply for Daybreak access to get started with the model's cyber skills, products, and partners."
+   ]
   },
   {
    "date": "2026-11-06",
@@ -3402,8 +3451,13 @@
    "category": "security",
    "summary": "OpenAI built an autonomous pipeline that found, validated and patched 948 Linux kernel local privilege-escalation vulnerabilities.",
    "relevance": 8,
-   "minutes": 0,
-   "cves": []
+   "minutes": 14,
+   "cves": [],
+   "tldr": [
+    "OpenAI's Cyber team's AI pipeline identified 2,308 candidate Linux kernel findings, reproduced 1,724, and produced 948 local privilege escalation exploits.",
+    "Affected: the Linux kernel. The exploits could let an unprivileged local user gain root access.",
+    "Action: Keep Linux systems updated, since 61 LPEs were already patched upstream when the scan finished after 10 days."
+   ]
   },
   {
    "date": "2026-11-04",
@@ -3475,8 +3529,12 @@
    "category": "ai",
    "summary": "OpenAI's Daybreak Red, built on GPT-5.6 Cyber, is now available to approved customers in AWS GovCloud (US-East) via Amazon Bedrock.",
    "relevance": 6,
-   "minutes": 0,
-   "cves": []
+   "minutes": 1,
+   "cves": [],
+   "tldr": [
+    "Government security teams can use the models within AWS environments through Amazon Bedrock. Inference data is not used to train models, and customers need not share Daybreak Red data with OpenAI.",
+    "Access requires Daybreak Red approval and AWS provisioning. Complete the Daybreak application or contact an OpenAI or AWS account team, then work with the AWS account team to enable access."
+   ]
   },
   {
    "date": "2026-11-04",
@@ -3486,8 +3544,12 @@
    "category": "ai",
    "summary": "OpenAI released Images 2.6, adding faster generation, GIF creation, more precise editing, and new API controls across ChatGPT, Codex, and the API.",
    "relevance": 6,
-   "minutes": 0,
-   "cves": []
+   "minutes": 4,
+   "cves": [],
+   "tldr": [
+    "OpenAI has launched Images 2.6 in ChatGPT, Codex, and the API, adding GIF creation and faster, more precise image editing.",
+    "API gains image markup, SVG exports, and a new complexity parameter; Images 2.6 is available globally in ChatGPT and Codex across all subscription tiers, with API pricing listed in the article."
+   ]
   },
   {
    "date": "2026-11-03",
@@ -3626,8 +3688,14 @@
    "category": "engineering",
    "summary": "OpenAI built Pando, a Git-compatible backend, to handle repository scale driven by Codex-assisted development.",
    "relevance": 7,
-   "minutes": 0,
-   "cves": []
+   "minutes": 22,
+   "cves": [],
+   "tldr": [
+    "OpenAI built Pando, a new Git repository backend that now serves all development in its monorepo, cutting median push latency nearly 5x.",
+    "Pando keeps the Git protocol and client compatible, scales concurrent pushes across branches, and delivers nearly a petabyte of Git data daily.",
+    "Its trade-off: reads across several branches may reflect different points in time, though updates to a single ref stay ordered.",
+    "OpenAI is contributing its Git client and packfile-uri improvements upstream and is exploring sharing Pando's technology with other users."
+   ]
   },
   {
    "date": "2026-11-02",
@@ -4054,8 +4122,13 @@
    "category": "ai",
    "summary": "OpenAI released GPT-6.1 Terra, a model for fast computer use at scale.",
    "relevance": 9,
-   "minutes": 0,
-   "cves": []
+   "minutes": 3,
+   "cves": [],
+   "tldr": [
+    "OpenAI released GPT-6.1 Terra, a fast, efficient model with stronger visual reasoning, computer use, and factuality than GPT-5.6 Terra.",
+    "Standard API pricing is $1 per million input tokens and $5 per million output tokens, 50% lower than GPT-5.6 Terra and GPT-6.1 Sol.",
+    "Available now to Plus, Pro, Enterprise, and Edu users in ChatGPT Work and Codex; developers can use gpt-6.1-terra via the OpenAI API."
+   ]
   },
   {
    "date": "2026-10-26",
@@ -4222,8 +4295,13 @@
    "category": "infrastructure",
    "summary": "OpenAI describes scaling its Habitat storage layer for over 1 billion ChatGPT users, using multi-tenancy, global caching, and Azure Cosmos DB for 12x faster reads.",
    "relevance": 7,
-   "minutes": 0,
-   "cves": []
+   "minutes": 17,
+   "cves": [],
+   "tldr": [
+    "OpenAI's Habitat storage platform, serving over 1 billion users in 40 regions, returned to one shared Azure Cosmos DB container by default.",
+    "Azure's fixes for shared tenancy include hot-key throttling, request-tier QoS, and a serverless mode allowing 10K RU/s per physical partition.",
+    "Global read p50 fell from roughly 120 ms to roughly 10 ms using cache invalidation via change data capture and a Rust proxy."
+   ]
   },
   {
    "date": "2026-10-23",
@@ -4416,8 +4494,13 @@
    "category": "ai",
    "summary": "OpenAI and Google Cloud are bringing OpenAI frontier models and Codex workflows to Gemini's Model Garden via Google Cloud Marketplace.",
    "relevance": 7,
-   "minutes": 0,
-   "cves": []
+   "minutes": 2,
+   "cves": [],
+   "tldr": [
+    "OpenAI and Google Cloud are partnering to bring OpenAI's frontier models and Codex into Google Cloud's Model Garden.",
+    "Google Cloud customers can purchase OpenAI frontier models through the Google Cloud Marketplace, and enterprises with GCP spend commitments can draw down those commitments for these purchases.",
+    "General availability is planned in the coming weeks; request access to OpenAI on Google Cloud through the link in the article."
+   ]
   },
   {
    "date": "2026-10-21",
@@ -5187,8 +5270,12 @@
    "category": "ai",
    "summary": "OpenAI is rolling out GPT-6 globally in ChatGPT with an Intelligent UI offering faster responses and interactive visual experiences.",
    "relevance": 10,
-   "minutes": 0,
-   "cves": []
+   "minutes": 5,
+   "cves": [],
+   "tldr": [
+    "Rolling out globally in the Chat tab: Plus, Pro, Business and Enterprise today, and Free and Go tomorrow.",
+    "Enterprise availability depends on workplace admin settings, so admins should check them to confirm access."
+   ]
   },
   {
    "date": "2026-10-07",
@@ -5226,7 +5313,7 @@
    }
   ]
  },
- "generated_at": "2026-11-20T19:28:25+00:00",
+ "generated_at": "2026-11-20T20:28:15+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
@@ -5269,6 +5356,7 @@
   "netflix-techblog",
   "noyb",
   "nvidia-blog",
+  "openai",
   "openai-alignment",
   "owasp-gen-ai-security-project",
   "railway",
