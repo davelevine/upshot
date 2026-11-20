@@ -10,6 +10,8 @@ import build
 
 def test_normalize_url_strips_tracking():
     assert build.normalize_url("https://Example.com/a?utm_source=x&id=1&ref=hn#top") == "https://example.com/a?id=1"
+    assert build.normalize_url("https://e.com/story?12345") != build.normalize_url("https://e.com/story?67890")
+    assert build.normalize_url("https://e.com/s?id=&x=a%20b&utm_medium=") == "https://e.com/s?id=&x=a%20b"
 
 
 def test_opml_parses():

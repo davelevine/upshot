@@ -75,7 +75,8 @@ def read_opml(path):
 
 def normalize_url(url):
     p = urllib.parse.urlsplit(url.strip())
-    query = urllib.parse.urlencode([(k, v) for k, v in urllib.parse.parse_qsl(p.query) if not TRACKING.match(k)])
+    # Kept as written, blank values and bare keys too: `?12345` and `?67890` are different stories.
+    query = "&".join(q for q in p.query.split("&") if q and not TRACKING.match(urllib.parse.unquote_plus(q.split("=")[0])))
     return urllib.parse.urlunsplit((p.scheme, p.netloc.lower(), p.path, query, ""))
 
 
