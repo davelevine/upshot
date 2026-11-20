@@ -242,8 +242,9 @@ function pickTheme(pick) {
   swapTheme(pick === 'auto' ? (systemDark.matches ? 'dark' : 'light') : pick);
   markTheme();
 }
-const markTheme = () => $('format-pop').querySelectorAll('[data-pick]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pick === (localStorage.getItem('theme') || 'auto'))));
+const markTheme = () => document.querySelectorAll('[data-pick]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pick === (localStorage.getItem('theme') || 'auto'))));
 markTheme();
+$('menu-themes').onclick = e => { const b = e.target.closest('[data-pick]'); if (b) { pickTheme(b.dataset.pick); notePref('theme'); } };  // the menu stays open, to see the change
 systemDark.addEventListener('change', () => { if (!localStorage.getItem('theme')) swapTheme(systemDark.matches ? 'dark' : 'light'); });
 $('filters').onclick = e => {
   const b = e.target.closest('.filter-btn');

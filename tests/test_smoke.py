@@ -201,7 +201,7 @@ def test_phone_menu(browser):
     assert pg.locator("#hide-read").is_hidden()
     assert pg.evaluate("document.documentElement.scrollWidth <= innerWidth")
     pg.tap("#menu-btn")
-    assert pg.locator("#menu a[href='/rss.xml']").is_hidden() and pg.locator("#theme").count() == 0, "the theme lives in the display options"
+    assert pg.locator("#menu a[href='/rss.xml']").is_hidden()
     pg.tap("#feeds summary")  # the feeds open in place, under their row
     feeds = pg.evaluate("[...document.querySelectorAll('#feeds a')].map(a => [a.getAttribute('href'), a.getBoundingClientRect().width])")
     assert [h for h, _ in feeds] == ["/rss.xml", "/essentials.xml", "/exploited.xml"] and all(w > 300 for _, w in feeds)
@@ -209,8 +209,9 @@ def test_phone_menu(browser):
     pg.locator("#hide-read").wait_for(state="hidden")  # after the closing fade
     # Tapping away closes the menu without opening the article underneath.
     pg.tap("#menu-btn")  # before measuring: playwright's tap may scroll the page to reach the button
-    x, y = pg.evaluate("""() => { const r = [...document.querySelectorAll('a.card')].map(c => c.getBoundingClientRect())
-        .find(r => r.bottom > 340 && r.top < innerHeight - 40); return [r.left + r.width / 2, Math.max(r.top, 300) + 20]; }""")  # below the drawer
+    x, y = pg.evaluate("""() => { const below = document.getElementById('menu').getBoundingClientRect().bottom + 20;
+        const r = [...document.querySelectorAll('a.card')].map(c => c.getBoundingClientRect())
+        .find(r => r.bottom > below + 20 && r.top < innerHeight - 40); return [r.left + r.width / 2, Math.max(r.top, below) + 20]; }""")  # below the drawer
     assert pg.evaluate("document.getElementById('menu').getBoundingClientRect().width") == 320  # full width
     pg.wait_for_function("() => !document.getElementById('menu').getAnimations().length")  # the drawer has finished opening
     pg.touchscreen.tap(x, y)
@@ -1086,7 +1087,7 @@ def test_the_format_menu_picks_light_dark_or_the_systems_theme(browser):
     assert pick("auto").get_attribute("aria-pressed") == "true" and theme() == "light", "nothing chosen: the system's"
     heads = pg.evaluate("[...document.querySelectorAll('#format-pop .fmt-head')].map(h => [h.textContent, h.nextElementSibling.className.split(' ')[0]])")
     assert heads == [["Theme", "fmt-themes"], ["Typeface", "fmt-fonts"], ["Text size", "format-sizes"], ["Display", "fmt-row"]], "each section labeled, the theme at the top"
-    assert pg.locator(".fmt-themes button").all_inner_texts() == ["Auto", "Light", "Dark"], "each swatch captioned"
+    assert pg.locator("#format-pop .fmt-themes button").all_inner_texts() == ["Auto", "Light", "Dark"], "each swatch captioned"
     pick("dark").click()
     assert until(pg, "document.documentElement.dataset.theme === 'dark'"), "the swap lands in a view transition, a frame later"
     assert pick("dark").get_attribute("aria-pressed") == "true" and pg.evaluate("localStorage.getItem('theme')") == "dark"
@@ -1098,6 +1099,19 @@ def test_the_format_menu_picks_light_dark_or_the_systems_theme(browser):
     pick("light").click()  # a chosen theme holds, whatever the system says
     assert until(pg, "document.documentElement.dataset.theme === 'light'") and pick("light").get_attribute("aria-pressed") == "true"
     assert pg.problems == []
+
+
+def test_a_phones_menu_picks_the_theme_with_no_story_open(browser):
+    pg = open_site(browser, viewport={"width": 390, "height": 844}, has_touch=True, is_mobile=True, color_scheme="light")
+    pick = lambda where, t: pg.locator(f"{where} [data-pick='{t}']")
+    pg.tap("#menu-btn")
+    assert pg.locator("#menu-themes").all_inner_texts() == ["Auto\nLight\nDark"] and pick("#menu", "auto").get_attribute("aria-pressed") == "true"
+    pick("#menu", "dark").tap()
+    assert until(pg, "document.documentElement.dataset.theme === 'dark'") and pg.evaluate("localStorage.getItem('theme')") == "dark"
+    assert pg.locator("#menu").is_visible(), "it stays open, to see the change"
+    assert pick("#format-pop", "dark").get_attribute("aria-pressed") == "true", "the display options agree"
+    pg.set_viewport_size({"width": 1300, "height": 900})
+    assert pg.locator("#menu-themes").is_hidden(), "wider, the display options are always in reach"
     assert pg.problems == []
 
 
@@ -1143,7 +1157,7 @@ def test_hide_read_stories_from_the_menu(browser):
     pg.click("#menu-btn")
     switch = pg.locator("#hide-read")
     assert switch.get_attribute("role") == "switch" and switch.get_attribute("aria-checked") == "false"
-    assert pg.evaluate("document.getElementById('menu').firstElementChild.id") == "hide-read"
+    assert pg.locator("#menu > :visible").first.get_attribute("id") == "hide-read", "first, with the theme a phone's alone"
     switch.click()
     assert switch.get_attribute("aria-checked") == "true" and pg.inner_text("#status") == "Read stories hidden"
     pg.keyboard.press("Escape")
