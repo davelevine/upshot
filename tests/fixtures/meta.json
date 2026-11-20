@@ -34,6 +34,13 @@
   "contentType": "text/html; charset=utf-8",
   "mitigated": null
  },
+ "Ars Technica Tech Policy": {
+  "file": "ars-technica-tech-policy.html",
+  "url": "https://arstechnica.com/tech-policy/2026/11/amazon-takes-its-fight-against-nyc-delivery-bill-to-shoppers-with-in-app-pop-up/",
+  "status": 200,
+  "contentType": "text/html; charset=UTF-8",
+  "mitigated": null
+ },
  "Ars Technica": {
   "file": "ars-technica.html",
   "url": "https://arstechnica.com/security/2026/10/code-execution-flaw-in-uefi-firmware-threatens-most-servers-on-planet-earth/",
@@ -100,6 +107,13 @@
  "DoublePulsar": {
   "file": "doublepulsar.html",
   "url": "https://doublepulsar.com/anthropic-hacked-to-deliver-remote-access-trojan-to-claude-developer-laptops-worldwide-1148a92baae2?gi=09d4f1bc0ec9&source=rss----8343faddf0ec---4",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "EFF": {
+  "file": "eff.html",
+  "url": "https://www.eff.org/deeplinks/2026/11/outage-chaos-who-turned-all-computer",
   "status": 200,
   "contentType": "text/html; charset=utf-8",
   "mitigated": null
@@ -380,6 +394,13 @@
  "Tailscale": {
   "file": "tailscale.html",
   "url": "https://tailscale.com/blog/100x-more-programmers",
+  "status": 200,
+  "contentType": "text/html; charset=utf-8",
+  "mitigated": null
+ },
+ "Tech Policy Press": {
+  "file": "tech-policy-press.html",
+  "url": "https://www.techpolicy.press/no-bailout-for-the-ai-bubble-anthropic-ipo-protesters-say/",
   "status": 200,
   "contentType": "text/html; charset=utf-8",
   "mitigated": null
