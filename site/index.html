@@ -299,7 +299,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   .exploited .patch-out { padding: 0; color: var(--accent); font-weight: 600; }  /* the good news, in the accent, as Essential is */
   .exploited .mitigation { padding: 0; color: var(--text-muted); font-weight: 500; }  /* a workaround only: no color, no alarm */
   .exploited :is(.patch-out, .mitigation)::before { content: "·"; margin-right: 6px; color: var(--text-muted); }  /* the same space each side as the gap before it */
-  .f-open { flex: none; color: var(--exploited-ink); font-size: .75rem; font-weight: 600; }  /* exploited flaws with no fix yet */
+  .f-open { flex: none; color: var(--exploited-ink); font-size: .75rem; font-weight: 600; word-spacing: .15em; }  /* exploited flaws with no fix yet; Söhne's space is tight at this size, so "1 unpatched" ran together */
   .skeleton { pointer-events: none; animation: skeleton-in .2s ease .4s both; }  /* held back: a normal load lands first, and a flash of placeholders is just noise */
   @keyframes skeleton-in { from { opacity: 0; } }
   .skeleton .bone { display: block; height: .8em; border-radius: 6px; background: var(--border); animation: pulse 1.4s ease-in-out infinite; }
