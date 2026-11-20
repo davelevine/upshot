@@ -15,10 +15,9 @@ const USER = /^[A-Za-z0-9_-]{22}$/, TOKEN = /^[A-Za-z0-9_-]{43}$/;
 // longest is under 200 characters. Both bound what one request can make the Durable Object write and store.
 const MAX_BODY = 128 * 1024, MAX_BATCH = 300, MAX_URL = 512;
 // Rate limited per address. AUTH_LIMIT: what a script could guess at or pile up, new readers and codes entered.
-// SYNC_LIMIT, looser: syncs and live connections, which a few devices behind one home address make in bursts, but which a
-// script could otherwise send without end. Not the rest, such as the device list the "Add a device" view checks every few
-// seconds.
-const LIMITS = { start: 'AUTH_LIMIT', 'link/finish': 'AUTH_LIMIT', sync: 'SYNC_LIMIT', live: 'SYNC_LIMIT' };
+// SYNC_LIMIT, looser: every other route, which a few devices behind one home address call in bursts. Any of them with a
+// made-up cookie reaches (and creates) a Durable Object, so none can go unlimited.
+const LIMITS = { start: 'AUTH_LIMIT', 'link/finish': 'AUTH_LIMIT' };
 
 const CODE_CHARS = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 // What a reader types: any case, with or without the dash, O for 0 and I or L for 1.
@@ -200,7 +199,7 @@ export async function account(request, env) {
   // everything) and tests would otherwise share one key and trip a limit meant for one person; Cloudflare never reports a
   // loopback address for a real visitor, so those, and requests with none, aren't limited.
   const ip = request.headers.get('CF-Connecting-IP');
-  const limit = Object.hasOwn(LIMITS, name) && env[LIMITS[name]];
+  const limit = env[Object.hasOwn(LIMITS, name) ? LIMITS[name] : 'SYNC_LIMIT'];
   if (limit && ip && !/^(127\.|::1$)/.test(ip)) {
     const { success } = await limit.limit({ key: ip });
     if (!success) return fail(429, 'too many requests');

@@ -100,8 +100,10 @@ test('the auth rate limit answers 429 per address', async () => {
   assert.equal((await worker.fetch(new Request(ORIGIN + '/api/auth/live', { headers: { ...signed, Upgrade: 'websocket' } }), both)).status, 429);
   assert.equal((await worker.fetch(new Request(ORIGIN + '/api/auth/sync', { method: 'POST', headers: signed, body: '{}' }), both)).status, 404);
   assert.deepEqual(sync, ['203.0.113.9', '203.0.113.9']);
-  // Signed-in, routine calls aren't limited either.
-  assert.equal((await worker.fetch(new Request(ORIGIN + '/api/auth/me', { headers: { 'CF-Connecting-IP': '203.0.113.9' } }), limited)).status, 200);
+  // So does every other route: a made-up cookie would otherwise reach a Durable Object without limit.
+  assert.equal((await worker.fetch(new Request(ORIGIN + '/api/auth/me', { headers: signed }), both)).status, 429);
+  assert.equal((await worker.fetch(new Request(ORIGIN + '/api/auth/link/start', { method: 'POST', headers: signed, body: '{}' }), both)).status, 429);
+  assert.deepEqual(sync, ['203.0.113.9', '203.0.113.9', '203.0.113.9', '203.0.113.9']);
   assert.deepEqual(seen, ['203.0.113.9']);
 });
 

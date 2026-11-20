@@ -14,8 +14,8 @@
   },
   // SQLite-backed, the only kind the Free plan allows.
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Reader", "Codes"] }],
-  // Per address (account.js, LIMITS). New readers and codes entered: plenty for a person, little for a script. Syncs and
-  // live connections: a page syncs at most every few seconds while marking stories, plus once per change from another
+  // Per address (account.js, LIMITS). New readers and codes entered: plenty for a person, little for a script. The rest,
+  // mostly syncs and live connections: a page syncs at most every few seconds while marking stories, plus once per change from another
   // device, so this leaves room for a household's devices behind one address.
   "ratelimits": [
     { "name": "AUTH_LIMIT", "namespace_id": "1001", "simple": { "limit": 30, "period": 60 } },
