@@ -7,6 +7,7 @@
     <outline type="rss" text="Anthropic Red Team" xmlUrl="https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_red.xml"/>
     <outline type="rss" text="Anthropic Research" xmlUrl="https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_anthropic_research.xml"/>
     <outline type="rss" text="Ars Technica" xmlUrl="https://feeds.arstechnica.com/arstechnica/technology-lab"/>
+    <outline type="rss" text="Ars Technica Tech Policy" xmlUrl="https://feeds.arstechnica.com/arstechnica/tech-policy"/>
     <outline type="rss" text="AWS Security Blog" xmlUrl="https://aws.amazon.com/blogs/security/feed/"/>
     <outline type="rss" text="BleepingComputer" xmlUrl="https://www.bleepingcomputer.com/feed/"/>
     <outline type="rss" text="Claude Blog" xmlUrl="https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_claude.xml"/>
@@ -17,6 +18,7 @@
     <outline type="rss" text="Cursor" xmlUrl="https://raw.githubusercontent.com/Olshansk/rss-feeds/main/feeds/feed_cursor.xml"/>
     <outline type="rss" text="Docker" xmlUrl="https://www.docker.com/feed/"/>
     <outline type="rss" text="DoublePulsar" xmlUrl="https://doublepulsar.com/feed"/>
+    <outline type="rss" text="EFF" xmlUrl="https://www.eff.org/rss/updates.xml"/>
     <outline type="rss" text="ElevenLabs" xmlUrl="https://elevenlabs.io/blog/rss.xml"/>
     <outline type="rss" text="Epoch AI" xmlUrl="https://epoch.ai/atom.xml"/>
     <outline type="rss" text="Figma" xmlUrl="https://www.figma.com/blog/feed/atom.xml"/>
@@ -58,6 +60,7 @@
     <outline type="rss" text="Simon Willison" xmlUrl="https://simonwillison.net/atom/everything/"/>
     <outline type="rss" text="Socket" xmlUrl="https://socket.dev/api/blog/feed.atom"/>
     <outline type="rss" text="Tailscale" xmlUrl="https://tailscale.com/blog/index.xml"/>
+    <outline type="rss" text="Tech Policy Press" xmlUrl="https://techpolicy.press/rss/feed.xml"/>
     <outline type="rss" text="The GitHub Blog" xmlUrl="https://github.blog/feed/"/>
     <outline type="rss" text="The Hacker News" xmlUrl="https://feeds.feedburner.com/TheHackersNews"/>
     <outline type="rss" text="The Record" xmlUrl="https://therecord.media/feed"/>

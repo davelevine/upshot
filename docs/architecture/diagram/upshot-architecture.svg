@@ -335,8 +335,8 @@ rect.c-bg-rect { fill: var(--bg); }
         <path data-edge-from="page" data-edge-to="storage" data-edge-label="read state" data-edge-key="15" data-edge-id="page-storage" data-composition-points="550,652;470,652" d="M 550 652 L 470 652" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
 
         <!-- Components -->
-        <g id="node-feeds" data-node-id="feeds" data-node-label="Publisher feeds" tabindex="0" role="button" aria-label="Focus Publisher feeds, 67 feeds · feeds.opml, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="67 feeds · feeds.opml" data-node-context="Architecture component">
-          <title>Publisher feeds · 67 feeds · feeds.opml · Architecture component</title>
+        <g id="node-feeds" data-node-id="feeds" data-node-label="Publisher feeds" tabindex="0" role="button" aria-label="Focus Publisher feeds, 70 feeds · feeds.opml, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="70 feeds · feeds.opml" data-node-context="Architecture component">
+          <title>Publisher feeds · 70 feeds · feeds.opml · Architecture component</title>
           <rect x="550" y="60" width="175" height="64" rx="6" class="c-mask"/>
           <rect x="550" y="60" width="175" height="64" rx="6" class="c-external" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(556 66) scale(0.6875)">
@@ -344,7 +344,7 @@ rect.c-bg-rect { fill: var(--bg); }
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
           <text data-node-label="" x="637.5" y="90" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Publisher feeds</text>
-        <text x="637.5" y="106" class="t-muted" font-size="9" text-anchor="middle">67 feeds · feeds.opml</text>
+        <text x="637.5" y="106" class="t-muted" font-size="9" text-anchor="middle">70 feeds · feeds.opml</text>
         </g>
 
         <g id="node-cisa" data-node-id="cisa" data-node-label="CISA KEV" tabindex="0" role="button" aria-label="Focus CISA KEV, exploited CVEs, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="exploited CVEs" data-node-context="Architecture component">

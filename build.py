@@ -36,7 +36,7 @@ FRESH_DAYS = int(os.environ.get("FRESH_DAYS", 3))  # ignore feed entries publish
 PER_FEED = int(os.environ.get("PER_FEED", 10))     # newest N entries per feed per run (caps huge feeds)
 # The one rule: a story is published if it clears its category's bar and isn't a repeat. The bars differ only to
 # calibrate for how Haiku scores: plenty of security stories get an 8, a strong infrastructure or engineering piece a 6.
-MIN_RELEVANCE = {"ai": 7, "security": 8, "infrastructure": 6, "engineering": 6, "regulation": 8, "other": 7}
+MIN_RELEVANCE = {"ai": 7, "security": 8, "infrastructure": 6, "engineering": 6, "regulation": 7, "other": 7}
 # Report on stories first published elsewhere: the original source wins ties and replaces their copy of a repeat.
 NEWS_SOURCES = {"Ars Technica", "BleepingComputer", "InfoQ", "SecurityWeek", "The Hacker News", "The Record"}
 DEDUPE_DAYS = 7       # new items are checked for repeats of the last N days' headlines

@@ -93,11 +93,35 @@ function parsePage(html) {
 const parseArticle = html => new Readability(parsePage(html)).parse();
 const usable = a => a?.content && (a.textContent || '').trim().length >= MIN_TEXT && linkShare(a.content) < MAX_LINK_SHARE;
 
+// Some sites split one article into several containers of the same class, with ad slots between them. A long article
+// lifts their shared ancestor and Readability keeps it all; a short one has too little to lift it, so Readability keeps
+// the first container and drops the rest. When what it found is one of a set of such containers, each holding prose,
+// and it lacks the others, join them and parse again.
+const MIN_BLOCK_PROSE = 2;
+function joinSplitBody(html, article) {
+  const document = parsePage(html), found = (article.textContent || '').replace(/\s+/g, ' ');
+  const sets = new Map();
+  for (const el of document.querySelectorAll('[class]')) {
+    if ([...el.children].filter(isProse).length < MIN_BLOCK_PROSE) continue;
+    const key = `${el.tagName}.${el.className}`;
+    sets.set(key, [...(sets.get(key) || []), el]);
+  }
+  for (const blocks of sets.values()) {
+    const has = blocks.map(b => found.includes(textOf([...b.children].find(isProse))));
+    if (blocks.length < 2 || !has.includes(true) || !has.includes(false) || blocks.some(b => blocks.some(o => o !== b && o.contains(b)))) continue;
+    const [first, ...rest] = blocks;
+    for (const b of rest) { while (b.firstChild) first.appendChild(b.firstChild); b.remove(); }
+    const joined = new Readability(document).parse();
+    return usable(joined) && joined.textContent.length > article.textContent.length ? joined : article;
+  }
+  return article;
+}
+
 // The article in a page, or null. Readability sometimes scores a "related posts" list above the story, so if what it
 // found is mostly links, take the page's link-heavy lists out and try once more.
 export function extract(html) {
   const article = parseArticle(html);
-  if (usable(article)) return article;
+  if (usable(article)) return joinSplitBody(html, article);
   const document = parsePage(html);
   for (const list of [...document.querySelectorAll('ul, ol')]) {
     if (list.querySelector('a') && linkShare(list.innerHTML) >= MAX_LINK_SHARE) list.remove();

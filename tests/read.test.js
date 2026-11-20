@@ -316,6 +316,19 @@ test('extract keeps the story when a related-posts list outscores it', () => {
   assert.doesNotMatch(a.textContent, /Read now/);
 });
 
+test('extract joins a short article split into same-class blocks around an ad, and leaves alike blocks it already has', () => {
+  const para = k => `<p>Paragraph ${k} of the article, with some commas, a clause or two, and enough words to read as prose.</p>`;
+  // The outer wrappers differ, as on the page this comes from: Readability already joins siblings that share a class.
+  const block = (from, n, wrap = 'my') => `<div class="${wrap}"><div class="col"><div class="post-content">${Array.from({ length: n }, (_, k) => para(from + k)).join('')}</div></div></div>`;
+  const ad = '<div class="ad-wrapper"><div class="ad"></div></div>';
+  const page = body => `<html><head><title>T</title></head><body><main><article>${body}</article></main></body></html>`;
+  const a = extract(page(block(1, 7) + ad + block(8, 4, 'mt')));
+  for (const k of [1, 7, 8, 11]) assert.match(a.textContent, new RegExp(`Paragraph ${k} of`));
+  assert.ok(a.textContent.indexOf('Paragraph 7 of') < a.textContent.indexOf('Paragraph 8 of'), 'in page order');
+  const whole = extract(page(block(1, 6) + ad + block(7, 6) + ad + block(13, 6, 'mt')));
+  assert.equal(whole.textContent.match(/Paragraph \d+ of/g).length, 18, 'nothing repeated when all blocks were already kept');
+});
+
 test('extract leaves alone a short post with a few links, and gives up on a page of only links', () => {
   const post = `<article><p>${'A short post, but a real one, with a sentence or two. '.repeat(14)}<a href="/x">one link</a></p></article>`;
   assert.match(extract(`<html><head><title>T</title></head><body>${post}</body></html>`).textContent, /one link/);
