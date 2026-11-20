@@ -151,7 +151,13 @@
    "category": "ai",
    "summary": "Thinking Machines announced Inkling 2 Mini, a new model, in a company news post.",
    "relevance": 7,
-   "added": "2026-11-20T22:27:57+00:00"
+   "added": "2026-11-20T22:27:57+00:00",
+   "minutes": 22,
+   "tldr": [
+    "Inkling 2 Mini, an open-weights looped transformer with 26.4B total parameters, is released and runs in about 20GB on laptops and desktop AI computers.",
+    "It leads open-weights models under 100B total parameters on DeepSWE v1.1 (48.2%) and Vals Index v2.2 (46.5%), and runs faster than similarly performing models.",
+    "Weights are available on Hugging Face, with inference via Ollama, vLLM, SGLang and others, and on Tinker for inference and fine-tuning."
+   ]
   },
   {
    "date": "2026-11-20",
@@ -5325,7 +5331,7 @@
    }
   ]
  },
- "generated_at": "2026-11-20T22:28:04+00:00",
+ "generated_at": "2026-11-20T22:33:47+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
