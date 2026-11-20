@@ -72,14 +72,9 @@ function withNonce(res) {
 const slugBase = t => t.toLowerCase().normalize('NFKD').replace(/[̀-ͯ'’]/g, '').replace(/[^a-z0-9]+/g, ' ')
   .trim().split(' ').slice(0, 8).join('-').slice(0, 60).replace(/-+$/, '');
 const shortHash = s => { let h = 5381; for (const c of s) h = (h * 33 + c.charCodeAt(0)) >>> 0; return h.toString(36).slice(0, 5); };
-export function storyFor(items, slug) {
-  const count = new Map();
-  for (const i of items) count.set(slugBase(i.title), (count.get(slugBase(i.title)) || 0) + 1);
-  return items.find(i => {
-    const base = slugBase(i.title);
-    return (base && count.get(base) === 1 ? base : [base, shortHash(i.url)].filter(Boolean).join('-')) === slug;
-  });
-}
+// app.js's storyBySlug: a link with a hash, or the earliest story with the headline's words.
+export const storyFor = (items, slug) => items.find(i => [slugBase(i.title), shortHash(i.url)].filter(Boolean).join('-') === slug)
+  ?? items.filter(i => slugBase(i.title) === slug).sort((a, b) => Date.parse(a.published || a.date) - Date.parse(b.published || b.date))[0];
 async function storyPage(request, env, res) {
   const url = new URL(request.url);
   let slug;

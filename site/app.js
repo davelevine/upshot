@@ -300,13 +300,16 @@ $('top').onclick = $('bar-top').onclick = () => scroller().scrollTo({ top: 0, be
 
 // Read state lives in this browser, and with sync on (below) in the reader's other browsers too, first-visit cutoff included.
 let weekly = null;
-const readSet = new Set(JSON.parse(localStorage.getItem('read') || '[]'));
+// What a key holds, or `d` if it holds nothing, or anything unreadable (an extension, a truncated write) rather than a blank page.
+const stored = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+const storedList = k => { const v = stored(k, []); return Array.isArray(v) ? v : []; };
+const readSet = new Set(storedList('read'));
 // A first visit starts with only the last day unread, as a feed reader does with a new subscription: older stories count as
 // read. After that, anything added since counts. The week's essentials always count. `kept`: older stories marked unread by hand, which the cutoff would hide.
 const FRESH_MS = 864e5, FRESH_MIN = 5;  // the last day, or the newest five after a quiet stretch
 const arrived = i => Date.parse(i.added || i.published || i.date);
 let since = localStorage.getItem('since');
-const kept = new Set(JSON.parse(localStorage.getItem('kept') || '[]'));
+const kept = new Set(storedList('kept'));
 const saveKept = () => localStorage.setItem('kept', JSON.stringify([...kept]));
 const older = url => { const i = items.find(x => x.url === url); return !i || arrived(i) <= Date.parse(since); };
 const isRead = url => readSet.has(url) || (older(url) && !kept.has(url) && !picks.has(url));  // essentials stay unread until opened
@@ -331,7 +334,6 @@ function pruneRead() {
 // this script's reach; `upshot_sync=1` beside it says whether to ask at all, so a browser that cleared its storage (Safari
 // does after a week away) finds itself still syncing and gets its read list back, and other visitors cost no request.
 const SYNC_DELAY = 3000, SYNC_BATCH = 300;  // a batch stays well under the server's size limit
-const stored = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
 let syncOn, marks, pending, cursor, takeSince, pushTimer, syncGen = 0, syncNotice = '';
 // Read later: stories set aside, {url: [saved, when]}, kept with or without sync, and leaving with the story itself. With
 // sync on, unsaving keeps [0, when] so it reaches the other devices; `laterPending` is what this device hasn't sent.
@@ -351,10 +353,10 @@ const PREFS = {
 // over another tab's newer marks, or its unsent ones. Finding sync turned on or off that way, it acts on it here.
 const loadSync = () => {
   const was = syncOn;
-  syncOn = !!localStorage.getItem('syncOn'); marks = stored('marks', {}); pending = new Set(stored('syncPending', []));
+  syncOn = !!localStorage.getItem('syncOn'); marks = stored('marks', {}); pending = new Set(storedList('syncPending'));
   cursor = +localStorage.getItem('syncCursor') || 0; takeSince = !!localStorage.getItem('syncTakeSince');
-  later = stored('later', {}); laterPending = new Set(stored('laterPending', []));
-  prefAt = stored('prefAt', {}); prefsPending = new Set(stored('prefsPending', []));
+  later = stored('later', {}); laterPending = new Set(storedList('laterPending'));
+  prefAt = stored('prefAt', {}); prefsPending = new Set(storedList('prefsPending'));
   if (was === undefined || syncOn === was) return;  // undefined: loading the page
   syncOn ? setTimeout(connectLive) : disconnectLive();  // later: this may be partway through a sync
   if ($('sync').open && syncViewName !== 'code') renderSync();
@@ -384,8 +386,8 @@ addEventListener('storage', e => {
   if (!['syncOn', 'marks', 'syncPending', 'syncCursor', 'syncTakeSince', 'since', 'read', 'kept', 'later', 'laterPending', 'prefAt', 'prefsPending'].includes(e.key)) return;
   loadSync();
   since = localStorage.getItem('since');
-  readSet.clear(); for (const u of stored('read', [])) readSet.add(u);
-  kept.clear(); for (const u of stored('kept', [])) kept.add(u);
+  readSet.clear(); for (const u of storedList('read')) readSet.add(u);
+  kept.clear(); for (const u of storedList('kept')) kept.add(u);
   showSync();
   if (items.length) { renderFilters(); refreshRead(); }
   if (readerFor) syncLater();
@@ -729,7 +731,7 @@ async function joinWithCode() {
   if (!res) { failed(status === 401 ? 0 : status, 'reach Upshot'); return $('sync-code').focus(); }
   if (!res.ok) { sayErr('That sync code didn\u2019t work. Each one works once, for ten minutes.'); return $('sync-code').focus(); }
   $('sync-code').value = '';
-  signedIn(true);  // which connects, syncing first
+  if (!res.already) signedIn(true);  // which connects, syncing first; a code for the sync this device is in changes nothing
   $('sync').close();
   $('status').textContent = 'Syncing on this device';
 }
@@ -878,7 +880,7 @@ const RATES = [1, 1.25, 1.5, 2];
 let listenRate = RATES.includes(+localStorage.getItem('listenRate')) ? +localStorage.getItem('listenRate') : 1;
 let audioBase = null, voiced = new Set();  // the bucket, and the stories in its index
 let heard = null;   // the open story's audio, once its timings are in: { url, src, meta: { d, t, n, full } }
-let listen = null;  // while it plays: { url, blocks, marks: whether the frame's blocks are the ones timed, at: the block playing }
+let listen = null;  // while it plays: { url, meta: its timings, kept with it (heard moves on as the next story opens), blocks, marks: whether the frame's blocks are the ones timed, at: the block playing }
 const player = new Audio();
 player.preload = 'none';
 const audioKey = async url => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(url)))].map(b => b.toString(16).padStart(2, '0')).join('');  // worker.js keyFor
@@ -914,7 +916,7 @@ function toggleListen() {
   player.currentTime = 0;
   player.playbackRate = listenRate;
   player.play().catch(() => drawListen());  // in the tap itself, which Safari requires; refused, the bar offers Play
-  listen = { url: heard.url, blocks: [], marks: false, at: -1 };
+  listen = { url: heard.url, meta: heard.meta, blocks: [], marks: false, at: -1 };
   frameNow()?.postMessage({ tw: 'listen' }, '*');  // the frame answers with its blocks (sayable)
   setMediaSession();
   drawListen();
@@ -923,14 +925,14 @@ function toggleListen() {
 // the upshot, so its page holds more blocks than were timed.
 function heardBlocks(blocks) {
   if (!listen || !Array.isArray(blocks)) return;
-  const { n, full } = heard.meta;
+  const { n, full } = listen.meta;
   listen.blocks = blocks;
   listen.marks = full ? blocks.length === n : blocks.length >= n;
   listen.at = -1;
   followAudio();
 }
 function blockAt(time) {
-  const t = heard.meta.t;
+  const t = listen.meta.t;
   let n = 0;
   while (n + 1 < t.length && t[n + 1] <= time + 0.05) n++;
   return n;
@@ -945,9 +947,9 @@ function followAudio() {
 }
 function seekBlock(n) {
   if (!listen) return;
-  const t = heard.meta.t;
+  const t = listen.meta.t;
   if (listen.marks) player.currentTime = t[Math.max(0, Math.min(t.length - 1, n))];
-  else player.currentTime = Math.max(0, Math.min(heard.meta.d, player.currentTime + (n < listen.at ? -15 : 15)));  // no marks: 15 seconds a step
+  else player.currentTime = Math.max(0, Math.min(listen.meta.d, player.currentTime + (n < listen.at ? -15 : 15)));  // no marks: 15 seconds a step
   if (player.paused) player.play().catch(() => {});
   followAudio();
 }
@@ -962,7 +964,7 @@ function stopListening() {
 }
 function setMediaSession() {
   if (!('mediaSession' in navigator)) return;
-  const i = items.find(x => x.url === heard.url);
+  const i = items.find(x => x.url === listen.url);
   navigator.mediaSession.metadata = new MediaMetadata({ title: i?.title || '', artist: i ? source(i) : '', album: 'Upshot',
     artwork: [{ src: new URL('/icon-512.png', location.href).href, sizes: '512x512', type: 'image/png' }] });
   const on = (action, fn) => { try { navigator.mediaSession.setActionHandler(action, fn); } catch {} };  // an action the browser doesn't know
@@ -970,7 +972,7 @@ function setMediaSession() {
   on('pause', () => player.pause());
   on('stop', stopListening);
   on('seekbackward', () => { player.currentTime = Math.max(0, player.currentTime - 15); });
-  on('seekforward', () => { player.currentTime = Math.min(heard.meta.d, player.currentTime + 15); });
+  on('seekforward', () => { if (listen) player.currentTime = Math.min(listen.meta.d, player.currentTime + 15); });
   on('previoustrack', () => stepBlock(-1));
   on('nexttrack', () => stepBlock(1));
 }
@@ -980,7 +982,7 @@ function drawListen() {
   $('reader-listen').setAttribute('aria-pressed', String(!!l));
   $('reader-listen').title = $('reader-listen').ariaLabel = l ? 'Stop listening' : 'Listen';
   if (!l) return;
-  const playing = !player.paused, { d, t, full } = heard.meta, at = Math.max(0, l.at);
+  const playing = !player.paused, { d, t, full } = l.meta, at = Math.max(0, l.at);
   $('listen-bar').classList.toggle('playing', playing);
   $('listen-play').title = $('listen-play').ariaLabel = playing ? 'Pause' : 'Play';
   if ('mediaSession' in navigator) navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
@@ -1046,7 +1048,7 @@ function load() {
   const res = window.firstData || fetch('/data.json', { cache: 'no-cache' });  // absolute: the page is also served at /read/…
   window.firstData = null;
   return res.then(r => r.json()).then(data => {
-    if (data.generated_at === generatedAt) return;
+    if (generatedAt !== null && !(Date.parse(data.generated_at) > Date.parse(generatedAt))) return;  // the same build, or an older one answering late
     const refresh = generatedAt !== null;
     generatedAt = data.generated_at;
     showUpdated();
@@ -1349,8 +1351,8 @@ function showInReader(i, html, why, minutes, byline) {
 
 // About 230 words a minute, the usual adult reading speed for this kind of text.
 const readingMinutes = html => Math.max(1, Math.round(html.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length / 230));
-// Reader links are /read/<the headline's first words>. A clash gets a short hash of the article's URL, so a story's
-// link doesn't depend on which other stories happen to be on the site.
+// Reader links are /read/<the headline's first words>. A clash gets a short hash of the article's URL; storyBySlug
+// finds a story by either form, so a shared link outlives a clash coming or going.
 const slugBase = t => t.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f'’]/g, '').replace(/[^a-z0-9]+/g, ' ')
   .trim().split(' ').slice(0, 8).join('-').slice(0, 60).replace(/-+$/, '');
 const shortHash = s => { let h = 5381; for (const c of s) h = (h * 33 + c.charCodeAt(0)) >>> 0; return h.toString(36).slice(0, 5); };
@@ -1364,6 +1366,10 @@ function indexSlugs() {
   }));
 }
 const slugFor = url => [...slugs].find(([, u]) => u === url)?.[0];
+// A link keeps working as the stories around it change: one with a hash still finds its story after the clash has left,
+// and one with only the headline's words, once a later story shares them, finds the earliest, which had them alone.
+const storyBySlug = slug => items.find(i => [slugBase(i.title), shortHash(i.url)].filter(Boolean).join('-') === slug)
+  ?? items.filter(i => slugBase(i.title) === slug).sort((a, b) => Date.parse(a.published || a.date) - Date.parse(b.published || b.date))[0];
 const readPath = url => '/read/' + slugFor(url);
 // Articles fetched this visit, so reopening one is instant; only full articles, since a pending one may arrive later.
 const articles = new Map();
@@ -1548,7 +1554,7 @@ function dismiss() {
 function syncFromUrl() {
   const path = location.pathname.match(/^\/read\/([^/]+)/);
   const decode = s => { try { return decodeURIComponent(s); } catch { return null; } };  // a mangled link (%E0) is just not a story
-  const url = path ? slugs.get(decode(path[1]))
+  const url = path ? storyBySlug(decode(path[1]))?.url
     : location.hash.startsWith('#read=') ? decode(location.hash.slice(6)) : null;
   const i = url && items.find(x => x.url === url);
   if (i && readerFor !== url) openReader(i, { fromHash: true });
