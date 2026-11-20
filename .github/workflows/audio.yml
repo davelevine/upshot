@@ -68,9 +68,10 @@ jobs:
           SUMS
       - run: python audio.py
         env:
-          CF_API_TOKEN: ${{ github.event_name == 'pull_request' && secrets.CF_KV_READ_TOKEN || secrets.CF_API_TOKEN }}
+          # By name: `pr && secrets.A || secrets.B` would hand a PR the full token whenever the read-only one is unset.
+          CF_API_TOKEN: ${{ secrets[github.event_name == 'pull_request' && 'CF_KV_READ_TOKEN' || 'CF_API_TOKEN'] }}
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ github.event_name == 'pull_request' && secrets.CF_KV_READ_TOKEN || secrets.CF_API_TOKEN }}  # wrangler's names for the same two
+          CLOUDFLARE_API_TOKEN: ${{ secrets[github.event_name == 'pull_request' && 'CF_KV_READ_TOKEN' || 'CF_API_TOKEN'] }}  # wrangler's names for the same two
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
           CF_KV_NAMESPACE_ID: ${{ secrets.CF_KV_NAMESPACE_ID }}
           AUDIO_URL: ${{ vars.AUDIO_URL }}
