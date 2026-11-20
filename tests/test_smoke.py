@@ -3196,6 +3196,10 @@ def test_another_tab_cannot_wipe_synced_marks(browser):
     url = a.evaluate("items[2].url")
     a.evaluate("u => markRead(u)", url)
     assert until(b, "syncOn"), "the other tab notices sync is on"
+    # Each tab's storage takes up another's writes a moment later, so wait for the mark to reach b's. Then b's own copy is
+    # emptied, as in a tab that hasn't heard of it yet: the prune has to reread storage, not write that copy back.
+    assert until(b, "u => !!JSON.parse(localStorage.getItem('marks'))[u]", url)
+    b.evaluate("marks = {}")
     b.evaluate("pruneRead()")  # what a new build does to it
     assert a.evaluate("u => !!JSON.parse(localStorage.getItem('marks'))[u]", url), "the mark survives"
     a.reload()
