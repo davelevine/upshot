@@ -107,22 +107,22 @@
   {
    "date": "2026-11-19",
    "published": "2026-11-19T10:26:51+00:00",
-   "title": "F5 Patches Critical NGINX2Root Flaws as PoC Exploits Go Public",
-   "url": "https://www.securityweek.com/f5-patches-critical-nginx2root-flaws-as-poc-exploits-go-public/",
-   "publisher": "SecurityWeek",
+   "title": "nginx2root: Five new nginx vulnerabilities, and how Cloudflare protects origins from the worst of them",
+   "url": "https://blog.cloudflare.com/nginx2root/",
+   "publisher": "Cloudflare Blog",
    "cves": [
     "CVE-2026-123007"
    ],
    "category": "security",
-   "summary": "F5 patched five critical NGINX flaws, dubbed NGINX2Root, that allow unauthenticated remote code execution; public proof-of-concept exploits have appeared.",
+   "summary": "Cloudflare disclosed five nginx memory corruption bugs, dubbed nginx2root, that can let unauthenticated attackers run code, and explained how its proxy shields origins.",
    "relevance": 8,
    "added": "2026-11-19T11:18:08+00:00",
-   "minutes": 2,
+   "minutes": 21,
    "tldr": [
-    "F5 patched 22 vulnerabilities, including five critical NGINX2Root bugs that can lead to unauthenticated remote code execution.",
-    "Fixed in NGINX Open Source 1.30.7 and 1.31.9, and NGINX Plus 37.0.8.1 and 37.3.0.1; upgrade to these versions.",
-    "Public PoCs exist for CVE-2026-123007, which Rapid7 says needs about 128 GB of HTTP/2 traffic; Wiz says it can bypass ASLR.",
-    "F5 also patched five other NGINX flaws and 12 BIG-IP bugs, and reports no in-the-wild exploitation."
+    "F5 disclosed ten nginx vulnerabilities on November 18, 2026, including five nginx2root memory corruption bugs that can crash workers.",
+    "CVE-2026-123007 is the most serious: it needs only HTTP/2 enabled and affects every nginx release since 1.9.5.",
+    "Update to nginx 1.30.7 or 1.31.9, or your vendor's fixed build, then restart; a config reload does not replace the binary.",
+    "Origins behind Cloudflare's HTTP proxy are shielded from HTTP/2 and HTTP/3 bugs only if reachable solely through Cloudflare; mail proxy bugs are not."
    ]
   },
   {
@@ -4929,7 +4929,7 @@
    }
   ]
  },
- "generated_at": "2026-11-20T01:27:48+00:00",
+ "generated_at": "2026-11-20T02:27:56+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
