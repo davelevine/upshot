@@ -104,6 +104,25 @@
   },
   {
    "date": "2026-11-20",
+   "published": "2026-11-20T12:30:00+00:00",
+   "title": "When a sync window closes: How Argo CD self-heal skipped the migration hook",
+   "url": "https://www.cncf.io/blog/2026/11/20/when-a-sync-window-closes-how-argo-cd-self-heal-skipped-the-migration-hook/",
+   "publisher": "CNCF",
+   "cves": [],
+   "category": "engineering",
+   "summary": "A post explains how Argo CD self-heal during a sync window caused a release to succeed while its database migration hook was skipped.",
+   "relevance": 6,
+   "added": "2026-11-20T13:27:53+00:00",
+   "minutes": 6,
+   "tldr": [
+    "Argo CD with self-heal can deploy a new release without running its Sync hook migration when a deny sync window closes.",
+    "Any app with automated sync, self-heal, and a Sync hook migration can lose this race, and the apps still show Synced and Healthy.",
+    "Make the migration a sync-wave Job with a unique name per release, so every sync path applies it.",
+    "Changing the hook type, using RunHooksOnPartialSync, or shortening the window won't fix it, based on reading the code. Disabling selfHeal on migration apps also avoids the bug."
+   ]
+  },
+  {
+   "date": "2026-11-20",
    "published": "2026-11-20T06:53:00+00:00",
    "title": "AWS Releases a Free Local Emulator of AWS Built Entirely by Agents",
    "url": "https://www.infoq.com/news/2026/11/aws-emulator-local-testing/",
@@ -263,6 +282,26 @@
     "CVE-2026-123007 is the most serious: it needs only HTTP/2 enabled and affects every nginx release since 1.9.5.",
     "Update to nginx 1.30.7 or 1.31.9, or your vendor's fixed build, then restart; a config reload does not replace the binary.",
     "Origins behind Cloudflare's HTTP proxy are shielded from HTTP/2 and HTTP/3 bugs only if reachable solely through Cloudflare; mail proxy bugs are not."
+   ]
+  },
+  {
+   "date": "2026-11-19",
+   "published": "2026-11-20T02:01:09+00:00",
+   "title": "OpenSSL: Buffer overflow in EVP_EncodeBlock() (CVE-2026-121481, CVSS 9.8)",
+   "url": "https://github.com/openssl/openssl/pull/33652",
+   "publisher": "Hacker News 300+",
+   "cves": [
+    "CVE-2026-121481"
+   ],
+   "category": "security",
+   "summary": "OpenSSL disclosed CVE-2026-121481, a CVSS 9.8 buffer overflow in the EVP_EncodeBlock() function, with a fix proposed in a GitHub pull request.",
+   "relevance": 8,
+   "added": "2026-11-20T13:27:53+00:00",
+   "minutes": 2,
+   "tldr": [
+    "The proposed fix calls OPENSSL_assert() on inputs that cause undefined behavior, and applies the same fix to EVP_DecodeBlock().",
+    "It also corrects a length check in base64encode() in http_client.c, and adds tests and documentation updates.",
+    "The change is labeled hold: discussion and has requested changes, so the fix is not yet settled."
    ]
   },
   {
@@ -5102,7 +5141,7 @@
    }
   ]
  },
- "generated_at": "2026-11-20T12:27:53+00:00",
+ "generated_at": "2026-11-20T13:28:05+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
