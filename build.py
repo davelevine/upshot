@@ -147,6 +147,7 @@ def candidates(publisher, entries, seen, cutoff):
         link, when = e.get("link"), entry_time(e)
         if not link or not e.get("title") or not when or when < cutoff:
             continue
+        when = min(when, datetime.now(timezone.utc))  # an entry dated ahead (an event's date) is news as of now, not a top story for weeks
         url = normalize_url(link)
         if not url.startswith(("https://", "http://")) or url in seen:  # links render as hrefs
             continue
@@ -663,8 +664,8 @@ def rss_body(i, why=None):
 
 
 def rss(items, weekly=None, title="Upshot", link="/", description="The week’s tech news, minus the noise."):
-    def esc(s):
-        return html.escape(s, quote=False)
+    def esc(s):  # less the control characters XML 1.0 forbids, which a feed can carry and a strict reader rejects the file for
+        return html.escape(re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", "", s), quote=False)
     why = {p["url"]: p["why"] for p in (weekly or {}).get("items", [])}
     entries = "".join(
         f"<item><title>{esc(rss_label(i) + i['title'])}</title><link>{esc(i['url'])}</link><guid>{esc(i['url'])}</guid>"
@@ -776,11 +777,15 @@ def add_reading_times(items, articles=None, texts=None):
         print(r.stderr, end="")
     if r.returncode:
         return f"extract.mjs exited {r.returncode}"
-    out = json.loads(r.stdout)
+    try:
+        out = json.loads(r.stdout)
+        found = out["words"]
+    except (ValueError, KeyError, TypeError) as e:  # reported like any other reader failure, not a lost build
+        return f"extract.mjs gave bad output: {e!r}"
     if texts is not None:
         texts.update(out.get("texts") or {})  # article text for TL;DRs, handed back rather than kept
     for i in items:
-        words = out["words"].get(i["url"])
+        words = found.get(i["url"])
         if not i.get("minutes") and words is not None:
             i["minutes"] = max(1, round(words / WORDS_PER_MINUTE)) if words else 0
     return out.get("error")
@@ -993,6 +998,7 @@ def add_chunk(data, chunk, dups, recent, kept, repeated):
     source, their URL) to the copy already there. Appends to `kept`, `repeated` and `recent`."""
     recent_titles, covered = {norm(t) for t in recent}, set()
     headline = {}  # batch index -> the headline its story has on the site, so a repeat of a repeat finds it
+    renamed = {}  # norm(headline) -> the original source's, once it took the story over: later repeats still find it
     for n, (item, r) in enumerate(chunk):
         dup_of = dups.get(item["url"])
         repeat = repeats(dup_of, n, covered, recent_titles)
@@ -1000,7 +1006,9 @@ def add_chunk(data, chunk, dups, recent, kept, repeated):
         headline[n] = item["title"]
         if repeat:
             target = headline[int(dup_of)] if str(dup_of).strip().isdigit() else dup_of
+            target = renamed.get(norm(target), target)
             if upgrade_source(data["items"], target, item, r, data.get("weekly")):
+                renamed[norm(target)] = item["title"]
                 kept.append((item, r))
                 recent.append(item["title"])
                 carry_flag(data["items"], item["title"], item["exploited"], item["cves"])
