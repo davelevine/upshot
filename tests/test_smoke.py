@@ -2277,7 +2277,7 @@ def test_exploited_stories_are_tagged_in_place_and_listed_for_a_week(browser, sc
     gap, after = card(sec).locator(".exploited").evaluate(
         "e => [parseFloat(getComputedStyle(e).columnGap), parseFloat(getComputedStyle(e.querySelector('.patch-out'), '::before').marginRight)]")
     assert gap == after > 0
-    assert word(sec) != word(infra)  # red only while there's no fix: the usual case is quiet
+    assert word(sec) == word(infra)  # one red per row: the "No patch yet" pill carries it, "Exploited" stays in the row's ink
     assert pg.evaluate("u => items.find(i => i.url === u).exploited && !listed(items.find(i => i.url === u))", old)  # tagged, but too old to list
     entry = pg.locator("#filters [data-f='exploited']")
     assert entry.locator(".f-name").inner_text() == "Exploited" and entry.locator(".f-open").inner_text() == "1 unpatched"

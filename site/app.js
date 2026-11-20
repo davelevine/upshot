@@ -38,7 +38,7 @@ const plural = (n, one, many) => (n === 1 ? one : many);
 const listNoun = n => (filter === 'essentials' ? plural(n, 'essential', 'essentials') : filter === 'exploited' ? plural(n, 'exploited flaw', 'exploited flaws')
   : filter === 'later' ? plural(n, 'saved story', 'saved stories') : plural(n, 'story', 'stories') + (filter === 'all' ? '' : ` in ${label(filter)}`));
 // An exploited flaw and its remedy, in CISA's terms: "Patch available" (the accent), "Mitigation only" (quiet), or "No patch
-// yet", the one alarm on a row, red with "Exploited" (nothing to apply: watch it); nothing when the story doesn't say. A
+// yet", the one alarm on a row, a red pill (nothing to apply: watch it); nothing when the story doesn't say. A
 // supply-chain attack says "Compromised" instead, as GitHub and OSV keep malware apart from vulnerabilities, in yellow, Carbon's
 // "regular warning" (check whether you're affected; there are steps to take), with no patch to report: its steps are in the upshot. A fifth of rows can be flagged in a busy week, so only the alarm is red. The same
 // in every list, and the reader.
@@ -1305,7 +1305,7 @@ pre { overflow-x: auto; padding: 12px 14px; border-radius: 8px; background: var(
 pre code { padding: 0; background: none; font: inherit; }
 table { display: block; overflow-x: auto; border-collapse: collapse; font-size: .7778em; } th, td { padding: 4px 8px; border: 1px solid var(--border); } th { font-weight: 700; }
 hr { border: 0; border-top: 1px solid var(--border); }
-.flag { margin: 0 0 .35em; } .exploited { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; } .x-word { color: var(--text); } .exploited:has(.no-patch) .x-word { color: var(--exploited-ink); } .x-word.compromised { color: var(--caution-ink); }
+.flag { margin: 0 0 .35em; } .exploited { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; } .x-word { color: var(--text); } .x-word.compromised { color: var(--caution-ink); }
 .fix-pill { padding: 1px 8px; border-radius: 999px; font-size: .9em; font-weight: 700; line-height: 1.35; }  /* a chip, as in the list; not .pill, the "Read it on" button's */ .no-patch { background: var(--exploited); color: var(--exploited-text); } .patch-out, .mitigation { padding: 0; color: var(--accent); font-size: 1em; font-weight: 600; line-height: inherit; }
 .mitigation { color: var(--text-muted); font-weight: 500; } .patch-out::before, .mitigation::before { content: "·"; margin-right: 6px; color: var(--text-muted); }
 .late { animation: late .2s ease .4s both; } @keyframes late { from { opacity: 0; } }
