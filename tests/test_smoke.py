@@ -782,6 +782,19 @@ def test_escape_returns_focus_to_the_row_for_the_keyboard(browser):
     assert pg.problems == []
 
 
+def test_shortcuts_wait_while_the_sync_sheet_is_open(browser):
+    pg = open_site(browser, viewport={"width": 1400, "height": 900})
+    pg.evaluate("openReader(shown[0])")
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    story = pg.evaluate("location.pathname")
+    open_sync(pg)
+    pg.keyboard.press("j")
+    assert pg.evaluate("location.pathname") == story  # still the story behind the sheet
+    pg.keyboard.press("Escape")  # closes the sheet, and only the sheet
+    assert until(pg, "!document.getElementById('sync').open") and reading(pg)
+    assert pg.problems == []
+
+
 def test_question_mark_lists_the_shortcuts(browser):
     pg = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
     pg.goto(URL)
@@ -1081,6 +1094,15 @@ def test_the_list_showing_is_in_the_address(browser):
     pg.goto(URL + "?topic=nonsense")
     pg.wait_for_selector("#items a.card")
     assert pg.evaluate("filter") == "all" and pg.evaluate("location.search") == ""
+    # Another topic picked with a story open closes it and stays picked, though the entry closing goes back to names Security.
+    pg.goto(URL + "?topic=security")
+    pg.wait_for_selector("#items a.card")
+    pg.click("#items a.card >> nth=0")
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.click("#filters .filter-btn[data-f='ai']")
+    wait_until_closed(pg)
+    pg.wait_for_timeout(300)  # popstate lands after the close starts
+    assert pg.evaluate("filter") == "ai" and pg.evaluate("location.search") == "?topic=ai"
     # A phone opens a list from its address in place of the topics, and the topics page drops it.
     ph = open_site(browser, url=URL + "?topic=essentials", viewport={"width": 390, "height": 844})
     assert ph.evaluate("filter") == "essentials" and not ph.evaluate("document.body.classList.contains('home')")

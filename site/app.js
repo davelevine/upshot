@@ -251,13 +251,16 @@ $('filters').onclick = e => {
   const same = b.dataset.f === filter && lastList !== null;  // back into the list just left, on a phone
   filter = b.dataset.f;
   if (!same) lastClosed = null;  // a new list: nothing to swipe back into
-  if (document.body.classList.contains('reading')) dismiss();  // as in Feedbin: picking a topic, even the current one, closes the story
+  if (document.body.classList.contains('reading')) { if (history.state?.pushed) picked = filter; dismiss(); }  // as in Feedbin: picking a topic, even the current one, closes the story
   renderFilters();
   if (!(same && phone.matches)) renderItems();
   showList(true);  // picking a topic slides to its list, as in Feedbin
   if (phone.matches && document.body.classList.contains('home')) enterList(same);  // into the list, as a page: back returns to the topics
   else if (history.state?.list) history.replaceState({ ...history.state, f: filter }, '');
 };
+// A topic picked while a story was open: the list entry dismiss() goes back to still names the old one, so popstate
+// gives it this one before syncHome reads it.
+let picked = null;
 // Phones open on the topics (home); a topic's list is a history entry above it, so back, the chevron and swipe-back return.
 const phone = matchMedia('(max-width: 640px)');
 phone.addEventListener('change', () => syncHome());
@@ -1553,6 +1556,8 @@ function syncFromUrl() {
   else if (!i && path) history.replaceState(null, '', '/' + location.search);  // a story that's since left the site
 }
 addEventListener('popstate', e => {
+  if (picked !== null && history.state?.f) history.replaceState({ ...history.state, f: picked }, '');
+  picked = null;
   syncFromUrl();
   const home = !history.state?.list && !history.state?.reader;
   if (home && !document.body.classList.contains('home')) lastList = filter;
@@ -1686,7 +1691,7 @@ let goAt = 0;
 function onKey(key, mod, e) {
   const reading = document.body.classList.contains('reading');
   if ($('keys').open && key === '?') { e?.preventDefault(); return $('keys').close(); }  // ? shows the list and hides it again
-  if ($('keys').open || $('confirm-read').open) return;  // the dialogs handle their own Esc
+  if ($('keys').open || $('confirm-read').open || $('sync').open) return;  // the dialogs handle their own Esc
   if ($('palette').open) {  // so does this one; j/k and Esc mustn't reach the reader behind it
     if (key === 'k' && mod) { e?.preventDefault(); openPalette(); }
     return;
