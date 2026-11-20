@@ -8,7 +8,7 @@ Constants at the top of [`build.py`](../../build.py); the defaults are what the 
 
 | Setting | Default | What it does |
 | ------- | ------- | ------------ |
-| `MIN_RELEVANCE` | 8 for Security and Regulation, 7 for AI and Other, 6 for Infrastructure and Engineering | Score a story needs to be published |
+| `MIN_RELEVANCE` | 8 for Security, 7 for AI, Regulation and Other, 6 for Infrastructure and Engineering | Score a story needs to be published |
 | `NEWS_SOURCES` | Six outlets | Lose ties to the original source |
 | `DAILY_MAX` | 20 | Daily cap, set to catch a malfunction |
 | `DEDUPE_DAYS` | 7 | Days to look back for repeats |
