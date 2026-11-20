@@ -27,6 +27,25 @@
    ]
   },
   {
+   "date": "2026-11-20",
+   "published": "2026-11-20T06:53:00+00:00",
+   "title": "AWS Releases a Free Local Emulator of AWS Built Entirely by Agents",
+   "url": "https://www.infoq.com/news/2026/11/aws-emulator-local-testing/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "engineering",
+   "summary": "AWS released AWS Emulator, a free CC0-licensed local stand-in for over 200 services, with code reportedly written and maintained by agents.",
+   "relevance": 6,
+   "added": "2026-11-20T07:27:54+00:00",
+   "minutes": 5,
+   "tldr": [
+    "AWS released AWS Emulator, a free CC0 local implementation of more than 200 services, which it says autonomous AI agents wrote.",
+    "Developers can point existing SDKs, CLIs, and coding agents at it using environment variables, per AWS's launch post.",
+    "The emulator does not evaluate IAM policies, so requests AWS denies may succeed; test security on real AWS before production.",
+    "An outside tester found DynamoDB, S3 and SQS passed roughly 60 to 70 percent of fidelity tests. Check per-service scores before relying on it."
+   ]
+  },
+  {
    "date": "2026-11-19",
    "published": "2026-11-19T14:00:00+00:00",
    "title": "ARMORY CASTLE Exploits vSphere",
@@ -4988,7 +5007,7 @@
    }
   ]
  },
- "generated_at": "2026-11-20T06:27:47+00:00",
+ "generated_at": "2026-11-20T07:28:07+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
