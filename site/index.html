@@ -335,6 +335,10 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   .menu-sub.error { color: var(--exploited-ink); }
   .menu-btn { position: relative; }
   .menu-btn.sync-error::after { content: ""; position: absolute; top: 2px; right: 2px; width: 8px; height: 8px; border: 2px solid var(--bg); border-radius: 50%; background: var(--exploited); }
+  /* A phone has no display options until a story opens, so the menu carries the theme too; wider, the button is always there. */
+  .menu .menu-themes { position: relative; justify-content: flex-start; gap: 16px; margin-bottom: 7px; padding: 8px 4px 10px; }  /* in line with the rows, not spread across a phone */
+  .menu-themes::after { content: ""; position: absolute; inset: auto 4px -4px; border-top: 1px solid var(--border); }
+  @media (min-width: 641px) { .menu .menu-themes { display: none; } }
   .menu .hide-read { position: relative; margin-bottom: 7px; }
   .menu .hide-read::after { content: ""; position: absolute; inset: auto 4px -4px; border-top: 1px solid var(--border); }  /* a setting for the lists, apart from the links below */
   .menu #sync-btn { position: relative; margin-top: 7px; }
@@ -643,6 +647,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
       <svg class="more-web" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg>
     </button>
     <div class="menu" id="menu" popover>
+    <div class="fmt-themes menu-themes" id="menu-themes" role="group" aria-label="Theme"><button type="button" data-pick="auto" aria-pressed="false" title="Match the system"><span class="swatch" aria-hidden="true"></span>Auto</button><button type="button" data-pick="light" aria-pressed="false"><span class="swatch" aria-hidden="true"></span>Light</button><button type="button" data-pick="dark" aria-pressed="false"><span class="swatch" aria-hidden="true"></span>Dark</button></div>
     <button class="icon-btn hide-read" id="hide-read" type="button" role="switch" aria-checked="false">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.7 5.1A10.4 10.4 0 0 1 12 5c7 0 10 7 10 7a13.2 13.2 0 0 1-1.7 2.7M6.6 6.6A13.5 13.5 0 0 0 2 12s3 7 10 7a9.7 9.7 0 0 0 5.4-1.6M9.9 9.9a3 3 0 1 0 4.2 4.2M2 2l20 20"/></svg>
       <span class="menu-label">Hide read stories</span><span class="switch" aria-hidden="true"></span>
@@ -843,6 +848,6 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
 </dialog>
 <button class="back-to-top" id="top" type="button" aria-label="Scroll to the top" title="Scroll to the top" hidden><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <!-- Versioned by its contents (tests/assets.test.js), so browsers keep it for a year. -->
-<script src="/app.js?v=30ef323379"></script>
+<script src="/app.js?v=ba8df08202"></script>
 </body>
 </html>
