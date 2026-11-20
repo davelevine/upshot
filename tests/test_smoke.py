@@ -713,7 +713,9 @@ def test_each_typeface_sets_the_article_and_fetches_only_its_own_fonts(browser, 
     if face == "literata":
         pg.unroute("**/api/read?*")
         ctx.route("**/api/read?*", lambda route: route.fulfill(json={"content": "<p>Łódź and Gdańsk.</p>"}))
-        pg.evaluate("articles.clear(); openReader(items[1])")
+        # A prefetch the English route already served can land after a plain clear and fill the reader: wait for it first.
+        pg.evaluate("Promise.all([...fetching.values()]).then(() => articles.clear())")
+        pg.evaluate("openReader(items[1])")
         assert any("Literata-Roman-LatinExt" in fonts or pg.wait_for_timeout(100) for _ in range(50)), sorted(fonts)
         assert "Literata-Italic-LatinExt" not in fonts, "only the faces with letters to draw"
     ctx.close()
