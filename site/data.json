@@ -141,6 +141,24 @@
   },
   {
    "date": "2026-11-20",
+   "published": "2026-11-20T17:00:00+00:00",
+   "title": "Introducing ambient networking for GKE",
+   "url": "https://cloud.google.com/blog/products/networking/ambient-networking-for-gke-sidecarless-service-mesh/",
+   "publisher": "Google Cloud Blog",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Google Cloud announces general availability of ambient networking for GKE, a sidecar-less service mesh architecture.",
+   "relevance": 6,
+   "added": "2026-11-20T17:27:49+00:00",
+   "minutes": 3,
+   "tldr": [
+    "Google Cloud has made ambient networking for Google Kubernetes Engine generally available, bringing a sidecar-less service mesh architecture into production.",
+    "It moves mTLS, load balancing, and telemetry from per-pod sidecars to shared node proxies, reducing L4 mesh resource usage by up to 10x.",
+    "Action: install it at cluster creation or add it to an existing GKE cluster. Upgrades are automated alongside normal cluster maintenance."
+   ]
+  },
+  {
+   "date": "2026-11-20",
    "published": "2026-11-20T06:53:00+00:00",
    "title": "AWS Releases a Free Local Emulator of AWS Built Entirely by Agents",
    "url": "https://www.infoq.com/news/2026/11/aws-emulator-local-testing/",
@@ -5159,7 +5177,7 @@
    }
   ]
  },
- "generated_at": "2026-11-20T16:27:46+00:00",
+ "generated_at": "2026-11-20T17:27:57+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
