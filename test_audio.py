@@ -89,6 +89,20 @@ def test_voices_new_stories_newest_first_and_records_each_as_it_goes(bucket):
     assert "3 voiced" in (bucket.tmp / "summary.md").read_text()
 
 
+def test_a_story_that_cant_be_voiced_is_skipped_and_the_rest_still_are(bucket, monkeypatch):
+    bucket.site(item(3), item(5), item(4))
+    bucket.pages = {f"https://example.test/{n}": page(n) for n in (3, 4, 5)}
+    voice = bucket.voice
+    def flaky(blocks):
+        if blocks[0]["text"] == "Story 4":
+            raise RuntimeError("Kokoro choked")
+        return voice(blocks)
+    monkeypatch.setattr(audio, "voice", flaky)
+    assert audio.main() == 1  # red, so it's seen
+    assert set(bucket.index) == {audio.key_for(f"https://example.test/{n}") for n in (3, 5)}  # 3, older, still voiced
+    assert "1 failed" in (bucket.tmp / "summary.md").read_text()
+
+
 def test_a_second_run_voices_only_whats_new_and_forgets_what_left(bucket):
     bucket.site(item(3), item(4))
     bucket.pages = {f"https://example.test/{n}": page(n) for n in (3, 4, 5)}
