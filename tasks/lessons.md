@@ -344,3 +344,11 @@
 - When adding a host to a zone, read the zone's existing WAF, cache and redirect rules for what they'll do to it, not just the rules being added.
 
 **Also this day, unprompted:** I told the user the audio backfill would take "a few hours" without multiplying it out; it was about 16 runner-hours, and I corrected it after the run had started. A duration or cost estimate is arithmetic on real data (`data.json`, measured rates), done before it's stated, never a feel.
+
+## 2026-11-20: "Fix the way it looks" meant one detail, not a redesign
+
+Asked to fix how "1 unpatched" looked in the sidebar, I guessed and restyled it twice (a filled red pill, then a count-only badge) before the user said only the gap between the number and the word was wrong.
+
+**Rules:**
+- On a vague visual complaint, zoom into the user's screenshot first and name the specific defect before changing anything. If more than one reading fits, ask which one they mean instead of redesigning.
+- Check typography claims against the real font file (fontTools, HarfBuzz) before writing CSS based on them.
