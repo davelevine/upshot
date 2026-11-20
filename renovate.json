@@ -37,6 +37,12 @@
       "schedule": ["* * 1 * *"]
     },
     {
+      "description": "Audio stays on the Python it was timed on: kokoro-onnx has no build for newer Pythons yet",
+      "matchFileNames": [".github/workflows/audio.yml"],
+      "matchDepNames": ["python"],
+      "enabled": false
+    },
+    {
       "description": "The reader's extraction stack moves together",
       "matchPackageNames": ["@mozilla/readability", "linkedom"],
       "groupName": "reader extraction"
