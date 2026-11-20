@@ -122,6 +122,25 @@
    ]
   },
   {
+   "date": "2026-11-20",
+   "published": "2026-11-20T12:00:00+00:00",
+   "title": "Google Donates Agent Substrate and gVisor to the CNCF to Secure AI Agents at Scale",
+   "url": "https://www.infoq.com/news/2026/11/google-substrate-gvisor-cncf/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Google is donating Agent Substrate and gVisor to the CNCF, moving two components of its AI agent infrastructure under vendor-neutral open-source governance.",
+   "relevance": 6,
+   "added": "2026-11-20T12:27:44+00:00",
+   "minutes": 3,
+   "tldr": [
+    "Google is donating Agent Substrate and gVisor to the Cloud Native Computing Foundation, alongside its OpenRL reinforcement learning orchestration project.",
+    "Targets untrusted AI-generated code execution and idle-state overhead; Google estimates agents sit idle 90-95% of their time.",
+    "Agent Substrate separates agent state from pooled workers, and Google says agents resume in under 500 milliseconds.",
+    "Agent Substrate also supports Cloud Hypervisor microVMs for hardware-level isolation, letting teams choose boundaries without changing the agent lifecycle model."
+   ]
+  },
+  {
    "date": "2026-11-19",
    "published": "2026-11-19T14:00:00+00:00",
    "title": "ARMORY CASTLE Exploits vSphere",
@@ -5083,7 +5102,7 @@
    }
   ]
  },
- "generated_at": "2026-11-20T11:27:53+00:00",
+ "generated_at": "2026-11-20T12:27:53+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
