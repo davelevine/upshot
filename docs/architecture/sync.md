@@ -34,7 +34,7 @@ A sync needs two devices. When a removal leaves one, the sync and its data are d
 
 On the Free plan a limit makes calls fail until midnight UTC instead of adding to a bill, so the limits keep one script from using up the day cheaply:
 
-- Turning sync on and entering codes: 30 a minute per address. Syncs and live connections: 120 a minute.
+- Turning sync on and entering codes: 30 a minute per address. Everything else, including syncs and live connections: 120 a minute.
 - Requests that change something, and live connections, must come from the site's own origin. A sync carries at most 300 read-state changes and 300 saves.
 - A reader keeps read state for at most 2,000 stories and saves for at most 500, and anything untouched for 120 days is dropped.
 - A socket that sends anything is closed.
