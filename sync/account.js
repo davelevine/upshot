@@ -135,7 +135,7 @@ const routes = {
     // A wrong code is an ordinary answer, not an error status, which browsers would log. So is a code for a sync whose last
     // device left after making it: that sync is gone.
     if (!user) return json({ ok: false });
-    if (me?.user === user) return json({ ok: true });  // already in it
+    if (me?.user === user) return json({ ok: true, already: true });  // already in it: the page keeps what it hasn't sent
     const joined = await startSession(request, env, user, true);
     if (!joined) return json({ ok: false });
     if (me) await readerOf(env, me.user).removeSession(me.hash);  // left only once the new sync has it

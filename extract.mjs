@@ -18,11 +18,12 @@ const CONCURRENCY = 6;
 const MAX_TEXT = 40000; // characters of article text handed to the build for its TL;DR
 export const MAX_WRITES = 100; // per build: free KV allows 1,000 writes a day, and builds run 6+ times; the rest wait for the next build
 const TTL = 100 * 86400; // past the build's KEEP_DAYS (90), so expired articles are already off the site
-const VERSION = 7; // bump when extraction changes, and the next build redoes every stored article
+const VERSION = 8; // bump when extraction changes, and the next build redoes every stored article
 const TRANSIENT = ['timeout', 'error']; // not a verdict on the article: try again next run
 const CHALLENGE = /cf-challenge|_cf_chl_opt|Just a moment|Access Denied|Request unsuccessful|Incapsula/i; // about bot-protection vendors, not publishers
-// title: linkedom writes its text back out unescaped, so escaped markup inside one would come out live.
-const DROP = 'script, style, noscript, iframe, object, embed, form, input, button, link, meta, svg, title';
+// title: linkedom writes its text back out unescaped, so escaped markup inside one would come out live. [hidden]: not
+// shown, so not read aloud either (the frame reads innerText, which skips it; audio.mjs reads textContent, which doesn't).
+const DROP = 'script, style, noscript, iframe, object, embed, form, input, button, link, meta, svg, title, [hidden]';
 
 // Strips anything active and makes every link and image absolute.
 export function clean(html, base) {
@@ -31,7 +32,8 @@ export function clean(html, base) {
   root.querySelectorAll(DROP).forEach(el => el.remove());
   for (const el of root.querySelectorAll('*')) {
     for (const { name } of [...el.attributes]) {
-      if (name.startsWith('on') || name === 'style' || name === 'srcset') el.removeAttribute(name);
+      // class: the reader frame has its own (.todo, .meta, .title, .summary), which a publisher's would otherwise take on
+      if (name.startsWith('on') || name === 'style' || name === 'srcset' || name === 'class') el.removeAttribute(name);
     }
     for (const attr of ['href', 'src']) {
       const v = el.getAttribute(attr);

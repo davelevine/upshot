@@ -15,6 +15,8 @@ test('clean strips active content and makes links absolute', () => {
   assert.match(out, /<img[^>]+src="https:\/\/example.com\/a\/i.png"/);
   // A <title>'s text is written back unescaped, so escaped markup inside one would come out live.
   assert.doesNotMatch(clean('<p>Hi</p><title>&lt;/title&gt;&lt;img src=x onerror=alert(1)&gt;</title>', 'https://example.com/'), /onerror|<img/);
+  // A publisher's classes would take on the reader frame's own (.todo, .meta), and hidden text isn't shown, so isn't read.
+  assert.equal(clean('<p class="meta">Filed</p><div class="todo">Do</div><span hidden>x</span>', 'https://example.com/'), '<p>Filed</p><div>Do</div>');
 });
 
 test('clean keeps adjacent metadata spans apart, but not code tokens', () => {
@@ -409,15 +411,25 @@ test('the Worker finds a reader link\'s story by the same slugs as app.js', () =
   // app.js isn't a module: its slug code is read from the source and run as written.
   const src = readFileSync(new URL('../site/app.js', import.meta.url), 'utf8');
   const grab = re => src.match(re)[0] + '\n';
-  const appSlugs = new Function('items', grab(/^const slugBase = [\s\S]*?;$(?=\nconst shortHash)/m) + grab(/^const shortHash = .*;$/m)
-    + 'let slugs;\n' + grab(/^function indexSlugs\(\) \{[\s\S]*?\n\}/m) + 'indexSlugs(); return slugs;');
-  const twins = [{ title: 'Same words here', url: 'https://a.test/first-post' }, { title: 'Same words here', url: 'https://b.test/news/2' }];
+  const appSlugs = new Function('items', 'slug', grab(/^const slugBase = [\s\S]*?;$(?=\nconst shortHash)/m) + grab(/^const shortHash = .*;$/m)
+    + 'let slugs;\n' + grab(/^function indexSlugs\(\) \{[\s\S]*?\n\}/m) + grab(/^const storyBySlug = [\s\S]*?;$/m)
+    + 'indexSlugs(); return [slugs, storyBySlug(slug)];');
+  const twins = [{ title: 'Same words here', url: 'https://b.test/news/2', published: '2026-11-19T10:00:00+00:00' },
+                 { title: 'Same words here', url: 'https://a.test/first-post', published: '2026-11-18T10:00:00+00:00' }];
   const site = JSON.parse(readFileSync(new URL('../site/data.json', import.meta.url), 'utf8')).items;
   for (const items of [site, twins]) {
-    const slugs = appSlugs(items);
+    const [slugs] = appSlugs(items);
     assert.equal(slugs.size, items.length);
-    for (const [slug, url] of slugs) assert.equal(storyFor(items, slug)?.url, url, slug);
+    for (const [slug, url] of slugs) {
+      assert.equal(storyFor(items, slug)?.url, url, slug);
+      assert.equal(appSlugs(items, slug)[1]?.url, url, slug);
+    }
   }
-  assert.equal(storyFor(twins, 'same-words-here'), undefined);  // a clash: each has a hash, and neither answers to the words alone
+  // A link shared before the clash, by the words alone, still finds the earlier story, which had them then.
+  assert.equal(storyFor(twins, 'same-words-here').url, 'https://a.test/first-post');
+  assert.equal(appSlugs(twins, 'same-words-here')[1].url, 'https://a.test/first-post');
+  // And one shared during it, with a hash, still finds its story once the other has left.
+  const [hashed] = [...appSlugs(twins)[0]].find(([, u]) => u === 'https://b.test/news/2');
+  assert.equal(storyFor(twins.slice(0, 1), hashed)?.url, 'https://b.test/news/2');
   assert.equal(storyFor(site, 'no-such-story'), undefined);
 });

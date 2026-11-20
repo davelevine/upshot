@@ -138,7 +138,7 @@ def main():
     index = {k: v for k, v in found.items() if k in live and v.get("v") == VERSION}  # gone from the site, or an old format
     todo = candidates(items, index)[:DRY_STORIES if dry else None]
     stories = story_blocks(todo) if todo else {}
-    began, voiced, waiting, deferred, audio_s, size = time.monotonic(), [], 0, 0, 0.0, 0
+    began, voiced, failed, waiting, deferred, audio_s, size = time.monotonic(), [], [], 0, 0, 0.0, 0
     with tempfile.TemporaryDirectory() as tmp:
         for i in todo:
             if time.monotonic() - began >= budget * 60:
@@ -149,17 +149,21 @@ def main():
                 waiting += 1
                 continue
             blocks, full = plan
-            samples, starts = voice(blocks)
-            seconds = len(samples) / RATE
             key, name = key_for(i["url"]), f"{key_for(i['url'])}-{VERSION}"
             path = Path(tmp) / f"{name}.m4a"
-            encode(samples, path)
-            meta = {"v": VERSION, "d": round(seconds, 2), "t": starts, "n": len(blocks), "full": full}
-            if not dry:
-                put(f"{name}.m4a", path, "audio/mp4", "public, max-age=31536000, immutable")
-                put_json(f"{name}.json", meta, "public, max-age=31536000, immutable")
-                index[key] = {"v": VERSION, "at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
-                put_json(INDEX, index, INDEX_CACHE)  # after each story, so a run cut short keeps what it made
+            try:  # one story that can't be voiced is skipped and reported, not left blocking every older one
+                samples, starts = voice(blocks)
+                seconds = len(samples) / RATE
+                encode(samples, path)
+                meta = {"v": VERSION, "d": round(seconds, 2), "t": starts, "n": len(blocks), "full": full}
+                if not dry:
+                    put(f"{name}.m4a", path, "audio/mp4", "public, max-age=31536000, immutable")
+                    put_json(f"{name}.json", meta, "public, max-age=31536000, immutable")
+                    index[key] = {"v": VERSION, "at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+                    put_json(INDEX, index, INDEX_CACHE)  # after each story, so a run cut short keeps what it made
+            except Exception as e:
+                failed.append((i["title"], repr(e)))
+                continue
             voiced.append((i["title"], seconds, full))
             audio_s += seconds
             size += path.stat().st_size
@@ -167,13 +171,16 @@ def main():
         put_json(INDEX, index, INDEX_CACHE)  # stories that left the site
     line = (f"**Audio:** {len(voiced)} voiced ({audio_s / 60:.1f} min of audio, {size / 1e6:.1f} MB) in "
             f"{(time.monotonic() - began) / 60:.1f} min, {deferred} left for the next run, {waiting} waiting for their article"
-            f"{', dry run: nothing uploaded' if dry else ''}")
+            f"{f', {len(failed)} failed' if failed else ''}{', dry run: nothing uploaded' if dry else ''}")
     print(line)
     for title, seconds, full in voiced:
         print(f"  {seconds / 60:5.1f} min  {'' if full else '(headline and upshot) '}{title}")
     if os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
             f.write(line + "\n\n")
+    for title, error in failed:
+        print(f"  failed: {title}: {error}", file=sys.stderr)
+    return 1 if failed else None  # the run turns red, after voicing everything else
 
 
 if __name__ == "__main__":

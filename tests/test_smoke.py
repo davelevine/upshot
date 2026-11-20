@@ -773,6 +773,26 @@ def test_a_typeface_changes_the_open_article_in_place_and_is_kept(browser):
     assert pg.problems == []
 
 
+def test_unreadable_saved_state_still_shows_the_stories(browser):
+    pg = open_site(browser, init="try { localStorage.setItem('read', '{bad'); localStorage.setItem('kept', '{}'); } catch {}")
+    assert pg.locator("a.card").count() > 0
+    assert pg.problems == []
+
+
+def test_an_older_build_answering_late_never_replaces_a_newer_one(browser):
+    pg = open_site(browser)
+    now = pg.evaluate("generatedAt")
+    def older(route):
+        data = route.fetch().json()
+        data["generated_at"], data["items"] = "2000-01-01T00:00:00+00:00", []
+        route.fulfill(json=data)
+    pg.context.route("**/data.json*", older)
+    pg.evaluate("load()")
+    pg.wait_for_timeout(300)
+    assert pg.evaluate("generatedAt") == now and pg.locator("a.card").count() > 0
+    assert pg.problems == []
+
+
 def test_escape_returns_focus_to_the_row_for_the_keyboard(browser):
     pg = open_site(browser, viewport={"width": 1024, "height": 800})
     pg.locator("a.card").nth(1).focus()
@@ -1975,6 +1995,8 @@ def test_listen_plays_the_storys_audio(browser):
     pg.click("#listen-rate")  # faster, at once and for next time
     assert pg.inner_text("#listen-rate") == "1.25×" and pg.evaluate("player.playbackRate") == 1.25
     assert pg.evaluate("localStorage.getItem('listenRate')") == "1.25"
+    # The open story's audio can be unknown while this plays on (j, with the next story's fonts still loading): it keeps its own timings.
+    pg.evaluate("{ const h = heard; heard = null; player.dispatchEvent(new Event('timeupdate')); heard = h; }")
 
     pg.keyboard.press("l")  # l stops (from the article, where the click left focus: it arrives as a message)
     assert until(pg, "document.getElementById('listen-bar').hidden") and playing(pg) is False
@@ -3481,6 +3503,31 @@ def test_a_scanned_code_joins_at_once_even_on_a_device_already_syncing(browser):
     assert until(laptop, "/syncing now/.test(document.getElementById('sync-note').textContent)", timeout=8000)
     assert laptop.problems == [] and phone.problems == []
 
+
+
+def test_a_code_for_the_sync_a_device_is_in_keeps_what_it_hasnt_sent(browser):
+    size = {"viewport": {"width": 1300, "height": 900}}
+    a = open_site(browser, url=SYNC_URL, **size)
+    code = turn_on(a)
+    b = open_site(browser, url=SYNC_URL, **size)
+    join(b, code)
+    assert until(a, "/syncing now/.test(document.getElementById('sync-note').textContent)", timeout=8000)
+    a.keyboard.press("Escape")
+    open_sync(a)
+    a.click("#sync-add-device")  # a second code for the same sync
+    a.wait_for_selector("#sync-show:text-matches('^[0-9A-Z]{4}-[0-9A-Z]{4}$')")
+    again = a.inner_text("#sync-show")
+    b.route("**/api/sync", lambda route: None)  # held, as offline: the mark stays unsent
+    url = b.evaluate("items[3].url")
+    read_one(b, 3)
+    assert until(b, "u => pending.has(u)", url)
+    open_sync(b)
+    b.evaluate("syncView('code')")  # where a syncing device's sheet offers it (Enter its sync code instead)
+    b.fill("#sync-code", again)
+    b.press("#sync-code", "Enter")
+    assert until(b, "!document.getElementById('sync').open"), "joining closes the sheet"
+    assert b.evaluate("u => pending.has(u) && readSet.has(u)", url), "still to send, still read"
+    assert a.problems == []
 
 
 def test_a_scan_in_an_apps_built_in_browser_leaves_the_code_for_the_real_one(browser):

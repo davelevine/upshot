@@ -1,4 +1,5 @@
 import json
+import subprocess
 import time
 import xml.etree.ElementTree as ET
 from datetime import date, datetime, timedelta, timezone
@@ -584,6 +585,40 @@ def test_a_repeat_of_a_repeat_hands_its_flag_to_the_copy_on_the_site():
     build.add_chunk(data, chunk, {"u0": "Big flaw exploited", "u1": "0"}, ["Big flaw exploited"], kept, repeated)
     assert len(repeated) == 2 and data["items"] == [on_site]
     assert on_site["exploited"]["quote"] == "q"      # item 1 pointed at item 0, itself a repeat: the flag still lands
+
+
+def test_a_repeat_still_finds_a_story_the_original_source_took_over_in_the_same_batch():
+    on_site = {"title": "Outlet: Foo flaw", "url": "a", "publisher": "Ars Technica", "date": "2026-11-12", "cves": []}
+    data = {"items": [on_site], "weekly": None}
+    flag = {"kev": [], "at": "t", "kind": "flaw", "quote": "q"}
+    item = lambda n, title, pub, f=None, cves=(): ({"url": f"u{n}", "title": title, "publisher": pub, "date": "2026-11-12",
+                                                   "published": "p", "cves": list(cves), "exploited": f},
+                                                  {"category": "security", "relevance": 9, "summary": "s"})
+    chunk = [item(0, "Outlet: Foo flaw", "Ars Technica"), item(1, "Vendor advisory: Foo flaw", "Vendor"),
+             item(2, "Foo flaw exploited", "Blog", flag, ["CVE-2026-1234"])]
+    build.add_chunk(data, chunk, {"u0": "Outlet: Foo flaw", "u1": "0", "u2": "0"}, ["Outlet: Foo flaw"], [], [])
+    assert on_site["title"] == "Vendor advisory: Foo flaw"   # the original source swapped in
+    assert on_site["exploited"]["quote"] == "q" and on_site["cves"] == ["CVE-2026-1234"]  # and item 2's signal still lands
+
+
+def test_rss_drops_control_characters_xml_forbids():
+    item = {"title": "Bad\x08 title\x1b", "url": "https://e.com/a", "summary": "s\x00", "category": "security",
+            "date": "2026-11-12", "published": "2026-11-12T10:00:00+00:00", "publisher": "P"}
+    ET.fromstring(build.rss([item]))  # parses
+
+
+def test_an_entry_dated_ahead_counts_as_now():
+    ahead = time.gmtime(time.time() + 90 * 86400)
+    [c] = build.candidates("P", [{"link": "https://e.com/w", "title": "Webinar", "published_parsed": ahead}], {},
+                           datetime.now(timezone.utc) - timedelta(days=3))
+    assert datetime.fromisoformat(c["published"]) <= datetime.now(timezone.utc)
+
+
+def test_bad_output_from_extract_is_a_reader_error_not_a_crash(monkeypatch):
+    monkeypatch.setattr(build.subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a, 0, stdout="not json", stderr=""))
+    assert "bad output" in build.add_reading_times([{"url": "u", "title": "t", "publisher": "p"}])
+    monkeypatch.setattr(build.subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a, 0, stdout="{}", stderr=""))
+    assert "bad output" in build.add_reading_times([{"url": "u", "title": "t", "publisher": "p"}])
 
 
 def test_a_flaw_flagged_after_publication_reads_its_remedy_from_its_upshot_once(monkeypatch):
