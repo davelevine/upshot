@@ -43,10 +43,25 @@ export async function storyBlocks(items, kv) {
   return out;
 }
 
+// The same records from the site's public reader (/api/read, worker.js), for a dry run: a pull request gets no token.
+export function siteStore(site, items, get = fetch) {
+  const records = new Map();
+  return {
+    async list() {
+      for (const i of items) {
+        const r = await get(`${site}/api/read?url=${encodeURIComponent(i.url)}`).then(res => res.json()).catch(() => null);
+        if (r?.reason && r.reason !== 'pending') records.set(await keyFor(i.url), r);
+      }
+      return records;
+    },
+    get: async key => records.get(key),
+  };
+}
+
 async function main() {
-  const kv = kvClient(process.env);
-  if (!kv) throw new Error('no KV credentials (CF_API_TOKEN, CF_ACCOUNT_ID, CF_KV_NAMESPACE_ID)');
   const { items } = JSON.parse(readFileSync(0, 'utf8'));
+  const kv = process.env.AUDIO_DRY_RUN ? siteStore((process.env.SITE_URL || 'https://upshot.me').replace(/\/$/, ''), items) : kvClient(process.env);
+  if (!kv) throw new Error('no KV credentials (CF_API_TOKEN, CF_ACCOUNT_ID, CF_KV_NAMESPACE_ID)');
   process.stdout.write(JSON.stringify(await storyBlocks(items, kv)));
 }
 

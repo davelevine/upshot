@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { BLOCKS, INSIDE, blocksFor, storyBlocks } from '../audio.mjs';
+import { BLOCKS, INSIDE, blocksFor, siteStore, storyBlocks } from '../audio.mjs';
 import { readArticle } from '../extract.mjs';
 import { keyFor } from '../worker.js';
 
@@ -55,6 +55,19 @@ test('storyBlocks reads stored articles, a blocked one as its card, and leaves t
   assert.deepEqual(out[blocked], { reason: 'challenge', blocks: blocksFor(story, null) });
   assert.deepEqual(out[missing], { reason: 'pending', blocks: [] });
   assert.deepEqual(gets, [await keyFor(ok)], 'only a stored article is fetched');
+});
+
+test('a dry run reads the same records from the public reader, with no token', async () => {
+  const ok = 'https://x.test/ok', blocked = 'https://x.test/blocked', missing = 'https://x.test/missing';
+  const answers = { [ok]: { reason: 'ok', content: '<p>The article.</p>' }, [blocked]: { reason: 'challenge' }, [missing]: { reason: 'pending' } };
+  const asked = [];
+  const get = async u => { asked.push(u); return { json: async () => answers[new URL(u).searchParams.get('url')] }; };
+  const items = [ok, blocked, missing].map(url => ({ url, ...story }));
+  const out = await storyBlocks(items, siteStore('https://site.test', items, get));
+  assert.deepEqual(out[ok].blocks.map(b => b.text).slice(-1), ['The article.']);
+  assert.deepEqual(out[blocked], { reason: 'challenge', blocks: blocksFor(story, null) });
+  assert.deepEqual(out[missing], { reason: 'pending', blocks: [] });
+  assert.ok(asked.every(u => u.startsWith('https://site.test/api/read?url=')));
 });
 
 test('keys match the Python side', async () => {

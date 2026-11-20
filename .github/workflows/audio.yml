@@ -1,8 +1,8 @@
 # Voices Listen's audio (audio.py): after each build, the stories still without audio, newest first, read by Kokoro
 # and stored in the public audio bucket (docs/setup/configuration.md#audio). A workflow of its own, not a job in
 # build.yml: that workflow's concurrency would hold the next build back until the voicing finished.
-# Secrets: CF_API_TOKEN (with Workers R2 Storage: Edit as well as KV), CF_ACCOUNT_ID, CF_KV_NAMESPACE_ID, and for PR dry
-# runs CF_KV_READ_TOKEN (Workers KV Storage: Read only). Variable:
+# Secrets: CF_API_TOKEN (with Workers R2 Storage: Edit as well as KV), CF_ACCOUNT_ID, CF_KV_NAMESPACE_ID; a PR's dry run
+# needs none. Variable:
 # AUDIO_URL, the bucket's address; without it nothing runs.
 name: Audio
 
@@ -35,8 +35,8 @@ jobs:
     if: (github.event_name != 'pull_request' && vars.AUDIO_URL != '') || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     # The secrets that can push to main, score with Claude and write to Cloudflare are in the production environment,
-    # which only main may use, so a branch can't get them even by editing this file. A PR's dry run uses no environment,
-    # and reads articles with CF_KV_READ_TOKEN, which can do nothing else.
+    # which only main may use, so a branch can't get them even by editing this file. A PR's dry run uses no environment
+    # and no token.
     # deployment: false: secrets only, so no deployment is recorded for each run.
     environment:
       name: ${{ github.event_name != 'pull_request' && 'production' || '' }}
@@ -68,12 +68,13 @@ jobs:
           SUMS
       - run: python audio.py
         env:
-          # By name: `pr && secrets.A || secrets.B` would hand a PR the full token whenever the read-only one is unset.
-          CF_API_TOKEN: ${{ secrets[github.event_name == 'pull_request' && 'CF_KV_READ_TOKEN' || 'CF_API_TOKEN'] }}
+          # None on a PR: its dry run reads articles from the site's public reader (audio.mjs, siteStore).
+          CF_API_TOKEN: ${{ github.event_name != 'pull_request' && secrets.CF_API_TOKEN || '' }}
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets[github.event_name == 'pull_request' && 'CF_KV_READ_TOKEN' || 'CF_API_TOKEN'] }}  # wrangler's names for the same two
+          CLOUDFLARE_API_TOKEN: ${{ github.event_name != 'pull_request' && secrets.CF_API_TOKEN || '' }}  # wrangler's names for the same two
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
           CF_KV_NAMESPACE_ID: ${{ secrets.CF_KV_NAMESPACE_ID }}
           AUDIO_URL: ${{ vars.AUDIO_URL }}
+          SITE_URL: ${{ vars.SITE_URL }}  # optional; where a dry run reads articles, default https://upshot.me
           AUDIO_BUDGET_MIN: ${{ inputs.budget_minutes }}
           AUDIO_DRY_RUN: ${{ github.event_name == 'pull_request' && '1' || '' }}

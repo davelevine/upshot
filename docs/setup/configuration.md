@@ -99,7 +99,7 @@ Listen plays audio the Audio workflow makes ([The pipeline](../architecture/pipe
 5. **Block cache-busting.** In the zone's **Security → WAF → Custom rules**, block requests to the audio domain with a query string or another method: `(http.host eq "audio.example.com" and (http.request.uri.query ne "" or not http.request.method in {"GET" "HEAD"}))`.
 6. **Cache it.** In the zone's **Caching → Cache Rules**, make everything on the audio domain eligible for cache, with the edge TTL from the origin's Cache-Control.
 7. **Watch the bill.** R2 has no spending cap, so add a usage-based billing notification for R2 under **Notifications**.
-8. **Let the build write to it.** Add **Workers R2 Storage: Edit** to the API token in `CF_API_TOKEN`. For the dry run on pull requests, create a second token with only **Workers KV Storage: Read** and add it as the repository secret `CF_KV_READ_TOKEN`.
+8. **Let the build write to it.** Add **Workers R2 Storage: Edit** to the API token in `CF_API_TOKEN`.
 9. **Let the page reach it.** Replace `https://audio.upshot.me` in `connect-src` in [`site/_headers`](../../site/_headers) with the domain, so the page can read the bucket's index and timings.
 10. **Turn it on.** Set the repository variable `AUDIO_URL` to the domain, for example `https://audio.example.com`. The Audio workflow then runs after every build, and the build tells the page where the audio is.
 
