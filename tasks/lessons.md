@@ -352,3 +352,13 @@ Asked to fix how "1 unpatched" looked in the sidebar, I guessed and restyled it 
 **Rules:**
 - On a vague visual complaint, zoom into the user's screenshot first and name the specific defect before changing anything. If more than one reading fits, ask which one they mean instead of redesigning.
 - Check typography claims against the real font file (fontTools, HarfBuzz) before writing CSS based on them.
+
+## 2026-11-20: Find every consumer of a credential before suggesting a rotation, and check the deploy after a merge
+
+**Mistake:** While moving secrets into the GitHub `production` environment, I suggested rolling `CF_API_TOKEN` without checking what else used it. Workers Builds deployed the site with the same token, so every deploy and PR preview failed from 18:40 UTC and the live site stayed on the 17:27 build for over two hours. I said the merges were done after checking only Actions, not the `Workers Builds: upshot` check, and the user found the failures. A second roll, and a Cloudflare value put into `GITHUB_DISPATCH_TOKEN` (a GitHub PAT), made it worse before Workers Builds got a token of its own.
+
+**Rules:**
+- Before suggesting that a token be rolled or deleted, list everything that holds a copy of it (GitHub secrets, Workers Builds' build token, Worker secrets) and say which will break. Prefer one token per consumer.
+- When a fix involves several credentials, give a table of each one: what it is, where it lives, and which service issues it.
+- After a merge or a credential change, confirm the deploy: the `Workers Builds: upshot` check on `main` and the live `upshot.me/data.json` `generated_at`. Green Actions don't mean the site deployed.
+- After opening a PR, check its CI before reporting the work as done.
