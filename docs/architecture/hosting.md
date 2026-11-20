@@ -39,7 +39,9 @@ Listen's audio, which the Audio workflow makes ([The pipeline](pipeline.md#audio
 
 Secrets in the `production` environment, which only `main` may use: `CLAUDE_CODE_OAUTH_TOKEN` for scoring with Claude, `CF_API_TOKEN` for storing articles, deploying sync and uploading audio, and `DATA_PUSH_KEY`, the deploy key that pushes the data commit past the ruleset on `main`. The jobs that run on `main` name the environment with `deployment: false`, so they get its secrets without recording a deployment. A branch can't get them even by editing a workflow, and a pull request's run, which runs the PR's code, names no environment.
 
-Repository secrets: `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID`, which name the account and the article store, and `CF_KV_READ_TOKEN`, a token that can only read the article store, for the Audio workflow's dry run on pull requests. A pull request from a fork gets no secrets at all.
+Repository secrets: `CF_ACCOUNT_ID` and `CF_KV_NAMESPACE_ID`, which name the account and the article store. The Audio workflow's dry run on pull requests needs no token: it reads articles from the site's public reader. A pull request from a fork gets no secrets at all.
+
+Workers Builds deploys the site with a Cloudflare token of its own, set in the Worker's build settings. It isn't `CF_API_TOKEN`, so rolling either one leaves the other working.
 
 [Getting started](../setup/getting-started.md) covers the Claude and Cloudflare secrets, and [Configuration](../setup/configuration.md#protecting-main) the deploy key. The Worker's secret `GITHUB_DISPATCH_TOKEN` lets its cron start the build ([Configuration](../setup/configuration.md#schedule)). Repository variables: `SITE_URL` and `SITE_TZ` ([Configuration](../setup/configuration.md#settings)), and `AUDIO_URL`, the audio bucket's address ([Configuration](../setup/configuration.md#audio)).
 

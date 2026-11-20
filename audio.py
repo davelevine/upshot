@@ -4,7 +4,7 @@ Runs after each build (.github/workflows/audio.yml); the bucket and its domain a
 
 Env: AUDIO_URL (unset: nothing to do), CF_API_TOKEN, CF_ACCOUNT_ID and CF_KV_NAMESPACE_ID (the stored articles, and
 R2 through wrangler), AUDIO_BUDGET_MIN (overrides BUDGET_MIN, for a backfill), AUDIO_DRY_RUN (voice a couple of stories
-and upload nothing, as a pull request does)."""
+and upload nothing, as a pull request does, reading articles from SITE_URL's public reader rather than KV)."""
 import hashlib
 import json
 import os
