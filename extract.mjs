@@ -18,10 +18,11 @@ const CONCURRENCY = 6;
 const MAX_TEXT = 40000; // characters of article text handed to the build for its TL;DR
 export const MAX_WRITES = 100; // per build: free KV allows 1,000 writes a day, and builds run 6+ times; the rest wait for the next build
 const TTL = 100 * 86400; // past the build's KEEP_DAYS (90), so expired articles are already off the site
-const VERSION = 6; // bump when extraction changes, and the next build redoes every stored article
+const VERSION = 7; // bump when extraction changes, and the next build redoes every stored article
 const TRANSIENT = ['timeout', 'error']; // not a verdict on the article: try again next run
 const CHALLENGE = /cf-challenge|_cf_chl_opt|Just a moment|Access Denied|Request unsuccessful|Incapsula/i; // about bot-protection vendors, not publishers
-const DROP = 'script, style, noscript, iframe, object, embed, form, input, button, link, meta, svg';
+// title: linkedom writes its text back out unescaped, so escaped markup inside one would come out live.
+const DROP = 'script, style, noscript, iframe, object, embed, form, input, button, link, meta, svg, title';
 
 // Strips anything active and makes every link and image absolute.
 export function clean(html, base) {

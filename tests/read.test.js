@@ -13,6 +13,8 @@ test('clean strips active content and makes links absolute', () => {
   assert.match(link, /target="_blank"/);
   assert.match(link, /rel="noopener noreferrer"/);
   assert.match(out, /<img[^>]+src="https:\/\/example.com\/a\/i.png"/);
+  // A <title>'s text is written back unescaped, so escaped markup inside one would come out live.
+  assert.doesNotMatch(clean('<p>Hi</p><title>&lt;/title&gt;&lt;img src=x onerror=alert(1)&gt;</title>', 'https://example.com/'), /onerror|<img/);
 });
 
 test('clean keeps adjacent metadata spans apart, but not code tokens', () => {
