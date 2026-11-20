@@ -23,6 +23,24 @@
   },
   {
    "date": "2026-11-20",
+   "published": "2026-11-20T00:00:00+00:00",
+   "title": "Anthropic announces closing of initial public offering, including full exercise of underwriters’ option to purchase additional shares, and closing of concurrent private placement",
+   "url": "https://www.anthropic.com/news/ipo-close",
+   "publisher": "Anthropic (community feed)",
+   "cves": [],
+   "category": "ai",
+   "summary": "Anthropic closed its initial public offering of 1.127 billion Class A shares at $83.00 each, including the full underwriter option of 147 million shares.",
+   "relevance": 8,
+   "added": "2026-11-20T14:27:51+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Anthropic closed its initial public offering of 1,127,000,000 Class A shares at $83.00 per share, including the full underwriters' option, with gross proceeds of about $93.5 billion.",
+    "Anthropic received about $91.6 billion of the offering proceeds. Including a concurrent private placement of Class N shares to AMD, Broadcom, Google, Micron, Microsoft, NVIDIA, and TSMC Partners, total gross proceeds were about $119.5 billion.",
+    "Class A stock began trading on Nasdaq Global Select Market on November 19, 2026 under the symbol \"ANT\"."
+   ]
+  },
+  {
+   "date": "2026-11-20",
    "published": "2026-11-20T10:57:43+00:00",
    "title": "F5 releases emergency patches for critical BIG-IP RCE flaws",
    "url": "https://www.bleepingcomputer.com/news/security/f5-releases-emergency-patches-for-critical-big-ip-rce-flaws/",
@@ -5141,7 +5159,7 @@
    }
   ]
  },
- "generated_at": "2026-11-20T13:28:05+00:00",
+ "generated_at": "2026-11-20T14:27:57+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
