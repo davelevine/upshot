@@ -362,3 +362,7 @@ Asked to fix how "1 unpatched" looked in the sidebar, I guessed and restyled it 
 - When a fix involves several credentials, give a table of each one: what it is, where it lives, and which service issues it.
 - After a merge or a credential change, confirm the deploy: the `Workers Builds: upshot` check on `main` and the live `upshot.me/data.json` `generated_at`. Green Actions don't mean the site deployed.
 - After opening a PR, check its CI before reporting the work as done.
+- Before deleting a token that looks unused, find out what holds its value. "No trigger uses it" isn't enough: on the same day I deleted three Workers Builds build tokens that no trigger referenced, and one held the value GitHub's `CF_API_TOKEN` used, so the next build got `KV 401`. Cloudflare's "last used" time on each token shows which one a consumer really uses.
+- When a credential starts failing after a change, first check which token the consumer is actually using ("last used" times, the token behind each secret) before changing permissions. I took that 401 for a scoping problem and trimmed a token nothing used.
+- Workers Builds copies **Previews Base** into each branch's own trigger on its first build, so changing Previews Base doesn't fix a branch that already exists; that branch's trigger has to be updated (or the branch rebuilt fresh).
+- Give every time in Eastern (EST/EDT) with AM/PM, never UTC.
