@@ -1,5 +1,7 @@
 {
- "failing_since": {},
+ "failing_since": {
+  "https://hnrss.org/frontpage?points=300": "2026-11-19"
+ },
  "seen": {
   "http://groundworkcollaborative.org/news/amazons-decoy-deals-groundwork-investigation-reveals-nearly-1-in-3-black-friday-and-cyber-monday-deals-advertised-by-amazon-offered-no-savings-to-shoppers-nearly-1-in-10-w/": "2026-11-16",
   "http://muratbuffalo.blogspot.com/2026/11/writing-as-thinking-tool.html": "2026-11-08",
@@ -740,6 +742,7 @@
   "https://github.blog/changelog/2026-11-18-security-risk-assessments-run-automatically-on-github-team": "2026-11-18",
   "https://github.blog/changelog/2026-11-18-wait-for-pull-request-events-with-github-cli": "2026-11-18",
   "https://github.blog/changelog/2026-11-19-enterprise-live-migrations-from-azure-devops-generally-available": "2026-11-19",
+  "https://github.blog/changelog/2026-11-19-improvements-on-the-pull-request-overview-in-public-preview": "2026-11-19",
   "https://github.blog/changelog/2026-11-19-red-hat-enterprise-linux-runner-images-now-generally-available": "2026-11-19",
   "https://github.blog/changelog/2026-11-19-s3-audit-log-streaming-with-openid-connect-expands-to-ghe-com": "2026-11-19",
   "https://github.blog/engineering/architecture-optimization/inside-githubs-new-git-storage-architecture/": "2026-11-05",
@@ -929,6 +932,7 @@
   "https://openai.com/business/customer-stories/sumitomo-life": "2026-11-18",
   "https://openai.com/business/learn/codex-security-plugin-demo": "2026-11-19",
   "https://openai.com/business/learn/daybreak-blue-onboarding-demo": "2026-11-19",
+  "https://openai.com/business/learn/deploying-daybreak-red": "2026-11-19",
   "https://openai.com/business/learn/pr-scans-demo": "2026-11-19",
   "https://openai.com/index/a-thousand-fewer-paths-to-root": "2026-11-04",
   "https://openai.com/index/accelerating-engineering-for-the-physical-world": "2026-11-03",
@@ -1711,6 +1715,7 @@
   "https://www.bleepingcomputer.com/news/security/vanderbilt-university-hit-in-byod-ransomware-attack-data-theft-claimed/": "2026-11-09",
   "https://www.bleepingcomputer.com/news/security/veeam-software-appliance-vms-fail-to-boot-on-amd-epyc-hosts/": "2026-11-06",
   "https://www.bleepingcomputer.com/news/security/vercel-rolls-out-new-protection-against-stolen-session-cookie-attacks/": "2026-11-04",
+  "https://www.bleepingcomputer.com/news/security/vmware-patches-vcenter-zero-day-exploited-in-attacks-since-september/": "2026-11-19",
   "https://www.bleepingcomputer.com/news/security/york-university-breach-exposed-personal-information-dating-to-2007/": "2026-11-09",
   "https://www.bleepingcomputer.com/news/security/your-endpoint-management-platform-could-be-your-biggest-security-risk/": "2026-11-12",
   "https://www.bleepingcomputer.com/news/security/zyxel-fixes-zero-day-exploited-to-hack-nearly-1-000-network-switches/": "2026-11-04",

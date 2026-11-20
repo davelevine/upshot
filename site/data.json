@@ -95,7 +95,14 @@
     "Broadcom fixed CVE-2026-123890, a critical CVSS 9.8 vCenter Directory Service authentication bypass exploited in the wild.",
     "Unauthenticated attackers with network access can gain Administrator access on affected vCenter deployments.",
     "Apply the emergency vCenter update: 8.0 U3m, or 9.0.2.0200 and 9.1.1.0200 for Foundation releases. No workaround exists; Quick Patch cannot apply it."
-   ]
+   ],
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-20T00:27:57+00:00",
+    "kind": "flaw",
+    "quote": "exploited in attacks since September",
+    "fix": "patch"
+   }
   },
   {
    "date": "2026-11-19",
@@ -4922,7 +4929,7 @@
    }
   ]
  },
- "generated_at": "2026-11-19T23:27:57+00:00",
+ "generated_at": "2026-11-20T00:28:02+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
