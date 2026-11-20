@@ -143,6 +143,18 @@
   },
   {
    "date": "2026-11-20",
+   "published": "2026-11-20T20:12:19+00:00",
+   "title": "Inkling 2 Mini",
+   "url": "https://thinkingmachines.ai/news/inkling-2-mini/",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "ai",
+   "summary": "Thinking Machines announced Inkling 2 Mini, a new model, in a company news post.",
+   "relevance": 7,
+   "added": "2026-11-20T22:27:57+00:00"
+  },
+  {
+   "date": "2026-11-20",
    "published": "2026-11-20T05:30:01+00:00",
    "title": "New Unpatched Windows 0-Day FastUnlock Lets Someone Holding a Locked PC Run Programs on It",
    "url": "https://thehackernews.com/2026/11/new-unpatched-windows-0-day-fastunlock.html",
@@ -5313,7 +5325,7 @@
    }
   ]
  },
- "generated_at": "2026-11-20T21:28:03+00:00",
+ "generated_at": "2026-11-20T22:28:04+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
