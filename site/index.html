@@ -291,8 +291,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
      one filled mark on a row, red with Exploited, only while there's nothing to apply; "Patch available" in the accent;
      "Mitigation only" with no color. A supply-chain attack says "Compromised", with no patch to report. */
   .exploited { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; font-size: .75rem; font-weight: 600; white-space: nowrap; }
-  .exploited .x-word { color: var(--text); }  /* leads, in the row's own ink: no color, but never fainter than what qualifies it */
-  .exploited:has(.no-patch) .x-word { color: var(--exploited-ink); }  /* red only while there's nothing to apply: rare, and worth it */
+  .exploited .x-word { color: var(--text); }  /* leads, in the row's own ink: the remedy after it carries any color, so the red shows once */
   .exploited .x-word.compromised { color: var(--caution-ink); }  /* a supply-chain attack: a warning (yellow), not danger (red) */
   .exploited .fix-pill { padding: 0 7px; border-radius: 999px; font-weight: 700; }
   .exploited .no-patch { background: var(--exploited); color: var(--exploited-text); }
@@ -844,6 +843,6 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
 </dialog>
 <button class="back-to-top" id="top" type="button" aria-label="Scroll to the top" title="Scroll to the top" hidden><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <!-- Versioned by its contents (tests/assets.test.js), so browsers keep it for a year. -->
-<script src="/app.js?v=ff8740d00a"></script>
+<script src="/app.js?v=423cbb76ca"></script>
 </body>
 </html>
