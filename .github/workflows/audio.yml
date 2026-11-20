@@ -1,7 +1,8 @@
 # Voices Listen's audio (audio.py): after each build, the stories still without audio, newest first, read by Kokoro
 # and stored in the public audio bucket (docs/setup/configuration.md#audio). A workflow of its own, not a job in
 # build.yml: that workflow's concurrency would hold the next build back until the voicing finished.
-# Secrets: CF_API_TOKEN (with Workers R2 Storage: Edit as well as KV), CF_ACCOUNT_ID, CF_KV_NAMESPACE_ID. Variable:
+# Secrets: CF_API_TOKEN (with Workers R2 Storage: Edit as well as KV), CF_ACCOUNT_ID, CF_KV_NAMESPACE_ID, and for PR dry
+# runs CF_KV_READ_TOKEN (Workers KV Storage: Read only). Variable:
 # AUDIO_URL, the bucket's address; without it nothing runs.
 name: Audio
 
@@ -33,6 +34,13 @@ jobs:
     # A fork's PR is skipped: its branch isn't in this repo for checkout to find, and it gets no secrets to read articles with.
     if: (github.event_name != 'pull_request' && vars.AUDIO_URL != '') || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    # The secrets that can push to main, score with Claude and write to Cloudflare are in the production environment,
+    # which only main may use, so a branch can't get them even by editing this file. A PR's dry run uses no environment,
+    # and reads articles with CF_KV_READ_TOKEN, which can do nothing else.
+    # deployment: false: secrets only, so no deployment is recorded for each run.
+    environment:
+      name: ${{ github.event_name != 'pull_request' && 'production' || '' }}
+      deployment: false
     # The budget (audio.py) only stops new stories from starting, so the limit leaves room after it for setup and the
     # longest story audio.py voices whole (20 minutes of reading, about 12 minutes to voice on the slowest runner).
     timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && 330 || 50 }}
@@ -60,9 +68,10 @@ jobs:
           SUMS
       - run: python audio.py
         env:
-          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          # By name: `pr && secrets.A || secrets.B` would hand a PR the full token whenever the read-only one is unset.
+          CF_API_TOKEN: ${{ secrets[github.event_name == 'pull_request' && 'CF_KV_READ_TOKEN' || 'CF_API_TOKEN'] }}
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}  # wrangler's names for the same two
+          CLOUDFLARE_API_TOKEN: ${{ secrets[github.event_name == 'pull_request' && 'CF_KV_READ_TOKEN' || 'CF_API_TOKEN'] }}  # wrangler's names for the same two
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
           CF_KV_NAMESPACE_ID: ${{ secrets.CF_KV_NAMESPACE_ID }}
           AUDIO_URL: ${{ vars.AUDIO_URL }}
