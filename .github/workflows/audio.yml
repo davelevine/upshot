@@ -30,7 +30,8 @@ env:
 
 jobs:
   voice:
-    if: vars.AUDIO_URL != '' || github.event_name == 'pull_request'
+    # A fork's PR is skipped: its branch isn't in this repo for checkout to find, and it gets no secrets to read articles with.
+    if: (github.event_name != 'pull_request' && vars.AUDIO_URL != '') || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     # The budget (audio.py) only stops new stories from starting, so the limit leaves room after it for setup and the
     # longest story audio.py voices whole (20 minutes of reading, about 12 minutes to voice on the slowest runner).
