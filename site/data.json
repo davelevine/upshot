@@ -187,6 +187,24 @@
   },
   {
    "date": "2026-11-20",
+   "published": "2026-11-20T18:38:00+00:00",
+   "title": "Fragments: November 20",
+   "url": "https://martinfowler.com/fragments/2026-11-20.html",
+   "publisher": "Martin Fowler",
+   "cves": [],
+   "category": "engineering",
+   "summary": "An experiment across 465 open source pull requests found healthier code cost 22 to 35% less for LLM agents to review and fix, with complex methods and conditionals driving costs.",
+   "relevance": 6,
+   "added": "2026-11-20T19:28:02+00:00",
+   "minutes": 7,
+   "tldr": [
+    "Marcus Borg's experiment found unhealthy code cost 22 to 35% more for AI agents to review than healthy code.",
+    "The test covered three LLMs and 465 pull requests across 246 open source repositories, scored by CodeScene: CodeHealth 2.8 unhealthy versus 9.7 healthy.",
+    "Complex Method and Complex Conditional were the code smells highlighted as driving higher review costs."
+   ]
+  },
+  {
+   "date": "2026-11-20",
    "published": "2026-11-20T06:53:00+00:00",
    "title": "AWS Releases a Free Local Emulator of AWS Built Entirely by Agents",
    "url": "https://www.infoq.com/news/2026/11/aws-emulator-local-testing/",
@@ -5208,7 +5226,7 @@
    }
   ]
  },
- "generated_at": "2026-11-20T18:43:29+00:00",
+ "generated_at": "2026-11-20T19:28:25+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
