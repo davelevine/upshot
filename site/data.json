@@ -2,6 +2,32 @@
  "items": [
   {
    "date": "2026-11-20",
+   "published": "2026-11-20T17:30:13+00:00",
+   "title": "Chinese-nexus actor’s Cairn AI agents found a zero-day on their own",
+   "url": "https://aws.amazon.com/blogs/security/chinese-nexus-actors-cairn-ai-agents-found-a-zero-day-on-their-own/",
+   "publisher": "AWS Security Blog",
+   "cves": [],
+   "category": "security",
+   "summary": "Amazon Threat Intelligence reports a Chinese-nexus actor used autonomous AI agents, given the goal of obtaining shell access, that found and exploited a zero-day in an open-source application.",
+   "relevance": 9,
+   "added": "2026-11-20T18:43:02+00:00",
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-20T18:42:59+00:00",
+    "kind": "flaw",
+    "quote": "found a zero-day in an open-source application and used it to gain full",
+    "fix": "patch"
+   },
+   "minutes": 6,
+   "tldr": [
+    "Amazon Threat Intelligence reports a Chinese-nexus actor's autonomous AI agents, run through open-source Cairn, found and exploited a zero-day in a medical imaging app.",
+    "The path traversal flaw in the application's upload endpoint let agents write files and obtain a reverse shell running as root.",
+    "The project's maintainers released a fix and a GitHub Security Advisory for the flaw.",
+    "Defenders should prioritize high-confidence detections that trigger automated response, since agent operations move faster than manual triage."
+   ]
+  },
+  {
+   "date": "2026-11-20",
    "published": "2026-11-20T00:00:00+00:00",
    "title": "GitLab Critical Patch Release: 19.6.1, 19.5.8, 19.4.10",
    "url": "https://docs.gitlab.com/releases/patches/patch-release-gitlab-19-6-1-released/",
@@ -81,7 +107,9 @@
    "relevance": 8,
    "added": "2026-11-20T11:27:44+00:00",
    "exploited": {
-    "kev": [],
+    "kev": [
+     "CVE-2026-76466"
+    ],
     "at": "2026-11-20T11:27:42+00:00",
     "kind": "flaw",
     "quote": "Threat actors have been observed exploiting a recently disclosed critical security flaw in Cisco Expressway",
@@ -211,7 +239,8 @@
    "added": "2026-11-19T15:18:25+00:00",
    "exploited": {
     "kev": [
-     "CVE-2026-102764"
+     "CVE-2026-102764",
+     "CVE-2026-123890"
     ],
     "at": "2026-11-19T15:18:22+00:00",
     "kind": "flaw",
@@ -292,7 +321,9 @@
     "Apply the emergency vCenter update: 8.0 U3m, or 9.0.2.0200 and 9.1.1.0200 for Foundation releases. No workaround exists; Quick Patch cannot apply it."
    ],
    "exploited": {
-    "kev": [],
+    "kev": [
+     "CVE-2026-123890"
+    ],
     "at": "2026-11-20T00:27:57+00:00",
     "kind": "flaw",
     "quote": "exploited in attacks since September",
@@ -5177,7 +5208,7 @@
    }
   ]
  },
- "generated_at": "2026-11-20T17:27:57+00:00",
+ "generated_at": "2026-11-20T18:43:29+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
