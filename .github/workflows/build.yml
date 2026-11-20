@@ -53,6 +53,12 @@ jobs:
     if: ${{ !cancelled() && needs.gate.outputs.skip != 'true' }}  # runs when the gate was skipped (not a scheduled run)
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    # The secrets that can push to main, score with Claude and write to Cloudflare are in the production environment,
+    # which only main may use, so a branch can't get them even by editing this file. A PR's run uses no environment.
+    # deployment: false: secrets only, so no deployment is recorded for each run.
+    environment:
+      name: ${{ github.event_name != 'pull_request' && 'production' || '' }}
+      deployment: false
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
