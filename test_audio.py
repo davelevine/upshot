@@ -142,6 +142,25 @@ def test_a_long_story_gets_its_headline_and_upshot_and_a_card_its_summary(bucket
     assert bucket.meta(3)["full"] is False
 
 
+def test_a_card_is_voiced_again_once_its_article_is_stored(bucket):
+    bucket.site(item(4), item(3))
+    bucket.pages = {"https://example.test/4": page(4, "challenge"), "https://example.test/3": page(3)}
+    audio.main()
+    k4, k3 = audio.key_for("https://example.test/4"), audio.key_for("https://example.test/3")
+    assert bucket.index[k4]["card"] is True and bucket.index[k3]["card"] is False
+
+    bucket.voiced, bucket.uploads = [], []
+    audio.main()  # still blocked: its card's audio stands, and nothing is uploaded
+    assert bucket.voiced == [] and bucket.uploads == []
+
+    bucket.pages["https://example.test/4"] = page(4)  # a later build stored the article
+    audio.main()
+    assert bucket.voiced == [["Story 4", "The upshot. A point.", "Paragraph 0.", "Paragraph 1.", "Paragraph 2."]]
+    assert bucket.uploads[:2] == [f"{k4}-{audio.VERSION}-1.m4a", f"{k4}-{audio.VERSION}-1.json"], "new names: a file never changes"
+    assert bucket.index[k4]["card"] is False and bucket.index[k4]["r"] == 1
+    assert json.loads(bucket.files[f"{k4}-{audio.VERSION}-1.json"])["full"] is True
+
+
 def test_a_long_story_without_an_upshot_gets_its_headline(bucket):
     p = page(5)
     p["blocks"] = [b for b in p["blocks"] if b["kind"] != "upshot"]
