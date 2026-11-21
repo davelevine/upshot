@@ -2082,9 +2082,18 @@ def test_listen_plays_the_storys_audio(browser):
     pg.click("#listen-play")
     assert until(pg, "!player.paused") and pg.evaluate("player.currentTime") >= at
 
-    pg.click("#listen-rate")  # faster, at once and for next time
-    assert pg.inner_text("#listen-rate") == "1.25×" and pg.evaluate("player.playbackRate") == 1.25
-    assert pg.evaluate("localStorage.getItem('listenRate')") == "1.25"
+    rates = pg.locator("#listen-rates")
+    pg.click("#listen-rate")  # the speeds open above their button, the one playing checked
+    assert rates.is_visible() and rates.locator("[aria-pressed='true']").inner_text() == "1×"
+    box, btn_box = rates.bounding_box(), pg.locator("#listen-rate").bounding_box()
+    assert box["y"] + box["height"] <= btn_box["y"] and abs(box["x"] + box["width"] - btn_box["x"] - btn_box["width"]) < 1
+    pg.keyboard.press("Escape")  # Esc closes them, not the story
+    assert rates.is_hidden() and bar.is_visible()
+    pg.click("#listen-rate")
+    rates.locator("[data-rate='1.5']").click()  # straight to a speed, at once and for next time
+    assert rates.is_hidden() and pg.inner_text("#listen-rate") == "1.5×" and pg.evaluate("player.playbackRate") == 1.5
+    assert pg.evaluate("localStorage.getItem('listenRate')") == "1.5"
+    assert rates.locator("[aria-pressed='true']").get_attribute("data-rate") == "1.5"
     # The open story's audio can be unknown while this plays on (j, with the next story's fonts still loading): it keeps its own timings.
     pg.evaluate("{ const h = heard; heard = null; player.dispatchEvent(new Event('timeupdate')); heard = h; }")
 

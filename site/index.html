@@ -635,6 +635,17 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   .listen-progress i { display: block; width: 0; height: 100%; background: var(--accent); transition: width .3s; }
   .listen-rate { min-width: 48px; height: 32px; padding: 0 8px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: none; color: var(--text); font: inherit; font-size: 13px; font-variant-numeric: tabular-nums; cursor: pointer; }
   @media (max-width: 640px) { .listen-rate { height: 44px; } }  /* a phone's 44px targets, as the bar's buttons */
+  /* The speeds open above their button (app.js places them), looking like the header's menu, the one playing checked. */
+  .listen-rates { position: fixed; display: flex; flex-direction: column; min-width: 112px; margin: 0; padding: 6px; border: 1px solid var(--border); border-radius: var(--radius-md);
+    background: var(--bg-card); color: inherit; box-shadow: 0 24px 64px rgba(0, 0, 0, .25); }
+  .listen-rates:not(:popover-open) { display: none; }
+  .listen-rates button { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 40px; padding: 0 10px; border: 0; border-radius: var(--radius-sm);
+    background: none; color: var(--text); font: inherit; font-size: .9375rem; font-weight: 500; font-variant-numeric: tabular-nums; cursor: pointer; }
+  .listen-rates button:hover, .listen-rates button:active { background: var(--bg-card-hover); }
+  .listen-rates svg { width: 18px; height: 18px; color: var(--accent); }
+  .listen-rates [aria-pressed="false"] svg { visibility: hidden; }
+  .listen-rate:has(+ .listen-rates:popover-open) { background: var(--bg-card-hover); }
+  @media (max-width: 640px) { .listen-rates button { height: 44px; } }
   #reader-listen[aria-pressed="true"] { color: var(--accent); }
   /* Phones: between a list and its story the top bar stays put, as a navigation bar does, and crossfades: the list's header
      fades out and the story's bar fades in over it, while only the content beneath slides. The bar rides inside the sliding
@@ -774,7 +785,8 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
     <button class="icon-btn listen-play" id="listen-play" type="button" title="Pause" aria-label="Pause"><svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3v14H7zM14 5h3v14h-3z"/></svg><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
     <button class="icon-btn" id="listen-next" type="button" title="Next paragraph" aria-label="Next paragraph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 4 10 8-10 8zM19 5v14"/></svg></button>
     <div class="listen-where"><b id="listen-what"></b><span id="listen-left"></span><span class="listen-progress"><i id="listen-done"></i></span></div>
-    <button class="listen-rate" id="listen-rate" type="button" title="Speed">1×</button>
+    <button class="listen-rate" id="listen-rate" type="button" popovertarget="listen-rates" title="Speed" aria-label="Speed, 1 times">1×</button>
+    <div class="listen-rates" id="listen-rates" popover aria-label="Speed"><button type="button" data-rate="1" aria-pressed="false"><span>1×</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button><button type="button" data-rate="1.25" aria-pressed="false"><span>1.25×</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button><button type="button" data-rate="1.5" aria-pressed="false"><span>1.5×</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg></button></div>
     <button class="icon-btn" id="listen-stop" type="button" title="Stop listening" aria-label="Stop listening"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   </div>
   <div class="reader-nav">
@@ -874,6 +886,6 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
 </dialog>
 <button class="back-to-top" id="top" type="button" aria-label="Scroll to the top" title="Scroll to the top" hidden><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <!-- Versioned by its contents (tests/assets.test.js), so browsers keep it for a year. -->
-<script src="/app.js?v=e83af2cc8c"></script>
+<script src="/app.js?v=4d8cf924d7"></script>
 </body>
 </html>
