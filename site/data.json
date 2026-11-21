@@ -32,6 +32,25 @@
    ]
   },
   {
+   "date": "2026-11-21",
+   "published": "2026-11-21T09:44:00+00:00",
+   "title": "How Google Traced GKE API Timeouts to a Linux Kernel TCP Bug",
+   "url": "https://www.infoq.com/news/2026/11/gke-kernel-network-bug/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Google detailed how three interacting bugs in GKE, Private Service Connect, and the Linux kernel caused intermittent Kubernetes API timeouts that blocked about 800 developers from deploying.",
+   "relevance": 7,
+   "added": "2026-11-21T10:27:51+00:00",
+   "minutes": 3,
+   "tldr": [
+    "Google traced intermittent GKE Kubernetes API timeouts for Private Service Connect users to three interacting bugs, blocking around 800 developers from deploying to production.",
+    "The Linux kernel bug discarded certain reordered FIN packets, leaving sockets stuck indefinitely in FIN_WAIT_2. The other causes were PSC packet reordering and Envoy's half-close behavior.",
+    "The kernel fix is a patch by Eric Dumazet, merged in Linux 6.9.7 and backported to the 6.6 and 6.1 LTS branches.",
+    "GKE customers receive the fix in version 1.33.5 and later."
+   ]
+  },
+  {
    "date": "2026-11-20",
    "published": "2026-11-20T17:30:13+00:00",
    "title": "Chinese-nexus actor’s Cairn AI agents found a zero-day on their own",
@@ -5362,7 +5381,7 @@
    }
   ]
  },
- "generated_at": "2026-11-21T09:28:14+00:00",
+ "generated_at": "2026-11-21T10:28:00+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
