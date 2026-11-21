@@ -1967,8 +1967,8 @@ document.addEventListener('click', e => {
   document.querySelectorAll('.retry').forEach(b => { b.disabled = true; b.textContent = 'Trying\u2026'; });
   load().catch(loadFailed);
 });
-// A scanned sync code (/#sync=XXXX-XXXX, from the QR code): out of the address bar at once, then entered. A device already
-// syncing is asked first, since entering it moves the device to that sync.
+// A scanned sync code (/#sync=XXXX-XXXX, from the QR code): out of the address bar at once, then shown in the code sheet,
+// which tells a device already syncing that it would move to that sync.
 const scanned = location.hash.match(/^#sync=([0-9A-Za-z]{4}-?[0-9A-Za-z]{4})$/)?.[1];
 if (scanned) history.replaceState(history.state, '', location.pathname + location.search);
 load().then(() => (document.hidden ? syncNow() : connectLive())).then(() => {  // connectLive syncs first
@@ -1978,7 +1978,9 @@ load().then(() => (document.hidden ? syncNow() : connectLive())).then(() => {  /
   // An app's built-in browser (the Google app's, opened by a camera's QR scan) keeps its own storage: joining there would
   // sync it, not the reader's browser. The code stays unused, for the reader to enter in their browser.
   if (/GSA\/|; wv\)|FBAN|FBAV|Instagram/.test(navigator.userAgent)) { $('sync-code-inapp').hidden = false; return; }
-  joinWithCode();  // scanning is the choice; a device already syncing moves across
+  // Filled in, never sent: a link can't be told from a scan, and a link from someone else would join their sync and send
+  // them this device's reading. Continue is the choice.
+  $('sync-code-go').focus();
 }).catch(loadFailed);
 // Builds land every hour: check every 15 min while visible, and when the tab comes back into view.
 const check = () => { if (!document.hidden) return load().catch(() => {}); };

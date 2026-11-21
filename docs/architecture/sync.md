@@ -9,7 +9,7 @@ Sync keeps what you've read, what you've saved for later and how Upshot looks th
 - **Generate a sync code** turns sync on and shows an eight-character code, good once for ten minutes.
 - **Already have a sync code?** adds this device to a sync.
 
-On a computer, the code also comes as a QR code that a phone's camera opens and joins with. If the scan opens in an app's built-in browser, which keeps its own storage, the code is shown for you to enter in your real browser instead.
+On a computer, the code also comes as a QR code that a phone's camera opens with the code filled in; the phone joins once you press Continue, so a link someone else sends can't join you to their sync. If the scan opens in an app's built-in browser, which keeps its own storage, the code is shown for you to enter in your real browser instead.
 
 Once a device syncs, the menu item becomes **Sync settings**, with a line under it saying when it last synced. Sync runs by itself, so it has no button of its own; while it's failing, a dot on the menu's button says so.
 
