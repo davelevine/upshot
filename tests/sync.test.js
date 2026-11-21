@@ -43,6 +43,8 @@ test('validMarks takes only http(s) stories with a well-formed mark', () => {
     { 'https://x.test/': [1, 1] }, { 'https://x.test/': [1, 1.5, 0] }, { ['https://x.test/' + 'x'.repeat(500)]: [1, 1, 1] },
     Object.fromEntries(Array.from({ length: 301 }, (_, i) => [`https://x.test/${i}`, [1, 1, 1]]))]) assert.equal(validMarks(bad), false);
   assert.ok(validMarks(Object.fromEntries(Array.from({ length: 300 }, (_, i) => [`https://x.test/${i}`, [1, 1, 1]]))), 'a full batch from the page');
+  const at = n => 'https://x.test/' + 'x'.repeat(n - 15);  // a story address n characters long
+  assert.ok(validMarks({ [at(256)]: [1, 1, 1] }) && !validMarks({ [at(257)]: [1, 1, 1] }), 'addresses up to 256 characters');
 });
 
 test('validLater takes saves and unsaves, and a body without any', () => {

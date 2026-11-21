@@ -499,7 +499,7 @@ async function syncNow() {
   clearTimeout(pushTimer); pushTimer = null;
   if (!items.length || !maySync()) return;
   if (syncing) return syncing.then(syncNow);  // one at a time, so each picks up where the last left off
-  const sendable = (map, u) => map[u] && u.length <= 512 && /^https?:\/\//.test(u);  // what the server accepts (MAX_URL in sync/account.js)
+  const sendable = (map, u) => map[u] && u.length <= 256 && /^https?:\/\//.test(u);  // what the server accepts (MAX_URL in sync/account.js)
   loadSync();
   for (const u of pending) if (!sendable(marks, u)) pending.delete(u);
   for (const u of laterPending) if (!sendable(later, u)) laterPending.delete(u);

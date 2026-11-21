@@ -12,8 +12,9 @@ const keyFor = async s => [...new Uint8Array(await crypto.subtle.digest('SHA-256
 const COOKIE = 'upshot_session', COOKIE_AGE = 400 * 86400;  // 400 days, the longest Chrome allows; renewed with use
 const USER = /^[A-Za-z0-9_-]{22}$/, TOKEN = /^[A-Za-z0-9_-]{43}$/;
 // A sync takes at most 300 marks, as the page sends them (site/app.js, SYNC_BATCH), each for a story's address: the site's
-// longest is under 200 characters. Both bound what one request can make the Durable Object write and store.
-const MAX_BODY = 128 * 1024, MAX_BATCH = 300, MAX_URL = 512;
+// longest in 90 days was 167 characters. Both bound what one request can make the Durable Object write and store, and
+// MAX_URL with MAX_MARKS bounds what one reader holds; anyone can start a reader, so it's kept near what stories need.
+const MAX_BODY = 128 * 1024, MAX_BATCH = 300, MAX_URL = 256;
 // Rate limited per address. AUTH_LIMIT: what a script could guess at or pile up, new readers and codes entered.
 // SYNC_LIMIT, looser: every other route, which a few devices behind one home address call in bursts. Any of them with a
 // made-up cookie reaches (and creates) a Durable Object, so none can go unlimited.
