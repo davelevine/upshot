@@ -2015,6 +2015,9 @@ def test_listen_plays_the_storys_audio(browser):
     pg.keyboard.press("l")  # l stops (from the article, where the click left focus: it arrives as a message)
     assert until(pg, "document.getElementById('listen-bar').hidden") and playing(pg) is False
     said.wait_for(state="detached")  # the mark goes too
+    pg.evaluate("player.play()")  # a media key or the lock screen's Play after Stop
+    pg.wait_for_timeout(500)
+    assert pg.evaluate("player.paused") and bar.is_hidden(), "no audio without its bar"
     pg.keyboard.press("l")  # and plays again from the top
     assert until(pg, "!player.paused") and pg.evaluate("player.currentTime") < 2
     pg.keyboard.press("j")  # another story stops it, and has no audio, so no button
@@ -3488,6 +3491,18 @@ def test_a_joining_device_takes_the_syncs_preferences(browser):
     b.evaluate(PICK, "dark")  # and from then on, its changes are everyone's
     b.evaluate("syncNow()")
     assert until(a, "localStorage.getItem('theme') === 'dark'", timeout=8000)
+    assert a.problems == [] and b.problems == []
+
+
+def test_hiding_the_tab_sends_waiting_saves_and_settings(browser):
+    """A phone may never come back to a hidden tab, so what's waiting goes at once, not after the usual pause."""
+    a, b = _pair(browser)
+    hide = "v => { Object.defineProperty(document, 'hidden', { value: v, configurable: true }); document.dispatchEvent(new Event('visibilitychange')); }"
+    a.evaluate(PICK, "dark")
+    assert a.evaluate("prefsPending.size") > 0
+    a.evaluate("clearTimeout(pushTimer)")  # only hiding can send it now
+    a.evaluate(hide, True)
+    assert until(b, "localStorage.getItem('theme') === 'dark'", timeout=8000)
     assert a.problems == [] and b.problems == []
 
 

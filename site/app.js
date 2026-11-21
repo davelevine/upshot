@@ -603,7 +603,7 @@ function disconnectLive() {
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) return connectLive();
   disconnectLive();
-  if (pending.size) syncNow();
+  if (pending.size || laterPending.size || prefsPending.size) syncNow();
 });
 addEventListener('online', () => (document.hidden ? syncNow() : connectLive()));
 
@@ -960,7 +960,7 @@ function stopListening() {
   listen = null;
   player.pause();
   toFrame({ tw: 'said', n: -1 });
-  if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none';
+  if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = 'none'; navigator.mediaSession.metadata = null; }  // off the lock screen
   drawListen();
 }
 function setMediaSession() {
@@ -1000,7 +1000,9 @@ function drawListen() {
   $('listen-rate').ariaLabel = `Speed, ${listenRate} times`;
 }
 player.addEventListener('timeupdate', followAudio);
-player.addEventListener('play', drawListen);
+// Audio plays only while a story is being listened to: after Stop, a media key or the lock screen's Play (its handler, or the
+// browser's own) would otherwise play it with no bar on the page to stop it. toggleListen sets `listen` before this fires.
+player.addEventListener('play', () => (listen ? drawListen() : player.pause()));
 player.addEventListener('pause', drawListen);
 player.addEventListener('ended', stopListening);
 player.addEventListener('error', () => { if (listen) { stopListening(); $('reader-listen').hidden = true; } });  // the file's gone: no button for it
