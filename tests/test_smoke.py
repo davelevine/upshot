@@ -2082,9 +2082,9 @@ def test_listen_plays_the_storys_audio(browser):
     pg.click("#listen-play")
     assert until(pg, "!player.paused") and pg.evaluate("player.currentTime") >= at
 
-    pg.click("#listen-rate")  # faster, at once and for next time
-    assert pg.inner_text("#listen-rate") == "1.25×" and pg.evaluate("player.playbackRate") == 1.25
-    assert pg.evaluate("localStorage.getItem('listenRate')") == "1.25"
+    pg.select_option("#listen-rate", "1.5")  # straight to a speed, at once and for next time
+    assert pg.input_value("#listen-rate") == "1.5" and pg.evaluate("player.playbackRate") == 1.5
+    assert pg.evaluate("localStorage.getItem('listenRate')") == "1.5"
     # The open story's audio can be unknown while this plays on (j, with the next story's fonts still loading): it keeps its own timings.
     pg.evaluate("{ const h = heard; heard = null; player.dispatchEvent(new Event('timeupdate')); heard = h; }")
 

@@ -633,7 +633,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   .listen-where b { font-weight: 500; color: var(--text); }
   .listen-progress { display: block; height: 3px; margin-top: 4px; border-radius: 2px; background: var(--border); overflow: hidden; }
   .listen-progress i { display: block; width: 0; height: 100%; background: var(--accent); transition: width .3s; }
-  .listen-rate { min-width: 48px; height: 32px; padding: 0 8px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: none; color: var(--text); font: inherit; font-size: 13px; font-variant-numeric: tabular-nums; cursor: pointer; }
+  .listen-rate { min-width: 48px; height: 32px; padding: 0 8px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: none; color: var(--text); font: inherit; font-size: 13px; font-variant-numeric: tabular-nums; text-align: center; appearance: none; cursor: pointer; }  /* a select that looks like the bar's buttons; a tap opens the list */
   @media (max-width: 640px) { .listen-rate { height: 44px; } }  /* a phone's 44px targets, as the bar's buttons */
   #reader-listen[aria-pressed="true"] { color: var(--accent); }
   /* Phones: between a list and its story the top bar stays put, as a navigation bar does, and crossfades: the list's header
@@ -774,7 +774,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
     <button class="icon-btn listen-play" id="listen-play" type="button" title="Pause" aria-label="Pause"><svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3v14H7zM14 5h3v14h-3z"/></svg><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
     <button class="icon-btn" id="listen-next" type="button" title="Next paragraph" aria-label="Next paragraph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 4 10 8-10 8zM19 5v14"/></svg></button>
     <div class="listen-where"><b id="listen-what"></b><span id="listen-left"></span><span class="listen-progress"><i id="listen-done"></i></span></div>
-    <button class="listen-rate" id="listen-rate" type="button" title="Speed">1×</button>
+    <select class="listen-rate" id="listen-rate" title="Speed" aria-label="Speed"><option value="1">1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option></select>
     <button class="icon-btn" id="listen-stop" type="button" title="Stop listening" aria-label="Stop listening"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   </div>
   <div class="reader-nav">
@@ -874,6 +874,6 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
 </dialog>
 <button class="back-to-top" id="top" type="button" aria-label="Scroll to the top" title="Scroll to the top" hidden><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <!-- Versioned by its contents (tests/assets.test.js), so browsers keep it for a year. -->
-<script src="/app.js?v=e83af2cc8c"></script>
+<script src="/app.js?v=781f8c1e46"></script>
 </body>
 </html>

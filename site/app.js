@@ -930,7 +930,7 @@ $('reader-later').onclick = toggleLater;
 // block plays from there. It's one <audio> element, so it plays on with the phone locked, with lock-screen controls
 // through the Media Session. A story without audio (not voiced yet, or a site without the bucket) has no button.
 const AUDIO_VERSION = 1;  // audio.py VERSION
-const RATES = [1, 1.25, 1.5, 2];
+const RATES = [1, 1.25, 1.5];  // the options of #listen-rate
 let listenRate = RATES.includes(+localStorage.getItem('listenRate')) ? +localStorage.getItem('listenRate') : 1;
 let audioBase = null, voiced = new Map();  // the bucket, and the stories in its index: key → { card, r }
 let heard = null;   // the open story's audio, once its timings are in: { url, src, meta: { d, t, n, full, card } }
@@ -1051,8 +1051,7 @@ function drawListen() {
   const left = Math.max(0, d - player.currentTime) / listenRate;
   $('listen-left').textContent = `${Math.max(1, Math.round(left / 60))} min left${full ? '' : ' · Summary only'}`;
   $('listen-done').style.width = `${Math.min(100, 100 * player.currentTime / d)}%`;
-  $('listen-rate').textContent = `${listenRate}×`;
-  $('listen-rate').ariaLabel = `Speed, ${listenRate} times`;
+  $('listen-rate').value = String(listenRate);
 }
 player.addEventListener('timeupdate', followAudio);
 // Audio plays only while a story is being listened to: after Stop, a media key or the lock screen's Play (its handler, or the
@@ -1066,8 +1065,8 @@ $('listen-play').onclick = () => player.paused ? player.play().catch(() => {}) :
 $('listen-prev').onclick = () => stepBlock(-1);
 $('listen-next').onclick = () => stepBlock(1);
 $('listen-stop').onclick = stopListening;
-$('listen-rate').onclick = () => {
-  listenRate = RATES[(RATES.indexOf(listenRate) + 1) % RATES.length];
+$('listen-rate').onchange = e => {
+  listenRate = +e.target.value;
   localStorage.setItem('listenRate', String(listenRate));
   player.playbackRate = listenRate;
   drawListen();
