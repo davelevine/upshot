@@ -162,8 +162,8 @@ jobs:
         env:
           SMOKE_URL: http://127.0.0.1:8788
           PW_CHROMIUM: /usr/bin/google-chrome
-      # The step can end by SIGTERM (exit 143) partway through, before pytest prints its failures; the cause isn't known yet.
-      # This runs even then, and says whether memory ran out (the kernel's or systemd-oomd's kills) or the dev server died.
+      # A runner short of memory can end the step (or lose the job and its log) before pytest prints its failures. This runs
+      # even then, and says whether memory ran out (the kernel's or systemd-oomd's kills) or the dev server died.
       - name: Show memory and the dev server on failure
         if: failure() || cancelled()
         run: |
