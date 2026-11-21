@@ -35,7 +35,7 @@ const exists = f => (f === 'essentials' ? picks.size > 0 : f === 'exploited' ? i
 const inList = (i, f) => f === 'all' || (f === 'essentials' ? picks.has(i.url) : f === 'exploited' ? listed(i) : f === 'later' ? isSaved(i.url) : cat(i.category) === f);
 const plural = (n, one, many) => (n === 1 ? one : many);
 // What the list showing holds, counted: a topic is where the stories are ("3 stories in Other"), not a word about them ("3 Other stories").
-const listNoun = n => (filter === 'essentials' ? plural(n, 'essential', 'essentials') : filter === 'exploited' ? plural(n, 'exploited flaw', 'exploited flaws')
+const listNoun = n => query ? plural(n, 'matching story', 'matching stories') : (filter === 'essentials' ? plural(n, 'essential', 'essentials') : filter === 'exploited' ? plural(n, 'exploited flaw', 'exploited flaws')
   : filter === 'later' ? plural(n, 'saved story', 'saved stories') : plural(n, 'story', 'stories') + (filter === 'all' ? '' : ` in ${label(filter)}`));
 // An exploited flaw and its remedy, in CISA's terms: "Patch available" (the accent), "Mitigation only" (quiet), or "No patch
 // yet", the one alarm on a row, a red pill (nothing to apply: watch it); nothing when the story doesn't say. A
@@ -49,8 +49,8 @@ const exploitedLabel = x => (x.kind === 'compromise' ? '<span class="exploited">
 // One label per row, in one quiet style: Exploited (whether to act), else Essential. Unread needs none (its title is bold),
 // and no list repeats its own name on every row.
 const label1 = (i, ess) => (i.exploited ? exploitedLabel(i.exploited) : ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : '');
-// Search results carry a story's label too, as every list does: whatever list is open behind the search.
-const searchLabel = i => { const l = i.exploited ? exploitedLabel(i.exploited) : picks.has(i.url) ? '<span class="ess">Essential</span>' : ''; return l && ` ${l}`; };
+// Search results carry a story's label too, as every list does: whatever list is open behind the search. On a line of its own.
+const searchLabel = i => { const l = i.exploited ? exploitedLabel(i.exploited) : picks.has(i.url) ? '<span class="ess">Essential</span>' : ''; return l && `<div class="p-label">${l}</div>`; };
 const unpatched = () => items.filter(i => listed(i) && i.exploited.kind !== 'compromise' && i.exploited.fix === 'none').length;
 
 // Today in the site's time zone (data.json's tz), not the device's: some browsers report UTC for privacy, which
@@ -140,10 +140,15 @@ function syncTopicUrl() {
 let hideRead = localStorage.getItem('hideRead') === '1';
 const held = new Set();
 const hidesRead = () => hideRead && filter !== 'later';
+// Phones search in the list itself, as Feedbin does (openSearch): `query` narrows it, within the list showing while
+// `scoped` (the chip), or across every story. Read stories stay in: a search is for finding one.
+let query = '', scoped = false;
+const searchHit = (i, ql) => `${i.title} ${i.summary} ${i.publisher} ${domain(i.url)}`.toLowerCase().includes(ql);
 function renderItems(keepLimit) {
   if (!keepLimit) { limit = PAGE; held.clear(); }
-  // searching is the palette's job: the search bar only opens it
-  shown = items.filter(i => inList(i, filter) && (!hidesRead() || isUnread(i) || held.has(i.url) || i.url === readerFor));
+  const ql = query.toLowerCase();
+  shown = ql ? items.filter(i => inList(i, scoped ? filter : 'all') && searchHit(i, ql))
+    : items.filter(i => inList(i, filter) && (!hidesRead() || isUnread(i) || held.has(i.url) || i.url === readerFor));
   renderPage();
 }
 function setHideRead(on, fromSync = false) {
@@ -167,23 +172,24 @@ function renderPage() {
     <a class="card${isRead(i.url) ? ' read' : ''}${isSaved(i.url) ? ' saved' : ''}${ess ? ' essential' : ''}" href="${esc(i.url)}" target="_blank" rel="noopener"${i.url === currentUrl() ? ' aria-current="true"' : ''}>
       ${iconHtml(i.publisher)}
       <div class="card-body">
-        <div class="card-title">${esc(i.title)}</div>
+        <div class="card-title">${highlight(i.title, query)}</div>
         <div class="card-meta"><span class="card-src">${esc(source(i))}</span>${label1(i, ess)}</div>
         ${preview ? `<div class="card-sum${why ? ' full' : ''}">${why ? '<b>What to do: </b>' : ''}${esc(preview)}</div>` : ''}
         <div class="card-foot">${ageHtml(i)}${SAVED_MARK}</div>
       </div>
     </a>`; }).join('')}`
-    : `<p class="empty">${filter === 'later' ? 'Nothing saved yet. Open a story and use its bookmark to save it here.' : hidesRead() && items.some(i => inList(i, filter)) ? 'No unread stories here. Read stories are hidden. <button type="button" class="sync-link-btn show-read">Show them</button>' : 'Nothing in this list right now.'}</p>`;
+    : `<p class="empty">${query ? `No stories match “${esc(query)}”${scoped ? ` in ${esc(label(filter))}. <button type="button" class="sync-link-btn search-all">Search all stories</button>` : '.'}`
+      : filter === 'later' ? 'Nothing saved yet. Open a story and use its bookmark to save it here.' : hidesRead() && items.some(i => inList(i, filter)) ? 'No unread stories here. Read stories are hidden. <button type="button" class="sync-link-btn show-read">Show them</button>' : 'Nothing in this list right now.'}</p>`;
   // Without sync, saves stay in this browser: said once, under the list, rather than on every save. showSync hides it once syncing.
-  if (filter === 'later') $('items').insertAdjacentHTML('beforeend', `<p class="later-note"${syncOn ? ' hidden' : ''}>Saved on this device only. <button type="button" class="sync-link-btn">Turn on sync</button> to see them on your other devices.</p>`);
+  if (filter === 'later' && !query) $('items').insertAdjacentHTML('beforeend', `<p class="later-note"${syncOn ? ' hidden' : ''}>Saved on this device only. <button type="button" class="sync-link-btn">Turn on sync</button> to see them on your other devices.</p>`);
   $('items').removeAttribute('aria-busy');
   syncReadAll(); placeMore();
   if (generatedAt) showUpdated();  // the feed was just redrawn, and its "Updated" with it
   io.unobserve($('sentinel'));
   io.observe($('sentinel'));
-  const ended = shown.length && limit >= shown.length;
+  const ended = shown.length && limit >= shown.length && !query;  // a search's results just stop
   $('end').hidden = !ended;
-  $('hidden-note').hidden = !(hidesRead() && items.filter(i => inList(i, filter)).length > shown.length);  // say so where the list ends
+  $('hidden-note').hidden = !(!query && hidesRead() && items.filter(i => inList(i, filter)).length > shown.length);  // say so where the list ends
   if (ended) {
     const n = shown.length, what = listNoun(n);
     const days = Math.min(KEEP_DAYS, Math.ceil((Date.now() - Date.parse(items.reduce((o, i) => (i.date < o ? i.date : o), items[0].date))) / 864e5));
@@ -264,7 +270,7 @@ $('filters').onclick = e => {
 let picked = null;
 // Phones open on the topics (home); a topic's list is a history entry above it, so back, the chevron and swipe-back return.
 const phone = matchMedia('(max-width: 640px)');
-phone.addEventListener('change', () => syncHome());
+phone.addEventListener('change', () => { if (searching()) closeSearch(); syncHome(); });
 function syncHome() {
   const st = history.state, home = !st?.list && !st?.reader;
   document.body.classList.toggle('home', home);
@@ -285,6 +291,7 @@ function enterList(same) {
   if (!same) scrollTo(0, 0);  // the same list again keeps its place
 }
 function leaveList() {
+  if (history.state?.search) { afterSearch = leaveList; return history.back(); }  // out of the search's entry first, then the list's
   lastList = filter;
   // Back only over an entry pushed above: a story opened from a link becomes a list in place (dismiss), with the
   // page it came from below, so going back there would leave the site.
@@ -294,7 +301,53 @@ function leaveList() {
 $('list-back').onclick = leaveList;
 // The search bar opens the palette, the same search as ⌘K, rather than filtering the feed in place.
 $('search').onclick = () => openPalette();  // on a click or Enter, not focus, so Tab passes through and Esc hands focus back
-$('search-btn').onclick = () => openPalette();  // phones: the header's own
+// Phones: the header's search icon opens a drawer under it, as in Feedbin, and typing narrows the list in place. It starts
+// in the list showing, named by a chip; the chip's ✕ (or Backspace in an empty field) widens it to every story. The drawer
+// is a history entry, so back closes it; the icon again does too.
+let afterSearch = null;  // leaving the list while searching: run once the search's entry is gone
+const searching = () => document.body.classList.contains('searching');
+function syncChip() {
+  $('search-chip').hidden = !scoped;
+  if (!scoped) return;
+  $('chip-mark').innerHTML = $('filters').querySelector(`[data-f="${filter}"] .f-mark`)?.innerHTML || '';
+  $('chip-name').textContent = label(filter);
+  $('search-chip').setAttribute('aria-label', `${label(filter)}, remove filter`);
+}
+function openSearch() {
+  if (searching()) return $('search-q').focus();
+  scoped = filter !== 'all';
+  syncChip();
+  document.body.classList.add('searching');
+  $('search-drawer').inert = false;
+  $('search-btn').setAttribute('aria-expanded', 'true');
+  history.pushState({ ...history.state, search: true }, '');
+  $('search-q').focus();
+}
+function closeSearch() {  // once its history entry is gone
+  document.body.classList.remove('searching');
+  $('search-drawer').inert = true;
+  $('search-btn').setAttribute('aria-expanded', 'false');
+  $('search-q').value = '';
+  if (query) { query = ''; renderItems(); }
+}
+const endSearch = () => (history.state?.search ? history.back() : closeSearch());
+function widenSearch() {
+  scoped = false;
+  syncChip();
+  renderItems();
+  $('search-q').focus();
+}
+$('search-btn').onclick = () => (!phone.matches ? openPalette() : searching() ? endSearch() : openSearch());
+$('search-chip').onclick = widenSearch;
+$('search-drawer').onsubmit = e => { e.preventDefault(); $('search-q').blur(); };  // the keyboard's Search key: put it away, to see the results
+$('search-q').addEventListener('input', () => { query = $('search-q').value.trim(); renderItems(); scroller().scrollTo(0, 0); });
+$('search-q').addEventListener('keydown', e => {
+  e.stopPropagation();  // keep page shortcuts (j/k, Escape closing the reader) out of the field
+  if (e.key === 'Escape') endSearch();
+  else if (e.key === 'Backspace' && scoped && !$('search-q').value) widenSearch();
+});
+document.addEventListener('click', e => { if (e.target.closest('.search-all')) widenSearch(); });
+if (history.state?.search) history.replaceState({ ...history.state, search: undefined }, '');  // a reload starts with it closed
 // The phone's toolbar has Back to top, dimmed at the top as Feedbin dims Edit; elsewhere it floats once you're well down.
 addEventListener('scroll', () => { const y = scroller().scrollTop; $('top').hidden = y < 800; $('bar-top').disabled = y < 1; }, { passive: true, capture: true });  // capture: the list's own scrolling doesn't bubble
 $('top').onclick = $('bar-top').onclick = () => scroller().scrollTo({ top: 0, behavior: 'smooth' });
@@ -1567,6 +1620,8 @@ function syncFromUrl() {
   else if (!i && path) history.replaceState(null, '', '/' + location.search);  // a story that's since left the site
 }
 addEventListener('popstate', e => {
+  if (searching() && !history.state?.search) closeSearch();
+  if (afterSearch) { const then = afterSearch; afterSearch = null; return then(); }
   if (picked !== null && history.state?.f) history.replaceState({ ...history.state, f: picked }, '');
   picked = null;
   syncFromUrl();
@@ -1826,8 +1881,8 @@ function renderPalette() {
   pal.sel = 0;
   $('palette-list').innerHTML = head + (pal.results.length ? pal.results.map((i, n) => { const c = cat(i.category); return `
     <li role="option" id="p-${n}" data-n="${n}" aria-selected="${n === 0}">
-      <span class="dot" style="--c:var(--cat-${c})"></span>
-      <div><div class="p-title">${highlight(i.title, q)}</div><div class="p-meta">${esc(source(i))} · ${CATS[c]} · ${age(i)}${searchLabel(i)}</div></div>
+      ${iconHtml(i.publisher)}
+      <div><div class="p-title">${highlight(i.title, q)}</div><div class="p-meta">${esc(source(i))} · ${CATS[c]} · ${age(i)}</div>${searchLabel(i)}</div>
     </li>`; }).join('') : `<li class="palette-empty">No articles match “${esc(q)}”.</li>`);
   $('palette-q').setAttribute('aria-activedescendant', pal.results.length ? 'p-0' : '');
 }

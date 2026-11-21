@@ -366,3 +366,20 @@ Asked to fix how "1 unpatched" looked in the sidebar, I guessed and restyled it 
 - When a credential starts failing after a change, first check which token the consumer is actually using ("last used" times, the token behind each secret) before changing permissions. I took that 401 for a scoping problem and trimmed a token nothing used.
 - Workers Builds copies **Previews Base** into each branch's own trigger on its first build, so changing Previews Base doesn't fix a branch that already exists; that branch's trigger has to be updated (or the branch rebuilt fresh).
 - Give every time in Eastern (EST/EDT) with AM/PM, never UTC.
+
+## 2026-11-21 — Read the reference's code before saying how it behaves
+
+**Mistake:** Shown a screenshot of Feedbin's mobile search, I said Feedbin dims the list behind the search drawer and offered that as the answer to the list looking tappable. Feedbin's source showed the gray titles were only read stories (`.entry-summary.read`): its drawer sits in the page, and the list stays live. The first plan (an overlay drawer over a faded list) rested on the wrong reading. Earlier the same day, a full-screen design and an empty-state mark were built before the user, seeing them, questioned whether "Recently read" earned its place; the mockups helped, but each choice still came one step late.
+
+**Rules:**
+- When a reference app is open source, read the code that builds the UI before describing its behavior or designing around it; a screenshot can't tell styling apart from state.
+- When reading a screenshot, name the other explanations for what's visible (read state, hover, selection) before picking one.
+- Mock each candidate on real data, with the keyboard's height in view on a phone, before building it; the side-by-side mockups settled questions text couldn't.
+
+## 2026-11-21 — Describe the change on its own terms, not as another app's copy
+
+**Mistake:** The PR for in-place phone search had "as Feedbin does" in its title, opened by saying it "works as Feedbin's mobile search does (checked against Feedbin's source…)", and listed what was "not taken from Feedbin". The site doc's new section began "search works as in Feedbin". The user said the PR didn't need to read like a blatant Feedbin ripoff.
+
+**Rules:**
+- In PR titles, PR bodies, commit messages and docs, describe what Upshot does and why. A reference app may have informed the design; that belongs in the conversation, not in public write-ups.
+- Don't list what was "left out" of another app's feature; list what Upshot doesn't do only when a reader would otherwise expect it.
