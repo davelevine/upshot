@@ -33,6 +33,32 @@
   },
   {
    "date": "2026-11-21",
+   "published": "2026-11-21T18:01:58+00:00",
+   "title": "Microsoft Entra Connect Health flaw exploited to steal tenant data",
+   "url": "https://www.bleepingcomputer.com/news/security/microsoft-entra-connect-health-flaw-exploited-to-steal-tenant-data/",
+   "publisher": "BleepingComputer",
+   "cves": [],
+   "category": "security",
+   "summary": "Microsoft disclosed a breach in which attackers exploited a flaw in its Entra Connect Health service to access administrator email addresses and tenant configuration data.",
+   "relevance": 8,
+   "added": "2026-11-21T18:27:59+00:00",
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-21T18:27:56+00:00",
+    "kind": "flaw",
+    "quote": "Microsoft Entra Connect Health flaw exploited to steal tenant data",
+    "fix": "patch"
+   },
+   "minutes": 2,
+   "tldr": [
+    "Microsoft disclosed a breach in which attackers exploited a flaw in its Entra Connect Health API, exposing tenant metadata.",
+    "Exposed data includes administrator email addresses, tenant IDs, and sync status, but not passwords, tokens, or keys.",
+    "Microsoft deployed a server-side fix on November 19 and says no customer updates are required.",
+    "Watch for targeted phishing against exposed admin addresses, use phishing-resistant MFA on privileged accounts, and review audit and sign-in logs."
+   ]
+  },
+  {
+   "date": "2026-11-21",
    "published": "2026-11-21T09:44:00+00:00",
    "title": "How Google Traced GKE API Timeouts to a Linux Kernel TCP Bug",
    "url": "https://www.infoq.com/news/2026/11/gke-kernel-network-bug/",
@@ -5381,7 +5407,7 @@
    }
   ]
  },
- "generated_at": "2026-11-21T17:27:53+00:00",
+ "generated_at": "2026-11-21T18:28:08+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
