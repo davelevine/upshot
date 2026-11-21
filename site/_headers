@@ -5,7 +5,7 @@
 # connect-src allows Listen's audio bucket, whose index and timings the page reads (the audio itself is media-src); a fork
 # with its own bucket puts its address here (docs/setup/configuration.md#audio).
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-n3fYwS6SImHVLdSyw1AGEf0FlCh3SWvGBVZzEK0iyVc=' 'sha256-kW01gfzvZlXjcCjDIzxE//HhJk3RU6IWsyp0lin2E1s='; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src https:; frame-src 'none'; connect-src 'self' https://audio.upshot.me; font-src 'self' data:; manifest-src 'self'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-aK2HABd+whAeBXcesJlNtA58Edy9RznEBlJAvonj7+k=' 'sha256-kW01gfzvZlXjcCjDIzxE//HhJk3RU6IWsyp0lin2E1s='; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src https:; frame-src 'none'; connect-src 'self' https://audio.upshot.me; font-src 'self' data:; manifest-src 'self'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
   Referrer-Policy: strict-origin-when-cross-origin
 

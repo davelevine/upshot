@@ -2135,6 +2135,21 @@ def test_listen_to_a_cards_audio_marks_nothing_once_the_article_is_shown(browser
     assert pg.problems == []
 
 
+def test_the_page_works_with_storage_blocked(browser):
+    """Chrome with cookies blocked for the site throws on any use of localStorage. The page still loads and reads, and a
+    setting lasts the visit."""
+    blocked = "Object.defineProperty(window, 'localStorage', { configurable: true, get() { throw new DOMException('The operation is insecure.', 'SecurityError'); } })"
+    pg = open_site(browser, init=blocked, viewport={"width": 1440, "height": 900})
+    assert pg.locator("#items a.card").count() > 5
+    pg.locator("#items a.card").first.click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.keyboard.press("Escape")
+    wait_until_closed(pg)
+    pg.evaluate(PICK, "dark")
+    assert until(pg, "document.documentElement.dataset.theme === 'dark' && localStorage.getItem('theme') === 'dark'")
+    assert pg.problems == []
+
+
 def test_read_later_saves_from_the_reader(browser):
     """Read later is always in the sidebar. The reader's bookmark saves a story: its row is marked, the entry counts what's
     saved and lists it. Reading everything leaves it saved, a reload keeps it, and `s` takes it out again."""
