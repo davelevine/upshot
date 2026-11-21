@@ -1,5 +1,4 @@
 """Fetch feeds, classify + summarize new items with an LLM, write the static site data."""
-import gzip
 import hashlib
 import html
 import io
@@ -9,9 +8,11 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
+import zlib
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from email.utils import format_datetime
@@ -98,16 +99,44 @@ class PermanentRedirects(urllib.request.HTTPRedirectHandler):
 MOVED = {}  # feed URL -> where it permanently redirects now
 
 
+MAX_FEED = 16 * 2**20  # bytes, before and after gzip; a big feed is a few MB
+
+
+def read_capped(resp, limit, seconds, cut=False):
+    """At most `limit` bytes, within about `seconds` overall. The socket timeout covers one read, so without this a server
+    sending a byte at a time holds its thread, and the build, until the job's timeout. More than `limit` is an error, or
+    with `cut`, the first `limit` bytes."""
+    end, chunks, n = time.monotonic() + seconds, [], 0
+    while chunk := resp.read1(65536):  # read1: returns what one read got, where read(n) waits for all n
+        chunks.append(chunk)
+        n += len(chunk)
+        if n > limit:
+            if cut:
+                return b"".join(chunks)[:limit]
+            raise ValueError(f"over {limit} bytes")
+        if time.monotonic() > end:
+            raise TimeoutError(f"still sending after {seconds}s")
+    return b"".join(chunks)
+
+
+def gunzip_capped(body, limit):
+    z = zlib.decompressobj(wbits=31)
+    out = z.decompress(body, limit)
+    if z.unconsumed_tail:
+        raise ValueError(f"over {limit} bytes unzipped")
+    return out
+
+
 def fetch(feed):
     title, url = feed
     req = urllib.request.Request(url, headers={"User-Agent": UA})
     redirects = PermanentRedirects()
     with urllib.request.build_opener(redirects).open(req, timeout=20) as resp:
-        body = resp.read()
+        body = read_capped(resp, MAX_FEED, 60)
         if redirects.hops and all(c in (301, 308) for c in redirects.hops) and resp.geturl() != url:
             MOVED[url] = resp.geturl()
     if body[:2] == b"\x1f\x8b":  # some servers gzip regardless of Accept-Encoding
-        body = gzip.decompress(body)
+        body = gunzip_capped(body, MAX_FEED)
     parsed = feedparser.parse(body)
     if not parsed.entries and parsed.bozo:
         raise ValueError(f"unparseable feed: {parsed.bozo_exception}")
@@ -556,7 +585,12 @@ ICON_UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko
 
 
 def get(url, limit):
-    return urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": ICON_UA}), timeout=10).read(limit)
+    """An icon or a site's page. The address comes from the feed (its channel link), so only http(s): urllib also opens
+    file: and ftp:. Only the first `limit` bytes: the start of a page is where its icons are named."""
+    if not url.startswith(("https://", "http://")):
+        raise ValueError(f"not a web address: {url}")
+    with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": ICON_UA}), timeout=10) as resp:
+        return read_capped(resp, limit, 20, cut=True)
 
 
 def slug(name):
