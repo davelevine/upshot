@@ -1,6 +1,37 @@
 {
  "items": [
   {
+   "date": "2026-11-21",
+   "published": "2026-11-21T08:49:13+00:00",
+   "title": "Hackers Exploit Critical VMware, Cisco, and Apache Flaws as Espionage Attacks Emerge",
+   "url": "https://thehackernews.com/2026/11/hackers-exploit-critical-vmware-cisco.html",
+   "publisher": "The Hacker News",
+   "cves": [
+    "CVE-2026-123890",
+    "CVE-2026-129448"
+   ],
+   "category": "security",
+   "summary": "CISA added four flaws in Apache Roller, Cisco Expressway, SAP NetWeaver and Broadcom VMware vCenter to its KEV catalog, citing active exploitation amid espionage attacks.",
+   "relevance": 8,
+   "added": "2026-11-21T09:28:03+00:00",
+   "exploited": {
+    "kev": [
+     "CVE-2026-123890",
+     "CVE-2026-129448"
+    ],
+    "at": "2026-11-21T09:28:00+00:00",
+    "kind": "flaw",
+    "quote": "citing evidence of active exploitation",
+    "fix": "patch"
+   },
+   "minutes": 2,
+   "tldr": [
+    "CISA added four flaws in Apache Roller, Cisco Expressway, SAP NetWeaver and VMware vCenter to its KEV catalog, citing active exploitation.",
+    "Attackers exploit CVE-2026-129448 in Apache Roller and CVE-2026-123890 in VMware vCenter, the latter linked to suspected China-nexus group Armory Castle.",
+    "Apply the vendor fixes; FCEB agencies are urged to patch all four flaws by November 23, 2026, under BOD 26-04."
+   ]
+  },
+  {
    "date": "2026-11-20",
    "published": "2026-11-20T17:30:13+00:00",
    "title": "Chinese-nexus actor’s Cairn AI agents found a zero-day on their own",
@@ -5331,7 +5362,7 @@
    }
   ]
  },
- "generated_at": "2026-11-21T08:27:49+00:00",
+ "generated_at": "2026-11-21T09:28:14+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
