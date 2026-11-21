@@ -360,6 +360,13 @@ def test_feed_health_report_is_empty_when_all_is_well():
     assert "**B** `https://b`: last post 2026-09-01" in md and "`https://a` → `https://a2`" in md
 
 
+def test_feed_health_addresses_stay_in_their_code_spans():
+    md = build.feed_health_report({"https://a": "A"}, ["https://a"], {}, {"https://a": "https://b/`x\n@someone"},
+                                  {"https://a": ["https://a/x`](https://evil.test) @someone `"]})
+    assert "maybe `https://a/x](https://evil.test)@someone`" in md
+    assert "`https://a` → `https://b/x@someone`" in md
+
+
 def test_fetch_reports_only_permanent_redirects():
     import http.server, threading
     feed = b'<rss version="2.0"><channel><title>T</title><item><title>a</title><link>https://x.test/a</link></item></channel></rss>'
