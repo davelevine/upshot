@@ -1609,18 +1609,30 @@ def test_the_search_bar_and_slash_open_the_palette(browser):
     assert box["width"] == 44 and box["height"] == 44 and box["y"] + 44 <= 52
     ph.tap("#search-btn")
     ph.locator("#palette").wait_for()
-    # Below the header, and the search icon becomes the close button (no Esc key on a phone).
-    assert ph.locator("#palette").bounding_box()["y"] >= 52
-    close, icon = ph.locator("#palette-close").bounding_box(), ph.locator("#search-btn").bounding_box()
-    assert (close["x"], close["y"], close["width"], close["height"]) == (icon["x"], icon["y"], 44, 44)
-    ph.locator("#palette-close").tap()
+    # A page of its own: the field where the header was, Cancel beside it (no Esc key on a phone).
+    assert ph.locator("#palette").bounding_box() == {"x": 0, "y": 0, "width": 412, "height": 800}
+    cancel = ph.locator("#palette-close")
+    box = cancel.bounding_box()
+    assert cancel.inner_text() == "Cancel" and box["x"] + box["width"] == 412 and box["y"] == 0 and box["height"] == 52
+    # Nothing read yet: no "Latest" (the list it would repeat is a tap away), the site's mark instead, clear of the keyboard.
+    assert ph.locator("#palette-list").inner_html() == ""
+    mark = ph.evaluate("(() => { const s = getComputedStyle(document.getElementById('palette-list'), '::before'); return [s.content, s.width, s.marginTop]; })()")
+    assert mark[0] == '""' and mark[1] == "96px" and 52 + float(mark[2][:-2]) + 96 < 800 / 2
+    # Typing: rows like the list's, with the publisher's icon; no row looks tapped before it is.
+    ph.locator("#palette-q").fill(ph.evaluate("items[0].title.split(' ')[0]"))
+    row = ph.locator('#palette-list li[aria-selected="true"]')
+    assert row.locator(".src-icon").count() == 1 and row.locator(".dot").count() == 0
+    assert row.evaluate("e => getComputedStyle(e).backgroundColor") == "rgba(0, 0, 0, 0)"
+    cancel.tap()
     ph.locator("#palette").wait_for(state="hidden")
     ph.wait_for_timeout(200)
     assert ph.locator("#palette").is_hidden()
+    # Once something's read, phones open on it, as desktops do.
+    ph.evaluate("markRead(items[3].url)")
     ph.tap("#search-btn")
     ph.locator("#palette").wait_for()
-    ph.mouse.click(20, 26)  # anywhere on the header closes it too
-    ph.locator("#palette").wait_for(state="hidden")
+    assert ph.inner_text(".palette-head") == "RECENTLY READ"
+    assert ph.locator("#palette-list .p-title").all_inner_texts() == [ph.evaluate("items[3].title")]
 
 
 def test_share_icon_matches_the_device(browser):
@@ -2995,7 +3007,7 @@ def test_sync_has_no_button_of_its_own(browser):
 
 def test_phones_keep_sync_in_the_menu_not_the_header(browser):
     """Sync runs by itself, so on a phone its button doesn't take a place in the header: the menu's Sync settings is enough.
-    Search's close button still covers search."""
+    Search, a page of its own, covers the whole header with sync on too."""
     a = open_site(browser, url=SYNC_URL, viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
     turn_on(a)
     a.keyboard.press("Escape")
@@ -3006,8 +3018,7 @@ def test_phones_keep_sync_in_the_menu_not_the_header(browser):
     enter_list(a)
     a.tap("#search-btn")
     a.locator("#palette").wait_for()
-    close, icon = a.locator("#palette-close").bounding_box(), a.locator("#search-btn").bounding_box()
-    assert (close["x"], close["y"]) == (icon["x"], icon["y"]), (close, icon)
+    assert a.locator("#palette").bounding_box() == {"x": 0, "y": 0, "width": 390, "height": 844}
     assert a.problems == []
 
 

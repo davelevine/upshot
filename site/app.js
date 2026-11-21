@@ -49,8 +49,8 @@ const exploitedLabel = x => (x.kind === 'compromise' ? '<span class="exploited">
 // One label per row, in one quiet style: Exploited (whether to act), else Essential. Unread needs none (its title is bold),
 // and no list repeats its own name on every row.
 const label1 = (i, ess) => (i.exploited ? exploitedLabel(i.exploited) : ess && filter !== 'essentials' ? '<span class="ess">Essential</span>' : '');
-// Search results carry a story's label too, as every list does: whatever list is open behind the search.
-const searchLabel = i => { const l = i.exploited ? exploitedLabel(i.exploited) : picks.has(i.url) ? '<span class="ess">Essential</span>' : ''; return l && ` ${l}`; };
+// Search results carry a story's label too, as every list does: whatever list is open behind the search. On a line of its own.
+const searchLabel = i => { const l = i.exploited ? exploitedLabel(i.exploited) : picks.has(i.url) ? '<span class="ess">Essential</span>' : ''; return l && `<div class="p-label">${l}</div>`; };
 const unpatched = () => items.filter(i => listed(i) && i.exploited.kind !== 'compromise' && i.exploited.fix === 'none').length;
 
 // Today in the site's time zone (data.json's tz), not the device's: some browsers report UTC for privacy, which
@@ -1814,21 +1814,22 @@ function renderPalette() {
     return `${i.summary} ${i.publisher} ${domain(i.url)}`.toLowerCase().includes(ql) ? 1 : 0;
   };
   // Before typing: what you read last (or the newest few), not the whole feed again. Typing searches every story.
+  // Phones show only what you read last: their search fills the screen, and with nothing read the site's mark holds it (CSS).
   let head = '';
   if (!ql) {
     const byUrl = Object.fromEntries(items.map(i => [i.url, i]));
     const recent = [...readSet].reverse().map(u => byUrl[u]).filter(Boolean).slice(0, 8);
-    pal.results = recent.length ? recent : items.slice(0, 5);
-    head = `<li class="palette-head" role="presentation">${recent.length ? 'Recently read' : 'Latest'}</li>`;
+    pal.results = recent.length || phone.matches ? recent : items.slice(0, 5);
+    head = pal.results.length ? `<li class="palette-head" role="presentation">${recent.length ? 'Recently read' : 'Latest'}</li>` : '';
   } else {
     pal.results = items.map(i => [rank(i), i]).filter(([r]) => r).sort((a, b) => b[0] - a[0]).map(([, i]) => i);
   }
   pal.sel = 0;
   $('palette-list').innerHTML = head + (pal.results.length ? pal.results.map((i, n) => { const c = cat(i.category); return `
     <li role="option" id="p-${n}" data-n="${n}" aria-selected="${n === 0}">
-      <span class="dot" style="--c:var(--cat-${c})"></span>
-      <div><div class="p-title">${highlight(i.title, q)}</div><div class="p-meta">${esc(source(i))} · ${CATS[c]} · ${age(i)}${searchLabel(i)}</div></div>
-    </li>`; }).join('') : `<li class="palette-empty">No articles match “${esc(q)}”.</li>`);
+      ${iconHtml(i.publisher)}
+      <div><div class="p-title">${highlight(i.title, q)}</div><div class="p-meta">${esc(source(i))} · ${CATS[c]} · ${age(i)}</div>${searchLabel(i)}</div>
+    </li>`; }).join('') : ql ? `<li class="palette-empty">No articles match “${esc(q)}”.</li>` : '');
   $('palette-q').setAttribute('aria-activedescendant', pal.results.length ? 'p-0' : '');
 }
 function selectPalette(n, scroll = true) {

@@ -129,6 +129,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
 
   /* After Feedbin: the topics in a sidebar, the list beside it, and past phone widths the reader docked beside that (see the 641px+ blocks). */
   :root { --side-w: 220px; --list-w: 440px; }  /* the columns' widths; dragging their edges sets them (app.js) */
+  :root { --mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M16 16v17a10 10 0 0 0 20 0V16M36 16v31' fill='none' stroke='%23000' stroke-width='9'/%3E%3Ccircle cx='49' cy='42' r='5'/%3E%3C/svg%3E"); }  /* the site's mark, drawn faint where there's nothing to show: the empty reader, phone search */
   .shell { display: grid; grid-template-columns: var(--side-w) minmax(0, 1fr); }
   /* The columns' edges, to drag (or focus and use the arrow keys); a line shows on hover and while dragging. */
   .resizer { display: none; position: fixed; top: 52px; bottom: 0; z-index: 101; width: 9px; margin-left: -4px; cursor: col-resize; touch-action: none; }
@@ -224,19 +225,21 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   #palette-q::placeholder { color: var(--text-muted); }
   .palette-list { margin: 0; padding: 6px; list-style: none; overflow-y: auto; }
   .palette-list li { display: flex; align-items: flex-start; gap: 10px; padding: 9px 10px; border-radius: var(--radius-sm); cursor: pointer; }
-  .palette-list li[aria-selected="true"] { background: var(--accent-soft); }
-  .palette-list li[aria-selected="true"] mark { background: color-mix(in srgb, var(--accent) 28%, transparent); }  /* the row is already --accent-soft, so the match needs more */
-  .palette-list .dot { margin-top: 6px; }
+  @media (pointer: fine) {  /* the arrow keys' and the mouse's row; on touch it would only look like a stray tap */
+    .palette-list li[aria-selected="true"] { background: var(--accent-soft); }
+    .palette-list li[aria-selected="true"] mark { background: color-mix(in srgb, var(--accent) 28%, transparent); }  /* the row is already --accent-soft, so the match needs more */
+  }
   .p-title { font-size: .9rem; font-weight: 600; line-height: 1.35; }
   .p-meta { margin-top: 2px; color: var(--text-muted); font-size: .75rem; }
-  .p-meta :is(.exploited, .ess) { font-size: inherit; }  /* a story's label, as in the lists */
-  .p-meta .ess { color: var(--accent); font-weight: 600; }
+  .p-label { margin-top: 2px; font-size: .75rem; }  /* a story's label, as in the lists */
+  .p-label :is(.exploited, .ess) { font-size: inherit; }
+  .p-label .ess { color: var(--accent); font-weight: 600; }
   .palette-list .palette-head { display: block; min-height: 0; padding: 6px 10px 4px; color: var(--text-muted); font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; cursor: default; }
   .palette-list .palette-empty { justify-content: center; padding: 22px; color: var(--text-muted); font-size: .875rem; cursor: default; }
   .palette-foot { display: flex; gap: 16px; padding: 8px 14px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: .72rem; }
   .palette-foot kbd { margin-right: 3px; }
   .palette-close { flex: none; padding: 0; border: 0; background: none; color: var(--accent); font: 500 1rem Sohne, system-ui, sans-serif; cursor: pointer; }
-  .palette-close svg { display: none; }
+  .palette-close span { display: none; }
   /* The topics, a list in the sidebar. */
   .filters { display: flex; flex-direction: column; gap: 1px; }
   .list-back, .list-name, .search-btn { display: none; }
@@ -423,14 +426,18 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
     .card { gap: 10px; }
     .back-to-top { right: 12px; bottom: 12px; }
     .site-foot { padding-bottom: 72px; }  /* clears the back-to-top button */
-    /* Under the header, which stays clear; tapping it closes. */
-    .palette { top: 60px; left: 8px; right: 8px; width: auto; transform: none; max-height: calc(100dvh - 68px); }
-    .palette::backdrop { background: linear-gradient(transparent 52px, rgba(0, 0, 0, .5) 52px); }
+    /* A page of its own, as a phone's search is: the field where the header was, with Cancel beside it (no Esc key here). */
+    .palette { inset: 0; width: auto; height: 100dvh; max-height: none; transform: none; border: 0; border-radius: 0; box-shadow: none; }
+    .palette::backdrop { background: none; }
+    .palette-input { padding-right: 0; }
+    #palette-q { height: 52px; }
     .palette-foot { display: none; }
-    /* No Esc key here: the close button sits over the header's search icon, so it turns into an X. */
-    .palette-close { position: fixed; top: 3.5px; right: 64px; display: grid; place-items: center; width: 44px; height: 44px; color: var(--text-muted); }
-    .palette-close kbd { display: none; } .palette-close svg { display: block; width: 24px; height: 24px; }
-    body:has(#palette[open]) .search-btn svg { visibility: hidden; }
+    .palette-close { align-self: stretch; padding: 0 16px; }
+    .palette-close kbd { display: none; } .palette-close span { display: inline; }
+    .palette-list { flex: 1; }
+    /* Nothing read yet: the site's mark, as in the desktop's empty reader. In the top third, where the keyboard never reaches. */
+    .palette-list:empty::before { content: ""; display: block; width: 96px; height: 96px; margin: 18vh auto 0; background: var(--border-strong);
+      -webkit-mask: var(--mark) center / contain no-repeat; mask: var(--mark) center / contain no-repeat; }
   }
   /* The reader's slide: the same both ways, moving at once and settling. Phones travel less, so take less time. */
   :root { --slide-in: .32s; --slide-out: .32s; --ease-in: cubic-bezier(.25, .6, .25, 1); --ease-out: cubic-bezier(.25, .6, .25, 1); }
@@ -481,7 +488,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
     body.reading { overflow: visible; }
     /* Nothing open: the site's mark, faint and centered, as Feedbin does with its own. */
     .reader-body:empty::before { content: ""; position: absolute; inset: 0; margin: auto; width: 96px; height: 96px; background: var(--border-strong);
-      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M16 16v17a10 10 0 0 0 20 0V16M36 16v31' fill='none' stroke='%23000' stroke-width='9'/%3E%3Ccircle cx='49' cy='42' r='5'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M16 16v17a10 10 0 0 0 20 0V16M36 16v31' fill='none' stroke='%23000' stroke-width='9'/%3E%3Ccircle cx='49' cy='42' r='5'/%3E%3C/svg%3E") center / contain no-repeat; }
+      -webkit-mask: var(--mark) center / contain no-repeat; mask: var(--mark) center / contain no-repeat; }
     body:not(.reading) .reader-bar > :not(.reader-spacer, .format-wrap) { visibility: hidden; }  /* nothing open: no controls for it, but the display options (the theme lives there) */
     body:not(.reading) #format-full { display: none; }
     body:not(.reading) .reader-nav { display: none; }
@@ -761,7 +768,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   <div class="palette-input">
     <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
     <input id="palette-q" type="text" role="combobox" aria-expanded="true" aria-controls="palette-list" aria-autocomplete="list" placeholder="Search articles…" autocomplete="off" spellcheck="false">
-    <button class="palette-close" id="palette-close" type="button" aria-label="Close search"><kbd>Esc</kbd><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <button class="palette-close" id="palette-close" type="button" aria-label="Cancel search"><kbd>Esc</kbd><span>Cancel</span></button>
   </div>
   <ul class="palette-list" id="palette-list" role="listbox" aria-label="Results"></ul>
   <div class="palette-foot"><span><kbd>↑</kbd><kbd>↓</kbd> choose</span><span><kbd>↵</kbd> read</span><span><kbd>Esc</kbd> close</span></div>
@@ -849,6 +856,6 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
 </dialog>
 <button class="back-to-top" id="top" type="button" aria-label="Scroll to the top" title="Scroll to the top" hidden><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <!-- Versioned by its contents (tests/assets.test.js), so browsers keep it for a year. -->
-<script src="/app.js?v=00296f6c5e"></script>
+<script src="/app.js?v=81fedc4b6b"></script>
 </body>
 </html>
