@@ -28,7 +28,7 @@ The last seven days' exploited flaws get their own entry under the essentials, s
 
 On a desktop, the search bar, `/` and `⌘K` (`Ctrl K`) open a search panel over the page. Before anything is typed it lists the stories read last, or the newest five; typing searches every story's title, summary, publisher and site, title matches first.
 
-On a phone, search works as in Feedbin: the header's search icon opens a field under the header, and typing narrows the list itself, newest first, read stories included. In any list but All, a chip with the list's name keeps the search inside that list; tapping the chip, or Backspace in the empty field, searches every story. Back, the search icon or `Esc` closes it, and the list returns as it was. While searching, **Read** marks the matching stories. A keyboard's `/` opens the desktop's panel instead, full screen.
+On a phone, the header's search icon opens a field under the header, and typing narrows the list itself, newest first, read stories included. In any list but All, a chip with the list's name keeps the search inside that list; tapping the chip, or Backspace in the empty field, searches every story. Back, the search icon or `Esc` closes it, and the list returns as it was. While searching, **Read** marks the matching stories. A keyboard's `/` opens the desktop's panel instead, full screen.
 
 ## Unread
 
