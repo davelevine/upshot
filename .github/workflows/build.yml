@@ -144,7 +144,7 @@ jobs:
           cache: pip
       - run: npm ci
       - run: node --test 'tests/*.test.js'
-      - run: pip install -r requirements.txt pytest pytest-xdist==3.8.0 playwright==1.65.2 axe-playwright-python==0.1.8  # no browser download: the tests use the runner's Chrome
+      - run: pip install -r requirements.txt pytest pytest-xdist==3.8.0 pytest-timeout==2.4.0 playwright==1.65.2 axe-playwright-python==0.1.8  # no browser download: the tests use the runner's Chrome
       - run: pytest -q  # the smoke tests skip here, without SMOKE_URL
       - name: Start the site
         run: |
@@ -155,7 +155,10 @@ jobs:
           cat wrangler.log; exit 1
       # One worker per core (four on a hosted runner), all against the one server: each test opens its own browser
       # contexts, and each sync is a reader of its own on the server, so they can't see each other's state.
-      - run: pytest -q -n auto tests/test_smoke.py
+      # -v names each test as it finishes, so a run cut short still shows which failed or never finished. A test still
+      # going after 120 seconds (the slowest take about 11 locally, a few times that here) fails with its stack, rather
+      # than hanging until the job's limit.
+      - run: pytest -v -n auto --timeout 120 tests/test_smoke.py
         env:
           SMOKE_URL: http://127.0.0.1:8788
           PW_CHROMIUM: /usr/bin/google-chrome
