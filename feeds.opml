@@ -60,7 +60,7 @@
     <outline type="rss" text="Simon Willison" xmlUrl="https://simonwillison.net/atom/everything/"/>
     <outline type="rss" text="Socket" xmlUrl="https://socket.dev/api/blog/feed.atom"/>
     <outline type="rss" text="Tailscale" xmlUrl="https://tailscale.com/blog/index.xml"/>
-    <outline type="rss" text="Tech Policy Press" xmlUrl="https://techpolicy.press/rss/feed.xml"/>
+    <outline type="rss" text="Tech Policy Press" xmlUrl="https://www.techpolicy.press/rss/feed.xml"/>
     <outline type="rss" text="The GitHub Blog" xmlUrl="https://github.blog/feed/"/>
     <outline type="rss" text="The Hacker News" xmlUrl="https://feeds.feedburner.com/TheHackersNews"/>
     <outline type="rss" text="The Record" xmlUrl="https://therecord.media/feed"/>
