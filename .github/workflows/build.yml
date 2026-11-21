@@ -162,3 +162,12 @@ jobs:
         env:
           SMOKE_URL: http://127.0.0.1:8788
           PW_CHROMIUM: /usr/bin/google-chrome
+      # The step can end by SIGTERM (exit 143) partway through, before pytest prints its failures; the cause isn't known yet.
+      # This runs even then, and says whether memory ran out (the kernel's or systemd-oomd's kills) or the dev server died.
+      - name: Show memory and the dev server on failure
+        if: failure() || cancelled()
+        run: |
+          free -m
+          sudo dmesg -T | grep -iE 'out of memory|oom|killed process' | tail -20 || true
+          journalctl -u systemd-oomd --no-pager 2>/dev/null | tail -20 || true
+          tail -40 wrangler.log || true
