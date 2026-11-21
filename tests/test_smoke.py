@@ -54,6 +54,15 @@ def browser():
         b.close()
 
 
+@pytest.fixture(autouse=True)
+def close_contexts(request):
+    """Closes what each test opened. The browser lasts the module, so contexts left open pile up: hundreds of Chrome
+    processes per worker by the end, more memory than a hosted runner has."""
+    yield
+    if "browser" in request.fixturenames:
+        for ctx in request.getfixturevalue("browser").contexts:
+            ctx.close()
+
 
 def open_site(browser, patch=None, url=None, init=None, audio=None, **context):
     """The site in a fresh browser, on the All list. `patch` edits data.json on its way in; `url` replaces SMOKE_URL;
