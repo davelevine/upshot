@@ -5314,24 +5314,24 @@
   }
  ],
  "weekly": {
-  "window_start": "2026-11-14",
-  "window_end": "2026-11-20",
+  "window_start": "2026-11-15",
+  "window_end": "2026-11-21",
   "items": [
    {
-    "url": "https://www.rapid7.com/blog/post/etr-cve-2026-123890-critical-authentication-bypass-vmware-vcenter",
-    "why": "Patch vCenter now; unauthenticated admin access via CVSS 9.8 bypass."
+    "url": "https://thehackernews.com/2026/11/hackers-exploit-critical-cisco.html",
+    "why": "Patch Expressway now; public PoC means exploitation followed within days, reaching internal networks."
    },
    {
-    "url": "https://thehackernews.com/2026/11/hackers-exploiting-critical-puppet-rce.html",
-    "why": "Patch Puppet now; CISA says it's actively exploited, so treat servers as exposed."
+    "url": "https://www.rapid7.com/blog/post/etr-cve-2026-123890-critical-authentication-bypass-vmware-vcenter",
+    "why": "Patch vCenter now; unauthenticated admin access can take over your entire virtualization estate."
    },
    {
     "url": "https://thehackernews.com/2026/11/everything-is-web-application-including.html",
-    "why": "Patch PAN-OS now and keep management interfaces off the internet."
+    "why": "Patch PAN-OS now and pull management interfaces off the internet; exploitation is active."
    }
   ]
  },
- "generated_at": "2026-11-21T04:28:05+00:00",
+ "generated_at": "2026-11-21T05:28:08+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
