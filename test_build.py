@@ -391,6 +391,32 @@ def test_fetch_reports_only_permanent_redirects():
     assert build.MOVED == {base + "/old": base + "/new"}  # a 302 anywhere in the chain isn't a move
 
 
+class Drip:
+    """A response that sends `size`-byte chunks forever."""
+    def __init__(self, size): self.size = size
+    def read1(self, n): return b"x" * min(n, self.size)
+
+
+def test_a_feed_that_never_stops_sending_is_cut_off():
+    with pytest.raises(TimeoutError):
+        build.read_capped(Drip(1), 10**9, 0.05)  # a byte at a time: no socket timeout ever fires
+    with pytest.raises(ValueError):
+        build.read_capped(Drip(65536), 200_000, 60)
+    assert build.read_capped(Drip(65536), 200_000, 60, cut=True) == b"x" * 200_000
+
+
+def test_a_gzip_bomb_is_refused():
+    import gzip
+    assert build.gunzip_capped(gzip.compress(b"<rss/>"), 100) == b"<rss/>"
+    with pytest.raises(ValueError):
+        build.gunzip_capped(gzip.compress(b"\0" * 10**6), 1000)
+
+
+def test_icons_are_fetched_only_from_the_web():
+    with pytest.raises(ValueError):
+        build.get("file:///etc/passwd", 100)
+
+
 def test_cves_are_found_once_each_upper_cased():
     assert build.cves("Patch cve-2026-1234 and CVE-2026-123456, again CVE-2026-1234; not CVE-26-1") == ["CVE-2026-1234", "CVE-2026-123456"]
     assert build.cves(None) == []

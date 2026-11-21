@@ -603,7 +603,7 @@ function disconnectLive() {
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) return connectLive();
   disconnectLive();
-  if (pending.size) syncNow();
+  if (pending.size || laterPending.size || prefsPending.size) syncNow();
 });
 addEventListener('online', () => (document.hidden ? syncNow() : connectLive()));
 
@@ -960,7 +960,7 @@ function stopListening() {
   listen = null;
   player.pause();
   toFrame({ tw: 'said', n: -1 });
-  if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none';
+  if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = 'none'; navigator.mediaSession.metadata = null; }  // off the lock screen
   drawListen();
 }
 function setMediaSession() {
@@ -1000,7 +1000,9 @@ function drawListen() {
   $('listen-rate').ariaLabel = `Speed, ${listenRate} times`;
 }
 player.addEventListener('timeupdate', followAudio);
-player.addEventListener('play', drawListen);
+// Audio plays only while a story is being listened to: after Stop, a media key or the lock screen's Play (its handler, or the
+// browser's own) would otherwise play it with no bar on the page to stop it. toggleListen sets `listen` before this fires.
+player.addEventListener('play', () => (listen ? drawListen() : player.pause()));
 player.addEventListener('pause', drawListen);
 player.addEventListener('ended', stopListening);
 player.addEventListener('error', () => { if (listen) { stopListening(); $('reader-listen').hidden = true; } });  // the file's gone: no button for it
@@ -1967,8 +1969,8 @@ document.addEventListener('click', e => {
   document.querySelectorAll('.retry').forEach(b => { b.disabled = true; b.textContent = 'Trying\u2026'; });
   load().catch(loadFailed);
 });
-// A scanned sync code (/#sync=XXXX-XXXX, from the QR code): out of the address bar at once, then entered. A device already
-// syncing is asked first, since entering it moves the device to that sync.
+// A scanned sync code (/#sync=XXXX-XXXX, from the QR code): out of the address bar at once, then shown in the code sheet,
+// which tells a device already syncing that it would move to that sync.
 const scanned = location.hash.match(/^#sync=([0-9A-Za-z]{4}-?[0-9A-Za-z]{4})$/)?.[1];
 if (scanned) history.replaceState(history.state, '', location.pathname + location.search);
 load().then(() => (document.hidden ? syncNow() : connectLive())).then(() => {  // connectLive syncs first
@@ -1978,7 +1980,9 @@ load().then(() => (document.hidden ? syncNow() : connectLive())).then(() => {  /
   // An app's built-in browser (the Google app's, opened by a camera's QR scan) keeps its own storage: joining there would
   // sync it, not the reader's browser. The code stays unused, for the reader to enter in their browser.
   if (/GSA\/|; wv\)|FBAN|FBAV|Instagram/.test(navigator.userAgent)) { $('sync-code-inapp').hidden = false; return; }
-  joinWithCode();  // scanning is the choice; a device already syncing moves across
+  // Filled in, never sent: a link can't be told from a scan, and a link from someone else would join their sync and send
+  // them this device's reading. Continue is the choice.
+  $('sync-code-go').focus();
 }).catch(loadFailed);
 // Builds land every hour: check every 15 min while visible, and when the tab comes back into view.
 const check = () => { if (!document.hidden) return load().catch(() => {}); };

@@ -2015,6 +2015,9 @@ def test_listen_plays_the_storys_audio(browser):
     pg.keyboard.press("l")  # l stops (from the article, where the click left focus: it arrives as a message)
     assert until(pg, "document.getElementById('listen-bar').hidden") and playing(pg) is False
     said.wait_for(state="detached")  # the mark goes too
+    pg.evaluate("player.play()")  # a media key or the lock screen's Play after Stop
+    pg.wait_for_timeout(500)
+    assert pg.evaluate("player.paused") and bar.is_hidden(), "no audio without its bar"
     pg.keyboard.press("l")  # and plays again from the top
     assert until(pg, "!player.paused") and pg.evaluate("player.currentTime") < 2
     pg.keyboard.press("j")  # another story stops it, and has no audio, so no button
@@ -3123,8 +3126,8 @@ def test_an_expired_sync_code_says_so_and_stops_checking(browser):
 
 
 def test_sync_code_qr_and_typing(browser):
-    """The code screen shows a QR code of a link that enters the code (not on phones, which have no use for one), and the
-    link joins on its own. Typing a code puts the dash in."""
+    """The code screen shows a QR code of a link that enters the code (not on phones, which have no use for one); the link
+    fills it in and joins on Continue. Typing a code puts the dash in."""
     a = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900})
     code = turn_on(a)
     a.wait_for_selector("#sync-qr:not([hidden]) svg")
@@ -3134,7 +3137,9 @@ def test_sync_code_qr_and_typing(browser):
     phone = open_site(browser, url=SYNC_URL, viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
     phone.goto("about:blank")
     phone.goto(f"{SYNC_URL.rstrip('/')}/#sync={code}")  # what scanning the QR code opens
-    assert until(phone, "syncOn && !document.getElementById('sync').open"), "joins from the link"
+    phone.wait_for_selector("#sync-code-go:focus")
+    phone.click("#sync-code-go")
+    assert until(phone, "syncOn && !document.getElementById('sync').open"), "joins on Continue"
     assert "#sync" not in phone.url, "and takes the code out of the address bar"
     assert until(a, "/syncing now/.test(document.getElementById('sync-note').textContent)", timeout=8000)
 
@@ -3489,6 +3494,18 @@ def test_a_joining_device_takes_the_syncs_preferences(browser):
     assert a.problems == [] and b.problems == []
 
 
+def test_hiding_the_tab_sends_waiting_saves_and_settings(browser):
+    """A phone may never come back to a hidden tab, so what's waiting goes at once, not after the usual pause."""
+    a, b = _pair(browser)
+    hide = "v => { Object.defineProperty(document, 'hidden', { value: v, configurable: true }); document.dispatchEvent(new Event('visibilitychange')); }"
+    a.evaluate(PICK, "dark")
+    assert a.evaluate("prefsPending.size") > 0
+    a.evaluate("clearTimeout(pushTimer)")  # only hiding can send it now
+    a.evaluate(hide, True)
+    assert until(b, "localStorage.getItem('theme') === 'dark'", timeout=8000)
+    assert a.problems == [] and b.problems == []
+
+
 def test_hiding_the_tab_closes_the_connection_and_showing_it_catches_up(browser):
     a, b = _pair(browser)
     hide = "v => { Object.defineProperty(document, 'hidden', { value: v, configurable: true }); document.dispatchEvent(new Event('visibilitychange')); }"
@@ -3507,8 +3524,9 @@ def test_hiding_the_tab_closes_the_connection_and_showing_it_catches_up(browser)
 
 
 
-def test_a_scanned_code_joins_at_once_even_on_a_device_already_syncing(browser):
-    """Scanning is the choice: a device in a sync of its own (or another) moves across at once."""
+def test_a_scanned_code_waits_for_continue(browser):
+    """A link can't be told from a scan, and one sent by someone else mustn't join their sync: the code is filled in, and
+    a device already syncing is told it would move, but nothing happens until Continue."""
     size = {"viewport": {"width": 390, "height": 844}, "is_mobile": True, "has_touch": True}
     laptop = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900})
     code = turn_on(laptop)
@@ -3517,7 +3535,13 @@ def test_a_scanned_code_joins_at_once_even_on_a_device_already_syncing(browser):
     phone.keyboard.press("Escape")
     phone.goto("about:blank")
     phone.goto(f"{SYNC_URL.rstrip('/')}/#sync={code}")
-    assert until(phone, "syncOn && !document.getElementById('sync').open", timeout=8000), "joined, no Continue"
+    phone.wait_for_selector("#sync-code-switch:not([hidden])")  # told it would move
+    phone.wait_for_selector("#sync-code-go:focus")
+    phone.wait_for_timeout(1000)
+    assert phone.input_value("#sync-code") == code, "filled in"
+    assert not laptop.evaluate("/syncing now/.test(document.getElementById('sync-note').textContent)"), "not joined yet"
+    phone.click("#sync-code-go")
+    assert until(phone, "syncOn && !document.getElementById('sync').open", timeout=8000), "joined on Continue"
     assert until(laptop, "/syncing now/.test(document.getElementById('sync-note').textContent)", timeout=8000)
     assert laptop.problems == [] and phone.problems == []
 
