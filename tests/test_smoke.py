@@ -54,6 +54,16 @@ def browser():
         b.close()
 
 
+@pytest.fixture(autouse=True)
+def close_contexts(request):
+    """Closes what each test opened. The browser lasts the module, so contexts left open pile up: hundreds of Chrome
+    processes per worker by the end, more memory than a hosted runner has."""
+    yield
+    if "browser" in request.fixturenames:
+        for ctx in request.getfixturevalue("browser").contexts:
+            ctx.close()
+
+
 def open_site(browser, patch=None, url=None, init=None, audio=None, **context):
     """The site in a fresh browser, on the All list. `patch` edits data.json on its way in; `url` replaces SMOKE_URL;
     `init` is a script run before the page's own; `audio` gives stories Listen's audio (serve_audio)."""
@@ -690,6 +700,13 @@ TYPEFACES = {  # Display options' typefaces: the article's first family, its fil
 SOHNE_UPRIGHT = {"Sohne-Buch", "Sohne-Kraftig", "Sohne-Halbfett"}
 
 
+def frame_ext(pg):
+    """The open article's latin-ext faces as "style:status". Asked of the frame, not read from requests: the frame fetches
+    these itself, and Playwright doesn't always report a request from the sandboxed frame (the server shows it was made)."""
+    frame = pg.frame_locator("#reader-body iframe:not(.loading)").locator("main")
+    return lambda: frame.evaluate("m => [...document.fonts].filter(f => f.unicodeRange.startsWith('U+100')).map(f => f.style + ':' + f.status)")
+
+
 @pytest.mark.parametrize("face", list(TYPEFACES))
 def test_each_typeface_sets_the_article_and_fetches_only_its_own_fonts(browser, face):
     """A typeface chosen in Display options sets the article and its headline. Only its own fonts download, with Söhne's
@@ -714,15 +731,16 @@ def test_each_typeface_sets_the_article_and_fetches_only_its_own_fonts(browser, 
         name = family.strip('"')
         assert frame.locator("em").evaluate(f"() => document.fonts.ready.then(() => [...document.fonts].some(f => f.family.replace(/\"/g, '') === '{name}' && f.style === 'italic' && f.status === 'loaded'))")
     assert set(fonts) - {"Sohne-Buch"} == (files | SOHNE_UPRIGHT) - {"Sohne-Buch"}, sorted(fonts)  # Buch: the page's own preload
-    assert not [f for f in fonts if f.endswith("LatinExt")], "no latin-ext for an English article"
+    assert all(s.endswith(":unloaded") for s in frame_ext(pg)()), "no latin-ext for an English article"
     if face == "literata":
         pg.unroute("**/api/read?*")
         ctx.route("**/api/read?*", lambda route: route.fulfill(json={"content": "<p>Łódź and Gdańsk.</p>"}))
         # A prefetch the English route already served can land after a plain clear and fill the reader: wait for it first.
         pg.evaluate("Promise.all([...fetching.values()]).then(() => articles.clear())")
         pg.evaluate("openReader(items[1])")
-        assert any("Literata-Roman-LatinExt" in fonts or pg.wait_for_timeout(100) for _ in range(50)), sorted(fonts)
-        assert "Literata-Italic-LatinExt" not in fonts, "only the faces with letters to draw"
+        asked = lambda: any(s.startswith("normal:") and not s.endswith(":unloaded") for s in frame_ext(pg)())  # loading, loaded or error: requested
+        assert any(asked() or pg.wait_for_timeout(100) for _ in range(50)), frame_ext(pg)()
+        assert all(s.endswith(":unloaded") for s in frame_ext(pg)() if s.startswith("italic:")), "only the faces with letters to draw"
     ctx.close()
 
 
