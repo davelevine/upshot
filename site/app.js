@@ -930,7 +930,7 @@ $('reader-later').onclick = toggleLater;
 // block plays from there. It's one <audio> element, so it plays on with the phone locked, with lock-screen controls
 // through the Media Session. A story without audio (not voiced yet, or a site without the bucket) has no button.
 const AUDIO_VERSION = 1;  // audio.py VERSION
-const RATES = [1, 1.25, 1.5];  // the options of #listen-rate
+const RATES = [1, 1.25, 1.5];  // the rows of #listen-rates
 let listenRate = RATES.includes(+localStorage.getItem('listenRate')) ? +localStorage.getItem('listenRate') : 1;
 let audioBase = null, voiced = new Map();  // the bucket, and the stories in its index: key → { card, r }
 let heard = null;   // the open story's audio, once its timings are in: { url, src, meta: { d, t, n, full, card } }
@@ -1016,6 +1016,7 @@ function stopListening() {
   player.pause();
   toFrame({ tw: 'said', n: -1 });
   if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = 'none'; navigator.mediaSession.metadata = null; }  // off the lock screen
+  $('listen-rates').hidePopover();
   drawListen();
 }
 function setMediaSession() {
@@ -1051,7 +1052,9 @@ function drawListen() {
   const left = Math.max(0, d - player.currentTime) / listenRate;
   $('listen-left').textContent = `${Math.max(1, Math.round(left / 60))} min left${full ? '' : ' · Summary only'}`;
   $('listen-done').style.width = `${Math.min(100, 100 * player.currentTime / d)}%`;
-  $('listen-rate').value = String(listenRate);
+  $('listen-rate').textContent = `${listenRate}×`;
+  $('listen-rate').ariaLabel = `Speed, ${listenRate} times`;
+  for (const b of $('listen-rates').children) b.ariaPressed = String(+b.dataset.rate === listenRate);
 }
 player.addEventListener('timeupdate', followAudio);
 // Audio plays only while a story is being listened to: after Stop, a media key or the lock screen's Play (its handler, or the
@@ -1065,8 +1068,17 @@ $('listen-play').onclick = () => player.paused ? player.play().catch(() => {}) :
 $('listen-prev').onclick = () => stepBlock(-1);
 $('listen-next').onclick = () => stepBlock(1);
 $('listen-stop').onclick = stopListening;
-$('listen-rate').onchange = e => {
-  listenRate = +e.target.value;
+// The speeds open above their button, its right edge to theirs. The browser opens and dismisses them, and gives focus back.
+$('listen-rates').addEventListener('beforetoggle', e => {
+  if (e.newState !== 'open') return;
+  const r = $('listen-rate').getBoundingClientRect(), html = document.documentElement;
+  $('listen-rates').style.inset = `auto ${html.clientWidth - r.right}px ${html.clientHeight - r.top + 6}px auto`;
+});
+$('listen-rates').onclick = e => {
+  const b = e.target.closest('[data-rate]');
+  if (!b) return;
+  $('listen-rates').hidePopover();
+  listenRate = +b.dataset.rate;
   localStorage.setItem('listenRate', String(listenRate));
   player.playbackRate = listenRate;
   drawListen();
@@ -1764,7 +1776,7 @@ function onKey(key, mod, e) {
   if (key === 'escape' && !$('format-pop').hidden) { closeFormat(); return $('reader-format').focus(); }
   if (key === 'escape' && !$('send-pop').hidden) { closeShare(); return $('reader-send').focus(); }
   if (key === 'escape' && !morePop.hidden) { closeMore(); return moreBtn.focus(); }
-  if (key === 'escape' && $('menu').matches(':popover-open')) return;  // the header's menu closes itself, and only that
+  if (key === 'escape' && document.querySelector('[popover]:popover-open')) return;  // a popover (the header's menu, the speeds) closes itself, and only that
   if (key === 'escape' && document.body.classList.contains('full')) return setFull(false);  // out of full screen first, then the reader
   if (key === 'escape' && reading) return dismiss();
   if (key === 'k' && mod) { e?.preventDefault(); return openPalette(); }
