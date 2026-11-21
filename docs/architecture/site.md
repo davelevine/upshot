@@ -24,6 +24,12 @@ A row carries at most one label, the same in every list:
 
 The last seven days' exploited flaws get their own entry under the essentials, showing "N unpatched" while any has no fix. [The pipeline](pipeline.md) covers how flags are set.
 
+## Search
+
+On a desktop, the search bar, `/` and `⌘K` (`Ctrl K`) open a search panel over the page. Before anything is typed it lists the stories read last, or the newest five; typing searches every story's title, summary, publisher and site, title matches first.
+
+On a phone, search works as in Feedbin: the header's search icon opens a field under the header, and typing narrows the list itself, newest first, read stories included. In any list but All, a chip with the list's name keeps the search inside that list; tapping the chip, or Backspace in the empty field, searches every story. Back, the search icon or `Esc` closes it, and the list returns as it was. While searching, **Read** marks the matching stories. A keyboard's `/` opens the desktop's panel instead, full screen.
+
 ## Unread
 
 Unread titles are bold, and the sidebar counts unread stories. A first visit starts with the last day's stories unread (or the newest five after a quiet stretch). The week's essentials stay unread until opened.

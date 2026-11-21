@@ -1607,32 +1607,74 @@ def test_the_search_bar_and_slash_open_the_palette(browser):
     enter_list(ph)
     box = ph.locator("#search-btn").bounding_box()  # in the header on phones, beside the menu
     assert box["width"] == 44 and box["height"] == 44 and box["y"] + 44 <= 52
-    ph.tap("#search-btn")
+    # A keyboard's / still opens the palette on a phone: a page of its own, Cancel beside the field (no Esc key here).
+    ph.keyboard.press("/")
     ph.locator("#palette").wait_for()
-    # A page of its own: the field where the header was, Cancel beside it (no Esc key on a phone).
     assert ph.locator("#palette").bounding_box() == {"x": 0, "y": 0, "width": 412, "height": 800}
     cancel = ph.locator("#palette-close")
     box = cancel.bounding_box()
     assert cancel.inner_text() == "Cancel" and box["x"] + box["width"] == 412 and box["y"] == 0 and box["height"] == 52
-    # Nothing read yet: no "Latest" (the list it would repeat is a tap away), the site's mark instead, clear of the keyboard.
-    assert ph.locator("#palette-list").inner_html() == ""
-    mark = ph.evaluate("(() => { const s = getComputedStyle(document.getElementById('palette-list'), '::before'); return [s.content, s.width, s.marginTop]; })()")
-    assert mark[0] == '""' and mark[1] == "96px" and 52 + float(mark[2][:-2]) + 96 < 800 / 2
-    # Typing: rows like the list's, with the publisher's icon; no row looks tapped before it is.
     ph.locator("#palette-q").fill(ph.evaluate("items[0].title.split(' ')[0]"))
-    row = ph.locator('#palette-list li[aria-selected="true"]')
+    row = ph.locator('#palette-list li[aria-selected="true"]')  # rows like the list's; none looks tapped before it is
     assert row.locator(".src-icon").count() == 1 and row.locator(".dot").count() == 0
     assert row.evaluate("e => getComputedStyle(e).backgroundColor") == "rgba(0, 0, 0, 0)"
     cancel.tap()
     ph.locator("#palette").wait_for(state="hidden")
-    ph.wait_for_timeout(200)
-    assert ph.locator("#palette").is_hidden()
-    # Once something's read, phones open on it, as desktops do.
-    ph.evaluate("markRead(items[3].url)")
+
+
+def test_phone_search_narrows_the_list_in_place(browser):
+    """As in Feedbin: the header's search opens a drawer under it, and typing narrows the list itself, within the list
+    showing (the chip) or, with the chip removed, across every story. Back closes it, and the list comes back as it was."""
+    ph = open_site(browser, viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True)
+    ph.wait_for_selector("a.card", state="attached")
+    ph.evaluate("document.querySelector(\"#filters [data-f='security']\").click()")
+    ph.wait_for_selector("a.card")
+    cards = lambda: ph.locator("a.card").count()
+    before = cards()
     ph.tap("#search-btn")
-    ph.locator("#palette").wait_for()
-    assert ph.inner_text(".palette-head") == "RECENTLY READ"
-    assert ph.locator("#palette-list .p-title").all_inner_texts() == [ph.evaluate("items[3].title")]
+    drawer = ph.locator("#search-drawer")
+    assert until(ph, "!document.getAnimations().some(a => a instanceof CSSTransition)"), "the drawer settles"
+    assert ph.evaluate("document.body.classList.contains('searching')") and ph.locator("#palette").is_hidden()
+    assert drawer.bounding_box()["y"] == 52 and ph.evaluate("document.activeElement.id") == "search-q"
+    assert ph.locator("#search-chip").is_visible() and ph.inner_text("#chip-name") == "Security" and ph.locator(".sd-ico").is_hidden()
+    assert ph.get_attribute("#search-btn", "aria-expanded") == "true"
+    # In Security: only its stories that match, every one (read or not), titles marked.
+    word = "patch"
+    want = ph.evaluate("w => items.filter(i => inList(i, 'security') && searchHit(i, w)).length", word)
+    ph.locator("#search-q").type(word)
+    assert cards() == min(want, ph.evaluate("PAGE")) and want > 0
+    assert ph.locator("a.card .card-title mark").count() >= 1
+    # The chip's ✕: every story.
+    ph.tap("#search-chip")
+    assert ph.locator("#search-chip").is_hidden() and ph.locator(".sd-ico").is_visible()
+    every = ph.evaluate("w => items.filter(i => searchHit(i, w)).length", word)
+    assert cards() == min(every, ph.evaluate("PAGE")) and every >= want
+    # A story opened from the results, then back: still searching, on the same results.
+    ph.locator("a.card").first.tap()
+    assert until(ph, "document.body.classList.contains('reading')")
+    ph.go_back()
+    wait_until_closed(ph)
+    assert ph.evaluate("document.body.classList.contains('searching')") and ph.input_value("#search-q") == word
+    # Back again closes it: the list as it was, still in Security.
+    ph.go_back()
+    assert until(ph, "!document.body.classList.contains('searching')")
+    assert ph.input_value("#search-q") == "" and cards() == before and not ph.evaluate("document.body.classList.contains('home')")
+    assert ph.inner_text("#list-name") == "Security"
+    # Nothing matches in Security: say so, with a way to search everything; Backspace in an empty field removes the chip too.
+    ph.tap("#search-btn")
+    ph.locator("#search-q").type("zqxjv")
+    assert "No stories match" in ph.inner_text("#items")
+    ph.tap(".search-all")
+    assert ph.locator("#search-chip").is_hidden()
+    ph.tap("#search-btn")  # the icon again closes it
+    assert until(ph, "!document.body.classList.contains('searching')") and cards() == before
+    ph.tap("#search-btn")
+    ph.keyboard.press("Backspace")
+    assert ph.locator("#search-chip").is_hidden()
+    # The chevron while searching leaves the list, not just the search.
+    ph.tap("#list-back")
+    assert until(ph, "document.body.classList.contains('home') && !document.body.classList.contains('searching')")
+    assert ph.problems == []
 
 
 def test_share_icon_matches_the_device(browser):
@@ -3007,7 +3049,7 @@ def test_sync_has_no_button_of_its_own(browser):
 
 def test_phones_keep_sync_in_the_menu_not_the_header(browser):
     """Sync runs by itself, so on a phone its button doesn't take a place in the header: the menu's Sync settings is enough.
-    Search, a page of its own, covers the whole header with sync on too."""
+    Search's drawer opens under the header, with sync on too."""
     a = open_site(browser, url=SYNC_URL, viewport={"width": 390, "height": 844}, is_mobile=True, has_touch=True)
     turn_on(a)
     a.keyboard.press("Escape")
@@ -3017,8 +3059,8 @@ def test_phones_keep_sync_in_the_menu_not_the_header(browser):
     a.keyboard.press("Escape")
     enter_list(a)
     a.tap("#search-btn")
-    a.locator("#palette").wait_for()
-    assert a.locator("#palette").bounding_box() == {"x": 0, "y": 0, "width": 390, "height": 844}
+    assert until(a, "document.body.classList.contains('searching') && !document.getAnimations().some(x => x instanceof CSSTransition)")
+    assert a.locator("#search-drawer").bounding_box()["y"] == 52  # under the header, which keeps the menu as it was
     assert a.problems == []
 
 
