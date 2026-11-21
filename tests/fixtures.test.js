@@ -6,8 +6,11 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseHTML } from 'linkedom';
-import { readArticle, tidy, extract } from '../extract.mjs';
+import { dns, readArticle, tidy, extract } from '../extract.mjs';
+
 import { readFeeds, scramble, scramblePage } from './fixtures/fetch.mjs';
+
+dns.lookup = async () => [{ address: '203.0.113.1', family: 4 }];  // every test host is public (a documentation address); no network
 
 const DIR = new URL('./fixtures/', import.meta.url).pathname;
 const read = name => readFileSync(join(DIR, name), 'utf8');

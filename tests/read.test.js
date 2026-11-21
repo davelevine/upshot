@@ -1,8 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { MAX_WRITES, classify, clean, extract, kvClient, linkShare, readArticle, run, tidy } from '../extract.mjs';
+import { dns, isPublic, MAX_WRITES, classify, clean, extract, kvClient, linkShare, readArticle, readCapped, run, tidy } from '../extract.mjs';
 import { readFileSync } from 'node:fs';
 import worker, { dispatchBuild, keyFor, storyFor } from '../worker.js';
+
+dns.lookup = async () => [{ address: '203.0.113.1', family: 4 }];  // every test host is public (a documentation address); no network
 
 test('clean strips active content and makes links absolute', () => {
   const out = clean(`<p onclick="x()" style="color:red">Hi<script>alert(1)</script></p>
@@ -25,7 +27,7 @@ test('clean keeps adjacent metadata spans apart, but not code tokens', () => {
   assert.match(out, /<span>a<\/span><span>b<\/span>/);
 });
 
-const page = (status, headers, body = '') => ({ status, ok: status >= 200 && status < 300, url: 'https://x.test/a', headers: new Headers({ 'content-type': 'text/html', ...headers }), text: async () => body });
+const page = (status, headers, body = '') => new Response(body, { status, headers: { 'content-type': 'text/html', ...headers } });
 const words = n => 'word '.repeat(n);
 
 test('classify recognizes blocks by status and header, not by what an article says', () => {
@@ -66,6 +68,41 @@ test('readArticle gives a reason for every outcome', async () => {
 });
 
 const wholeArticle = `<script>x()</script><p>${words(400)}</p>`;
+
+test('readArticle fetches only public addresses, at every redirect', async () => {
+  const to = (where, status = 301) => new Response(null, { status, headers: { location: where } });
+  let r = await read({ 'https://x.test/a': to('/b', 302), 'https://x.test/b': page(200, {}, article.replace('<p>', '<p><a href="c">c</a>')) });
+  assert.equal(r.reason, 'ok');
+  assert.match(r.content, /href="https:\/\/x\.test\/c"/, 'links made absolute against where it ended up');
+
+  const seen = [];
+  r = await withFetch({ 'https://x.test/a': to('http://169.254.169.254/latest/meta-data/') }, async () => {
+    const f = globalThis.fetch;
+    globalThis.fetch = (u, init) => (seen.push(u), f(u, init));
+    return readArticle({ url: 'https://x.test/a', publisher: 'P' });
+  });
+  assert.equal(r.reason, 'error');
+  assert.deepEqual(seen, ['https://x.test/a'], 'the redirect to the metadata address is never followed');
+
+  const looped = Object.fromEntries(Array.from({ length: 12 }, (_, i) => [`https://x.test/${i}`, to(`/${i + 1}`)]));
+  assert.equal((await withFetch(looped, () => readArticle({ url: 'https://x.test/0', publisher: 'P' }))).reason, 'error');
+
+  for (const url of ['http://127.0.0.1/', 'http://[::1]/', 'http://[::ffff:10.0.0.1]/', 'http://192.168.1.1/', 'file:///etc/passwd']) {
+    assert.equal(await isPublic(url), false, url);
+  }
+  const real = dns.lookup;
+  dns.lookup = async () => [{ address: '203.0.113.1', family: 4 }, { address: '10.1.2.3', family: 4 }];
+  try { assert.equal(await isPublic('https://inside.test/'), false, 'a name with any private address'); } finally { dns.lookup = real; }
+  assert.equal(await isPublic('https://x.test/'), true);
+});
+
+test('readCapped stops reading a page at its limit', async () => {
+  let pulled = 0;
+  const endless = new ReadableStream({ pull(c) { pulled++; c.enqueue(new Uint8Array(1000).fill(97)); } });
+  const text = await readCapped(new Response(endless), 2500);
+  assert.equal(text, 'a'.repeat(2500));
+  assert.ok(pulled < 10, 'and stops asking for more');
+});
 
 test('readArticle takes a whole-article feed first, cleaned the same way, without fetching the page', async () => {
   const r = await read({ 'https://x.test/a': new Error('the page was fetched') }, wholeArticle);
