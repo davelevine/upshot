@@ -1,5 +1,7 @@
 {
- "failing_since": {},
+ "failing_since": {
+  "https://noyb.eu/en/rss": "2026-11-21"
+ },
  "seen": {
   "http://groundworkcollaborative.org/news/amazons-decoy-deals-groundwork-investigation-reveals-nearly-1-in-3-black-friday-and-cyber-monday-deals-advertised-by-amazon-offered-no-savings-to-shoppers-nearly-1-in-10-w/": "2026-11-16",
   "http://muratbuffalo.blogspot.com/2026/11/writing-as-thinking-tool.html": "2026-11-08",
@@ -339,6 +341,7 @@
   "https://blog.trailofbits.com/2026/11/02/backporting-security-fixes-at-scale-with-codex/": "2026-11-02",
   "https://blog.trailofbits.com/2026/11/03/the-cryptography-behind-electronic-voting-and-why-paper-ballots-are-still-essential/": "2026-11-03",
   "https://blog.trailofbits.com/2026/11/06/after-binance-check-what-your-signing-systems-can-approve/": "2026-11-06",
+  "https://blog.tymscar.com/posts/studiodisplayethernet/": "2026-11-21",
   "https://blog.val.town/winding-down": "2026-11-10",
   "https://blogs.nvidia.com/blog/20-years-cuda/": "2026-11-16",
   "https://blogs.nvidia.com/blog/ai-day-seoul-wrapup/": "2026-11-15",
@@ -1225,6 +1228,7 @@
   "https://simonwillison.net/2026/Nov/2/census-bureau-super-intelligence/": "2026-11-02",
   "https://simonwillison.net/2026/Nov/2/llm/": "2026-11-02",
   "https://simonwillison.net/2026/Nov/20/levent-alpoge/": "2026-11-20",
+  "https://simonwillison.net/2026/Nov/20/llm-gemini/": "2026-11-19",
   "https://simonwillison.net/2026/Nov/20/ravi-vakil/": "2026-11-20",
   "https://simonwillison.net/2026/Nov/20/token-fraud-is-here-and-its-bad/": "2026-11-19",
   "https://simonwillison.net/2026/Nov/3/a-sound-that-leaks-your-exact-location/": "2026-11-03",
