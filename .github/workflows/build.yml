@@ -48,26 +48,27 @@ jobs:
           echo "dispatched builds since $since: $n"
           echo "skip=$([ "$n" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
+  # Not on PRs: this job's token can write to the repo and its issues, and a PR's install and test steps run the PR's
+  # code (Renovate's dependency updates included). A PR's tests run in the read-only smoke job; skipped here, this
+  # required check reports success.
   build:
     needs: gate
-    if: ${{ !cancelled() && needs.gate.outputs.skip != 'true' }}  # runs when the gate was skipped (not a scheduled run)
+    if: ${{ !cancelled() && github.event_name != 'pull_request' && needs.gate.outputs.skip != 'true' }}  # runs when the gate was skipped (not a scheduled run)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     # The secrets that can push to main, score with Claude and write to Cloudflare are in the production environment,
-    # which only main may use, so a branch can't get them even by editing this file. A PR's run uses no environment.
+    # which only main may use, so a branch can't get them even by editing this file.
     # deployment: false: secrets only, so no deployment is recorded for each run.
     environment:
-      name: ${{ github.event_name != 'pull_request' && 'production' || '' }}
+      name: production
       deployment: false
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ github.ref }}  # the latest, not the triggering commit: a run may have queued behind another's data commit
           # Pushes the data commit over SSH: main's ruleset requires PRs, and only this deploy key may bypass it.
-          # Without the secret (a fork), checkout uses the token instead. A PR gets neither: its install and test steps run
-          # the PR's code (Renovate's dependency updates included), which must not hold a key that can push to main.
-          ssh-key: ${{ github.event_name != 'pull_request' && secrets.DATA_PUSH_KEY || '' }}
-          persist-credentials: ${{ github.event_name != 'pull_request' }}
+          # Without the secret (a fork), checkout uses the token instead.
+          ssh-key: ${{ secrets.DATA_PUSH_KEY }}
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: "3.15"
@@ -80,13 +81,9 @@ jobs:
           node-version: 26
           cache: npm
       - run: npm ci --omit=dev  # extract.mjs's packages; wrangler is only for the smoke job
-      - if: github.event_name == 'pull_request'
-        run: node --test 'tests/*.test.js'
-      - if: github.event_name != 'pull_request'
-        run: npm install -g @anthropic-ai/claude-code@2.1.319
+      - run: npm install -g @anthropic-ai/claude-code@2.1.319
 
-      - if: github.event_name != 'pull_request'
-        run: python build.py
+      - run: python build.py
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}  # the three CF_ secrets let extract.mjs store articles for the reader
@@ -99,7 +96,6 @@ jobs:
           PER_FEED: ${{ inputs.backfill_days && 100 || 10 }}
 
       - name: Commit data
-        if: github.event_name != 'pull_request'
         run: |
           git add site/data.json site/rss.xml site/essentials.xml site/exploited.xml site/og.png site/index.html site/icons state.json
           git diff --cached --quiet && exit 0
@@ -110,7 +106,6 @@ jobs:
           git push
 
       - name: Report feed health
-        if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -123,14 +118,14 @@ jobs:
           fi
 
       - name: Fail if the reader's articles couldn't be stored
-        if: github.event_name != 'pull_request'
         run: |
           # build.py publishes anyway, so a KV outage doesn't throw the build away; this still turns the run red.
           [ -s reader-error.txt ] || exit 0
           cat reader-error.txt; exit 1
 
-  # Pull requests only: load the site in a real browser under its real CSP and exercise the feed, reader,
-  # search palette and swipe-back. /api/read is stubbed (see tests/test_smoke.py).
+  # Pull requests only: the Python and JavaScript tests, then the site in a real browser under its real CSP, exercising
+  # the feed, reader, search palette and swipe-back. /api/read is stubbed (see tests/test_smoke.py). Read-only, since
+  # it runs the PR's code.
   smoke:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
@@ -148,7 +143,9 @@ jobs:
           python-version: "3.15"
           cache: pip
       - run: npm ci
-      - run: pip install pytest pytest-xdist==3.8.0 playwright==1.65.2 axe-playwright-python==0.1.8  # no browser download: the tests use the runner's Chrome
+      - run: node --test 'tests/*.test.js'
+      - run: pip install -r requirements.txt pytest pytest-xdist==3.8.0 playwright==1.65.2 axe-playwright-python==0.1.8  # no browser download: the tests use the runner's Chrome
+      - run: pytest -q  # the smoke tests skip here, without SMOKE_URL
       - name: Start the site
         run: |
           # The site's Worker and upshot-sync (sync/), as deployed. The Worker sees the address it was asked for, not the

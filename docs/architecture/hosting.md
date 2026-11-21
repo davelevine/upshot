@@ -30,8 +30,8 @@ Listen's audio, which the Audio workflow makes ([The pipeline](pipeline.md#audio
 
 | Workflow | Runs on | What it does |
 | -------- | ------- | ------------ |
-| [Build](../../.github/workflows/build.yml) | Hourly, manual, PRs | Fetches, scores and publishes. On PRs it runs the Python and JavaScript tests only. Manual runs take an optional `backfill_days`. |
-| Build › smoke | PRs | The browser smoke test against `wrangler dev` ([Development](../development.md)). |
+| [Build](../../.github/workflows/build.yml) | Hourly, manual, PRs | Fetches, scores and publishes. Not on PRs: its token can write to the repo, and a PR runs the PR's code. Manual runs take an optional `backfill_days`. |
+| Build › smoke | PRs | Read-only. The Python and JavaScript tests, then the browser smoke test against `wrangler dev` ([Development](../development.md)). |
 | [Deploy sync](../../.github/workflows/deploy-sync.yml) | Push to `main`, manual | Runs sync's unit tests, then `wrangler deploy -c sync/wrangler.jsonc`. |
 | [Audio](../../.github/workflows/audio.yml) | After each build, manual, PRs | Voices stories without audio and uploads them to the audio bucket. Manual runs take an optional `budget_minutes`, for a backfill. On PRs that change it, a dry run voices two stories and uploads nothing. Outside PRs, runs only when `AUDIO_URL` is set. |
 
