@@ -1,7 +1,5 @@
 {
- "failing_since": {
-  "https://noyb.eu/en/rss": "2026-11-21"
- },
+ "failing_since": {},
  "seen": {
   "http://groundworkcollaborative.org/news/amazons-decoy-deals-groundwork-investigation-reveals-nearly-1-in-3-black-friday-and-cyber-monday-deals-advertised-by-amazon-offered-no-savings-to-shoppers-nearly-1-in-10-w/": "2026-11-16",
   "http://muratbuffalo.blogspot.com/2026/11/writing-as-thinking-tool.html": "2026-11-08",
@@ -308,6 +306,7 @@
   "https://blog.google/waze/garmin-safety-cyclists/": "2026-11-10",
   "https://blog.harrison.page/garage-door-spam/": "2026-11-16",
   "https://blog.kate.land/posts/using-voltage-glitching-to-unlock-the-a100/": "2026-11-11",
+  "https://blog.mozilla.org/en/mozilla/internet-policy/apple-ios-browser-engine-rules/": "2026-11-20",
   "https://blog.mozilla.org/security/2026/10/20/protecting-firefox-users-following-the-compromise-of-emudhra-intermediate-certificates/": "2026-10-20",
   "https://blog.mozilla.org/security/2026/11/10/open-research-stronger-privacy-making-firefox-users-harder-to-fingerprint/": "2026-11-10",
   "https://blog.railway.com/p/bulletin-compensation": "2026-11-11",
