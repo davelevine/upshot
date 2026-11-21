@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 BUCKET = "upshot-audio"
-INDEX = "_index.json"    # which stories have audio: {key: {v, at}}, rewritten after each story; the page reads it too
+INDEX = "_index.json"    # which stories have audio: {key: {v, at, card, r?}}, rewritten after each story; the page reads it too
 INDEX_CACHE = "public, max-age=300"  # five minutes: new audio shows soon, and a visit's read is mostly served from cache
 VERSION = 1              # the audio's format. A bump voices every story again, under new names, so no cache serves the old
 VOICE = "af_heart"
@@ -63,10 +63,20 @@ def put_json(name, value, cache):
         os.unlink(f.name)
 
 
+def audio_name(key, r=0):
+    """A story's audio and timings, less the extension. A file, once made, never changes (it's cached for a year, and the
+    bucket's lifecycle rule ages it from its upload), so a story voiced again gets its next revision, `r`, in the name."""
+    return f"{key}-{VERSION}" + (f"-{r}" if r else "")
+
+
 def candidates(items, index):
-    """Stories still to voice, newest first. A story waits for its upshot (no "tldr" yet means the build will try again),
-    since the upshot is read second."""
-    todo = [i for i in items if "tldr" in i and key_for(i["url"]) not in index]
+    """Stories still to voice, newest first: those with no audio, and those voiced from their card (the article couldn't
+    be stored then), whose article may be stored by now. A story waits for its upshot (no "tldr" yet means the build will
+    try again), since the upshot is read second."""
+    def due(i):
+        had = index.get(key_for(i["url"]))
+        return had is None or had.get("card")  # an entry from before "card" was kept: none was a card (checked 2026-11-20)
+    todo = [i for i in items if "tldr" in i and due(i)]
     return sorted(todo, key=lambda i: (i.get("published") or i["date"], i.get("added") or ""), reverse=True)
 
 
@@ -135,7 +145,7 @@ def main():
     items = json.loads((ROOT / "site" / "data.json").read_text())["items"]
     found = {} if dry else get_index()
     live = {key_for(i["url"]) for i in items}
-    index = {k: v for k, v in found.items() if k in live and v.get("v") == VERSION}  # gone from the site, or an old format
+    index = {k: dict(v) for k, v in found.items() if k in live and v.get("v") == VERSION}  # gone from the site, or an old format
     todo = candidates(items, index)[:DRY_STORIES if dry else None]
     stories = story_blocks(todo) if todo else {}
     began, voiced, failed, waiting, deferred, audio_s, size = time.monotonic(), [], [], 0, 0, 0.0, 0
@@ -144,12 +154,18 @@ def main():
             if time.monotonic() - began >= budget * 60:
                 deferred += 1
                 continue
-            plan = what_to_read(i, stories.get(i["url"]) or {"reason": "pending"})
+            story = stories.get(i["url"]) or {"reason": "pending"}
+            key = key_for(i["url"])
+            had = index.get(key)  # voiced from its card: done again only once the article is stored
+            plan = what_to_read(i, story)
+            if had and (plan is None or story["reason"] != "ok"):
+                continue
             if plan is None:
                 waiting += 1
                 continue
             blocks, full = plan
-            key, name = key_for(i["url"]), f"{key_for(i['url'])}-{VERSION}"
+            r = had.get("r", 0) + 1 if had else 0
+            name = audio_name(key, r)
             path = Path(tmp) / f"{name}.m4a"
             try:  # one story that can't be voiced is skipped and reported, not left blocking every older one
                 samples, starts = voice(blocks)
@@ -159,7 +175,8 @@ def main():
                 if not dry:
                     put(f"{name}.m4a", path, "audio/mp4", "public, max-age=31536000, immutable")
                     put_json(f"{name}.json", meta, "public, max-age=31536000, immutable")
-                    index[key] = {"v": VERSION, "at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+                    index[key] = {"v": VERSION, "at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                                  "card": story["reason"] != "ok", **({"r": r} if r else {})}
                     put_json(INDEX, index, INDEX_CACHE)  # after each story, so a run cut short keeps what it made
             except Exception as e:
                 failed.append((i["title"], repr(e)))

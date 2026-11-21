@@ -2,7 +2,9 @@
 // Parsing happens here because it costs far more CPU than the Worker is allowed per request.
 // stdin: {items: [{url, publisher, title, minutes}], feeds: {url: whole article from its feed}, textFor: [url]}.
 // stdout: {words: {url: n}, texts: {url: plain text, for the TL;DRs}, error}.
+import { lookup } from 'node:dns/promises';
 import { appendFileSync, readFileSync } from 'node:fs';
+import { BlockList, isIP } from 'node:net';
 import { fileURLToPath } from 'node:url';
 import { Readability } from '@mozilla/readability';
 import { parseHTML } from 'linkedom';
@@ -13,7 +15,8 @@ const MAX_HTML = 3_000_000;
 const MIN_TEXT = 500; // shorter "articles" are usually cookie walls or app shells
 const MIN_PAGE_WORDS = 300; // a page with less visible text than this is a shell, not an article that didn't parse
 const MAX_LINK_SHARE = 0.5; // more of an "article" than this is links: it's a list of other stories
-const PAGE_TIMEOUT = 15000; // some pages take 10s
+const PAGE_TIMEOUT = 15000; // some pages take 10s; covers every redirect and the whole body
+const MAX_REDIRECTS = 10;
 const CONCURRENCY = 6;
 const MAX_TEXT = 40000; // characters of article text handed to the build for its TL;DR
 export const MAX_WRITES = 100; // per build: free KV allows 1,000 writes a day, and builds run 6+ times; the rest wait for the next build
@@ -312,6 +315,50 @@ const fromFeed = (item, body) => {
   return { url: item.url, reason: 'ok', source: 'feed', ...(tidied.skipped && { tidy: 'skipped' }), content: clean(tidied.content, item.url) };
 };
 
+// Where a story's link may not lead. The link comes from a feed, and what's fetched is stored and served publicly by
+// /api/read, so a link or redirect into the runner's own network would publish whatever answers there.
+const PRIVATE = new BlockList();
+for (const [net, bits] of [['0.0.0.0', 8], ['10.0.0.0', 8], ['100.64.0.0', 10], ['127.0.0.0', 8], ['169.254.0.0', 16], ['172.16.0.0', 12], ['192.168.0.0', 16]]) PRIVATE.addSubnet(net, bits, 'ipv4');
+// IPv4 written as IPv6 (::ffff:127.0.0.1) is checked against the IPv4 rules by BlockList itself.
+for (const [net, bits] of [['::', 128], ['::1', 128], ['fc00::', 7], ['fe80::', 10]]) PRIVATE.addSubnet(net, bits, 'ipv6');
+// ponytail: checks the address, then fetch looks it up again, so a DNS answer that changes in between (rebinding) gets
+// past; pin the checked address with an undici dispatcher if that ever matters.
+export const dns = { lookup };  // replaced in tests, which have no network
+export async function isPublic(url) {
+  const { protocol, hostname } = new URL(url);
+  if (!/^https?:$/.test(protocol)) return false;
+  const host = hostname.replace(/^\[|\]$/g, '');
+  const addrs = isIP(host) ? [{ address: host, family: isIP(host) }] : await dns.lookup(host, { all: true });
+  return addrs.every(a => !PRIVATE.check(a.address, a.family === 6 ? 'ipv6' : 'ipv4'));
+}
+
+// A story's page and the address it ended at, following redirects one at a time so that each is checked.
+async function fetchPage(url, signal) {
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+    if (!await isPublic(url)) throw new Error(`not a public address: ${url}`);
+    const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'text/html,application/xhtml+xml' }, redirect: 'manual', signal });
+    const to = res.status >= 300 && res.status < 400 && res.headers.get('location');
+    if (!to) return { res, at: url };
+    await res.body?.cancel();
+    url = new URL(to, url).href;
+  }
+  throw new Error('too many redirects');
+}
+
+// The first `max` bytes of a body, as text: a page bigger than that isn't read to its end.
+export async function readCapped(res, max) {
+  const reader = res.body.getReader(), chunks = [];
+  let n = 0;
+  while (n < max) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    n += value.length;
+  }
+  reader.cancel().catch(() => {});
+  return new TextDecoder().decode(Buffer.concat(chunks).subarray(0, max));
+}
+
 // What the reader gets for one story: its article, or the reason there isn't one. `body`: the whole article from its
 // feed (build.py, feed_articles). The feed's text comes first: it's what the publisher chose to send, and it costs the
 // site no request. The page is read when the feed has only an excerpt, or an entry that looks cut off.
@@ -320,15 +367,15 @@ export async function readArticle(item, body) {
   if (body && !looksCut(body)) return fromFeed(item, body);
   const result = { url, reason: 'error' };
   try {
-    const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'text/html,application/xhtml+xml' }, signal: AbortSignal.timeout(PAGE_TIMEOUT) });
-    const html = (await res.text()).slice(0, MAX_HTML);
+    const { res, at } = await fetchPage(url, AbortSignal.timeout(PAGE_TIMEOUT));
+    const html = await readCapped(res, MAX_HTML);
     const blocked = classify(res, html);
     if (blocked) result.reason = blocked;
     else {
       const article = extract(html);
-      const tidied = article && tidy(article, res.url || url);
+      const tidied = article && tidy(article, at);
       if (tidied && tidied.text >= MIN_TEXT) {  // less is a page that was mostly furniture
-        return { url, reason: 'ok', ...(tidied.skipped && { tidy: 'skipped' }), title: article.title, byline: article.byline, siteName: article.siteName, content: clean(tidied.content, res.url || url) };
+        return { url, reason: 'ok', ...(tidied.skipped && { tidy: 'skipped' }), title: article.title, byline: article.byline, siteName: article.siteName, content: clean(tidied.content, at) };
       }
       // The page loaded but has no article to pull out: the reader links to the original instead.
       result.reason = visibleWords(html) < MIN_PAGE_WORDS ? 'shell' : 'short';

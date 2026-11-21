@@ -105,14 +105,18 @@ def timed(blocks, full=True, n=None):
 
 
 def serve_audio(ctx, stories):
-    """The audio bucket: {url: timings} become its index, each story's timings, and audio as long as they say. Every request
-    is recorded in ctx.audio_requests."""
-    files = {}
+    """The audio bucket: {url: timings} become its index, each story's timings, and audio as long as they say. Timings may
+    carry "index": the story's entry beyond its version ({card, r}, audio.py). Every request is recorded in
+    ctx.audio_requests."""
+    files, entries = {}, {}
     for url, meta in stories.items():
-        key = hashlib.sha256(url.encode()).hexdigest()
-        files[f"{key}-1.json"] = ("application/json", json.dumps(meta).encode())
-        files[f"{key}-1.m4a"] = ("audio/wav", silence(meta["d"]))
-    index = json.dumps({hashlib.sha256(u.encode()).hexdigest(): {"v": 1} for u in stories}).encode()
+        meta = dict(meta)
+        key, entry = hashlib.sha256(url.encode()).hexdigest(), {"v": 1, **meta.pop("index", {})}
+        name = f"{key}-1" + (f"-{entry['r']}" if entry.get("r") else "")
+        files[f"{name}.json"] = ("application/json", json.dumps(meta).encode())
+        files[f"{name}.m4a"] = ("audio/wav", silence(meta["d"]))
+        entries[key] = entry
+    index = json.dumps(entries).encode()
     ctx.audio_requests = []
     def answer(route):
         name = urllib.parse.urlsplit(route.request.url).path.lstrip("/")
@@ -2103,6 +2107,46 @@ def test_listen_plays_on_when_the_article_replaces_its_card(browser):
     frame = pg.frame_locator("#reader-body iframe:not(.loading)")
     assert until(pg, "!player.paused"), "still playing"
     frame.locator(".said", has_text="Paragraph 3 ").wait_for()
+    assert pg.problems == []
+
+
+def test_listen_plays_a_story_voiced_again_under_its_revision(browser):
+    [url] = with_upshot()
+    pg = open_site(browser, audio={url: timed(32) | {"index": {"card": False, "r": 2}}}, viewport={"width": 1440, "height": 900})
+    pg.locator(f"a.card[href='{url}']").click()
+    pg.locator("#reader-listen").click()
+    assert until(pg, "!player.paused")
+    assert pg.evaluate("player.src").endswith(f"{hashlib.sha256(url.encode()).hexdigest()}-1-2.m4a")
+    assert pg.problems == []
+
+
+def test_listen_to_a_cards_audio_marks_nothing_once_the_article_is_shown(browser):
+    """Voiced from the card (headline, upshot, summary) before the article was stored: the article's first paragraphs
+    aren't what's playing, so nothing is marked, though the counts would allow it."""
+    [url] = with_upshot()
+    pg = open_site(browser, audio={url: timed(3, full=False) | {"index": {"card": True}}}, viewport={"width": 1440, "height": 900})
+    pg.locator(f"a.card[href='{url}']").click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.locator("#reader-listen").click()
+    assert until(pg, "!player.paused && listen?.blocks.length > 3")
+    pg.wait_for_timeout(500)
+    assert pg.evaluate("listen.marks") is False
+    assert pg.frame_locator("#reader-body iframe:not(.loading)").locator(".said").count() == 0
+    assert pg.problems == []
+
+
+def test_the_page_works_with_storage_blocked(browser):
+    """Chrome with cookies blocked for the site throws on any use of localStorage. The page still loads and reads, and a
+    setting lasts the visit."""
+    blocked = "Object.defineProperty(window, 'localStorage', { configurable: true, get() { throw new DOMException('The operation is insecure.', 'SecurityError'); } })"
+    pg = open_site(browser, init=blocked, viewport={"width": 1440, "height": 900})
+    assert pg.locator("#items a.card").count() > 5
+    pg.locator("#items a.card").first.click()
+    pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    pg.keyboard.press("Escape")
+    wait_until_closed(pg)
+    pg.evaluate(PICK, "dark")
+    assert until(pg, "document.documentElement.dataset.theme === 'dark' && localStorage.getItem('theme') === 'dark'")
     assert pg.problems == []
 
 

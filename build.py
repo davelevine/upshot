@@ -1014,14 +1014,17 @@ def discover_feeds(site):
 
 def feed_health_report(names, dead, silent, moved, suggestions):
     """Markdown for the Feed health issue and the run summary; empty when every feed is fine."""
-    line = lambda u, why: f"- **{names.get(u, u)}** `{u}`: {why}" + "".join(f"\n  - maybe `{s}`" for s in suggestions.get(u, []))
+    # Suggestions and redirect targets come from other sites' pages and servers: without its backticks and whitespace, an
+    # address can't break out of its code span into the public issue (links, @mentions).
+    code = lambda u: "`" + re.sub(r"[`\s]", "", u) + "`"
+    line = lambda u, why: f"- **{names.get(u, u)}** {code(u)}: {why}" + "".join(f"\n  - maybe {code(s)}" for s in suggestions.get(u, []))
     out = []
     if dead:
         out += [f"### Failing for {DEAD_AFTER_DAYS}+ days", "", *(line(u, "every fetch errors") for u in dead), ""]
     if silent:
         out += ["### Loading, but silent", "", *(line(u, why) for u, why in sorted(silent.items())), ""]
     if moved:
-        out += ["### Moved (permanent redirect)", "", *(f"- **{names.get(u, u)}** `{u}` → `{to}`" for u, to in sorted(moved.items())), ""]
+        out += ["### Moved (permanent redirect)", "", *(f"- **{names.get(u, u)}** {code(u)} → {code(to)}" for u, to in sorted(moved.items())), ""]
     if not out:
         return ""
     return "Fix these in `feeds.opml`. This issue updates every build and closes itself once all feeds are healthy.\n\n" + "\n".join(out)

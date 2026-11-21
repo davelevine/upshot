@@ -25,7 +25,8 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#e3e6ec" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#15161e" media="(prefers-color-scheme: dark)">
-<script>document.documentElement.dataset.theme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+<script>try { localStorage; } catch { const m = new Map(); Object.defineProperty(window, 'localStorage', { value: { getItem: k => m.get(k) ?? null, setItem: (k, v) => void m.set(k, String(v)), removeItem: k => void m.delete(k) } }); }  // storage blocked for the site (cookies blocked, in Chrome) throws on any use: settings then last this visit, rather than the page stopping here
+document.documentElement.dataset.theme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 if (/Mac|iPhone|iPad/.test(navigator.platform)) document.documentElement.dataset.mac = ''; else if (/Android/.test(navigator.userAgent)) document.documentElement.dataset.android = '';
 for (const k of ['side', 'list']) { const w = localStorage.getItem(k + 'Width'); if (w) document.documentElement.style.setProperty('--' + k + '-w', w + 'px'); }
 window.firstData = fetch('/data.json');  // the stories, on their way before app.js arrives; its load() takes this request</script>
@@ -848,6 +849,6 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
 </dialog>
 <button class="back-to-top" id="top" type="button" aria-label="Scroll to the top" title="Scroll to the top" hidden><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <!-- Versioned by its contents (tests/assets.test.js), so browsers keep it for a year. -->
-<script src="/app.js?v=f19f395584"></script>
+<script src="/app.js?v=00296f6c5e"></script>
 </body>
 </html>

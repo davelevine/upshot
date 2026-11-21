@@ -499,7 +499,7 @@ async function syncNow() {
   clearTimeout(pushTimer); pushTimer = null;
   if (!items.length || !maySync()) return;
   if (syncing) return syncing.then(syncNow);  // one at a time, so each picks up where the last left off
-  const sendable = (map, u) => map[u] && u.length <= 512 && /^https?:\/\//.test(u);  // what the server accepts (MAX_URL in sync/account.js)
+  const sendable = (map, u) => map[u] && u.length <= 256 && /^https?:\/\//.test(u);  // what the server accepts (MAX_URL in sync/account.js)
   loadSync();
   for (const u of pending) if (!sendable(marks, u)) pending.delete(u);
   for (const u of laterPending) if (!sendable(later, u)) laterPending.delete(u);
@@ -879,8 +879,8 @@ $('reader-later').onclick = toggleLater;
 const AUDIO_VERSION = 1;  // audio.py VERSION
 const RATES = [1, 1.25, 1.5, 2];
 let listenRate = RATES.includes(+localStorage.getItem('listenRate')) ? +localStorage.getItem('listenRate') : 1;
-let audioBase = null, voiced = new Set();  // the bucket, and the stories in its index
-let heard = null;   // the open story's audio, once its timings are in: { url, src, meta: { d, t, n, full } }
+let audioBase = null, voiced = new Map();  // the bucket, and the stories in its index: key → { card, r }
+let heard = null;   // the open story's audio, once its timings are in: { url, src, meta: { d, t, n, full, card } }
 let listen = null;  // while it plays: { url, meta: its timings, kept with it (heard moves on as the next story opens), blocks, marks: whether the frame's blocks are the ones timed, at: the block playing }
 const player = new Audio();
 player.preload = 'none';
@@ -891,7 +891,7 @@ function loadVoiced(base) {
   audioBase = base || null;
   if (!audioBase) return;
   fetch(`${audioBase}/_index.json`).then(r => r.ok ? r.json() : {}).then(index => {
-    voiced = new Set(Object.keys(index).filter(k => index[k]?.v === AUDIO_VERSION));
+    voiced = new Map(Object.entries(index).filter(([, e]) => e?.v === AUDIO_VERSION));
     if (readerFor) findAudio(readerFor);
   }).catch(() => {});
 }
@@ -901,12 +901,13 @@ async function findAudio(url) {
   heard = null;
   $('reader-listen').hidden = true;
   if (!audioBase || !voiced.size) return;
-  const key = await audioKey(url), name = `${key}-${AUDIO_VERSION}`;
-  if (!voiced.has(key) || readerFor !== url) return;
+  const key = await audioKey(url), entry = voiced.get(key);
+  if (!entry || readerFor !== url) return;
+  const name = `${key}-${AUDIO_VERSION}${entry.r ? `-${entry.r}` : ''}`;  // a story voiced again has its revision in the name (audio.py audio_name)
   try {
     const meta = await (await fetch(`${audioBase}/${name}.json`)).json();
     if (readerFor !== url || !Array.isArray(meta?.t) || !(meta.d > 0)) return;
-    heard = { url, src: `${audioBase}/${name}.m4a`, meta };
+    heard = { url, src: `${audioBase}/${name}.m4a`, meta: { ...meta, card: !!entry.card } };
     $('reader-listen').hidden = false;
   } catch {}  // no timings, no button
 }
@@ -923,12 +924,13 @@ function toggleListen() {
   drawListen();
 }
 // The frame's blocks: marked while the audio plays if they're the ones audio.py timed. A long story's audio stops after
-// the upshot, so its page holds more blocks than were timed.
+// the upshot, so its page holds more blocks than were timed. A card's audio is the card whole: once the article has
+// replaced it, until the story is voiced again, its paragraphs aren't what's playing.
 function heardBlocks(blocks) {
   if (!listen || !Array.isArray(blocks)) return;
-  const { n, full } = listen.meta;
+  const { n, full, card } = listen.meta;
   listen.blocks = blocks;
-  listen.marks = full ? blocks.length === n : blocks.length >= n;
+  listen.marks = full || card ? blocks.length === n : blocks.length >= n;
   listen.at = -1;
   followAudio();
 }
