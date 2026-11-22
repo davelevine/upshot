@@ -259,35 +259,17 @@ another angle. A different version number, or a later development (a patch, a fo
 is NOT. When unsure, null.
 Return JSON: {"items": [{"id", "duplicate_of"}, ...]} covering every input id."""
 
-CLASSIFY_SCHEMA = {
-    "type": "object",
-    "properties": {"items": {"type": "array", "items": {
-        "type": "object",
-        "properties": {
-            "id": {"type": "integer"},
-            "category": {"type": "string", "enum": CATEGORIES},
-            "relevance": {"type": "integer"},
-            "summary": {"type": "string"},
-            "exploited": {"type": "boolean"},
-            "kind": {"type": "string", "enum": ["flaw", "compromise"]},
-            "evidence": {"type": "string"},
-            "fix": {"type": "string", "enum": ["patch", "mitigation", "none", "unknown"]},
-            "fix_evidence": {"type": "string"},
-        },
-        "required": ["id", "category", "relevance", "summary", "exploited", "kind", "evidence", "fix", "fix_evidence"], "additionalProperties": False,
-    }}},
-    "required": ["items"], "additionalProperties": False,
-}
+def obj(**props):
+    """A JSON schema object: every property required, no others."""
+    return {"type": "object", "properties": props, "required": list(props), "additionalProperties": False}
 
-REPEATS_SCHEMA = {
-    "type": "object",
-    "properties": {"items": {"type": "array", "items": {
-        "type": "object",
-        "properties": {"id": {"type": "integer"}, "duplicate_of": {"anyOf": [{"type": "string"}, {"type": "null"}]}},
-        "required": ["id", "duplicate_of"], "additionalProperties": False,
-    }}},
-    "required": ["items"], "additionalProperties": False,
-}
+
+STR, INT = {"type": "string"}, {"type": "integer"}
+FIX = {"type": "string", "enum": ["patch", "mitigation", "none", "unknown"]}
+CLASSIFY_SCHEMA = obj(items={"type": "array", "items": obj(
+    id=INT, category={"type": "string", "enum": CATEGORIES}, relevance=INT, summary=STR, exploited={"type": "boolean"},
+    kind={"type": "string", "enum": ["flaw", "compromise"]}, evidence=STR, fix=FIX, fix_evidence=STR)})
+REPEATS_SCHEMA = obj(items={"type": "array", "items": obj(id=INT, duplicate_of={"anyOf": [STR, {"type": "null"}]})})
 
 
 def classify(item):
@@ -460,15 +442,7 @@ NO_PATCH_WHY = {"mitigation": "No patch yet: apply the vendor's mitigation and c
                 "none": "No patch yet: limit exposure to it and check for compromise."}
 SAYS_PATCH = re.compile(r"^(patch|update|upgrade|install)\b|\b(apply|install) (the |its |vendor'?s? )?(patch|update|hotfix|fix)", re.I)
 
-WEEKLY_SCHEMA = {
-    "type": "object",
-    "properties": {"picks": {"type": "array", "items": {
-        "type": "object",
-        "properties": {"id": {"type": "integer"}, "why": {"type": "string"}},
-        "required": ["id", "why"], "additionalProperties": False,
-    }}},
-    "required": ["picks"], "additionalProperties": False,
-}
+WEEKLY_SCHEMA = obj(picks={"type": "array", "items": obj(id=INT, why=STR)})
 
 
 def pick_weekly(items, today):
@@ -832,21 +806,14 @@ then the fix or action if the article gives one (if it gives none, leave action 
 article identifies the flaw it reports by CVE ID, name it (at most two), not CVEs it cites for background. Use only facts stated in the article: never add a version, CVE,
 number, date or name that isn't in the text, and copy any you use exactly. No hype, no speculation, no
 "this article" framing. Plain sentences, no markdown."""
-TLDR_SCHEMA = {
-    "type": "object",
-    "properties": {"bullets": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 4}},
-    "required": ["bullets"], "additionalProperties": False,
-}
+BULLETS = {"type": "array", "items": STR, "minItems": 2, "maxItems": 4}
+TLDR_SCHEMA = obj(bullets=BULLETS)
 # For an exploited flaw, the same call says whether its fix is out: the whole article knows what a feed's excerpt may not.
 TLDR_FIX = """
 Also say what the article says is out for the exploited flaw: fix is "patch" (a vendor patch, update or fixed version),
 "mitigation" (only a mitigation or workaround, no patch yet), "none" (it says there is no patch or fix yet), else
 "unknown"; fix_evidence is the words from the article that say so, copied exactly, else ""."""
-TLDR_FIX_SCHEMA = {
-    "type": "object",
-    "properties": TLDR_SCHEMA["properties"] | {"fix": {"type": "string", "enum": ["patch", "mitigation", "none", "unknown"]}, "fix_evidence": {"type": "string"}},
-    "required": ["bullets", "fix", "fix_evidence"], "additionalProperties": False,
-}
+TLDR_FIX_SCHEMA = obj(bullets=BULLETS, fix=FIX, fix_evidence=STR)
 
 
 # A flaw flagged after it was published (CISA listed it later, or it predates the flag) never went through the checks that
@@ -856,12 +823,21 @@ UPSHOT_FIX_PROMPT = """You read the summary of a news story about an exploited s
 flaw: fix is "patch" (a vendor patch, update or fixed version), "mitigation" (only a mitigation or workaround, no patch
 yet), "none" (it says there is no patch or fix yet), else "unknown"; fix_evidence is the words from the summary that say
 so, copied exactly, else ""."""
-UPSHOT_FIX_SCHEMA = {
-    "type": "object",
-    "properties": {"fix": TLDR_FIX_SCHEMA["properties"]["fix"], "fix_evidence": {"type": "string"}},
-    "required": ["fix", "fix_evidence"], "additionalProperties": False,
-}
+UPSHOT_FIX_SCHEMA = obj(fix=FIX, fix_evidence=STR)
 LATE_FIX_LIMIT = 20  # upshots read per build: the first build after this shipped has a backlog; later ones, a stray listing
+
+
+def apply_fix(items, item, fix):
+    """Records a flagged flaw's remedy, read from its whole article or its upshot: over the excerpt's, but a remedy once out
+    stays out, and a listed flaw is never "no patch yet". The same CVE's other stories move up with it: one article may
+    say what another doesn't."""
+    x = item.get("exploited") or {}
+    if x.get("kev"):
+        fix = kev_fix(fix)
+    if fix:
+        x["fix"] = best_fix(x.get("fix"), fix) if fix != "none" else x.get("fix") or "none"
+    if fix in ("patch", "mitigation"):
+        mark_fixed(items, item.get("cves", []), fix)
 
 
 def add_late_fixes(items, limit=LATE_FIX_LIMIT):
@@ -883,14 +859,8 @@ def add_late_fixes(items, limit=LATE_FIX_LIMIT):
         for item, fix, ok in ex.map(one, todo):
             if not ok:
                 continue
-            x = item["exploited"]
-            x["fix_read"] = True
-            if fix and x.get("kev"):
-                fix = kev_fix(fix)  # listed: never "no patch yet"
-            if fix:
-                x["fix"] = fix
-            if fix in ("patch", "mitigation"):
-                mark_fixed(items, item.get("cves", []), fix)  # the same CVE's other stories: one upshot may say what another doesn't
+            item["exploited"]["fix_read"] = True
+            apply_fix(items, item, fix)
     return len(todo)
 
 
@@ -929,13 +899,7 @@ def add_tldrs(items, texts, limit=TLDR_LIMIT):
         for item, tldr, fix in ex.map(one, todo):
             if tldr is not None:
                 item["tldr"] = tldr
-            x = item.get("exploited") or {}
-            if x.get("kev"):
-                fix = kev_fix(fix)  # listed: never "no patch yet"
-            if fix:  # the whole article over the excerpt, but a remedy once out stays out
-                x["fix"] = best_fix(x.get("fix"), fix) if fix != "none" else x.get("fix") or "none"
-            if fix in ("patch", "mitigation"):
-                mark_fixed(items, item.get("cves", []), fix)
+            apply_fix(items, item, fix)
     return len(todo)
 
 
