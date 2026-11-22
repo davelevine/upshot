@@ -56,27 +56,10 @@
   "customManagers": [
     {
       "customType": "regex",
-      "description": "Playwright pinned in the smoke job's pip install",
+      "description": "Tools pinned in the smoke job's pip install: Playwright, the axe WCAG check, parallel pytest",
       "managerFilePatterns": ["/^\\.github/workflows/build\\.yml$/"],
-      "matchStrings": ["playwright==(?<currentValue>[0-9][0-9.]*)"],
-      "datasourceTemplate": "pypi",
-      "depNameTemplate": "playwright"
-    },
-    {
-      "customType": "regex",
-      "description": "axe-playwright-python pinned in the smoke job's pip install (the WCAG check)",
-      "managerFilePatterns": ["/^\\.github/workflows/build\\.yml$/"],
-      "matchStrings": ["axe-playwright-python==(?<currentValue>[0-9][0-9.]*)"],
-      "datasourceTemplate": "pypi",
-      "depNameTemplate": "axe-playwright-python"
-    },
-    {
-      "customType": "regex",
-      "description": "pytest-xdist pinned in the smoke job's pip install (runs the smoke tests in parallel)",
-      "managerFilePatterns": ["/^\\.github/workflows/build\\.yml$/"],
-      "matchStrings": ["pytest-xdist==(?<currentValue>[0-9][0-9.]*)"],
-      "datasourceTemplate": "pypi",
-      "depNameTemplate": "pytest-xdist"
+      "matchStrings": ["(?<depName>playwright|axe-playwright-python|pytest-xdist)==(?<currentValue>[0-9][0-9.]*)"],
+      "datasourceTemplate": "pypi"
     },
     {
       "customType": "regex",
