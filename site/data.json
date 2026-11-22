@@ -5390,24 +5390,24 @@
   }
  ],
  "weekly": {
-  "window_start": "2026-11-15",
-  "window_end": "2026-11-21",
+  "window_start": "2026-11-16",
+  "window_end": "2026-11-22",
   "items": [
    {
-    "url": "https://thehackernews.com/2026/11/hackers-exploit-critical-cisco.html",
-    "why": "Patch Expressway now; public PoC means exploitation followed within days, reaching internal networks."
-   },
-   {
     "url": "https://www.rapid7.com/blog/post/etr-cve-2026-123890-critical-authentication-bypass-vmware-vcenter",
-    "why": "Patch vCenter now; unauthenticated admin access can take over your entire virtualization estate."
+    "why": "Patch vCenter now; unauthenticated admin access puts every managed host at risk."
    },
    {
     "url": "https://thehackernews.com/2026/11/everything-is-web-application-including.html",
-    "why": "Patch PAN-OS now and pull management interfaces off the internet; exploitation is active."
+    "why": "Patch PAN-OS and restrict management interfaces to internal networks; exploitation is underway."
+   },
+   {
+    "url": "https://thehackernews.com/2026/11/hackers-exploit-critical-cisco.html",
+    "why": "Patch Cisco Expressway now; attackers breached internal networks shortly after PoC release."
    }
   ]
  },
- "generated_at": "2026-11-22T04:27:42+00:00",
+ "generated_at": "2026-11-22T05:28:08+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
