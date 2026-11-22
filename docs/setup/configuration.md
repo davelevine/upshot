@@ -35,7 +35,7 @@ To turn it on in a fork:
 
 Without the secret the cron silently does nothing (Workers Logs still say `ok`). Check that `npx wrangler secret list` lists `GITHUB_DISPATCH_TOKEN` and that a `workflow_dispatch` run appears within seconds of the cron.
 
-To change the schedule, change it in three places: the `cron` in `build.yml`, the cron in `wrangler.jsonc`, and `BUILD_EVERY_HOURS`/`BUILD_AT_MINUTE` in [`site/app.js`](../../site/app.js), with `STALE_MINUTES` there, which marks a build as late.
+To change the schedule, change it in three places: the `cron` in `build.yml`, the cron in `wrangler.jsonc`, and `BUILD_AT_MINUTE` in [`site/app.js`](../../site/app.js), with `STALE_MINUTES` there, which marks a build as late. `nextBuildMinutes` there assumes an hourly build.
 
 ## Protecting main
 

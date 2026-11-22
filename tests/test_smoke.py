@@ -1681,14 +1681,13 @@ def test_share_icon_matches_the_device(browser):
     desktop = browser.new_context(viewport={"width": 1300, "height": 900}).new_page()
     desktop.goto(URL)
     enter_list(desktop)
-    assert desktop.locator("#reader-send").get_attribute("data-kind") == "apple"
     assert desktop.locator("#reader-send .send-apple").evaluate("e => getComputedStyle(e).display") == "block"  # the box and arrow, not a link icon
     mac = browser.new_context(viewport={"width": 1300, "height": 900})
     mac.add_init_script("navigator.share = () => Promise.resolve();")  # a desktop browser with a share sheet uses it
     mp = mac.new_page()
     mp.goto(URL)
     enter_list(mp)
-    assert mp.locator("#reader-send").get_attribute("data-kind") == "apple"
+    assert mp.locator("#reader-send .send-apple").evaluate("e => getComputedStyle(e).display") == "block"
     for ua, kind in (("Mozilla/5.0 (Linux; Android 16; Pixel 9 Pro) AppleWebKit/537.36 Chrome/131 Mobile Safari/537.36", "android"),
                      ("Mozilla/5.0 (iPhone; CPU iPhone OS 19_0 like Mac OS X) AppleWebKit/605.1.15 Version/19.0 Mobile/15E148 Safari/604.1", "apple")):
         ctx = browser.new_context(viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True, user_agent=ua)
@@ -1696,7 +1695,7 @@ def test_share_icon_matches_the_device(browser):
         pg = ctx.new_page()
         pg.goto(URL)
         enter_list(pg)
-        assert pg.locator("#reader-send").get_attribute("data-kind") == kind, ua
+        assert pg.locator(f"#reader-send .send-{kind}").evaluate("e => getComputedStyle(e).display") == "block", ua
 
 
 def test_share_survives_ad_blockers_social_lists(browser):
