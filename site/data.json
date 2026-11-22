@@ -2,6 +2,25 @@
  "items": [
   {
    "date": "2026-11-22",
+   "published": "2026-11-22T08:57:34+00:00",
+   "title": "87% of the Anthropic power will come from gas and 11% from coal in 2028",
+   "url": "https://betterdatacenterproject.com/2026/11/16/how-ai-is-powered-a-breakdown-of-byop-and-grid-power/",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "An analysis projects Anthropic's 2028 data center power mix at 87% gas and 11% coal, covering bring-your-own-power and grid supply.",
+   "relevance": 6,
+   "added": "2026-11-22T15:27:54+00:00",
+   "minutes": 8,
+   "tldr": [
+    "Analysis estimates Anthropic's contracted U.S. data centers will draw about 87% of their power from gas and 11% from coal in 2028.",
+    "Emissions from Anthropic's power use could reach 17–38 million MtCO2e per year in 2028, with a mid-case of 32 million.",
+    "Anthropic has no direct U.S. renewable energy commitments, but has bought commitments for 1.7 gigawatts of heavy-duty gas generators.",
+    "About 80% of on-site gas capacity uses simple cycle turbines and engines, which emit more pollution per unit of electricity than combined cycle plants."
+   ]
+  },
+  {
+   "date": "2026-11-22",
    "published": "2026-11-22T06:30:00+00:00",
    "title": "Google Announces Agent Compute Engine for Secure AI Agent Execution",
    "url": "https://www.infoq.com/news/2026/11/google-agent-compute-engine/",
@@ -5444,7 +5463,7 @@
    }
   ]
  },
- "generated_at": "2026-11-22T14:27:56+00:00",
+ "generated_at": "2026-11-22T15:28:04+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
