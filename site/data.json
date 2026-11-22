@@ -1,6 +1,43 @@
 {
  "items": [
   {
+   "date": "2026-11-22",
+   "published": "2026-11-22T06:30:00+00:00",
+   "title": "Google Announces Agent Compute Engine for Secure AI Agent Execution",
+   "url": "https://www.infoq.com/news/2026/11/google-agent-compute-engine/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Google announced Agent Compute Engine, a managed service running AI agents in isolated microVMs with checkpointing, keeping credentials outside the sandbox via an external gateway.",
+   "relevance": 6,
+   "added": "2026-11-22T07:27:42+00:00",
+   "minutes": 3,
+   "tldr": [
+    "Google announced Agent Compute Engine, a managed service running AI agents in isolated microVMs with checkpoint and restore, keeping credentials outside the sandbox.",
+    "Credentials, API keys and OAuth refresh tokens are injected by an external Agent Gateway, so agent sandboxes hold no exploitable secrets.",
+    "The service is not yet available and pricing is unannounced; Google is targeting a preview in the coming months, limited to Google Cloud."
+   ]
+  },
+  {
+   "date": "2026-11-22",
+   "published": "2026-11-22T06:27:00+00:00",
+   "title": "AWS Lambda Now Runs GPU Inference with 48 Concurrent Invocations Sharing One Model per GPU",
+   "url": "https://www.infoq.com/news/2026/11/aws-lambda-gpu-managed-instances/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "AWS Lambda now runs GPU inference on EC2 G-series instances via Lambda Managed Instances, with up to 48 concurrent invocations sharing one model per GPU.",
+   "relevance": 6,
+   "added": "2026-11-22T07:27:42+00:00",
+   "minutes": 4,
+   "tldr": [
+    "AWS Lambda Managed Instances now run GPU Event Functions on EC2 G-series instances, deployed as container images.",
+    "Up to 48 concurrent invocations share one model copy in GPU memory per environment, at EC2 On-Demand rates plus 9.75 percent.",
+    "Build an OCI image, configure AcceleratorConfig and a capacity provider, then publish a version; check GPU vCPU quota, since fresh accounts start at zero.",
+    "Only Event Functions are supported, so Web Functions cannot use GPUs yet; AWS has not said if that will change."
+   ]
+  },
+  {
    "date": "2026-11-21",
    "published": "2026-11-21T08:49:13+00:00",
    "title": "Hackers Exploit Critical VMware, Cisco, and Apache Flaws as Espionage Attacks Emerge",
@@ -5407,7 +5444,7 @@
    }
   ]
  },
- "generated_at": "2026-11-22T06:28:04+00:00",
+ "generated_at": "2026-11-22T07:27:56+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
