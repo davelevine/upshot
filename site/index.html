@@ -97,7 +97,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   .send-pop > *:hover { background: var(--bg-card-hover); }
   .send-ico { flex: none; width: 18px; height: 18px; color: var(--text-muted); }
   .send-ico.fill { fill: currentColor; stroke: none; }  /* Bluesky, Reddit and LinkedIn marks from Simple Icons (CC0); LinkedIn's is the one the portfolio uses */
-  #reader-send:not([data-kind="android"]) .send-apple, #reader-send[data-kind="android"] .send-android { display: block; }
+  :root:not([data-android]) #reader-send .send-apple, [data-android] #reader-send .send-android { display: block; }
   #reader-send .send-android { transform: scale(.8); }  /* three solid-looking dots carry more weight than the sun's thin rays */
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   /* Theme switch: colors change in one frame and a view transition crossfades the page (see app.js). */
@@ -751,7 +751,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
     <span class="send-done" id="send-done" hidden>Copied</span>
     <button class="icon-btn" id="reader-listen" type="button" title="Listen" aria-label="Listen" aria-pressed="false" aria-keyshortcuts="L" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></button>
     <span class="send-wrap">
-      <button class="icon-btn" id="reader-send" type="button" title="Share article" aria-label="Share article" aria-expanded="false" aria-controls="send-pop" data-kind="apple"><svg class="send-apple" viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg><svg class="send-android" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
+      <button class="icon-btn" id="reader-send" type="button" title="Share article" aria-label="Share article" aria-expanded="false" aria-controls="send-pop"><svg class="send-apple" viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg><svg class="send-android" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button>
       <span class="popover send-pop" id="send-pop" role="menu" aria-label="Share" hidden>
         <button type="button" role="menuitem" id="send-copy"><svg class="send-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Copy link</button>
         <button type="button" role="menuitem" id="send-email"><svg class="send-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>Email</button>
@@ -886,6 +886,6 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
 </dialog>
 <button class="back-to-top" id="top" type="button" aria-label="Scroll to the top" title="Scroll to the top" hidden><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <!-- Versioned by its contents (tests/assets.test.js), so browsers keep it for a year. -->
-<script src="/app.js?v=4d8cf924d7"></script>
+<script src="/app.js?v=19962122b3"></script>
 </body>
 </html>

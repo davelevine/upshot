@@ -2,6 +2,8 @@ const CATS = { ai: 'AI', infrastructure: 'Infrastructure', engineering: 'Enginee
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const cat = c => (c in CATS ? c : 'other');
+// Removes a body class two frames on, once the page has painted with it: a change made under it skips its transition.
+const nextPaint = cls => requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove(cls)));
 const domain = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
 // Who wrote it: an aggregator's links name the site they point to, not the aggregator.
 const source = i => (/^Hacker News\b/.test(i.publisher) && domain(i.url)) || i.publisher;
@@ -27,7 +29,8 @@ function watchEnd() {
 watchEnd();
 docked.addEventListener('change', watchEnd);
 let tz, iconArt = {}, icons = new Set(), items = [], filter = 'all', shown = [], limit = PAGE, generatedAt = null, picks = new Map();  // picks: url -> what to do
-const label = f => (f === 'all' ? 'All' : f === 'essentials' ? 'Essentials' : f === 'exploited' ? 'Exploited' : f === 'later' ? 'Read later' : CATS[f]);
+const NAMES = { all: 'All', essentials: 'Essentials', exploited: 'Exploited', later: 'Read later', ...CATS };
+const label = f => NAMES[f];
 // Exploited flaws (build.py flags them): marked where they fall in the feed, and listed under the essentials for a week.
 const EXPLOITED_DAYS = 7;
 const listed = i => !!i.exploited && ageMins(i) < EXPLOITED_DAYS * 1440;
@@ -364,11 +367,13 @@ const FRESH_MS = 864e5, FRESH_MIN = 5;  // the last day, or the newest five afte
 const arrived = i => Date.parse(i.added || i.published || i.date);
 let since = localStorage.getItem('since');
 const kept = new Set(storedList('kept'));
-const saveKept = () => localStorage.setItem('kept', JSON.stringify([...kept]));
+// Stores a value as JSON, a Set as its list.
+const put = (k, v) => localStorage.setItem(k, JSON.stringify(v instanceof Set ? [...v] : v));
+const saveKept = () => put('kept', kept);
 const older = url => { const i = items.find(x => x.url === url); return !i || arrived(i) <= Date.parse(since); };
 const isRead = url => readSet.has(url) || (older(url) && !kept.has(url) && !picks.has(url));  // essentials stay unread until opened
 const isUnread = i => !isRead(i.url);
-const saveRead = () => localStorage.setItem('read', JSON.stringify([...readSet]));
+const saveRead = () => put('read', readSet);
 function pruneRead() {
   loadSync();  // the marks as stored: see loadSync
   const urls = new Set(items.map(i => i.url)), weekAgo = Date.now() - 7 * 864e5;
@@ -416,18 +421,9 @@ const loadSync = () => {
   if ($('sync').open && syncViewName !== 'code') renderSync();
 };
 loadSync();
-const saveMarks = () => {
-  localStorage.setItem('marks', JSON.stringify(marks));
-  localStorage.setItem('syncPending', JSON.stringify([...pending]));
-};
-const saveLater = () => {
-  localStorage.setItem('later', JSON.stringify(later));
-  localStorage.setItem('laterPending', JSON.stringify([...laterPending]));
-};
-const savePrefs = () => {
-  localStorage.setItem('prefAt', JSON.stringify(prefAt));
-  localStorage.setItem('prefsPending', JSON.stringify([...prefsPending]));
-};
+const saveMarks = () => { put('marks', marks); put('syncPending', pending); };
+const saveLater = () => { put('later', later); put('laterPending', laterPending); };
+const savePrefs = () => { put('prefAt', prefAt); put('prefsPending', prefsPending); };
 const isSaved = url => later[url]?.[0] === 1;
 const maySync = () => syncOn || /(?:^|;\s*)upshot_sync=1/.test(document.cookie);
 // Another tab changed what's stored: take it up, so this tab never writes its older copy back over it.
@@ -446,17 +442,16 @@ addEventListener('storage', e => {
   if (items.length) { renderFilters(); refreshRead(); }
   if (readerFor) syncLater();
 });
+const queuePush = () => { clearTimeout(pushTimer); pushTimer = setTimeout(syncNow, SYNC_DELAY); };  // a burst of changes goes as one request
 function noteMark(url, read, opened) {
   loadSync();
   if (!syncOn) return;
-  marks[url] = [read, Date.now(), opened]; pending.add(url); saveMarks();
-  clearTimeout(pushTimer); pushTimer = setTimeout(syncNow, SYNC_DELAY);  // a burst of marks goes as one request
+  marks[url] = [read, Date.now(), opened]; pending.add(url); saveMarks(); queuePush();
 }
 function notePref(key) {
   loadSync();
   if (!syncOn) return;
-  prefAt[key] = Date.now(); prefsPending.add(key); savePrefs();
-  clearTimeout(pushTimer); pushTimer = setTimeout(syncNow, SYNC_DELAY);
+  prefAt[key] = Date.now(); prefsPending.add(key); savePrefs(); queuePush();
 }
 // Turning sync on (or finding this browser's storage cleared): what it already knows goes in as marks older than any real
 // change, so other devices' changes win, and its order holds ("Recently read" lists them in it). Joining by code doesn't.
@@ -559,11 +554,10 @@ async function syncNow() {
   const sent = Object.fromEntries([...pending].slice(0, SYNC_BATCH).map(u => [u, marks[u]]));
   const sentLater = Object.fromEntries([...laterPending].slice(0, SYNC_BATCH - Object.keys(sent).length).map(u => [u, later[u]]));  // one batch between them
   const sentPrefs = Object.fromEntries([...prefsPending].filter(k => Object.hasOwn(PREFS, k)).map(k => [k, [PREFS[k].get(), prefAt[k] ?? 1]]));
-  const body = JSON.stringify({ marks: sent, later: sentLater, prefs: sentPrefs, cursor, since: takeSince ? null : since }), gen = syncGen;
+  const payload = { marks: sent, later: sentLater, prefs: sentPrefs, cursor, since: takeSince ? null : since }, gen = syncGen;
   if (syncOn) setSync('busy');
   // keepalive lets a send finish after the tab is hidden or closed, but only up to 64 KB.
-  syncing = fetch('/api/sync', { method: 'POST', keepalive: body.length < 6e4, headers: { 'Content-Type': 'application/json' }, body })
-    .then(async r => ({ status: r.status, data: r.ok ? await r.json() : null })).catch(() => null);
+  syncing = call('/api/sync', payload, { keepalive: JSON.stringify(payload).length < 6e4 });
   const res = await syncing;
   syncing = null;
   if (gen !== syncGen) return;  // this device joined or left a sync meanwhile
@@ -683,7 +677,8 @@ function syncView(name, { justOn = false } = {}) {
   document.querySelector(VIEW_FOCUS[name])?.focus();
 }
 // A request that didn't work: 401 means this device was removed elsewhere meanwhile; otherwise, say what to do.
-const call = (path, body) => fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => ({ status: r.status, data: r.ok ? await r.json() : null })).catch(() => ({ status: 0, data: null }));
+const whoAmI = () => fetch('/api/auth/me').then(r => r.json()).catch(() => null);
+const call = (path, body, init) => fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), ...init }).then(async r => ({ status: r.status, data: r.ok ? await r.json() : null })).catch(() => ({ status: 0, data: null }));
 function failed(status, what) {
   if (status === 401) { signedOut(STOPPED); return syncView('out'); }
   sayErr(status === 429 ? 'Too many tries. Wait a minute, then try again.' : `Couldn\u2019t ${what}. Check the connection and try again.`);
@@ -698,7 +693,7 @@ function showBack(back) {
 }
 let shownDevices = '';
 async function listDevices(recheck = false) {
-  const me = await fetch('/api/auth/me').then(r => r.json()).catch(() => null);
+  const me = await whoAmI();
   if (syncViewName !== 'in') return;  // the sheet moved on meanwhile
   if (me && !me.signedIn) { signedOut(STOPPED); return renderSync(); }
   if (recheck && (!me || JSON.stringify(me.devices.map(d => d.id)) === shownDevices)) return;  // unchanged: nothing moves under the pointer
@@ -748,7 +743,7 @@ async function showLinkCode() {
   $('sync-show-how').hidden = false; $('sync-show').hidden = false;
   $('sync-show').textContent = '\u2009'; $('sync-note').textContent = 'Generating a sync code\u2026';
   $('sync-qr').hidden = true;
-  const [{ status, data: res }, before] = await Promise.all([call('/api/auth/link/start', { base: location.origin }), fetch('/api/auth/me').then(r => r.json()).catch(() => null)]);
+  const [{ status, data: res }, before] = await Promise.all([call('/api/auth/link/start', { base: location.origin }), whoAmI()]);
   if (syncViewName !== 'show') return;
   if (status === 401) return failed(status);
   if (!res) { $('sync-note').textContent = 'Couldn\u2019t generate a sync code. Check the connection and try again.'; return; }
@@ -765,7 +760,7 @@ async function showLinkCode() {
 // The live connection says the device list changed while a code is showing: has a new device joined with it?
 let knownDevices = null;
 async function checkJoined() {
-  const me = await fetch('/api/auth/me').then(r => r.json()).catch(() => null);
+  const me = await whoAmI();
   if (syncViewName !== 'show' || !me?.devices) return;
   if (!knownDevices) { knownDevices = new Set(me.devices.map(d => d.id)); return; }
   const added = me.devices.find(d => !knownDevices.has(d.id));
@@ -796,7 +791,6 @@ $('sync-btn').onclick = () => { $('menu').hidePopover(); openSheet(); };
 $('items').addEventListener('click', e => { if (e.target.closest('.later-note button')) openSheet(); });  // Read later's note, without sync
 setInterval(() => { if (syncOn && !document.hidden) showSync(); }, 60e3);  // "Synced 3m ago" stays true
 $('sync').addEventListener('click', e => {
-  if (e.target === $('sync')) return $('sync').close();  // the backdrop
   const to = e.target.closest('[data-to]')?.dataset.to;
   if (to) to === 'home' ? renderSync() : syncView(to);  // home: signed out or syncing, whichever this device is
   if (e.target.closest('[data-close]')) $('sync').close();
@@ -853,7 +847,6 @@ function confirmReadAll() {
 $('read-all').onclick = confirmReadAll;
 $('bar-keys').onclick = () => $('keys').showModal();
 $('confirm-read').addEventListener('close', () => { if ($('confirm-read').returnValue === 'ok') markAllRead(shown); });
-$('confirm-read').addEventListener('click', e => { if (e.target === $('confirm-read')) $('confirm-read').close(); });  // the backdrop
 // The "…" on the selected story: the one open, or the one just closed, as Feedbin keeps its row selected. It's one element,
 // moved after that row; a redraw of the list detaches it, so it's held here and put back.
 const more = $('card-more'), morePop = $('more-pop'), moreBtn = $('card-more-btn');  // getElementById can't find them while detached
@@ -915,7 +908,7 @@ function toggleLater() {
   loadSync();  // another tab's saves first: see loadSync
   const on = isSaved(url) ? 0 : 1;
   if (on || syncOn) later[url] = [on, Date.now()]; else delete later[url];
-  if (syncOn) { laterPending.add(url); clearTimeout(pushTimer); pushTimer = setTimeout(syncNow, SYNC_DELAY); }
+  if (syncOn) { laterPending.add(url); queuePush(); }
   saveLater();
   cardFor(url)?.classList.toggle('saved', !!on);
   renderFilters();
@@ -1137,7 +1130,7 @@ function load() {
     pruneRead();
     if (!refresh) {  // a list named in the address: opened in place of the topics, on a phone too
       const t = new URLSearchParams(location.search).get('topic');
-      if (t && Object.hasOwn({ all: 1, essentials: 1, exploited: 1, later: 1, ...CATS }, t)) { filter = t; if (!history.state) history.replaceState({ list: true, f: t }, ''); }
+      if (t && Object.hasOwn(NAMES, t)) { filter = t; if (!history.state) history.replaceState({ list: true, f: t }, ''); }
     }
     setPicks(data.weekly);
     renderFilters();
@@ -1145,7 +1138,7 @@ function load() {
     if (!refresh) {  // where the page starts is no move: no slide
       document.body.classList.add('paging');
       syncFromUrl(); syncHome(); showList(false);  // opens on the stories
-      requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('paging')));
+      nextPaint('paging');
       if (passDue()) { if (document.hidden) tickOnShow = true; else playTicker(); }  // opened, not just refreshed: one pass
     }
     (window.requestIdleCallback || (f => setTimeout(f, 1000)))(prefetchArticles);  // the new top stories, after a refresh too
@@ -1162,7 +1155,7 @@ docked.addEventListener('change', setInert);  // resizing never strands an inert
 // Crossing the breakpoint changes where the reader sits, not whether it's open: no slide (a closed one would fly off).
 docked.addEventListener('change', () => {
   document.body.classList.add('dragging');
-  requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('dragging')));
+  nextPaint('dragging');
 });
 // The row that's selected: the story open, or on a phone the one just closed, still highlighted as Feedbin's is.
 const currentUrl = () => readerFor ?? (phone.matches ? lastClosed : null);
@@ -1188,20 +1181,22 @@ addEventListener('touchmove', e => {
 }, { passive: false });
 const end = () => { if (s && s.ax === 'x') send('end'); s = null; };
 addEventListener('touchend', end); addEventListener('touchcancel', end);
-addEventListener('message', e => {  // the page's theme toggle
-  if (e.source === parent && e.data && e.data.tw === 'theme') {
+addEventListener('message', e => {
+  if (e.source !== parent || !e.data) return;
+  if (e.data.tw === 'page') page(e.data.up);
+  if (e.data.tw === 'theme') {  // the page's theme toggle
     document.documentElement.dataset.theme = e.data.theme;
     getComputedStyle(document.body).color;  // apply the new colors now, not at a paint the page's crossfade is holding back
     parent.postMessage({ tw: 'themed' }, '*');
   }
-  if (e.source === parent && e.data && e.data.tw === 'font') {  // a typeface picked: its stylesheet in place of the last, in this frame
+  if (e.data.tw === 'font') {  // a typeface picked: its stylesheet in place of the last, in this frame
     // The text reflows, so the block at the top of the view is held there, as scroll anchoring does where the browser has it.
     const held = [...document.querySelector('main').children].find(n => n.getBoundingClientRect().bottom > 0), was = held && held.getBoundingClientRect().top;
     document.getElementById('faces').textContent = e.data.css;
     document.documentElement.dataset.font = e.data.font;
     if (held) document.fonts.ready.then(() => scrollBy(0, held.getBoundingClientRect().top - was));
   }
-  if (e.source === parent && e.data && (e.data.tw === 'size' || e.data.tw === 'fluid')) {
+  if (e.data.tw === 'size' || e.data.tw === 'fluid') {
     const root = document.documentElement, k = e.data.tw;
     if (root.dataset[k] === e.data[k]) return;
     root.classList.add('glide'); clearTimeout(glideTimer); glideTimer = setTimeout(() => root.classList.remove('glide'), 400);  // see main's glide
@@ -1214,7 +1209,6 @@ const page = up => {
   if (!up && scrollY + innerHeight >= document.documentElement.scrollHeight - 2) return parent.postMessage({ tw: 'next' }, '*');
   scrollBy({ top: (up ? -1 : 1) * (innerHeight - 40), behavior: 'smooth' });
 };
-addEventListener('message', e => { if (e.source === parent && e.data && e.data.tw === 'page') page(e.data.up); });
 // Listen: the page plays the story's audio; this frame hands it the page's blocks (headings, paragraphs, list items,
 // quotes, and the upshot as one: audio.mjs builds the same list to time the audio), marks the block playing, and on a
 // click says which block to play from.
@@ -1639,7 +1633,7 @@ addEventListener('popstate', e => {
   const home = !history.state?.list && !history.state?.reader;
   if (home && !document.body.classList.contains('home')) lastList = filter;
   // Safari's own swipe-back already animates the page: don't slide it a second time.
-  if (e.hasUAVisualTransition) { document.body.classList.add('paging'); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('paging'))); }
+  if (e.hasUAVisualTransition) { document.body.classList.add('paging'); nextPaint('paging'); }
   syncHome();
 });
 // Swipe right to close: the reader follows the finger, then closes past a third of its width or on a flick
@@ -1801,13 +1795,10 @@ function onKey(key, mod, e) {
   else if (key === 'k' || key === 'arrowleft') { e?.preventDefault(); step(-1); }
 }
 addEventListener('keydown', e => onKey(e.key.toLowerCase(), e.metaKey || e.ctrlKey, e));
-$('keys').addEventListener('click', e => { if (e.target === $('keys')) $('keys').close(); });  // a click on the backdrop
 
 // Share the publisher's article, not this site's reader link: that's what the recipient wants.
 // The browser's own share sheet where it has one (phones, and Chrome, Edge and Safari on Windows and Mac); otherwise a menu.
 // The same menu everywhere; where the browser has a share sheet, "More…" opens it.
-const shareKind = /Android/i.test(navigator.userAgent) ? 'android' : 'apple';  // which icon
-$('reader-send').dataset.kind = shareKind;
 $('send-more').hidden = !navigator.share;
 const closeShare = () => { $('send-pop').hidden = true; $('reader-send').setAttribute('aria-expanded', 'false'); };
 $('reader-send').onclick = async e => {
@@ -1920,7 +1911,8 @@ $('palette-q').addEventListener('keydown', e => {
 });
 $('palette-list').addEventListener('click', e => { const li = e.target.closest('li[data-n]'); if (li) choosePalette(+li.dataset.n); });
 $('palette-list').addEventListener('mousemove', e => { const li = e.target.closest('li[data-n]'); if (li && +li.dataset.n !== pal.sel) selectPalette(+li.dataset.n, false); });
-$('palette').addEventListener('click', e => { if (e.target === $('palette')) $('palette').close(); });  // the backdrop
+// A click on any dialog's backdrop closes it: the dialog itself is the target only outside its content.
+document.querySelectorAll('dialog').forEach(d => d.addEventListener('click', e => { if (e.target === d) d.close(); }));
 $('palette-close').addEventListener('click', () => $('palette').close());
 document.addEventListener('auxclick', e => { const a = e.target.closest('a.card'); if (a && e.button === 1) markRead(a.getAttribute('href')); });
 // Plain clicks on an article open the reader; modified and middle clicks still open the site.
@@ -1973,7 +1965,7 @@ addEventListener('resize', () => { for (const k in COLS) if (localStorage.getIte
 
 // The wordmark's spot, once each time Upshot opens: the date, when it updated and when it's next due, then the wordmark
 // again (after Kagi News). Under five seconds, so it never needs a pause control (WCAG 2.2.2); a tap ends it at once.
-const BUILD_EVERY_HOURS = 1, BUILD_AT_MINUTE = 27;  // cron "27 * * * *" UTC, in wrangler.jsonc (which starts the build) and build.yml
+const BUILD_AT_MINUTE = 27;  // cron "27 * * * *" UTC, in wrangler.jsonc (which starts the build) and build.yml
 const HOLD_MS = 1200, TICK_MS = 1500, FADE_MS = 300, REOPEN_MINUTES = 15;  // the wordmark first, long enough to be seen
 let tickTimers = [], tickOnShow = false, tickPending = false, hiddenAt = Date.now();
 // An opening, not a refresh: the pass plays only if the last one seen was a while ago, so reloading (or a new tab,
@@ -1991,16 +1983,15 @@ function syncTicker() {
 }
 function nextBuildMinutes(now = Date.now()) {
   const t = new Date(now);
-  t.setUTCHours(t.getUTCHours() - t.getUTCHours() % BUILD_EVERY_HOURS, BUILD_AT_MINUTE, 0, 0);
-  while (t <= now) t.setUTCHours(t.getUTCHours() + BUILD_EVERY_HOURS);
+  t.setUTCMinutes(BUILD_AT_MINUTE, 0, 0);
+  if (t <= now) t.setUTCHours(t.getUTCHours() + 1);
   return Math.round((t - now) / 60e3);
 }
-const hoursMinutes = m => (m < 60 ? `${m}m` : `${Math.floor(m / 60)}h ${m % 60}m`);
 function tickerLines() {
   const mins = Math.max(0, (Date.now() - Date.parse(generatedAt)) / 60e3);
   return [new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'long', month: 'long', day: 'numeric' }).format(new Date()),
     `Updated ${agoText(mins)}`,
-    ...(mins < STALE_MINUTES ? [`Next update in ${hoursMinutes(nextBuildMinutes())}`] : [])];  // late: no promise of when
+    ...(mins < STALE_MINUTES ? [`Next update in ${nextBuildMinutes()}m`] : [])];  // late: no promise of when
 }
 function stopTicker() {
   tickTimers.forEach(clearTimeout); tickTimers = [];
