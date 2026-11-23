@@ -1,6 +1,25 @@
 {
  "items": [
   {
+   "date": "2026-11-23",
+   "published": "2026-11-23T12:17:00+00:00",
+   "title": "Claude Code Adds Experimental Code Mode to Orchestrate Tool Calls with JavaScript",
+   "url": "https://www.infoq.com/news/2026/11/claude-code-mode/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Anthropic's experimental Code Mode lets Claude Code write JavaScript to chain, parallelize and filter Bash, Read and Edit calls, changing how auto mode and hooks review them.",
+   "relevance": 6,
+   "added": "2026-11-23T12:27:53+00:00",
+   "minutes": 3,
+   "tldr": [
+    "Anthropic added experimental Code Mode to Claude Code, where the model writes JavaScript to drive Bash, Read, and Edit calls in one script.",
+    "Off by default; requires Claude Code v2.1.323 or later and CLAUDE_CODE_EXPERIMENTAL_CODE_MODE=1, and works only in interactive native terminal sessions.",
+    "Hooks must check every part of a command; git push can reach one as cd 'app' && git push.",
+    "Project settings cannot enable it, so cloned repos cannot switch it on; admins can block it via managed settings."
+   ]
+  },
+  {
    "date": "2026-11-22",
    "published": "2026-11-22T08:57:34+00:00",
    "title": "87% of the Anthropic power will come from gas and 11% from coal in 2028",
@@ -5463,7 +5482,7 @@
    }
   ]
  },
- "generated_at": "2026-11-23T11:28:01+00:00",
+ "generated_at": "2026-11-23T12:28:03+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
