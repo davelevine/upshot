@@ -2,6 +2,19 @@
  "items": [
   {
    "date": "2026-11-23",
+   "published": "2026-11-23T10:06:43+00:00",
+   "title": "GLM-5.4: Toward Generalized Coding with Our First Loop Transformer",
+   "url": "https://z.ai/blog/glm-5.4",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "ai",
+   "summary": "Z.ai announced GLM-5.4, described as its first loop transformer model, aimed at generalized coding tasks.",
+   "relevance": 7,
+   "added": "2026-11-23T13:27:54+00:00",
+   "minutes": 0
+  },
+  {
+   "date": "2026-11-23",
    "published": "2026-11-23T12:17:00+00:00",
    "title": "Claude Code Adds Experimental Code Mode to Orchestrate Tool Calls with JavaScript",
    "url": "https://www.infoq.com/news/2026/11/claude-code-mode/",
@@ -1391,7 +1404,8 @@
     ],
     "at": "2026-11-16T23:18:07+00:00",
     "kind": "flaw",
-    "quote": "Exploited to Run Malicious Files"
+    "quote": "Exploited to Run Malicious Files",
+    "fix": "patch"
    },
    "minutes": 0
   },
@@ -5482,7 +5496,7 @@
    }
   ]
  },
- "generated_at": "2026-11-23T12:28:03+00:00",
+ "generated_at": "2026-11-23T13:27:59+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",

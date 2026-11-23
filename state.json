@@ -1274,6 +1274,7 @@
   "https://simonwillison.net/2026/Oct/31/datasette-llm/": "2026-10-31",
   "https://simonwillison.net/2026/Oct/31/how-we-took-over-chatgpt-accounts/": "2026-10-31",
   "https://slopstrap.mikelacher.com/": "2026-11-20",
+  "https://smallsf.com/": "2026-11-22",
   "https://socket.dev/blog/agent-framework-pypi-package-compromised-with-credential-stealer": "2026-11-17",
   "https://socket.dev/blog/bee-js-compromise": "2026-11-09",
   "https://socket.dev/blog/claude-code-extension-compromise": "2026-10-30",
@@ -1461,6 +1462,7 @@
   "https://thehackernews.com/2026/11/hackers-exploit-btcpay-server-flaw-to.html": "2026-11-03",
   "https://thehackernews.com/2026/11/hackers-exploit-critical-aspnet-anti.html": "2026-11-23",
   "https://thehackernews.com/2026/11/hackers-exploit-critical-cisco.html": "2026-11-20",
+  "https://thehackernews.com/2026/11/hackers-exploit-critical-screenconnect.html": "2026-11-23",
   "https://thehackernews.com/2026/11/hackers-exploit-critical-vmware-cisco.html": "2026-11-21",
   "https://thehackernews.com/2026/11/hackers-exploit-critical-xen-orchestra.html": "2026-11-10",
   "https://thehackernews.com/2026/11/hackers-exploit-n-central-flaws-to.html": "2026-11-13",
@@ -1487,6 +1489,7 @@
   "https://thehackernews.com/2026/11/microsoft-researchers-show-ai-agents.html": "2026-11-11",
   "https://thehackernews.com/2026/11/msecure-warns-users-to-change-passwords.html": "2026-11-03",
   "https://thehackernews.com/2026/11/n-able-confirms-hackers-accessed-cloud.html": "2026-11-19",
+  "https://thehackernews.com/2026/11/n-able-discloses-critical-mail-assure.html": "2026-11-23",
   "https://thehackernews.com/2026/11/n-able-patches-17-n-central-flaws-as.html": "2026-11-17",
   "https://thehackernews.com/2026/11/n-able-takes-hosted-n-central-offline.html": "2026-11-10",
   "https://thehackernews.com/2026/11/netamloader-malware-targets-government.html": "2026-11-01",
@@ -2567,6 +2570,7 @@
   "https://www1.wdr.de/nrw/rheinland/rhein-erft-kreis/technischer-defekt-chlor-phantasialand-100.html": "2026-11-15",
   "https://x.com/i/broadcasts/2brajgZlOKRMka": "2026-11-14",
   "https://xusheng.dev/posts/windows-coding-agent-telemetry/": "2026-11-16",
+  "https://z.ai/blog/glm-5.4": "2026-11-23",
   "https://zwischenzugs.com/2026/11/03/a-family-tree-of-software-job-titles/": "2026-11-14"
  }
 }
