@@ -5446,24 +5446,24 @@
   }
  ],
  "weekly": {
-  "window_start": "2026-11-16",
-  "window_end": "2026-11-22",
+  "window_start": "2026-11-17",
+  "window_end": "2026-11-23",
   "items": [
    {
+    "url": "https://www.bleepingcomputer.com/news/security/microsoft-entra-connect-health-flaw-exploited-to-steal-tenant-data/",
+    "why": "Patch Entra Connect Health now, then audit admin accounts and tenant configuration for tampering."
+   },
+   {
     "url": "https://www.rapid7.com/blog/post/etr-cve-2026-123890-critical-authentication-bypass-vmware-vcenter",
-    "why": "Patch vCenter now; unauthenticated admin access puts every managed host at risk."
+    "why": "Patch vCenter now; unauthenticated attackers can gain admin access until VMSA-2026-0009 is applied."
    },
    {
     "url": "https://thehackernews.com/2026/11/everything-is-web-application-including.html",
-    "why": "Patch PAN-OS and restrict management interfaces to internal networks; exploitation is underway."
-   },
-   {
-    "url": "https://thehackernews.com/2026/11/hackers-exploit-critical-cisco.html",
-    "why": "Patch Cisco Expressway now; attackers breached internal networks shortly after PoC release."
+    "why": "Patch PAN-OS now and pull management interfaces off the internet; exploitation is active."
    }
   ]
  },
- "generated_at": "2026-11-23T04:27:54+00:00",
+ "generated_at": "2026-11-23T05:28:08+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
