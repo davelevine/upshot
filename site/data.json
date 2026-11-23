@@ -40,6 +40,44 @@
   },
   {
    "date": "2026-11-23",
+   "published": "2026-11-23T16:13:12+00:00",
+   "title": "Ladybird Is Now in Alpha",
+   "url": "https://ladybird.org/posts/alpha/",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "engineering",
+   "summary": "The Ladybird independent open-source browser project has reached its alpha stage.",
+   "relevance": 6,
+   "added": "2026-11-23T17:27:59+00:00",
+   "minutes": 1,
+   "tldr": [
+    "Ladybird, a new browser with its own engine built from scratch, is now in alpha for macOS and Linux.",
+    "Expect some websites to break and occasional crashes, since the alpha ships rolling automatic updates.",
+    "Download it for macOS or Linux, and report broken sites or crashes from inside the browser.",
+    "Security testers are invited to hack it, but no security promises are made yet; report exploits so the team can harden it."
+   ]
+  },
+  {
+   "date": "2026-11-23",
+   "published": "2026-11-23T16:00:00+00:00",
+   "title": "Kubernetes v1.38 Sneak Peek",
+   "url": "https://kubernetes.io/blog/2026/11/23/kubernetes-v1-38-sneak-peek/",
+   "publisher": "Kubernetes",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Kubernetes project previews planned deprecations, removals and changes for the upcoming v1.38 release.",
+   "relevance": 6,
+   "added": "2026-11-23T17:27:59+00:00",
+   "minutes": 7,
+   "tldr": [
+    "Kubernetes v1.38, planned for December 16, 2026, drops kubectl WebSocket opt-out variables and makes kubelets require runtime-reported cgroup drivers.",
+    "Kubelets exit if runtimes cannot report a cgroup driver, and cgroupDriver config will be rejected. Upgrade older runtimes per v1.38 release notes.",
+    "On cgroup v2 LimitedSwap nodes, pods whose pod-level memory request equals limit get no swap. Check swap-dependent workloads before upgrading.",
+    "Remove KUBECTL_REMOTE_COMMAND_WEBSOCKETS and KUBECTL_PORT_FORWARD_WEBSOCKETS from scripts, and change kuberc allowlist name fields to command."
+   ]
+  },
+  {
+   "date": "2026-11-23",
    "published": "2026-11-23T12:17:00+00:00",
    "title": "Claude Code Adds Experimental Code Mode to Orchestrate Tool Calls with JavaScript",
    "url": "https://www.infoq.com/news/2026/11/claude-code-mode/",
@@ -5521,7 +5559,7 @@
    }
   ]
  },
- "generated_at": "2026-11-23T16:28:03+00:00",
+ "generated_at": "2026-11-23T17:28:13+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
