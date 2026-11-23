@@ -2,6 +2,31 @@
  "items": [
   {
    "date": "2026-11-23",
+   "published": "2026-11-23T15:47:40+00:00",
+   "title": "Azure Flaw Exploited to Target Secrets at Norwegian Energy Firms",
+   "url": "https://www.securityweek.com/azure-flaw-exploited-to-target-secrets-at-norwegian-energy-firms/",
+   "publisher": "SecurityWeek",
+   "cves": [],
+   "category": "security",
+   "summary": "Microsoft closed an Azure API Management flaw that was exploited to steal secrets from Norwegian energy companies, with other sectors also affected.",
+   "relevance": 8,
+   "added": "2026-11-23T16:27:54+00:00",
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-23T16:27:52+00:00",
+    "kind": "flaw",
+    "quote": "Azure Flaw Exploited to Target Secrets at Norwegian Energy Firms",
+    "fix": "patch"
+   },
+   "minutes": 2,
+   "tldr": [
+    "An Azure API Management flaw appears linked to Norwegian energy firms' incidents, exposing secrets in APIM Classic instances.",
+    "Exposed data can include named values, identity provider client secrets, subscription keys and direct management API tokens. Only Classic tiers not following Microsoft's documented security guidance are affected; v2 tiers are not.",
+    "Norway's NSM advises treating secrets and named values as compromised, replacing them, and verifying instances are updated."
+   ]
+  },
+  {
+   "date": "2026-11-23",
    "published": "2026-11-23T10:06:43+00:00",
    "title": "GLM-5.4: Toward Generalized Coding with Our First Loop Transformer",
    "url": "https://z.ai/blog/glm-5.4",
@@ -5496,7 +5521,7 @@
    }
   ]
  },
- "generated_at": "2026-11-23T15:27:55+00:00",
+ "generated_at": "2026-11-23T16:28:03+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
