@@ -1,7 +1,5 @@
 {
- "failing_since": {
-  "https://www.schneier.com/feed/atom/": "2026-11-23"
- },
+ "failing_since": {},
  "seen": {
   "http://groundworkcollaborative.org/news/amazons-decoy-deals-groundwork-investigation-reveals-nearly-1-in-3-black-friday-and-cyber-monday-deals-advertised-by-amazon-offered-no-savings-to-shoppers-nearly-1-in-10-w/": "2026-11-16",
   "http://muratbuffalo.blogspot.com/2026/11/writing-as-thinking-tool.html": "2026-11-08",
@@ -90,6 +88,7 @@
   "https://arstechnica.com/tech-policy/2026/11/san-diego-dumps-both-flock-cameras-and-smart-streetlights/": "2026-11-17",
   "https://arstechnica.com/tech-policy/2026/11/seminole-tribe-tries-to-stop-draftkings-illegal-gambling-in-florida/": "2026-11-20",
   "https://arstechnica.com/tech-policy/2026/11/shareholders-sue-intel-its-ceo-and-cfo-after-stock-drops-28-6-percent-in-one-day/": "2026-11-16",
+  "https://arstechnica.com/tech-policy/2026/11/states-sue-spacex-to-stop-grok-from-generating-child-sex-images-revenge-porn/": "2026-11-23",
   "https://arstechnica.com/tech-policy/2026/11/surveillance-pricing-uses-our-personal-data-to-make-us-pay-more/": "2026-11-23",
   "https://arstechnica.com/tech-policy/2026/11/t-mobile-illegally-imposed-50-gb-cap-on-low-income-home-internet-plan-ny-says/": "2026-11-11",
   "https://arstechnica.com/tech-policy/2026/11/ted-cruz-led-committee-approves-trump-fcc-nominee-15-0-as-democrats-boycott-vote/": "2026-11-18",
@@ -544,6 +543,7 @@
   "https://cloud.google.com/blog/topics/training-certifications/google-cloud-agentic-architect-certification-dont-just-prompt-ai-design-it/": "2026-11-11",
   "https://cohere.com/blog/agent-sprawl": "2026-10-15",
   "https://cohere.com/blog/ai-for-utilities-requires-capability-and-control": "2026-10-15",
+  "https://cohere.com/blog/ai-readiness-assessment": "2026-11-23",
   "https://cohere.com/blog/ai-roi": "2026-10-15",
   "https://cohere.com/blog/can-ai-understand-culture": "2026-10-22",
   "https://cohere.com/blog/cohere-and-aisle-sign-letter-of-intent-to-advance-cyber-resilient-sovereign-ai": "2026-10-15",
@@ -1123,6 +1123,7 @@
   "https://openai.com/index/introducing-images-2-6": "2026-11-04",
   "https://openai.com/index/introducing-medchembench": "2026-11-20",
   "https://openai.com/index/introducing-openai-for-chile": "2026-11-16",
+  "https://openai.com/index/introducing-shirudo": "2026-11-23",
   "https://openai.com/index/introducing-the-rosalind-academic-plan": "2026-10-15",
   "https://openai.com/index/itau-generative-ai": "2026-10-16",
   "https://openai.com/index/jill-hazelbaker-chief-corporate-affairs-officer": "2026-11-03",
@@ -1277,6 +1278,7 @@
   "https://simonwillison.net/2026/Nov/20/token-fraud-is-here-and-its-bad/": "2026-11-19",
   "https://simonwillison.net/2026/Nov/21/muru/": "2026-11-21",
   "https://simonwillison.net/2026/Nov/22/select-styling/": "2026-11-22",
+  "https://simonwillison.net/2026/Nov/23/ladybird/": "2026-11-23",
   "https://simonwillison.net/2026/Nov/3/a-sound-that-leaks-your-exact-location/": "2026-11-03",
   "https://simonwillison.net/2026/Nov/3/datasette-agent/": "2026-11-03",
   "https://simonwillison.net/2026/Nov/3/llm/": "2026-11-03",
@@ -1828,6 +1830,7 @@
   "https://www.anthropic.com/research/self-replicating-ai": "2026-10-12",
   "https://www.anthropic.com/research/teaching-ai-to-build-scientific-models": "2026-11-06",
   "https://www.anthropic.com/research/the-missing-map-of-the-sky": "2026-10-07",
+  "https://www.anthropic.com/research/working-with-ai": "2026-11-23",
   "https://www.anthropocenemagazine.org/2026/10/magenta-solar-panels-may-be-agrivoltaics-cleverest-trick-yet/": "2026-11-09",
   "https://www.audubon.org/magazine/birds-of-gta-6-field-guide-vice-city-wildlife": "2026-11-22",
   "https://www.axios.com/2026/11/08/nvidia-ceo-jensen-huang-affair-email-to-company": "2026-11-08",
