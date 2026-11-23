@@ -78,6 +78,25 @@
   },
   {
    "date": "2026-11-23",
+   "published": "2026-11-23T00:00:00+00:00",
+   "title": "Introducing Claude Ship",
+   "url": "https://claude.com/resources/articles/introducing-claude-ship",
+   "publisher": "Claude Blog",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Anthropic announced Claude Ship, which can review pull requests, fix them, and approve those that a team's policy allows.",
+   "relevance": 6,
+   "added": "2026-11-23T21:27:48+00:00",
+   "minutes": 5,
+   "tldr": [
+    "Claude Ship, now in beta, reviews, fixes, and makes approval decisions for GitHub pull requests on Claude Team and Enterprise plans.",
+    "Code Review is generally available; PR Steward and Claude Approvals are in beta. Zero Data Retention, HIPAA, and customer-managed key organizations are excluded.",
+    "Developers can update Claude Code and run /ship on a change. Admins turn on Code Review and PR Steward one repository at a time.",
+    "Run Claude Approvals in observe mode before requiring its approval in branch protection. Usage is billed on tokens, so set spend limits."
+   ]
+  },
+  {
+   "date": "2026-11-23",
    "published": "2026-11-23T12:17:00+00:00",
    "title": "Claude Code Adds Experimental Code Mode to Orchestrate Tool Calls with JavaScript",
    "url": "https://www.infoq.com/news/2026/11/claude-code-mode/",
@@ -5559,7 +5578,7 @@
    }
   ]
  },
- "generated_at": "2026-11-23T20:28:09+00:00",
+ "generated_at": "2026-11-23T21:27:57+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
