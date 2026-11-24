@@ -24,6 +24,45 @@
   },
   {
    "date": "2026-11-24",
+   "published": "2026-11-24T14:21:56+00:00",
+   "title": "Check Point Security Management Servers Hacked in AI-Assisted Campaign",
+   "url": "https://www.securityweek.com/check-point-security-management-servers-hacked-in-ai-assisted-campaign/",
+   "publisher": "SecurityWeek",
+   "cves": [],
+   "category": "security",
+   "summary": "Attackers compromised Check Point Security Management Servers in an AI-assisted campaign, launching attacks from 99 IP addresses against organizations in multiple industries and countries.",
+   "relevance": 8,
+   "added": "2026-11-24T14:27:55+00:00",
+   "minutes": 3,
+   "tldr": [
+    "GreyNoise reports an AI-assisted campaign by threat actor GT13 targeting Check Point Security Management servers since early October, likely still ongoing.",
+    "At least 22 organizations in energy, engineering, financial services, government, manufacturing, mining, and transportation sectors across multiple countries were targeted.",
+    "The actor forged a signed admin session cookie to access an HFS server, then exfiltrated data from 24 compromised Check Point servers."
+   ]
+  },
+  {
+   "date": "2026-11-24",
+   "published": "2026-11-24T13:28:26+00:00",
+   "title": "VMware vCenter Hit by Another Critical 9.8-Rated Auth Bypass Flaw After Zero-Day Exploitation",
+   "url": "https://thehackernews.com/2026/11/vmware-vcenter-hit-by-another-critical.html",
+   "publisher": "The Hacker News",
+   "cves": [
+    "CVE-2026-123903"
+   ],
+   "category": "security",
+   "summary": "Broadcom patched 23 VMware vulnerabilities, including CVE-2026-123903, a CVSS 9.8 authentication bypass in the vCenter directory service (vmdir).",
+   "relevance": 8,
+   "added": "2026-11-24T14:27:55+00:00",
+   "minutes": 1,
+   "tldr": [
+    "Broadcom patched 23 vulnerabilities across VMware ESX, vCenter, Workstation, Fusion, and Avi Load Balancer, including critical CVE-2026-123903, rated 9.8.",
+    "Attackers with network access to vCenter can bypass authentication through the VMware Directory Service (vmdir) flaw.",
+    "Fixed versions: vCenter 8.0 U3m; VCF or vSphere Foundation 9.1.2 (9.1.x) or 9.0.2.0300 (9.0.x); VCF 5.2.5 (5.x).",
+    "vCenter 7.0 fixes are available only through Broadcom Support for customers on extended support contracts."
+   ]
+  },
+  {
+   "date": "2026-11-24",
    "published": "2026-11-24T06:32:00+00:00",
    "title": "QCon San Francisco 2026: Lessons from Building a $100M Product in Six Weeks at OpenAI",
    "url": "https://www.infoq.com/news/2026/11/qcon-sf-openai-lessons/",
@@ -5689,7 +5728,7 @@
    }
   ]
  },
- "generated_at": "2026-11-24T13:27:59+00:00",
+ "generated_at": "2026-11-24T14:28:49+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
