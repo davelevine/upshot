@@ -87,6 +87,43 @@
   },
   {
    "date": "2026-11-24",
+   "published": "2026-11-24T08:33:14+00:00",
+   "title": "Quad9 pulled their DNS service from France",
+   "url": "https://quad9.net/news/blog/quad9-service-deactivation-in-france/",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Quad9 announced it has deactivated its DNS resolver service for users in France.",
+   "relevance": 7,
+   "added": "2026-11-24T22:28:03+00:00",
+   "minutes": 8,
+   "tldr": [
+    "Quad9 will stop all DNS resolution for French users on November 24, 2026, at 09:00 Paris time, after court-upheld beIn demands to block piracy-linked domains.",
+    "Any query reaching a Quad9 service address from France will be refused, affecting users who may not know of the withdrawal.",
+    "Quad9 says users should move to other resolvers, noting these lack its cybersecurity protection and may be less privacy-focused."
+   ]
+  },
+  {
+   "date": "2026-11-24",
+   "published": "2026-11-24T21:30:20+00:00",
+   "title": "AWS Network Firewall introduces automated internet firewall mode (Preview)",
+   "url": "https://aws.amazon.com/blogs/security/aws-network-firewall-introduces-automated-internet-firewall-mode-preview/",
+   "publisher": "AWS Security Blog",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "AWS Network Firewall adds an automated internet firewall mode in preview, applying central rules at each VPC's internet gateway with built-in NAT for outbound traffic.",
+   "relevance": 6,
+   "added": "2026-11-24T22:28:03+00:00",
+   "minutes": 10,
+   "tldr": [
+    "AWS Network Firewall now offers automated internet firewall mode in Preview, inspecting traffic at each VPC's internet gateway with built-in NAT.",
+    "It affects VPC owners who route internet traffic through Network Firewall endpoints and NAT gateways, and it is available in all AWS commercial Regions.",
+    "Start in monitor mode with AWSManagedTemplateIGWFirewallBaseline in Network Security Manager, then switch to enforce after reviewing logs.",
+    "Before retiring a NAT gateway, update allow lists, because outbound source addresses change to firewall-assigned or IPAM pool addresses."
+   ]
+  },
+  {
+   "date": "2026-11-24",
    "published": "2026-11-24T06:32:00+00:00",
    "title": "QCon San Francisco 2026: Lessons from Building a $100M Product in Six Weeks at OpenAI",
    "url": "https://www.infoq.com/news/2026/11/qcon-sf-openai-lessons/",
@@ -5752,7 +5789,7 @@
    }
   ]
  },
- "generated_at": "2026-11-24T21:28:00+00:00",
+ "generated_at": "2026-11-24T22:28:13+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
