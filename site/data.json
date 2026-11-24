@@ -59,6 +59,25 @@
   },
   {
    "date": "2026-11-23",
+   "published": "2026-11-23T22:09:10+00:00",
+   "title": "VP ≠ VNP over Every Field",
+   "url": "https://github.com/anthropics/formal-math/tree/main/vp-vnp",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "other",
+   "summary": "A paper in Anthropic's formal-math repository claims to show VP is not equal to VNP over every field.",
+   "relevance": 7,
+   "added": "2026-11-24T05:28:02+00:00",
+   "minutes": 1,
+   "tldr": [
+    "Paper claims VP is a proper subset of VNP over every field, via circuit size lower bounds for Hamiltonian cycle and permanent.",
+    "Both polynomials need more than m^(c (log m)^(1/3)) gates for large m, as do approximating circuits; the permanent result excludes characteristic 2.",
+    "Does not settle P vs NP. AI-written, with no human mathematician having checked the proof; the repository is unmaintained.",
+    "To verify, read Statement.lean against Appendix Q of paper.pdf, then run lake build and the Comparator script on Linux."
+   ]
+  },
+  {
+   "date": "2026-11-23",
    "published": "2026-11-23T16:13:12+00:00",
    "title": "Ladybird Is Now in Alpha",
    "url": "https://ladybird.org/posts/alpha/",
@@ -5580,24 +5599,24 @@
   }
  ],
  "weekly": {
-  "window_start": "2026-11-17",
-  "window_end": "2026-11-23",
+  "window_start": "2026-11-18",
+  "window_end": "2026-11-24",
   "items": [
    {
-    "url": "https://www.bleepingcomputer.com/news/security/microsoft-entra-connect-health-flaw-exploited-to-steal-tenant-data/",
-    "why": "Patch Entra Connect Health now, then audit admin accounts and tenant configuration for tampering."
+    "url": "https://thehackernews.com/2026/11/everything-is-web-application-including.html",
+    "why": "Patch PAN-OS now and remove management interfaces from internet exposure; exploitation is active."
    },
    {
     "url": "https://www.rapid7.com/blog/post/etr-cve-2026-123890-critical-authentication-bypass-vmware-vcenter",
-    "why": "Patch vCenter now; unauthenticated attackers can gain admin access until VMSA-2026-0009 is applied."
+    "why": "Patch vCenter now; an unauthenticated bypass grants admin on your hypervisor management plane."
    },
    {
-    "url": "https://thehackernews.com/2026/11/everything-is-web-application-including.html",
-    "why": "Patch PAN-OS now and pull management interfaces off the internet; exploitation is active."
+    "url": "https://www.rapid7.com/blog/post/ve-cve-2026-123007-critical-nginx-http-2-integer-underflow-leads-to-rce-fixed",
+    "why": "Upgrade nginx now; the fix closes an unauthenticated RCE under certain configurations."
    }
   ]
  },
- "generated_at": "2026-11-24T04:27:49+00:00",
+ "generated_at": "2026-11-24T05:28:32+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
