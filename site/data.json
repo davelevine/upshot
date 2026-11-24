@@ -2,6 +2,28 @@
  "items": [
   {
    "date": "2026-11-24",
+   "published": "2026-11-24T08:34:20+00:00",
+   "title": "WHMCS SQL Injection Could Expose Customer Data and Admin Password Hashes without Login",
+   "url": "https://thehackernews.com/2026/11/whmcs-sql-injection-flaw-could-expose.html",
+   "publisher": "The Hacker News",
+   "cves": [
+    "CVE-2026-82981",
+    "CVE-2026-93700"
+   ],
+   "category": "security",
+   "summary": "WHMCS disclosed an unauthenticated SQL injection that can expose customer records and administrator password hashes, plus two flaws requiring a logged-in client.",
+   "relevance": 8,
+   "added": "2026-11-24T10:28:03+00:00",
+   "minutes": 2,
+   "tldr": [
+    "WHMCS patched CVE-2026-82981 (CVSS 8.7), an SQL injection needing no login that exposes customer records and admin password hashes.",
+    "Logged-in clients can exploit CVE-2026-93700 (CVSS 9.0), an email campaign flaw that exposes database credentials and allows code execution on the server.",
+    "Self-hosted admins should upgrade to 9.0.10 or 8.13.8, or 9.1.2 on the 9.1 series; 8.0 to 8.12 installs need a fixed release.",
+    "For CVE-2026-93700, also delete all planned or ongoing email campaigns and empty the template cache, per the advisory."
+   ]
+  },
+  {
+   "date": "2026-11-24",
    "published": "2026-11-24T06:32:00+00:00",
    "title": "QCon San Francisco 2026: Lessons from Building a $100M Product in Six Weeks at OpenAI",
    "url": "https://www.infoq.com/news/2026/11/qcon-sf-openai-lessons/",
@@ -5635,7 +5657,7 @@
    }
   ]
  },
- "generated_at": "2026-11-24T09:28:00+00:00",
+ "generated_at": "2026-11-24T10:28:17+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
