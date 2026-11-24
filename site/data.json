@@ -1,6 +1,25 @@
 {
  "items": [
   {
+   "date": "2026-11-24",
+   "published": "2026-11-24T06:32:00+00:00",
+   "title": "QCon San Francisco 2026: Lessons from Building a $100M Product in Six Weeks at OpenAI",
+   "url": "https://www.infoq.com/news/2026/11/qcon-sf-openai-lessons/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "engineering",
+   "summary": "OpenAI's Brian Yang described building the ChatGPT ads product with Codex agents and no human-written code, covering testing, sandboxes and batched reviews.",
+   "relevance": 6,
+   "added": "2026-11-24T07:28:09+00:00",
+   "minutes": 3,
+   "tldr": [
+    "OpenAI engineer Brian Yang said a small team built ChatGPT Ads entirely with Codex, reaching $100 million annualised recurring revenue within six weeks.",
+    "Yang's core claim is that engineers now manage coding agents rather than writing line-by-line code, so the work shifts to building the system that builds the product.",
+    "Adopt gradually: automate one PR, then one feature, then one project, since jumping straight to project automation is where systems tend to break.",
+    "Gate agent changes behind unit, end-to-end and sandbox tests, and bundle 30 to 40 candidates for a day or two before human review."
+   ]
+  },
+  {
    "date": "2026-11-23",
    "published": "2026-11-23T15:47:40+00:00",
    "title": "Azure Flaw Exploited to Target Secrets at Norwegian Energy Firms",
@@ -5616,7 +5635,7 @@
    }
   ]
  },
- "generated_at": "2026-11-24T06:27:47+00:00",
+ "generated_at": "2026-11-24T07:28:21+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
