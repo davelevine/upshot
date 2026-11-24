@@ -42,6 +42,25 @@
    ]
   },
   {
+   "date": "2026-11-24",
+   "published": "2026-11-24T11:55:00+00:00",
+   "title": "OpenAI Scales Git for Coding Agents with Pando",
+   "url": "https://www.infoq.com/news/2026/11/openai-git-pando/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "OpenAI detailed Pando, a backend that scales Git for concurrent coding-agent workloads, reporting nearly 80% lower median push latency.",
+   "relevance": 6,
+   "added": "2026-11-24T12:28:03+00:00",
+   "minutes": 3,
+   "tldr": [
+    "OpenAI has detailed Pando, a backend that scales Git for concurrent coding-agent workloads while keeping familiar Git workflows.",
+    "Pando now powers all development in OpenAI's monorepo, serving nearly a petabyte of Git data per day.",
+    "OpenAI reports nearly 80% lower median push latency, with Pando in production since April 2026.",
+    "Architects should weigh which consistency and transfer guarantees their workloads need, since multi-branch fetches lack a repository-wide snapshot."
+   ]
+  },
+  {
    "date": "2026-11-23",
    "published": "2026-11-23T15:47:40+00:00",
    "title": "Azure Flaw Exploited to Target Secrets at Norwegian Energy Firms",
@@ -173,6 +192,19 @@
     "Developers can update Claude Code and run /ship on a change. Admins turn on Code Review and PR Steward one repository at a time.",
     "Run Claude Approvals in observe mode before requiring its approval in branch protection. Usage is billed on tokens, so set spend limits."
    ]
+  },
+  {
+   "date": "2026-11-23",
+   "published": "2026-11-23T20:52:54+00:00",
+   "title": "GPUI is getting its own repository",
+   "url": "https://github.com/zed-industries/gpui",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Zed's GPUI UI framework is moving out of the Zed editor repository into its own GitHub repository.",
+   "relevance": 6,
+   "added": "2026-11-24T12:28:03+00:00",
+   "minutes": 0
   },
   {
    "date": "2026-11-23",
@@ -5657,7 +5689,7 @@
    }
   ]
  },
- "generated_at": "2026-11-24T11:27:56+00:00",
+ "generated_at": "2026-11-24T12:28:15+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
