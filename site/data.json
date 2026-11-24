@@ -2,6 +2,23 @@
  "items": [
   {
    "date": "2026-11-24",
+   "published": "2026-11-24T13:00:00+00:00",
+   "title": "GPT-6 models demonstrate intrinsic protein-design capabilities",
+   "url": "https://openai.com/index/gpt-6-models-demonstrate-intrinsic-protein-design-capabilities",
+   "publisher": "OpenAI",
+   "cves": [],
+   "category": "ai",
+   "summary": "OpenAI says its GPT-6 models design protein structures and sequences, with lab tests finding binding across five targets.",
+   "relevance": 8,
+   "added": "2026-11-24T21:27:51+00:00",
+   "minutes": 18,
+   "tldr": [
+    "In lab tests with Onava, 35 of 322 designed minibinders (10.9%) showed binding, with at least one binder for each of five targets.",
+    "Specialized models still supplied sequences and selected candidates, and predicting complete protein structures remains a clear weakness of the models."
+   ]
+  },
+  {
+   "date": "2026-11-24",
    "published": "2026-11-24T08:34:20+00:00",
    "title": "WHMCS SQL Injection Could Expose Customer Data and Admin Password Hashes without Login",
    "url": "https://thehackernews.com/2026/11/whmcs-sql-injection-flaw-could-expose.html",
@@ -5735,7 +5752,7 @@
    }
   ]
  },
- "generated_at": "2026-11-24T20:28:11+00:00",
+ "generated_at": "2026-11-24T21:28:00+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
