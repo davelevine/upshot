@@ -19,6 +19,19 @@
   },
   {
    "date": "2026-11-24",
+   "published": "2026-11-25T01:19:26+00:00",
+   "title": "Matrix Multiplication is Θ(n^2.25) [pdf]",
+   "url": "https://github.com/openai/math/blob/main/preprints/The-matrix-multiplication-exponent-is-nine-fourths-November-24-2026/paper.pdf",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "other",
+   "summary": "An OpenAI-hosted preprint claims the matrix multiplication exponent is 9/4, giving Θ(n^2.25) complexity.",
+   "relevance": 8,
+   "added": "2026-11-25T05:27:57+00:00",
+   "minutes": 0
+  },
+  {
+   "date": "2026-11-24",
    "published": "2026-11-24T08:34:20+00:00",
    "title": "WHMCS SQL Injection Could Expose Customer Data and Admin Password Hashes without Login",
    "url": "https://thehackernews.com/2026/11/whmcs-sql-injection-flaw-could-expose.html",
@@ -5827,24 +5840,24 @@
   }
  ],
  "weekly": {
-  "window_start": "2026-11-18",
-  "window_end": "2026-11-24",
+  "window_start": "2026-11-19",
+  "window_end": "2026-11-25",
   "items": [
    {
     "url": "https://thehackernews.com/2026/11/everything-is-web-application-including.html",
-    "why": "Patch PAN-OS now and remove management interfaces from internet exposure; exploitation is active."
+    "why": "Patch PAN-OS now; restrict management interfaces from the internet until updated."
    },
    {
     "url": "https://www.rapid7.com/blog/post/etr-cve-2026-123890-critical-authentication-bypass-vmware-vcenter",
-    "why": "Patch vCenter now; an unauthenticated bypass grants admin on your hypervisor management plane."
+    "why": "Patch vCenter now; unauthenticated attackers can gain admin access until updated."
    },
    {
-    "url": "https://www.rapid7.com/blog/post/ve-cve-2026-123007-critical-nginx-http-2-integer-underflow-leads-to-rce-fixed",
-    "why": "Upgrade nginx now; the fix closes an unauthenticated RCE under certain configurations."
+    "url": "https://www.securityweek.com/check-point-security-management-servers-hacked-in-ai-assisted-campaign/",
+    "why": "Hunt for compromise on Check Point management servers; rotate credentials and restrict management access."
    }
   ]
  },
- "generated_at": "2026-11-25T04:27:42+00:00",
+ "generated_at": "2026-11-25T05:28:18+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
