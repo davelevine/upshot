@@ -194,6 +194,42 @@
   },
   {
    "date": "2026-11-25",
+   "published": "2026-11-25T17:07:00+00:00",
+   "title": "Australia passes tough legislation requiring big tech to preempt foreseeable harms",
+   "url": "https://therecord.media/australia-passes-online-safety-legislation-preempt-harms",
+   "publisher": "The Record",
+   "cves": [],
+   "category": "regulation",
+   "summary": "Australia's Parliament passed the Digital Duty of Care Act, requiring online providers to set protocols protecting users from violence, rape threats and other foreseeable significant harms.",
+   "relevance": 7,
+   "added": "2026-11-25T17:28:18+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Australia's Parliament passed the Digital Duty of Care Act, opening possible billion-dollar fines for big tech firms failing to preempt online harms.",
+    "Platforms must assess risks annually in writing, curb harmful content, and add protections for users under 18 against pornography, suicide and eating disorders.",
+    "Users can opt out of algorithmic feeds, must prove age for porn, and major design changes like endless scrolling must be called out."
+   ]
+  },
+  {
+   "date": "2026-11-25",
+   "published": "2026-11-25T00:00:00+00:00",
+   "title": "Migrating our Messages API to Rust",
+   "url": "https://www.anthropic.com/research/migrating-api-to-rust",
+   "publisher": "Anthropic Research",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Anthropic describes migrating its Messages API from Python to Rust.",
+   "relevance": 6,
+   "added": "2026-11-25T17:28:18+00:00",
+   "minutes": 17,
+   "tldr": [
+    "Anthropic migrated its Messages API from Python to Rust, cutting CPU use per request about 70% and median time to first token about 20%.",
+    "Verification was the bottleneck: the production Python API served as the oracle, with shadowed traffic compared step by step.",
+    "Agents proposed fixes in sandboxed loops, engineers reviewed them before rollout, and the service never went offline."
+   ]
+  },
+  {
+   "date": "2026-11-25",
    "published": "2026-11-25T07:02:00+00:00",
    "title": "AWS Lambda Doubles Its Timeout to 30 Minutes After Eight Years at 15",
    "url": "https://www.infoq.com/news/2026/11/aws-lambda-30-minute-timeout/",
@@ -6123,7 +6159,7 @@
    }
   ]
  },
- "generated_at": "2026-11-25T16:28:16+00:00",
+ "generated_at": "2026-11-25T17:28:32+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
