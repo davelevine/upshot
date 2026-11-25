@@ -249,6 +249,24 @@
    ]
   },
   {
+   "date": "2026-11-25",
+   "published": "2026-11-25T15:29:00+00:00",
+   "title": "GitHub Ditches CSS-in-JS for CSS Modules, Reports 55% Faster SSR After Three-Year Migration",
+   "url": "https://www.infoq.com/news/2026/11/github-css-migration/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "engineering",
+   "summary": "GitHub moved github.com from styled-components to CSS Modules over three years, reporting 55% faster server-side rendering and 25% faster component initialisation.",
+   "relevance": 6,
+   "added": "2026-11-25T16:28:05+00:00",
+   "minutes": 2,
+   "tldr": [
+    "GitHub moved github.com off styled-components onto CSS Modules over three years, reporting 55% faster server-side rendering and 25% faster component initialisation.",
+    "The harder half was roughly 7,760 sx prop usages; a transitional @primer/styled-react package kept them working during the crossover.",
+    "Teams planning similar moves can start with the Primer React v38 release notes and the CSS variables migration guide."
+   ]
+  },
+  {
    "date": "2026-11-24",
    "published": "2026-11-24T13:00:00+00:00",
    "title": "GPT-6 models demonstrate intrinsic protein-design capabilities",
@@ -6105,7 +6123,7 @@
    }
   ]
  },
- "generated_at": "2026-11-25T15:27:59+00:00",
+ "generated_at": "2026-11-25T16:28:16+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
