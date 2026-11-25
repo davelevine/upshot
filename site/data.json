@@ -175,6 +175,60 @@
   },
   {
    "date": "2026-11-25",
+   "published": "2026-11-25T22:05:09+00:00",
+   "title": "Palo Alto Networks warns of Fragnesia flaw exploited in PAN-OS attacks",
+   "url": "https://www.bleepingcomputer.com/news/security/palo-alto-networks-warns-of-fragnesia-flaw-exploited-in-pan-os-attacks/",
+   "publisher": "BleepingComputer",
+   "cves": [
+    "CVE-2026-46300"
+   ],
+   "category": "security",
+   "summary": "Threat actors are chaining PHP2Shell and Fragnesia exploits to attack Palo Alto Networks devices with internet-exposed management interfaces.",
+   "relevance": 8,
+   "added": "2026-11-25T22:27:57+00:00",
+   "exploited": {
+    "kev": [
+     "CVE-2026-46300"
+    ],
+    "at": "2026-11-25T22:27:53+00:00",
+    "kind": "flaw",
+    "quote": "exploited in PAN-OS attacks",
+    "fix": "patch"
+   },
+   "minutes": 1,
+   "tldr": [
+    "Palo Alto Networks warns attackers are chaining PHP2Shell and the Fragnesia flaw, CVE-2026-46300, to attack PAN-OS firewalls.",
+    "Exploitation involves PAN-OS devices with management interfaces exposed to the internet, which Palo Alto says goes against its best practices.",
+    "Apply the Fragnesia fixes for PAN-OS 10.2, 11.1, 11.2, 12.1, and 12.2, and restrict management access to trusted internal IP addresses."
+   ]
+  },
+  {
+   "date": "2026-11-25",
+   "published": "2026-11-25T21:33:33+00:00",
+   "title": "1Password customer data stolen after employee GitHub account breach",
+   "url": "https://www.bleepingcomputer.com/news/security/1password-customer-data-stolen-after-employee-github-account-breach/",
+   "publisher": "BleepingComputer",
+   "cves": [],
+   "category": "security",
+   "summary": "1Password disclosed a breach after an employee's GitHub account was hacked and used to deploy malicious code to backend services that stole customer data.",
+   "relevance": 8,
+   "added": "2026-11-25T22:27:57+00:00",
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-25T22:27:53+00:00",
+    "kind": "compromise",
+    "quote": "used to deploy malicious code to the company's backend services to steal customer data"
+   },
+   "minutes": 2,
+   "tldr": [
+    "1Password disclosed a breach in which an employee's compromised GitHub account was used to inject code that stole customer account records.",
+    "Customer vaults and their encryption keys were not compromised, but stolen names, emails and account metadata could be used in phishing campaigns.",
+    "Only a small number of users were affected and notified individually; 1Password found no evidence of account takeovers and is not forcing password changes.",
+    "Watch for unexpected invitations or recovery requests; use the 1Password website or app directly, never clicking email links."
+   ]
+  },
+  {
+   "date": "2026-11-25",
    "published": "2026-11-25T18:22:38+00:00",
    "title": "The FCC has authorized SpaceX to deploy 1 million satellites",
    "url": "https://arstechnica.com/space/2026/11/the-fcc-has-authorized-spacex-to-deploy-1-million-satellites/",
@@ -6178,7 +6232,7 @@
    }
   ]
  },
- "generated_at": "2026-11-25T21:28:00+00:00",
+ "generated_at": "2026-11-25T22:28:07+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
