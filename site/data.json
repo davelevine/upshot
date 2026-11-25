@@ -2,6 +2,83 @@
  "items": [
   {
    "date": "2026-11-25",
+   "published": "2026-11-25T08:01:06+00:00",
+   "title": "Drupal Flaw Found by Anthropic Scanner Exploited in Attacks",
+   "url": "https://www.securityweek.com/drupal-flaw-found-by-anthropic-scanner-exploited-in-attacks/",
+   "publisher": "SecurityWeek",
+   "cves": [
+    "CVE-2026-132165"
+   ],
+   "category": "security",
+   "summary": "A Drupal vulnerability found by an Anthropic scanner is being exploited; CISA added it to its KEV catalog with a three-day federal patch deadline.",
+   "relevance": 8,
+   "added": "2026-11-25T08:27:54+00:00",
+   "exploited": {
+    "kev": [
+     "CVE-2026-132165"
+    ],
+    "at": "2026-11-25T08:27:52+00:00",
+    "kind": "flaw",
+    "quote": "Drupal Flaw Found by Anthropic Scanner Exploited in Attacks",
+    "fix": "patch"
+   },
+   "minutes": 2,
+   "tldr": [
+    "Drupal core flaw CVE-2026-132165, found by Anthropic's OSS Scanner, is being exploited in the wild for remote code execution.",
+    "The installer shipped with Drupal core lets unauthenticated attackers, under certain conditions, reinstall Drupal to hijack sites or run arbitrary code.",
+    "Upgrade to Drupal 11.4.13, 11.3.22 or 10.6.22; end-of-life branches get no fix. Also secure the installer after installation."
+   ]
+  },
+  {
+   "date": "2026-11-25",
+   "published": "2026-11-25T08:12:24+00:00",
+   "title": "Palo Alto Networks Patches Fragnesia Flaw Used to Root Firewalls",
+   "url": "https://www.securityweek.com/palo-alto-networks-patches-fragnesia-flaw-used-to-root-firewalls/",
+   "publisher": "SecurityWeek",
+   "cves": [
+    "CVE-2026-46300"
+   ],
+   "category": "security",
+   "summary": "A China-linked group chained PHP2Shell with the Fragnesia flaw in AI-assisted attacks on 25 servers; Palo Alto Networks has patched Fragnesia.",
+   "relevance": 8,
+   "added": "2026-11-25T08:27:54+00:00",
+   "minutes": 1,
+   "tldr": [
+    "Palo Alto Networks released PAN-OS patches for Fragnesia, a Linux kernel privilege escalation flaw tracked as CVE-2026-46300 and used to root firewalls.",
+    "Attackers chained the flaw with PHP2Shell against PAN-OS firewalls with management interfaces exposed to the internet.",
+    "Apply the fixed PAN-OS versions in the advisory, and block direct web access to management interfaces, allowing only the management network or VPN."
+   ],
+   "exploited": {
+    "at": "2026-11-25T08:28:08+00:00",
+    "kind": "flaw",
+    "kev": [
+     "CVE-2026-46300"
+    ],
+    "fix_read": true,
+    "fix": "patch"
+   }
+  },
+  {
+   "date": "2026-11-25",
+   "published": "2026-11-25T07:29:00+00:00",
+   "title": "Rust 1.100 Ships the Never Type After Ten Years and Five Failed Attempts",
+   "url": "https://www.infoq.com/news/2026/11/rust-1-100-never-types/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Rust 1.100.0 stabilises the never type and the core of the allocator API, makes Infallible an alias for it, and adds an opt-in Cargo dependency cooldown.",
+   "relevance": 7,
+   "added": "2026-11-25T08:27:54+00:00",
+   "minutes": 3,
+   "tldr": [
+    "Rust 1.100.0 stabilises the never type (!) and makes std::convert::Infallible an alias for it, after ten years and five failed attempts.",
+    "Code on the 2015, 2018 and 2021 editions gets the never-type fallback change, so more code may be flagged as unreachable.",
+    "Upgrade issues: update dependencies first, since fixes for widely used crates are already published. Run rustup update stable.",
+    "Cargo adds opt-in global-min-publish-age under [registry] to hold back new crate versions; a beta tester found cargo install ignores it."
+   ]
+  },
+  {
+   "date": "2026-11-25",
    "published": "2026-11-25T07:02:00+00:00",
    "title": "AWS Lambda Doubles Its Timeout to 30 Minutes After Eight Years at 15",
    "url": "https://www.infoq.com/news/2026/11/aws-lambda-30-minute-timeout/",
@@ -5876,7 +5953,7 @@
    }
   ]
  },
- "generated_at": "2026-11-25T07:28:02+00:00",
+ "generated_at": "2026-11-25T08:28:10+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
