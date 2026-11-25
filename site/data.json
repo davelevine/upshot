@@ -88,6 +88,35 @@
   },
   {
    "date": "2026-11-25",
+   "published": "2026-11-25T11:23:26+00:00",
+   "title": "Drupal Fail2Install Exploit Details Emerge as Critical RCE Flaw Faces Active Exploitation",
+   "url": "https://thehackernews.com/2026/11/drupal-fail2install-exploit-details.html",
+   "publisher": "The Hacker News",
+   "cves": [
+    "CVE-2026-132165"
+   ],
+   "category": "security",
+   "summary": "CISA added CVE-2026-132165 (Fail2Install), a CVSS 9.8 remote code execution flaw in Drupal core, to its KEV catalog.",
+   "relevance": 8,
+   "added": "2026-11-25T12:28:05+00:00",
+   "exploited": {
+    "kev": [
+     "CVE-2026-132165"
+    ],
+    "at": "2026-11-25T12:28:02+00:00",
+    "kind": "flaw",
+    "quote": "Critical RCE Flaw Faces Active Exploitation",
+    "fix": "patch"
+   },
+   "minutes": 3,
+   "tldr": [
+    "CISA added Drupal flaw CVE-2026-132165 (Fail2Install, CVSS 9.8) to its KEV catalog, with federal agencies told to apply fixes by November 27, 2026.",
+    "Unauthenticated remote code execution affects Drupal 8.9, 9, 10, and 11, and exploitation on live sites was reported as early as 2026-11-19 19:00 UTC.",
+    "Update to Drupal 11.4.13, 11.3.22, or 10.6.22, the fixed versions the article lists."
+   ]
+  },
+  {
+   "date": "2026-11-25",
    "published": "2026-11-25T07:29:00+00:00",
    "title": "Rust 1.100 Ships the Never Type After Ten Years and Five Failed Attempts",
    "url": "https://www.infoq.com/news/2026/11/rust-1-100-never-types/",
@@ -6001,7 +6030,7 @@
    }
   ]
  },
- "generated_at": "2026-11-25T11:28:03+00:00",
+ "generated_at": "2026-11-25T12:28:14+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
