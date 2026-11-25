@@ -60,6 +60,34 @@
   },
   {
    "date": "2026-11-25",
+   "published": "2026-11-25T09:06:59+00:00",
+   "title": "Hackers Exploited CVSS 10.0 Hex.pm RCE Flaw to Compromise 6 Package Registry Servers",
+   "url": "https://thehackernews.com/2026/11/hackers-exploited-cvss-100-hexpm-rce.html",
+   "publisher": "The Hacker News",
+   "cves": [
+    "CVE-2026-129514"
+   ],
+   "category": "security",
+   "summary": "Attackers exploited a CVSS 10.0 remote code execution flaw, present since 2016, to run OS commands on six Hex.pm package registry production servers.",
+   "relevance": 8,
+   "added": "2026-11-25T10:28:10+00:00",
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-25T10:28:06+00:00",
+    "kind": "flaw",
+    "quote": "Hackers Exploited CVSS 10.0 Hex.pm RCE Flaw to Compromise 6 Package Registry Servers",
+    "fix": "patch"
+   },
+   "minutes": 5,
+   "tldr": [
+    "Attackers ran OS commands on six Hex.pm production servers via CVE-2026-129514, a CVSS 10.0 flaw in the code since February 2016.",
+    "Packages show no changes, but attacker access to account data such as email addresses and password hashes cannot be ruled out.",
+    "All accounts were logged out; change passwords, reset two-factor authentication, and log back in to clients.",
+    "Until the new Hex client ships, fetch packages only from repo.hex.pm and avoid third-party mirrors."
+   ]
+  },
+  {
+   "date": "2026-11-25",
    "published": "2026-11-25T07:29:00+00:00",
    "title": "Rust 1.100 Ships the Never Type After Ten Years and Five Failed Attempts",
    "url": "https://www.infoq.com/news/2026/11/rust-1-100-never-types/",
@@ -5973,7 +6001,7 @@
    }
   ]
  },
- "generated_at": "2026-11-25T09:27:59+00:00",
+ "generated_at": "2026-11-25T10:28:23+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
