@@ -105,6 +105,24 @@
   },
   {
    "date": "2026-11-24",
+   "published": "2026-11-24T08:00:00+00:00",
+   "title": "Interpreting a recent acceleration in pretraining loss",
+   "url": "https://metr.org/blog/2026-11-24-interpreting-a-recent-acceleration-in-pretraining-loss/",
+   "publisher": "METR",
+   "cves": [],
+   "category": "ai",
+   "summary": "METR analyzes OpenAI's published base-model log-perplexity for 13 models, finding pretraining loss has fallen about seven times faster since early 2026.",
+   "relevance": 7,
+   "added": "2026-11-25T00:27:49+00:00",
+   "minutes": 5,
+   "tldr": [
+    "OpenAI published log-perplexity for 13 models since GPT-3.5, showing pretraining loss falling about seven times faster since early 2026 than in 2022–2025.",
+    "The data rests on one held-out corpus from OpenAI's codebase, and METR has no consensus on what it implies for capability forecasts.",
+    "Read the trend cautiously; METR says other held-out datasets, pretraining end dates, and compute and labor spending data would be most informative."
+   ]
+  },
+  {
+   "date": "2026-11-24",
    "published": "2026-11-24T21:30:20+00:00",
    "title": "AWS Network Firewall introduces automated internet firewall mode (Preview)",
    "url": "https://aws.amazon.com/blogs/security/aws-network-firewall-introduces-automated-internet-firewall-mode-preview/",
@@ -5789,7 +5807,7 @@
    }
   ]
  },
- "generated_at": "2026-11-24T23:28:00+00:00",
+ "generated_at": "2026-11-25T00:28:00+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
