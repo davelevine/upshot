@@ -175,6 +175,25 @@
   },
   {
    "date": "2026-11-25",
+   "published": "2026-11-25T18:22:38+00:00",
+   "title": "The FCC has authorized SpaceX to deploy 1 million satellites",
+   "url": "https://arstechnica.com/space/2026/11/the-fcc-has-authorized-spacex-to-deploy-1-million-satellites/",
+   "publisher": "Ars Technica Tech Policy",
+   "cves": [],
+   "category": "regulation",
+   "summary": "The FCC has authorized SpaceX to deploy a constellation of one million satellites, roughly a 50-fold increase in satellites in orbit.",
+   "relevance": 7,
+   "added": "2026-11-25T18:28:01+00:00",
+   "minutes": 3,
+   "tldr": [
+    "The FCC granted SpaceX conditional authorization to deploy up to 1 million Starmind satellites designed to serve as orbital data centers.",
+    "The FCC declined a comprehensive environmental assessment, dismissing concerns about rocket launch emissions and satellite reentry pollution.",
+    "SpaceX has until November 2035 to deploy 100,000 operational satellites and until November 2040 for the full constellation.",
+    "SpaceX must obtain a waiver before deploying Starmind satellites not disposed of via atmospheric reentry; the FCC did not grant that request."
+   ]
+  },
+  {
+   "date": "2026-11-25",
    "published": "2026-11-25T07:29:00+00:00",
    "title": "Rust 1.100 Ships the Never Type After Ten Years and Five Failed Attempts",
    "url": "https://www.infoq.com/news/2026/11/rust-1-100-never-types/",
@@ -6159,7 +6178,7 @@
    }
   ]
  },
- "generated_at": "2026-11-25T17:28:32+00:00",
+ "generated_at": "2026-11-25T18:28:12+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
