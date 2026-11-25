@@ -97,6 +97,26 @@
    ]
   },
   {
+   "date": "2026-11-25",
+   "published": "2026-11-25T09:02:57+00:00",
+   "title": "Microsoft confirms authentication issues after November updates",
+   "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-confirms-authentication-issues-after-november-updates/",
+   "publisher": "BleepingComputer",
+   "cves": [
+    "CVE-2026-118737"
+   ],
+   "category": "infrastructure",
+   "summary": "Microsoft confirmed some customers face authentication problems after installing November security updates that fix a high-severity remote code execution flaw.",
+   "relevance": 6,
+   "added": "2026-11-25T09:27:48+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Microsoft confirmed November security updates for CVE-2026-118737 can cause authentication failures on patched Windows devices; no fix is yet available.",
+    "Affected are third-party authentication proxies, SSO solutions, and application packaging tools that do not correctly implement the NTLM protocol.",
+    "Long-term, update the affected product, use a Kerberos configuration if supported, or request a vendor update that complies with NTLM requirements."
+   ]
+  },
+  {
    "date": "2026-11-24",
    "published": "2026-11-24T13:00:00+00:00",
    "title": "GPT-6 models demonstrate intrinsic protein-design capabilities",
@@ -5953,7 +5973,7 @@
    }
   ]
  },
- "generated_at": "2026-11-25T08:28:10+00:00",
+ "generated_at": "2026-11-25T09:27:59+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
