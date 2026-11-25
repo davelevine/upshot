@@ -232,6 +232,23 @@
    ]
   },
   {
+   "date": "2026-11-25",
+   "published": "2026-11-25T14:44:00+00:00",
+   "title": "DoorDash Scales Dispatch 10x While Maintaining 99.99% Peak Availability",
+   "url": "https://www.infoq.com/news/2026/11/doordash-dispatch-redesign/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "DoorDash redesigned its real-time dispatch platform into a distributed architecture separating coordination from computation, reporting 10x throughput and over 99.99% peak availability.",
+   "relevance": 6,
+   "added": "2026-11-25T15:27:50+00:00",
+   "minutes": 2,
+   "tldr": [
+    "The redesign splits a stateful coordinator, which holds global logistics state, from stateless compute workers that run optimization and model inference over gRPC.",
+    "Before cutover, DoorDash duplicated production requests and logged the new platform's outputs against legacy assignments, so teams can shadow-test similarly."
+   ]
+  },
+  {
    "date": "2026-11-24",
    "published": "2026-11-24T13:00:00+00:00",
    "title": "GPT-6 models demonstrate intrinsic protein-design capabilities",
@@ -6088,7 +6105,7 @@
    }
   ]
  },
- "generated_at": "2026-11-25T14:28:02+00:00",
+ "generated_at": "2026-11-25T15:27:59+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
