@@ -1,6 +1,25 @@
 {
  "items": [
   {
+   "date": "2026-11-25",
+   "published": "2026-11-25T07:02:00+00:00",
+   "title": "AWS Lambda Doubles Its Timeout to 30 Minutes After Eight Years at 15",
+   "url": "https://www.infoq.com/news/2026/11/aws-lambda-30-minute-timeout/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "AWS raised the maximum timeout for on-demand Lambda event functions from 15 to 30 minutes in all commercial regions, with no opt-in or pricing change.",
+   "relevance": 6,
+   "added": "2026-11-25T07:27:53+00:00",
+   "minutes": 3,
+   "tldr": [
+    "AWS doubled the maximum timeout of on-demand Lambda functions from 15 to 30 minutes, in all commercial regions, at standard pricing with no opt-in.",
+    "Raise it per function with aws lambda update-function-configuration --timeout 1800, since Lambda rejects values above 1,800 seconds.",
+    "Check concurrency first: requests per second times average duration in seconds. A 30-minute run needs twice the concurrency of a 15-minute run.",
+    "Set SQS visibility timeouts to at least six times the function timeout yourself, because Lambda's check only runs when a new mapping is created."
+   ]
+  },
+  {
    "date": "2026-11-24",
    "published": "2026-11-24T13:00:00+00:00",
    "title": "GPT-6 models demonstrate intrinsic protein-design capabilities",
@@ -5857,7 +5876,7 @@
    }
   ]
  },
- "generated_at": "2026-11-25T06:27:48+00:00",
+ "generated_at": "2026-11-25T07:28:02+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
