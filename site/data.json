@@ -2,6 +2,35 @@
  "items": [
   {
    "date": "2026-11-25",
+   "published": "2026-11-25T12:19:20+00:00",
+   "title": "CVE-2026-123903: Critical VMware Directory Service Authentication Bypass affects vCenter",
+   "url": "https://www.rapid7.com/blog/post/etr-cve-2026-123903-critical-vmware-directory-service-authentication-bypass-affects-vcenter",
+   "publisher": "Rapid7",
+   "cves": [
+    "CVE-2026-123890",
+    "CVE-2026-123903"
+   ],
+   "category": "security",
+   "summary": "Broadcom patched CVE-2026-123903, a CVSS 9.8 unauthenticated authentication bypass in vCenter's VMware Directory Service, in VMSA-2026-0011.",
+   "relevance": 8,
+   "added": "2026-11-25T13:19:53+00:00",
+   "exploited": {
+    "kev": [
+     "CVE-2026-123890"
+    ],
+    "at": "2026-11-25T13:19:49+00:00",
+    "kind": "flaw",
+    "fix": "patch"
+   },
+   "minutes": 2,
+   "tldr": [
+    "Broadcom released fixes for CVE-2026-123903, a critical 9.8 authentication bypass in vCenter's VMware Directory Service reachable over LDAP.",
+    "Unauthenticated attackers with network access to vmdir can gain access. A public proof-of-concept exists, validated by Rapid7, though no in-the-wild exploitation is reported.",
+    "Urgently update to vCenter 8.0 U3m, 9.0.2.0300, or 9.1.2, outside normal patch cycles. Broadcom lists no workaround and Quick Patch is not eligible."
+   ]
+  },
+  {
+   "date": "2026-11-25",
    "published": "2026-11-25T08:01:06+00:00",
    "title": "Drupal Flaw Found by Anthropic Scanner Exploited in Attacks",
    "url": "https://www.securityweek.com/drupal-flaw-found-by-anthropic-scanner-exploited-in-attacks/",
@@ -6030,7 +6059,7 @@
    }
   ]
  },
- "generated_at": "2026-11-25T12:28:14+00:00",
+ "generated_at": "2026-11-25T13:20:06+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
