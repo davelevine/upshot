@@ -123,6 +123,24 @@
   },
   {
    "date": "2026-11-24",
+   "published": "2026-11-24T20:08:03+00:00",
+   "title": "Ternary Bonsai 2.5 27B",
+   "url": "https://prismml.com/news/bonsai-2-5-27b",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "ai",
+   "summary": "PrismML released Ternary Bonsai 2.5 27B, a 27-billion-parameter model using ternary weights, drawing strong Hacker News interest.",
+   "relevance": 7,
+   "added": "2026-11-25T01:27:57+00:00",
+   "minutes": 3,
+   "tldr": [
+    "PrismML released Ternary Bonsai 2.5 27B, an upgrade to Bonsai 2 27B with stronger agentic coding, multi-turn tool use, and multi-step task execution.",
+    "Built on Qwen3.8 27B with a 5.9 GB footprint, it targets developers building on-device agents that work with private files and tools.",
+    "Model weights are available now under Apache 2.0 and run on NVIDIA and Intel GPUs via llama.cpp or Apple devices via MLX."
+   ]
+  },
+  {
+   "date": "2026-11-24",
    "published": "2026-11-24T21:30:20+00:00",
    "title": "AWS Network Firewall introduces automated internet firewall mode (Preview)",
    "url": "https://aws.amazon.com/blogs/security/aws-network-firewall-introduces-automated-internet-firewall-mode-preview/",
@@ -138,6 +156,25 @@
     "It affects VPC owners who route internet traffic through Network Firewall endpoints and NAT gateways, and it is available in all AWS commercial Regions.",
     "Start in monitor mode with AWSManagedTemplateIGWFirewallBaseline in Network Security Manager, then switch to enforce after reviewing logs.",
     "Before retiring a NAT gateway, update allow lists, because outbound source addresses change to firewall-assigned or IPAM pool addresses."
+   ]
+  },
+  {
+   "date": "2026-11-24",
+   "published": "2026-11-25T01:19:20+00:00",
+   "title": "Introducing context-aware rules for AWS Network Firewall",
+   "url": "https://aws.amazon.com/blogs/security/introducing-context-aware-rules-for-aws-network-firewall/",
+   "publisher": "AWS Security Blog",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "AWS Network Firewall adds context-aware rules that match traffic by VPC, subnet, security group, or transit gateway attachment rather than IP address.",
+   "relevance": 6,
+   "added": "2026-11-25T01:27:57+00:00",
+   "minutes": 8,
+   "tldr": [
+    "AWS Network Firewall adds context-aware rules that match traffic by sending or receiving AWS resource, not IP address.",
+    "Rules track resources as they scale, are replaced, or move, so short-lived workloads like VPC-attached Lambda functions are covered.",
+    "Requires a transit gateway-attached firewall and a context store associated with that transit gateway in AWS Network Manager.",
+    "Create the NetworkFirewallContextStoreReadOnly IAM role in each account that owns a context store, then check the firewall's Context store sync state."
    ]
   },
   {
@@ -5807,7 +5844,7 @@
    }
   ]
  },
- "generated_at": "2026-11-25T00:28:00+00:00",
+ "generated_at": "2026-11-25T01:28:10+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
