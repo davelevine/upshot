@@ -3,8 +3,19 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { BLOCKS, INSIDE, blocksFor, siteStore, storyBlocks } from '../audio.mjs';
-import { readArticle } from '../extract.mjs';
+import { dns, readArticle } from '../extract.mjs';
 import { keyFor } from '../worker.js';
+
+dns.lookup = async () => [{ address: '203.0.113.1', family: 4 }];  // every test host is public (a documentation address); no network
+
+// A saved page as the build stores it.
+async function stored(file, url) {
+  const html = readFileSync(new URL(`./fixtures/pages/${file}`, import.meta.url), 'utf8');
+  const real = globalThis.fetch;
+  globalThis.fetch = async () => new Response(html, { status: 200, headers: { 'content-type': 'text/html' } });
+  try { return await readArticle({ url, publisher: '' }); } finally { globalThis.fetch = real; }
+}
+const texts = html => blocksFor({ title: 'T' }, html).slice(1).map(b => `${b.kind}: ${b.text}`);
 
 const story = { title: 'A <flaw> & a fix', tldr: ['First point.', 'Second point.'], summary: 'It happened.' };
 
@@ -33,16 +44,36 @@ test("a story without an upshot has no upshot block, and a card is read as its s
 });
 
 test('a real article reads as a sensible run of blocks', async () => {
-  const html = readFileSync(new URL('./fixtures/pages/aikido.html', import.meta.url), 'utf8');
-  const real = globalThis.fetch;
-  globalThis.fetch = async () => new Response(html, { status: 200, headers: { 'content-type': 'text/html' } });
-  let record;
-  try { record = await readArticle({ url: 'https://www.aikido.dev/blog/x', publisher: '' }); } finally { globalThis.fetch = real; }
+  const record = await stored('aikido.html', 'https://www.aikido.dev/blog/x');
   assert.equal(record.reason, 'ok');
   const blocks = blocksFor(story, record.content);
   assert.ok(blocks.length > 10, `${blocks.length} blocks`);
   assert.deepEqual(blocks.slice(0, 2).map(b => b.kind), ['title', 'upshot']);
   assert.ok(blocks.slice(2).every(b => b.kind !== 'title' && b.kind !== 'upshot' && b.text === b.text.trim() && !/\s\s/.test(b.text)));
+});
+
+test('a paragraph ends where a browser ends it, at a block inside it', () => {
+  // What Chromium gives for the same markup; linkedom alone keeps each of these as one paragraph.
+  assert.deepEqual(texts('<p><span><p>a</p><h3>b</h3></span></p><p>c</p>'), ['text: a', 'head: b', 'text: c']);
+  assert.deepEqual(texts('<p>x<b>y<p>a</p>z</b>w</p><p>v</p>'), ['text: xy', 'text: a', 'text: v'], 'what follows the inner block is loose text, in no block');
+  assert.deepEqual(texts('<p>a<span>s<div>d<p>e</p>f</div>g</span>h</p><p>i</p>'), ['text: as', 'text: e', 'text: i']);
+  assert.deepEqual(texts('<p>a <a href="https://x.test/">link<p>b</p>more</a> c</p>'), ['text: a link', 'text: b']);
+  // These linkedom parses as a browser does, and they stay that way.
+  assert.deepEqual(texts('<p>x<p>a</p>y</p>'), ['text: x', 'text: a']);
+  assert.deepEqual(texts('<p>a<ul><li>b</li></ul>c</p>'), ['text: a', 'text: b']);
+  assert.deepEqual(texts('<p>a<div>b</div></p>'), ['text: a']);
+  assert.deepEqual(texts('<p>a<button>k<p>b</p></button>c</p>').length, 1, 'a button keeps the paragraph around it open');
+  assert.deepEqual(texts('<ul><li><p>a<span><p>b</p></span></p></li></ul>').length, 1, 'still one list item');
+});
+
+test('pages with blocks nested in a paragraph split into the blocks a browser counts', async () => {
+  // Counted in Chromium with the frame's rule on the same stored HTML.
+  const pages = [['crowdstrike.html', 'https://www.crowdstrike.com/en-us/blog/x', 53], ['the-record.html', 'https://therecord.media/x', 15]];
+  for (const [file, url, count] of pages) {
+    const record = await stored(file, url);
+    assert.equal(record.reason, 'ok', file);
+    assert.equal(blocksFor(story, record.content).length, count, file);
+  }
 });
 
 test('storyBlocks reads stored articles, a blocked one as its card, and leaves the unstored waiting', async () => {
