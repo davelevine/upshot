@@ -63,7 +63,7 @@ SCORE_WORKERS = 6     # parallel scoring calls (each is a CLI process)
 UA = "upshot/1.0 (+https://github.com/davelevine/upshot)"
 WORDS_PER_MINUTE = 230
 MIN_ARTICLE_WORDS = 300  # less than this in a feed or page is probably a teaser, not the article
-TRACKING = re.compile(r"^(utm_|ref$|source$|fbclid$|gclid$)")
+TRACKING = re.compile(r"^(utm_|ref$|source$|fbclid$|gclid$)", re.I)
 
 
 def now():
@@ -75,14 +75,28 @@ def read_opml(path):
 
 
 def normalize_url(url):
-    p = urllib.parse.urlsplit(url.strip())
+    """The URL less its fragment and tracking parameters, the host in lower case. "" for a link that can't be parsed
+    (an unclosed IPv6 bracket), which is no story's URL, so every caller passes over it."""
+    try:
+        p = urllib.parse.urlsplit(url.strip())
+    except ValueError:
+        return ""
     # Kept as written, blank values and bare keys too: `?12345` and `?67890` are different stories.
     query = "&".join(q for q in p.query.split("&") if q and not TRACKING.match(urllib.parse.unquote_plus(q.split("=")[0])))
     return urllib.parse.urlunsplit((p.scheme, p.netloc.lower(), p.path, query, ""))
 
 
-def clean_text(s, limit=600):
-    s = html.unescape(re.sub(r"<[^>]+>", " ", s or ""))
+def url_key(url):
+    """What a link goes by in `seen`: its normalized URL less a trailing slash, so /x and /x/ are one story. Only ever a
+    key. A story's link, which is also what the reader fetches and stores it under, stays as its feed gave it: a site
+    may answer only one of the two."""
+    p = urllib.parse.urlsplit(normalize_url(url))
+    return urllib.parse.urlunsplit(p._replace(path=p.path.rstrip("/") or "/"))
+
+
+def clean_text(s, limit=600, tags=True):
+    """Plain text on one line. `tags`: whether `s` is HTML, whose tags go; in plain text a < or > is the text's own."""
+    s = html.unescape(re.sub(r"<[^>]+>", " ", s or "") if tags else s or "")
     return re.sub(r"\s+", " ", s).strip()[:limit]
 
 
@@ -151,7 +165,10 @@ LOOSE_DATES = ("%b %d, %Y %H:%M:%S%z", "%b %d, %Y")  # "Nov 05, 2026 00:00:00-06
 def entry_time(e):
     t = e.get("published_parsed") or e.get("updated_parsed")
     if t:
-        return datetime(*t[:6], tzinfo=timezone.utc)
+        try:
+            return datetime(*t[:6], tzinfo=timezone.utc)
+        except ValueError:  # a date feedparser read but no calendar has, such as year 0: undated
+            return None
     for raw in (e.get("published"), e.get("updated")):
         for fmt in LOOSE_DATES:
             try:
@@ -178,11 +195,14 @@ def candidates(publisher, entries, seen, cutoff):
             continue
         when = min(when, datetime.now(timezone.utc))  # an entry dated ahead (an event's date) is news as of now, not a top story for weeks
         url = normalize_url(link)
-        if not url.startswith(("https://", "http://")) or url in seen:  # links render as hrefs
+        if not url.startswith(("https://", "http://")) or url_key(url) in seen:  # links render as hrefs
             continue
+        # feedparser decodes a title and says which it is: plain text, where "Vec<T>" and "p99 < 5 ms" are the words, or
+        # HTML, where it leaves tags such as <em>.
+        html_title = (e.get("title_detail") or {}).get("type", "text/plain") != "text/plain"
         out.append({
             "url": url,
-            "title": clean_text(e["title"], 300),
+            "title": clean_text(e["title"], 300, tags=html_title),
             "publisher": publisher,
             "date": site_date(when),
             "published": when.isoformat(timespec="seconds"),  # the page shows how long ago, as feed readers do
@@ -679,7 +699,9 @@ def rss(items, weekly=None, title="Upshot", link="/", description="The week’s 
         f"<item><title>{esc(rss_label(i) + i['title'])}</title><link>{esc(i['url'])}</link><guid>{esc(i['url'])}</guid>"
         f"<description>{esc(rss_body(i, why.get(i['url'])))}</description><category>{i['category']}</category>"
         f"<pubDate>{format_datetime(published(i))}</pubDate></item>"
-        for i in items[:50]
+        # The 50 added last, by the time each is stamped with: the site lists by publish date, where a story added
+        # today with an older date sits below 50 newer-dated ones.
+        for i in sorted(items, key=published, reverse=True)[:50]
     )
     return (f'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>{esc(title)}</title>'
             f"<link>{esc(SITE_URL + link)}</link><description>{esc(description)}</description>"
@@ -716,7 +738,8 @@ def repeats(dup_of, n, covered_ids, recent_titles):
 
 def cap_per_day(items, published=()):
     """Newest day first. Each day keeps every story already on the site (`published`: ids of their dicts) and every
-    flagged one, then the best new ones up to DAILY_MAX. Within a day: most relevant first, the original source ahead of a news outlet."""
+    flagged one, then the best new ones while the day has fewer than DAILY_MAX unflagged stories: a flagged story never
+    takes a slot. Within a day: most relevant first, the original source ahead of a news outlet."""
     rank = lambda i: (-i.get("relevance", 0), i.get("publisher") in NEWS_SOURCES)
     by_day = {}
     for i in items:
@@ -725,7 +748,8 @@ def cap_per_day(items, published=()):
     for day in sorted(by_day, reverse=True):
         keep = lambda i: id(i) in published or bool(i.get("exploited"))
         kept = [i for i in by_day[day] if keep(i)]
-        fresh = sorted((i for i in by_day[day] if not keep(i)), key=rank)[:max(0, DAILY_MAX - len(kept))]
+        slots = DAILY_MAX - sum(1 for i in kept if not i.get("exploited"))
+        fresh = sorted((i for i in by_day[day] if not keep(i)), key=rank)[:max(0, slots)]
         out += sorted(kept + fresh, key=rank)
     return out
 
@@ -760,8 +784,9 @@ def feed_articles(fetched):
     for res in fetched.values():
         for e in (res[1] if res else ()):
             body = max([c.get("value") or "" for c in e.get("content", [])] + [e.get("summary") or ""], key=words_in)
-            if e.get("link") and words_in(body) >= MIN_ARTICLE_WORDS:
-                out[normalize_url(e["link"])] = body
+            url = normalize_url(e.get("link") or "")
+            if url and words_in(body) >= MIN_ARTICLE_WORDS:
+                out[url] = body
     return out
 
 
@@ -1032,7 +1057,9 @@ def main():
     data_path = SITE / "data.json"
     data = json.loads(data_path.read_text()) if data_path.exists() else {"items": [], "weekly": None}
     published = {id(i) for i in data["items"]}  # on the site already: these never give up their place
-    seen = state["seen"]
+    # Re-keyed on every load, so a key url_key would write differently (one with a trailing slash) still matches its
+    # story and nothing is scored twice. Of two keys that become one, the later date stays.
+    seen = {url_key(u): d for u, d in sorted(state["seen"].items(), key=lambda kv: kv[1])}
     feeds = read_opml(ROOT / "feeds.opml")
 
     def safe_fetch(feed):
@@ -1044,16 +1071,21 @@ def main():
 
     with ThreadPoolExecutor(12) as ex:
         fetched = dict(ex.map(safe_fetch, feeds))
-    dead = update_feed_health(state["failing_since"], {u: r is not None for u, r in fetched.items()}, today)
-
     cutoff = now() - timedelta(days=FRESH_DAYS)
     new, urls = [], set()
-    for res in fetched.values():
+    for feed_url, res in fetched.items():
         if res:
-            for c in candidates(*res, seen, cutoff):
-                if c["url"] not in urls:
-                    urls.add(c["url"])
+            try:
+                found = candidates(*res, seen, cutoff)
+            except Exception as e:  # entries that can't be read: a failed feed like any other, and only this feed
+                print(f"::warning::feed failed: {feed_url}: {e}")
+                fetched[feed_url] = None
+                continue
+            for c in found:
+                if url_key(c["url"]) not in urls:
+                    urls.add(url_key(c["url"]))
                     new.append(c)
+    dead = update_feed_health(state["failing_since"], {u: r is not None for u, r in fetched.items()}, today)
     print(f"{len(feeds)} feeds, {sum(r is None for r in fetched.values())} failed, {len(new)} new items")
 
     week_ago = (today - timedelta(days=DEDUPE_DAYS)).isoformat()
@@ -1066,7 +1098,7 @@ def main():
         r = scores.get(item["url"])
         if not r:  # left unseen, so the next run retries it
             continue
-        seen[item["url"]] = item["date"]
+        seen[url_key(item["url"])] = item["date"]
         item["cves"] = cves(f"{item['title']} {item['excerpt']}")
         if item["cves"] and (out := verified_fix(r, item)) in ("patch", "mitigation"):  # even one that isn't published
             mark_fixed(data["items"], item["cves"], out)
@@ -1082,7 +1114,7 @@ def main():
         except Exception as e:  # unsee them so the next run scores and checks them again
             print(f"::warning::repeat check failed: {e}")
             for item, _ in chunk:
-                seen.pop(item["url"], None)
+                seen.pop(url_key(item["url"]), None)
             continue
         add_chunk(data, chunk, dups, recent, kept, repeated)
 

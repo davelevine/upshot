@@ -254,6 +254,19 @@ test('tidy keeps line breaks that have text between them', () => {
   assert.ok(out.includes('one<br>two<br>three<br>four') || out.includes('one<br>two<br>three<br/>four'));
 });
 
+test('an unbalanced closing tag in a feed\'s article loses none of it', async () => {
+  const p = n => `<p>Paragraph ${n} of the article, with enough words in it to count as prose for the reader. </p>`.repeat(6);
+  const body = `${p(1)}${p(2)}</div>${p(3)}${p(4)}</section></body>${p(5)}${p(6)}`;
+  const count = html => html.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length;
+  const tidied = tidy({ content: body, title: 'T' }, 'https://x.test/a');
+  assert.equal(count(tidied.content), count(body));
+  assert.equal(tidied.loss, 0);
+  assert.equal(count(clean(body, 'https://x.test/a')), count(body));
+  const r = await readArticle({ url: 'https://x.test/a', title: 'T' }, body);  // the whole path a feed's article takes
+  assert.equal(r.source, 'feed');
+  assert.equal(count(r.content), count(body));
+});
+
 test('tidy gives the article back untouched if it would remove too much', () => {
   const content = `<div><nav>${'word '.repeat(300)}</nav><p>${'A real sentence of the article. '.repeat(10)}</p></div>`;
   const r = tidy({ content, title: 'T' }, 'https://x.test/a');

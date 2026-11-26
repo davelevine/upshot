@@ -13,6 +13,19 @@ def test_normalize_url_strips_tracking():
     assert build.normalize_url("https://Example.com/a?utm_source=x&id=1&ref=hn#top") == "https://example.com/a?id=1"
     assert build.normalize_url("https://e.com/story?12345") != build.normalize_url("https://e.com/story?67890")
     assert build.normalize_url("https://e.com/s?id=&x=a%20b&utm_medium=") == "https://e.com/s?id=&x=a%20b"
+    assert build.normalize_url("https://e.com/s?UTM_SOURCE=x&Ref=hn&ID=1") == "https://e.com/s?ID=1"  # in any case
+
+
+def test_a_trailing_slash_is_the_same_story_but_stays_in_its_link():
+    assert build.url_key("https://e.com/x/") == build.url_key("https://E.com/x?utm_source=rss") == "https://e.com/x"
+    assert build.url_key("https://e.com") == build.url_key("https://e.com/")
+    assert build.url_key("https://e.com/x/?id=1") == "https://e.com/x?id=1" != build.url_key("https://e.com/x/?id=2")
+    assert build.normalize_url("https://e.com/x/") == "https://e.com/x/"  # the link, and what the reader fetches: as the feed gave it
+    now = datetime.now(timezone.utc)
+    entry = lambda link: {"link": link, "title": "T", "published_parsed": now.timetuple()}
+    seen = {"https://e.com/seen": "2026-01-01"}
+    out = build.candidates("P", [entry("https://e.com/seen/"), entry("https://e.com/new/")], seen, now - timedelta(days=3))
+    assert [c["url"] for c in out] == ["https://e.com/new/"]
 
 
 def test_opml_parses():
@@ -53,6 +66,18 @@ def test_rss_dates_use_when_the_story_was_added():
                      {"date": "2026-11-04", "title": "Old", "url": "https://x.test/b", "summary": "S", "category": "ai"}])
     dates = [e.text for e in ET.fromstring(xml).iter("pubDate")]
     assert dates == ["Thu, 05 Nov 2026 14:30:00 +0000", "Wed, 04 Nov 2026 00:00:00 +0000"]
+
+
+def test_rss_holds_the_50_added_last_whatever_their_publish_date():
+    item = lambda n, date, added: {"date": date, "added": added, "title": f"T{n}", "url": f"https://x.test/{n}", "summary": "S", "category": "ai"}
+    items = [item(n, "2026-11-20", f"2026-11-20T10:{n:02}:00+00:00") for n in range(55)]
+    items.append(item("late", "2026-11-08", "2026-11-21T09:00:00+00:00"))  # added last, dated before all the others: last on the site
+    before = list(items)
+    links = [e.text for e in ET.fromstring(build.rss(items)).iter("link")][2:]  # after the channel's and its image's
+    assert len(links) == 50 and links[0] == "https://x.test/late" and links[1] == "https://x.test/54"
+    assert items == before  # the site's order is left as it was
+    flagged = [{**i, "exploited": {"kind": "flaw"}} for i in items]
+    assert "https://x.test/late" in build.feeds_for(flagged)["exploited.xml"]  # the section feeds choose the same way
 
 
 def test_og_image_is_a_preview_card_with_or_without_picks():
@@ -330,6 +355,18 @@ def test_entry_time_reads_dates_feedparser_cant():
     assert build.entry_time({"published": "sometime soon"}) is None
 
 
+def test_an_entry_with_an_impossible_date_or_link_is_passed_over():
+    assert build.entry_time({"published_parsed": (-1, 11, 30, 0, 0, 0, 0, 0, 0)}) is None  # "0000-00-00T00:00:00Z", as feedparser reads it
+    assert build.normalize_url("http://[bad/x") == ""
+    now = datetime.now(timezone.utc)
+    bad = {"link": "http://[bad/x", "title": "Bad link", "published_parsed": now.timetuple(), "summary": "<p>" + "word " * 690 + "</p>"}
+    good = {"link": "https://x.test/good", "title": "Good", "published_parsed": now.timetuple()}
+    undatable = {"link": "https://x.test/year-0", "title": "Year 0", "published_parsed": (-1, 11, 30, 0, 0, 0, 0, 0, 0)}
+    assert [c["url"] for c in build.candidates("P", [bad, undatable, good], {}, now - timedelta(days=3))] == ["https://x.test/good"]
+    assert build.feed_articles({"f": ("P", [bad])}) == {}
+    assert build.silent_feeds({"f": ("P", [undatable])}, date(2026, 11, 20)) == {"f": "entries have no readable dates, so every story is skipped"}
+
+
 def test_silent_feeds_flags_empty_undated_and_quiet_feeds():
     today = date(2026, 11, 20)
     t = lambda d: time.strptime(d, "%Y-%m-%d")
@@ -481,6 +518,18 @@ def test_the_daily_cap_never_drops_a_flagged_story():
     day = lambda rel, url, **k: {"date": "2026-11-08", "category": "security", "relevance": rel, "publisher": "P", "url": url, **k}
     full = [day(9, f"p{n}") for n in range(build.DAILY_MAX)] + [day(5, "flagged", exploited={"kev": [], "at": "t", "quote": "q"})]
     assert "flagged" in [i["url"] for i in build.cap_per_day(full)]
+
+
+def test_flagged_stories_take_none_of_the_days_slots():
+    day = lambda rel, url, **k: {"date": "2026-11-08", "category": "security", "relevance": rel, "publisher": "P", "url": url, **k}
+    flag = {"kev": [], "at": "t", "quote": "q"}
+    flagged = [day(9, f"f{n}", exploited=flag) for n in range(build.DAILY_MAX)]
+    out = [i["url"] for i in build.cap_per_day(flagged + [day(8, f"new{n}") for n in range(3)])]
+    assert len(out) == build.DAILY_MAX + 3 and {"new0", "new1", "new2"} <= set(out)
+    # Stories published earlier in the day do take slots, flagged ones among them still don't.
+    published = [day(8, f"p{n}") for n in range(build.DAILY_MAX - 2)] + [day(9, "pf", exploited=flag)]
+    out = [i["url"] for i in build.cap_per_day(published + [day(7, f"new{n}") for n in range(5)], published={id(i) for i in published})]
+    assert len(out) == build.DAILY_MAX + 1 and [u for u in out if u.startswith("new")] == ["new0", "new1"]
 
 
 def test_a_late_catalog_listing_tags_a_story_but_keeps_its_dates():
@@ -645,6 +694,24 @@ def test_an_entry_dated_ahead_counts_as_now():
     [c] = build.candidates("P", [{"link": "https://e.com/w", "title": "Webinar", "published_parsed": ahead}], {},
                            datetime.now(timezone.utc) - timedelta(days=3))
     assert datetime.fromisoformat(c["published"]) <= datetime.now(timezone.utc)
+
+
+def test_a_title_keeps_its_angle_brackets_unless_it_is_html():
+    import feedparser
+    titles = ["Why Vec<T> beats LinkedList<T> in Rust", "Latency: p99 < 5 ms and throughput > 1M rps", "A <em>big</em> day"]
+    want = [titles[0], titles[1], "A big day"]
+    item = lambda n, title: f"<item><title>{title}</title><link>https://x.test/{n}</link><pubDate>Tue, 17 Nov 2026 12:00:00 GMT</pubDate></item>"
+    entry = lambda n, title, kind: (f"<entry><title type='{kind}'>{title}</title><link href='https://x.test/{n}'/>"
+                                    f"<updated>2026-11-17T12:00:00Z</updated></entry>")
+    feeds = {  # both ways RSS carries a < in a title, and Atom, which says which a title is
+        "escaped": "<rss version='2.0'><channel>" + "".join(item(n, build.html.escape(t)) for n, t in enumerate(titles)) + "</channel></rss>",
+        "cdata": "<rss version='2.0'><channel>" + "".join(item(n, f"<![CDATA[{t}]]>") for n, t in enumerate(titles)) + "</channel></rss>",
+        "atom": "<feed xmlns='http://www.w3.org/2005/Atom'>" + "".join(
+            entry(n, build.html.escape(t), "html" if "<em>" in t else "text") for n, t in enumerate(titles)) + "</feed>",
+    }
+    for kind, xml in feeds.items():
+        got = build.candidates("P", feedparser.parse(xml).entries, {}, datetime(2026, 11, 1, tzinfo=timezone.utc))
+        assert [c["title"] for c in sorted(got, key=lambda c: c["url"])] == want, kind
 
 
 def test_bad_output_from_extract_is_a_reader_error_not_a_crash(monkeypatch):

@@ -28,10 +28,18 @@ const CHALLENGE = /cf-challenge|_cf_chl_opt|Just a moment|Access Denied|Request 
 // shown, so not read aloud either (the frame reads innerText, which skips it; audio.mjs reads textContent, which doesn't).
 const DROP = 'script, style, noscript, iframe, object, embed, form, input, button, link, meta, svg, title, [hidden]';
 
+// A piece of HTML as the children of one element. Set as innerHTML, which parses the piece on its own: written into the
+// wrapper's markup, an unbalanced </div> in a feed's article would close the wrapper and leave the rest outside it.
+function parseFragment(html) {
+  const { document } = parseHTML('<!doctype html><html><body><div id="root"></div></body></html>');
+  const root = document.getElementById('root');
+  root.innerHTML = html;
+  return { document, root };
+}
+
 // Strips anything active and makes every link and image absolute.
 export function clean(html, base) {
-  const { document } = parseHTML(`<!doctype html><html><body><div id="root">${html}</div></body></html>`);
-  const root = document.getElementById('root');
+  const { document, root } = parseFragment(html);
   root.querySelectorAll(DROP).forEach(el => el.remove());
   for (const el of root.querySelectorAll('*')) {
     for (const { name } of [...el.attributes]) {
@@ -194,8 +202,7 @@ function trimLeading(node) {
 
 // Takes the page furniture out of an extracted article. Every rule looks at what an element is or says, never at who published it.
 export function tidy(article, url = '') {
-  const { document } = parseHTML(`<!doctype html><html><body><div id="root">${article.content}</div></body></html>`);
-  const root = document.getElementById('root');
+  const { document, root } = parseFragment(article.content);
   const before = textOf(root).length;
   const page = url.split('#')[0];
   const isAnchor = a => { const h = a.getAttribute('href') || ''; return h.startsWith('#') || (!!page && h.startsWith(`${page}#`)); };

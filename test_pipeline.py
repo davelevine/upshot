@@ -305,6 +305,40 @@ def test_a_failed_repeat_check_leaves_its_stories_unseen(box):
     assert data["items"] == [] and state["seen"] == {}, "unseen, so the next build scores and checks it again"
 
 
+def test_a_feed_whose_entries_cant_be_read_is_skipped_alone(box):
+    today = NOW.astimezone(build.SITE_TZ).date()
+    box.seed()
+    box.feeds = {"Odd Feed": [{"link": "https://oddfeed.test/a", "title": 5, "published_parsed": NOW.timetuple()},  # not text: candidates raises
+                              entry("https://oddfeed.test/b", "Story B")],
+                 "Vendor Blog": [entry("http://[bad/x", "Bad link", excerpt="<p>" + "word " * 690 + "</p>"),
+                                 {**entry("https://vendorblog.test/year-0", "Year 0"), "published_parsed": (-1, 11, 30, 0, 0, 0, 0, 0, 0)},
+                                 entry("https://vendorblog.test/a", "Story A")]}
+    box.scores = {"Story A": score("ai", 9)}
+    data, state = box.run()
+    check_contract(data)
+    assert [i["title"] for i in data["items"]] == ["Story A"]  # the entries around the unreadable ones still publish
+    assert state["failing_since"] == {box.url("Odd Feed"): today.isoformat()}  # recorded like a feed that didn't load
+    assert "1 failed" in (box.root / "summary.md").read_text()
+
+
+def test_a_trailing_slash_variant_is_never_scored_again(box):
+    today = NOW.astimezone(build.SITE_TZ).date().isoformat()
+    u = "https://vendorblog.test"
+    # Keys as builds wrote them before `seen` was keyed by url_key: with the slash, and as a pair for one story.
+    box.seed(seen={f"{u}/slashed/": today, f"{u}/bare": today, f"{u}/pair": "2026-11-15", f"{u}/pair/": "2026-11-16"})
+    box.feeds = {"Vendor Blog": [entry(f"{u}/slashed", "Seen with a slash"), entry(f"{u}/bare/", "Seen without one"),
+                                 entry(f"{u}/pair/", "Seen both ways"), entry(f"{u}/new/", "New story")],
+                 "BleepingComputer": [entry(f"{u}/new", "New story, linked without the slash")]}
+    box.scores = {"New story": score("ai", 9)}
+    data, state = box.run()
+    check_contract(data)
+    assert box.scored == ["New story"]  # one call: nothing seen is scored again, and the two links to the new story are one
+    assert [i["url"] for i in data["items"]] == [f"{u}/new/"]  # the link stays as its feed gave it
+    assert state["seen"] == {f"{u}/slashed": today, f"{u}/bare": today, f"{u}/pair": "2026-11-16", f"{u}/new": today}
+    _, again = box.run()
+    assert box.scored == [] and again["seen"] == state["seen"]
+
+
 def test_every_scoring_call_failing_stops_the_build(box):
     box.seed()
     box.feeds = {"Vendor Blog": [entry("https://vendorblog.test/a", "Story A")]}
