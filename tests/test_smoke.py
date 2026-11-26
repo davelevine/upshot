@@ -158,7 +158,7 @@ def enter_list(pg):
 
 def first_card(pg):
     card = pg.locator("a.card").first
-    return card, card.locator(".card-title").text_content()  # inner_text is empty until content-visibility renders the card
+    return card, card.locator(".card-title").text_content()
 
 
 def reading(pg):
@@ -381,17 +381,6 @@ def test_late_bar_is_a_bottom_bar_on_a_phone(browser):
 BOTTOM = "() => { const c = document.getElementById('col'); c.scrollTop = c.scrollHeight; scrollTo(0, document.documentElement.scrollHeight); }"
 
 
-def settle_at_bottom(pg):
-    """Cards hold a placeholder height until they come into view (content-visibility), so jumping to the end makes the
-    last few grow and push it down a moment later. This scrolls until the height settles, as a reader's scrolling would."""
-    height = "() => document.documentElement.scrollHeight + document.getElementById('col').scrollHeight"
-    for _ in range(10):
-        before = pg.evaluate(height)
-        pg.evaluate(BOTTOM); pg.wait_for_timeout(100)
-        if pg.evaluate(height) == before:
-            return
-
-
 def test_a_phone_says_when_it_updated_in_a_strip_on_the_toolbar(browser):
     pg = stale_site(browser, 0.5, viewport={"width": 320, "height": 700}, has_touch=True, is_mobile=True)
     strip, tools = pg.locator("#bar-updated").bounding_box(), pg.locator("#list-bar").bounding_box()
@@ -403,7 +392,7 @@ def test_a_phone_says_when_it_updated_in_a_strip_on_the_toolbar(browser):
         if pg.locator("#end").is_visible():
             break
         pg.wait_for_timeout(150)
-    settle_at_bottom(pg)
+    pg.evaluate(BOTTOM)
     last = pg.locator("#end").bounding_box()
     assert last["y"] + last["height"] <= strip["y"]  # the list's end clears it
 
@@ -498,7 +487,7 @@ def test_the_phone_toolbar_never_covers_the_end_message(browser):
         if pg.evaluate("!document.getElementById('end').hidden"):
             break
         pg.wait_for_timeout(50)
-    settle_at_bottom(pg)
+    pg.evaluate(BOTTOM)
     msg, bar = pg.locator("#end-msg").bounding_box(), pg.locator("#list-bar").bounding_box()
     assert pg.evaluate("!document.getElementById('end').hidden") and msg["y"] + msg["height"] <= bar["y"]
     assert pg.locator("#top").is_hidden()  # no floating button here: it's in the toolbar
@@ -3836,3 +3825,187 @@ def test_a_device_in_the_background_catches_up_when_shown(browser):
     open_sync(b)
     assert "Sync is off on this device" in b.inner_text("#sync-msg")
     assert a.problems == [] and b.problems == []
+
+
+# The site's own state checks below (#240–#262): each one is a way the page went wrong that these tests now hold.
+
+def top_card(pg):
+    """The row at the top of the docked list's view."""
+    return pg.evaluate("() => { const c = document.getElementById('col').getBoundingClientRect();"
+                       " return document.elementFromPoint(c.left + c.width / 2, c.top + 120)?.closest('a.card')?.href; }")
+
+
+def test_the_list_holds_still_when_more_loads_or_it_is_redrawn(browser):
+    pg = open_site(browser, viewport={"width": 1300, "height": 900})
+    assert pg.evaluate("shown.length > 2 * PAGE")
+    pg.evaluate("document.querySelectorAll('a.card')[33].scrollIntoView({ block: 'start' })")
+    pg.wait_for_timeout(200)
+    at = top_card(pg)
+    pg.evaluate("showMore(limit + PAGE)")  # the next page, as the sentinel loads it
+    pg.wait_for_timeout(200)
+    assert top_card(pg) == at, "rows added below move nothing above"
+    pg.evaluate("renderItems(true)")  # the whole list drawn again, as Mark above as read and a new build do
+    pg.wait_for_timeout(200)
+    assert top_card(pg) == at, "a redraw keeps the same rows in view"
+    assert pg.problems == []
+
+
+def test_j_moves_on_past_each_page_of_the_list(browser):
+    pg = open_site(browser, viewport={"width": 1300, "height": 900})
+    page = pg.evaluate("PAGE")
+    pg.locator("a.card").first.focus()
+    for _ in range(page + 5):
+        pg.keyboard.press("j")
+        pg.wait_for_timeout(20)
+    assert pg.evaluate("[...document.querySelectorAll('a.card')].indexOf(document.activeElement)") == page + 5
+    assert pg.problems == []
+
+
+def test_a_phone_story_closed_before_its_article_arrives_shows_it_when_reopened(browser):
+    pg, held, title, frame = held_reader(browser, viewport={"width": 412, "height": 900}, is_mobile=True, has_touch=True)
+    assert until(pg, "document.querySelector('#reader-body iframe')") and len(held) == 1
+    url = urllib.parse.parse_qs(urllib.parse.urlsplit(held[0].request.url).query)["url"][0]
+    pg.go_back()
+    wait_until_closed(pg)
+    held[0].fulfill(content_type="application/json", body=json.dumps({"url": url, "content": BODY}))
+    assert until(pg, "u => articles.has(u)", url)
+    pg.locator(f"a.card[href='{url}']").click()
+    frame.locator("p", has_text="Paragraph 29").wait_for(timeout=3000)
+    assert len(held) == 1, "stored once already: not asked for again"
+
+
+def test_a_swipe_in_a_docked_article_leaves_it_open(browser):
+    pg = open_site(browser, viewport={"width": 900, "height": 800}, has_touch=True)
+    pg.locator("a.card").first.click()
+    pg.frame_locator("#reader-body iframe:not(.loading)").locator("p").nth(29).wait_for()
+    box = pg.locator("#reader-body").bounding_box()
+    x, y = box["x"] + 40, box["y"] + 300
+    cdp = pg.context.new_cdp_session(pg)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchStart", "touchPoints": [{"x": x, "y": y}]})
+    for k in range(1, 13):
+        cdp.send("Input.dispatchTouchEvent", {"type": "touchMove", "touchPoints": [{"x": x + 20 * k, "y": y + 2}]})
+        pg.wait_for_timeout(16)
+    cdp.send("Input.dispatchTouchEvent", {"type": "touchEnd", "touchPoints": []})
+    pg.wait_for_timeout(500)
+    assert reading(pg), "docked, the reader doesn't slide, so a swipe doesn't close it"
+    assert pg.problems == []
+
+
+def test_the_closed_phone_search_stays_out_of_reach_after_a_story(browser):
+    pg = open_site(browser, viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True)
+    assert pg.evaluate("document.getElementById('search-drawer').inert")
+    first_card(pg)[0].tap()
+    assert until(pg, "document.body.classList.contains('reading')")
+    pg.go_back()
+    wait_until_closed(pg)
+    assert pg.evaluate("document.getElementById('search-drawer').inert")
+    assert pg.problems == []
+
+
+def test_the_article_leaves_the_browsers_own_shortcuts_alone(browser):
+    pg = open_site(browser, viewport={"width": 1300, "height": 900})
+    pg.locator("a.card").first.click()
+    pg.frame_locator("#reader-body iframe:not(.loading)").locator("main p").first.wait_for()
+    frame = next(f for f in pg.frames if f != pg.main_frame and f.name == "" and "Paragraph" in f.content())
+    taken = lambda key, ctrl: not frame.evaluate("([key, ctrl]) => dispatchEvent(new KeyboardEvent('keydown', { key, ctrlKey: ctrl, cancelable: true }))", [key, ctrl])
+    for key in ("s", "j", "m", "ArrowLeft", "ArrowRight"):
+        assert not taken(key, True), f"Ctrl+{key} is the browser's"
+    assert taken("s", False), "s alone is the page's"  # j and the arrows alone would open the next story, which replaces this frame
+    assert taken("k", True), "Ctrl+K opens search from the article"
+    assert pg.problems == []
+
+
+def test_a_dialog_closes_on_its_backdrop_but_not_its_own_padding(browser):
+    pg = open_site(browser, viewport={"width": 1300, "height": 900})
+    open_sync(pg)
+    box = pg.locator("#sync").bounding_box()
+    pg.mouse.click(box["x"] + 6, box["y"] + 6)
+    assert pg.evaluate("document.getElementById('sync').open"), "a click in its padding"
+    pg.mouse.move(box["x"] + box["width"] / 2, box["y"] + 6)
+    pg.mouse.down()
+    pg.mouse.move(box["x"] - 30, box["y"] - 30)
+    pg.mouse.up()
+    assert pg.evaluate("document.getElementById('sync').open"), "a drag that ends outside it"
+    pg.mouse.click(5, 5)
+    assert until(pg, "!document.getElementById('sync').open"), "a click on the backdrop"
+    assert pg.problems == []
+
+
+def test_phone_search_closes_with_one_tap_after_back_and_forward(browser):
+    pg = open_site(browser, viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True)
+    settle = lambda: until(pg, "!document.getAnimations().some(a => a instanceof CSSTransition)")
+    pg.tap("#search-btn")
+    assert until(pg, "document.body.classList.contains('searching')") and settle()
+    pg.go_back()
+    assert until(pg, "!document.body.classList.contains('searching')") and settle()
+    pg.go_forward()
+    pg.wait_for_timeout(300)
+    pg.tap("#search-btn")
+    assert until(pg, "document.body.classList.contains('searching')") and settle()
+    pg.tap("#search-btn")
+    assert until(pg, "!document.body.classList.contains('searching')"), "one tap closes it"
+    assert pg.problems == []
+
+
+def test_a_topic_picked_by_keyboard_keeps_focus(browser):
+    pg = open_site(browser, viewport={"width": 1300, "height": 900})
+    pg.focus("#filters [data-f='security']")
+    pg.keyboard.press("Enter")
+    assert pg.evaluate("filter") == "security"
+    assert pg.evaluate("document.activeElement.dataset.f") == "security"
+    assert pg.problems == []
+
+
+def test_the_docked_reader_pane_is_never_hidden_from_screen_readers(browser):
+    pg = open_site(browser, viewport={"width": 1300, "height": 900})
+    assert pg.get_attribute("#reader", "aria-hidden") == "false", "its display options are there with no story open"
+    pg.context.close()
+    ph = open_site(browser, viewport={"width": 412, "height": 800}, is_mobile=True, has_touch=True)
+    assert ph.get_attribute("#reader", "aria-hidden") == "true", "a phone's closed reader is off screen"
+    first_card(ph)[0].tap()
+    assert until(ph, "document.getElementById('reader').getAttribute('aria-hidden') === 'false'")
+    assert ph.problems == []
+
+
+def test_a_refused_device_list_leaves_sync_on(browser):
+    a = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900})
+    turn_on(a)
+    a.keyboard.press("Escape")
+    assert until(a, "!pending.size && syncState === 'ok'")
+    a.route("**/api/auth/me", lambda route: route.fulfill(status=429, json={"error": "too many requests"}))
+    open_sync(a)
+    a.wait_for_selector("[data-view=in]:not([hidden])")
+    a.wait_for_timeout(500)
+    assert a.evaluate("syncOn"), "a rate limit says nothing about the session"
+    assert a.locator("[data-view=in]").is_visible()
+    assert [p for p in a.problems if "Failed to load resource" not in p] == []
+
+
+def test_a_message_on_a_closed_live_connection_is_ignored(browser):
+    a = open_site(browser, url=SYNC_URL, viewport={"width": 1300, "height": 900})
+    turn_on(a)
+    a.keyboard.press("Escape")
+    assert until(a, "live && live.readyState === 1")
+    a.evaluate("() => { const ws = live; disconnectLive(); ws.onmessage({ data: JSON.stringify({ t: 'ended' }) }); }")
+    assert a.evaluate("syncOn"), "the old connection's sync isn't this one any more"
+    assert a.problems == []
+
+
+def test_listen_works_again_after_a_failed_load(browser):
+    [url] = with_upshot()
+    pg = open_site(browser, audio={url: timed(32)}, viewport={"width": 1440, "height": 900})
+    pg.context.route("**/*.m4a", lambda route: route.fulfill(status=404, body=b"", headers={"Access-Control-Allow-Origin": "*"}))
+    card = pg.locator(f"a.card[href='{url}']")
+    card.click()
+    btn = pg.locator("#reader-listen")
+    btn.wait_for()
+    btn.click()
+    assert until(pg, "!!player.error"), "the file didn't load"
+    pg.context.unroute("**/*.m4a")
+    pg.keyboard.press("Escape")
+    wait_until_closed(pg)
+    card.click()
+    btn.wait_for()
+    btn.click()
+    assert until(pg, "!player.paused"), "plays once the file is there"
+    assert [p for p in pg.problems if "Failed to load resource" not in p] == []

@@ -22,7 +22,7 @@ const scroller = () => (docked.matches ? $('col') : document.scrollingElement);
 let io;
 function watchEnd() {
   io?.disconnect();
-  io = new IntersectionObserver(es => { if (es.at(-1).isIntersecting && limit < shown.length) { limit += PAGE; renderPage(); } },
+  io = new IntersectionObserver(es => { if (es.at(-1).isIntersecting && limit < shown.length) showMore(limit + PAGE); },
     { root: docked.matches ? $('col') : null, rootMargin: '800px' });
   io.observe($('sentinel'));
 }
@@ -112,6 +112,7 @@ function renderFilters() {
     `<span class="f-mark" aria-hidden="true">${mark}</span><span class="f-name">${label(f)}</span>${note || (n ? `<span class="f-count">${n}<span class="sr-only"> unread</span></span>` : '')}</button>`;
   const open = unpatched();  // exploited flaws with no fix yet: in place of the unread count while there are any
   const saved = items.filter(i => isSaved(i.url)).length;
+  const focused = $('filters').contains(document.activeElement) && document.activeElement.dataset.f;  // the buttons are redrawn: focus goes to the new one
   $('filters').innerHTML = btn('all', unreadAll, '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>') +
     (picks.size ? btn('essentials', unreadPicks, '<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>') : '') +
     (exists('exploited') ? btn('exploited', items.filter(i => listed(i) && isUnread(i)).length, '<svg viewBox="0 0 24 24"><path d="M12 4 2.5 20h19z"/><path d="M12 10v4M12 17h.01"/></svg>',
@@ -121,6 +122,7 @@ function renderFilters() {
     btn('later', 0, '<svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>',
       saved ? `<span class="f-count">${saved}<span class="sr-only"> saved</span></span>` : '') +
     '<h2 class="f-head">Topics</h2>' + Object.keys(CATS).filter(c => counts[c] || filter === c).map(c => btn(c, unread[c] || 0, `<span class="dot" style="--c:var(--cat-${c})"></span>`)).join('');
+  if (focused) $('filters').querySelector(`[data-f="${focused}"]`)?.focus();
   $('list-name').textContent = label(filter);  // phones: the list's name above it, so a filter never makes stories look missing
   syncReadAll();
   // The unread count in the tab, as mail and feed readers have it: it rises when a build lands while the tab is open.
@@ -147,6 +149,8 @@ const hidesRead = () => hideRead && filter !== 'later';
 // `scoped` (the chip), or across every story. Read stories stay in: a search is for finding one.
 let query = '', scoped = false;
 const searchHit = (i, ql) => `${i.title} ${i.summary} ${i.publisher} ${domain(i.url)}`.toLowerCase().includes(ql);
+// More of the list: the next rows are added under the ones showing.
+function showMore(to) { const from = limit; limit = to; renderPage(from); }
 function renderItems(keepLimit) {
   if (!keepLimit) { limit = PAGE; held.clear(); }
   const ql = query.toLowerCase();
@@ -167,11 +171,10 @@ $('hide-read').setAttribute('aria-checked', String(hideRead));
 $('hide-read').onclick = () => setHideRead(!hideRead);
 document.addEventListener('click', e => { if (e.target.closest('.show-read')) setHideRead(false); });
 
-// Renders the first `limit` matches; the sentinel below the list raises it as you scroll.
-function renderPage() {
-  // No headings or counts: the list starts at the top, each story says how old it is, and the sidebar says which list it is.
-  $('items').innerHTML = shown.length ? `
-    ${shown.slice(0, limit).map(i => { const ess = picks.has(i.url), why = filter === 'essentials' && picks.get(i.url), preview = why || i.summary; return `
+// Renders the first `limit` matches; the sentinel below the list raises it as you scroll. `from`: the rows before it are
+// already there and stay (showMore), so the row that has focus keeps it and nothing above moves.
+function renderPage(from = 0) {
+  const rows = shown.slice(from, limit).map(i => { const ess = picks.has(i.url), why = filter === 'essentials' && picks.get(i.url), preview = why || i.summary; return `
     <a class="card${isRead(i.url) ? ' read' : ''}${isSaved(i.url) ? ' saved' : ''}${ess ? ' essential' : ''}" href="${esc(i.url)}" target="_blank" rel="noopener"${i.url === currentUrl() ? ' aria-current="true"' : ''}>
       ${iconHtml(i.publisher)}
       <div class="card-body">
@@ -180,11 +183,15 @@ function renderPage() {
         ${preview ? `<div class="card-sum${why ? ' full' : ''}">${why ? '<b>What to do: </b>' : ''}${esc(preview)}</div>` : ''}
         <div class="card-foot">${ageHtml(i)}${SAVED_MARK}</div>
       </div>
-    </a>`; }).join('')}`
+    </a>`; }).join('');
+  // No headings or counts: the list starts at the top, each story says how old it is, and the sidebar says which list it is.
+  const note = $('items').querySelector('.later-note');  // stays under the rows
+  if (from) note ? note.insertAdjacentHTML('beforebegin', rows) : $('items').insertAdjacentHTML('beforeend', rows);
+  else $('items').innerHTML = shown.length ? rows
     : `<p class="empty">${query ? `No stories match “${esc(query)}”${scoped ? ` in ${esc(label(filter))}. <button type="button" class="sync-link-btn search-all">Search all stories</button>` : '.'}`
       : filter === 'later' ? 'Nothing saved yet. Open a story and use its bookmark to save it here.' : hidesRead() && items.some(i => inList(i, filter)) ? 'No unread stories here. Read stories are hidden. <button type="button" class="sync-link-btn show-read">Show them</button>' : 'Nothing in this list right now.'}</p>`;
   // Without sync, saves stay in this browser: said once, under the list, rather than on every save. showSync hides it once syncing.
-  if (filter === 'later' && !query) $('items').insertAdjacentHTML('beforeend', `<p class="later-note"${syncOn ? ' hidden' : ''}>Saved on this device only. <button type="button" class="sync-link-btn">Turn on sync</button> to see them on your other devices.</p>`);
+  if (!from && filter === 'later' && !query) $('items').insertAdjacentHTML('beforeend', `<p class="later-note"${syncOn ? ' hidden' : ''}>Saved on this device only. <button type="button" class="sync-link-btn">Turn on sync</button> to see them on your other devices.</p>`);
   $('items').removeAttribute('aria-busy');
   syncReadAll(); placeMore();
   if (generatedAt) showUpdated();  // the feed was just redrawn, and its "Updated" with it
@@ -623,6 +630,7 @@ async function connectLive() {
   const ws = live = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/api/auth/live`);
   ws.onopen = () => { liveWait = 1; };
   ws.onmessage = e => {
+    if (live !== ws) return;  // a socket already closed here (disconnectLive) can still deliver: its sync isn't this one any more
     const { t } = JSON.parse(e.data);
     if (t === 'ended') return liveEnded();
     if (t === 'marks') syncNow();
@@ -677,7 +685,7 @@ function syncView(name, { justOn = false } = {}) {
   document.querySelector(VIEW_FOCUS[name])?.focus();
 }
 // A request that didn't work: 401 means this device was removed elsewhere meanwhile; otherwise, say what to do.
-const whoAmI = () => fetch('/api/auth/me').then(r => r.json()).catch(() => null);
+const whoAmI = () => fetch('/api/auth/me').then(r => (r.ok ? r.json() : null)).catch(() => null);  // signed out is a 200; a 429 or 5xx says nothing about the session
 const call = (path, body, init) => fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), ...init }).then(async r => ({ status: r.status, data: r.ok ? await r.json() : null })).catch(() => ({ status: 0, data: null }));
 function failed(status, what) {
   if (status === 401) { signedOut(STOPPED); return syncView('out'); }
@@ -960,7 +968,7 @@ async function findAudio(url) {
 function toggleListen() {
   if (listen) return stopListening();
   if (!heard || heard.url !== readerFor) return;
-  if (player.src !== heard.src) player.src = heard.src;
+  if (player.src !== heard.src || player.error) player.src = heard.src;  // again after a failed load: the element won't retry the same file by itself
   player.currentTime = 0;
   player.playbackRate = listenRate;
   player.play().catch(() => drawListen());  // in the tap itself, which Safari requires; refused, the bar offers Play
@@ -1148,10 +1156,14 @@ let readerFor = null;
 // Docked, the list stays usable while an article is open, unless the reader's full screen; the header's menu stays either way.
 const setInert = () => {
   const off = document.body.classList.contains('reading') && !docked.matches, full = document.body.classList.contains('full') && docked.matches;
-  document.querySelectorAll('.feed, #top').forEach(el => { el.inert = off || (full && el.tagName !== 'HEADER'); });  // the header's hidden but its controls (CSS)
+  // The header's hidden but its controls (CSS). The phone's search drawer is one of these, and stays out of reach while closed.
+  document.querySelectorAll('.feed, #top').forEach(el => { el.inert = off || (full && el.tagName !== 'HEADER') || (el.id === 'search-drawer' && !searching()); });
+  // Docked, the reader's pane and its display options are there with no story open, so it's never hidden from a screen reader.
+  $('reader').setAttribute('aria-hidden', String(!document.body.classList.contains('reading') && !docked.matches));
   $('reader').setAttribute('aria-modal', String(!docked.matches));
 };
 docked.addEventListener('change', setInert);  // resizing never strands an inert list
+setInert();
 // Crossing the breakpoint changes where the reader sits, not whether it's open: no slide (a closed one would fly off).
 docked.addEventListener('change', () => {
   document.body.classList.add('dragging');
@@ -1243,7 +1255,7 @@ addEventListener('keydown', e => {  // keys pressed while the article has focus 
   if (e.altKey) return;
   if (k === ' ' && !mod) { e.preventDefault(); return page(e.shiftKey); }
   // Letters only without ⌘/Ctrl, so the browser keeps ⌘L, ⌘A and the rest.
-  if (['escape', 'j', 'k', 'm', 's', 'arrowleft', 'arrowright', '?', '/'].includes(k) || (!mod && (['v', 'g', 'e', 'l', 'a'].includes(k) || (e.shiftKey && (k === 'c' || k === 'f'))))) { e.preventDefault(); parent.postMessage({ tw: 'key', key: k, mod: mod, shift: e.shiftKey }, '*'); }
+  if (['escape', 'k', '?', '/'].includes(k) || (!mod && (['j', 'm', 's', 'arrowleft', 'arrowright', 'v', 'g', 'e', 'l', 'a'].includes(k) || (e.shiftKey && (k === 'c' || k === 'f'))))) { e.preventDefault(); parent.postMessage({ tw: 'key', key: k, mod: mod, shift: e.shiftKey }, '*'); }
 });`;
 
 // The article frame's fonts. The article is set in the reader's typeface (Display options; it syncs, PREFS.font), Domaine
@@ -1480,7 +1492,6 @@ function openReader(i, { fromHash = false } = {}) {
     articles.get(i.url)?.minutes, articles.get(i.url)?.byline);
   frameFor = i.url;
   document.body.classList.add('reading');
-  $('reader').setAttribute('aria-hidden', 'false');
   setInert();
   markCurrent(i.url);
   syncTicker();
@@ -1493,7 +1504,7 @@ function openReader(i, { fromHash = false } = {}) {
   if (articles.has(i.url)) return;  // read once already this visit: articles don't change once stored
   let unreadable = 'The reader view isn\u2019t available right now.';
   fetchArticle(i.url).then(r => {
-    if (readerFor !== i.url) return;  // another article was opened meanwhile
+    if (readerFor !== i.url) { if (frameFor === i.url) frameFor = null; return; }  // another was opened meanwhile, or this one closed: its kept frame is still the loading card, so it's drawn afresh next time
     if (r.content) {
       const { minutes } = articles.get(i.url);
       showInReader(i, r.content, why, minutes, r.byline);
@@ -1589,7 +1600,6 @@ function closeReader() {
   stopListening();
   document.body.classList.remove('reading');
   setFull(false);  // full screen is the open story's
-  $('reader').setAttribute('aria-hidden', 'true');
   setInert();
   // Read later holds still while a story is open, so the list doesn't shift under the reader; closing it, a story unsaved
   // meanwhile leaves, and one saved from elsewhere (search) joins.
@@ -1626,6 +1636,8 @@ function syncFromUrl() {
 }
 addEventListener('popstate', e => {
   if (searching() && !history.state?.search) closeSearch();
+  // Forward, onto the entry of a search since closed: it's the list's entry now, so the next search pushes its own above it.
+  if (!searching() && history.state?.search) history.replaceState({ ...history.state, search: undefined }, '');
   if (afterSearch) { const then = afterSearch; afterSearch = null; return then(); }
   if (picked !== null && history.state?.f) history.replaceState({ ...history.state, f: picked }, '');
   picked = null;
@@ -1640,7 +1652,11 @@ addEventListener('popstate', e => {
 // (judged on the finger's speed at release, px/ms).
 let drag = null;
 const setDrag = f => document.documentElement.style.setProperty('--drag', f);
-function dragStart(x) { drag = { x, dx: 0, lx: x, lt: performance.now(), v: 0 }; document.body.classList.add('dragging'); }
+function dragStart(x) {
+  if (docked.matches) return;  // docked, the reader doesn't slide: there's nothing to swipe away
+  drag = { x, dx: 0, lx: x, lt: performance.now(), v: 0 };
+  document.body.classList.add('dragging');
+}
 function dragMove(x) {
   if (!drag) return;
   const now = performance.now();
@@ -1732,7 +1748,7 @@ function step(dir) {
     const at = shown.findIndex(i => i.url === readerFor);
     const next = at < 0 ? null : shown[at + dir];  // filtered out: nowhere to step, as the disabled buttons say
     if (!next) return;
-    if (shown.indexOf(next) >= limit) { limit += PAGE; renderPage(); }
+    if (shown.indexOf(next) >= limit) showMore(limit + PAGE);
     return openReader(next);
   }
   const cards = [...document.querySelectorAll('a.card')];
@@ -1748,7 +1764,7 @@ function nextUnread() {
   const from = shown.findIndex(i => i.url === (readerFor ?? document.activeElement?.closest('a.card')?.getAttribute('href')));
   const at = shown.findIndex((i, n) => n > from && isUnread(i));
   if (at < 0) { $('status').textContent = 'No more unread stories in this list'; return; }
-  if (at >= limit) { limit = at + PAGE; renderPage(); }
+  if (at >= limit) showMore(at + PAGE);
   openReader(shown[at]);
 }
 // Full screen (Shift F, or the display options): the reader takes the whole window, the topics and the list hidden.
@@ -1911,8 +1927,14 @@ $('palette-q').addEventListener('keydown', e => {
 });
 $('palette-list').addEventListener('click', e => { const li = e.target.closest('li[data-n]'); if (li) choosePalette(+li.dataset.n); });
 $('palette-list').addEventListener('mousemove', e => { const li = e.target.closest('li[data-n]'); if (li && +li.dataset.n !== pal.sel) selectPalette(+li.dataset.n, false); });
-// A click on any dialog's backdrop closes it: the dialog itself is the target only outside its content.
-document.querySelectorAll('dialog').forEach(d => d.addEventListener('click', e => { if (e.target === d) d.close(); }));
+// A click on any dialog's backdrop closes it. The dialog is the target there, but also in its own padding and when a drag
+// (selecting the code, say) ends off the element it began on, so the press and the release must both fall outside its box.
+const onBackdrop = (d, e) => { const r = d.getBoundingClientRect(); return e.target === d && (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom); };
+document.querySelectorAll('dialog').forEach(d => {
+  let pressed = false;
+  d.addEventListener('pointerdown', e => { pressed = onBackdrop(d, e); });
+  d.addEventListener('click', e => { if (pressed && onBackdrop(d, e)) d.close(); });
+});
 $('palette-close').addEventListener('click', () => $('palette').close());
 document.addEventListener('auxclick', e => { const a = e.target.closest('a.card'); if (a && e.button === 1) markRead(a.getAttribute('href')); });
 // Plain clicks on an article open the reader; modified and middle clicks still open the site.

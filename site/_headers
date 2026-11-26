@@ -1,11 +1,11 @@
 # Content-Security-Policy for every page. Inline scripts are allowed only by hash (the theme, platform and column-width bootstrap in
 # index.html and the reader frame's swipe/keyboard relay in app.js); tests/csp.test.js keeps the hashes current.
-# img-src is open to https because the reader shows article images. frame-src is 'none': the reader's frame is srcdoc, which
+# img-src is open to https because the reader shows article images. frame-src is 'sha256-8i3/T7+wYBuVOpYdDext5KJfWg7RV7lt/FBAhvB58lo=': the reader's frame is srcdoc, which
 # frame-src doesn't govern, and no page from another site is ever framed.
 # connect-src allows Listen's audio bucket, whose index and timings the page reads (the audio itself is media-src); a fork
 # with its own bucket puts its address here (docs/setup/configuration.md#audio).
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-aK2HABd+whAeBXcesJlNtA58Edy9RznEBlJAvonj7+k=' 'sha256-gGQ0o05/NIikXvBcxGOp8X+I9PUHgtdawiOgZ4q0kVM='; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src https:; frame-src 'none'; connect-src 'self' https://audio.upshot.me; font-src 'self' data:; manifest-src 'self'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-aK2HABd+whAeBXcesJlNtA58Edy9RznEBlJAvonj7+k=' 'sha256-8i3/T7+wYBuVOpYdDext5KJfWg7RV7lt/FBAhvB58lo='; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src https:; frame-src 'sha256-8i3/T7+wYBuVOpYdDext5KJfWg7RV7lt/FBAhvB58lo='; connect-src 'self' https://audio.upshot.me; font-src 'self' data:; manifest-src 'self'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
   Referrer-Policy: strict-origin-when-cross-origin
 

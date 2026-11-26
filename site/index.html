@@ -264,7 +264,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   .side-foot { display: flex; flex: none; align-items: center; height: 44px; margin: auto 0 0; padding: 0 10px; color: var(--text-muted); font-size: .8125rem; }
   .card-foot { display: flex; align-items: center; gap: 6px; margin-top: 4px; }  /* the bookmark beside the age: the selected row's "…" holds the far end */
   .card-age { display: block; color: var(--text-muted); font-size: .8125rem; font-variant-numeric: tabular-nums; }
-  .card { content-visibility: auto; contain-intrinsic-block-size: auto 6rem; display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: var(--radius-md); transition: background-color .15s ease; }
+  .card { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: var(--radius-md); transition: background-color .15s ease; }
   .card[aria-current="true"] { background: var(--bg-card); }
   .card-body { flex: 1; min-width: 0; }
   .card-title { font-size: 1rem; font-weight: 600; line-height: 1.35; }
@@ -886,6 +886,6 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
 </dialog>
 <button class="back-to-top" id="top" type="button" aria-label="Scroll to the top" title="Scroll to the top" hidden><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <!-- Versioned by its contents (tests/assets.test.js), so browsers keep it for a year. -->
-<script src="/app.js?v=19962122b3"></script>
+<script src="/app.js?v=46da1c8044"></script>
 </body>
 </html>
