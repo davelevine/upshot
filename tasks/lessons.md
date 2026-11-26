@@ -383,3 +383,11 @@ Asked to fix how "1 unpatched" looked in the sidebar, I guessed and restyled it 
 **Rules:**
 - In PR titles, PR bodies, commit messages and docs, describe what Upshot does and why. A reference app may have informed the design; that belongs in the conversation, not in public write-ups.
 - Don't list what was "left out" of another app's feature; list what Upshot doesn't do only when a reader would otherwise expect it.
+
+## 2026-11-26 — Name the exact job when saying what I'm waiting for
+
+**Mistake:** After the bug-fix PRs merged, I said several times that I was waiting on "the 12:27 build", then "GitHub's own scheduled run" and "the gate", without naming the workflow, the job, or the trigger, or saying that GitHub fires that schedule only a few times a day. The user had to ask which job.
+
+**Rules:**
+- When waiting on CI, name it as the user would find it in Actions: workflow name, job name, trigger (`schedule`, `workflow_dispatch`, `pull_request`), and what result counts as success.
+- Before saying I'll watch for something, check how often it actually happens (run history). If it could be hours away, say so and offer how to check it later, instead of holding the user waiting.
