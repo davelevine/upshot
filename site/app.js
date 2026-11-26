@@ -1474,6 +1474,7 @@ function openReader(i, { fromHash = false } = {}) {
   findAudio(i.url);
   markRead(i.url);
   syncUnread();
+  syncLater();
   const why = picks.get(i.url);
   const icon = iconFor(i.publisher);
   $('reader-icon').hidden = !icon.has;
