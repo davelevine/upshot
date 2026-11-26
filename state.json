@@ -1,5 +1,7 @@
 {
- "failing_since": {},
+ "failing_since": {
+  "https://hnrss.org/frontpage?points=300": "2026-11-26"
+ },
  "seen": {
   "http://groundworkcollaborative.org/news/amazons-decoy-deals-groundwork-investigation-reveals-nearly-1-in-3-black-friday-and-cyber-monday-deals-advertised-by-amazon-offered-no-savings-to-shoppers-nearly-1-in-10-w/": "2026-11-16",
   "http://muratbuffalo.blogspot.com/2026/11/writing-as-thinking-tool.html": "2026-11-08",
@@ -1369,6 +1371,7 @@
   "https://simonwillison.net/2026/Nov/24/llm-inflection-points/": "2026-11-24",
   "https://simonwillison.net/2026/Nov/25/datasette-charts/": "2026-11-25",
   "https://simonwillison.net/2026/Nov/25/scott-aaronson/": "2026-11-25",
+  "https://simonwillison.net/2026/Nov/26/sqlite3-rsync/": "2026-11-26",
   "https://simonwillison.net/2026/Nov/3/a-sound-that-leaks-your-exact-location/": "2026-11-03",
   "https://simonwillison.net/2026/Nov/3/datasette-agent/": "2026-11-03",
   "https://simonwillison.net/2026/Nov/3/llm/": "2026-11-03",
