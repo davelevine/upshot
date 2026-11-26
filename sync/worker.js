@@ -24,8 +24,10 @@ export class Reader extends DurableObject {
   constructor(ctx, env) {
     super(ctx, env);
     this.sql = ctx.storage.sql;
-    this.#schema();
   }
+  // The tables are made when the reader's first device joins, not when the object is: any request with a well-formed
+  // cookie reaches an object (account.js), and one for a reader that doesn't exist must store nothing.
+  #made() { return this.sql.exec("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'sessions'").toArray().length > 0; }
   #schema() {
     this.sql.exec(`
       CREATE TABLE IF NOT EXISTS sessions (hash TEXT PRIMARY KEY, label TEXT NOT NULL, seen INTEGER NOT NULL);
@@ -90,7 +92,8 @@ export class Reader extends DurableObject {
   // A device joins. `joining`: by a code, which only works for a sync that still has a device (checked in this same call, so
   // the sync can't end between the check and the join).
   addSession(hash, label, joining = false) {
-    if (joining && !this.#count()) return false;
+    if (joining && !(this.#made() && this.#count())) return false;
+    this.#schema();
     const now = Date.now();
     this.sql.exec('INSERT INTO sessions VALUES (?, ?, ?)', hash, label, now);
     this.#arm();
@@ -99,6 +102,7 @@ export class Reader extends DurableObject {
   }
   // Whether a session is valid, noting when it was last used (at most hourly, to spare writes; sync() notes every sync).
   checkSession(hash) {
+    if (!this.#made()) return false;
     const row = this.sql.exec('SELECT seen FROM sessions WHERE hash = ?', hash).toArray()[0];
     if (!row) return false;
     const now = Date.now();
@@ -190,12 +194,11 @@ export class Reader extends DurableObject {
     };
   }
 
-  // ponytail: recreating the tables leaves a few KB of empty storage behind if a stale cookie later reaches a deleted
-  // reader (it's cleared on that same request); add an alarm for empty readers if that ever shows up in storage use.
+  // The tables go too. This instance can outlive its data: checkSession then finds no reader, and addSession makes the
+  // tables again.
   async deleteAll() {
     this.#drop();  // every open page hears it's no longer syncing
     await this.ctx.storage.deleteAll();  // the alarm too
-    this.#schema();  // this instance can outlive its data; later calls find empty tables, not missing ones
   }
   // No device has used sync for as long as a cookie lasts: every cookie has expired, so the reader goes. Otherwise it's marks
   // and saves untouched for as long as they're kept (#arm).

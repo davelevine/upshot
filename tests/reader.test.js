@@ -162,3 +162,20 @@ test('a socket that sends anything is closed: pages send nothing', () => {
   r.webSocketMessage(s, 'x');
   assert.equal(s.closed, 1008);
 });
+
+test('a reader that doesn’t exist stores nothing, whatever asks for it, and neither does one whose sync ended', async () => {
+  const r = reader(), stored = () => r.ctx.storage.sql.exec('SELECT COUNT(*) AS n FROM sqlite_master').one().n;
+  assert.equal(r.checkSession('x'), false);
+  assert.equal(r.devices('x'), null);
+  assert.equal(r.sync('x', {}, 0, null), null);
+  assert.equal(await r.revoke('x', 'x'), null);
+  assert.equal(r.fetch(new Request('https://site.test/api/auth/live', { headers: { Upgrade: 'websocket', 'X-Session': 'x' } })).status, 401);
+  assert.equal(stored(), 0, 'no tables for a made-up cookie');
+  r.addSession('a', 'Firefox on Mac');
+  r.addSession('b', 'Safari on iPhone', true);
+  assert.equal(await r.removeSession('b'), false, 'one device left: the sync ends');
+  assert.equal(stored(), 0, 'nothing left behind');
+  assert.equal(r.checkSession('a'), false);
+  r.addSession('c', 'Chrome on Android');
+  assert.equal(r.devices('c').length, 1, 'and the same object can start again');
+});

@@ -130,3 +130,22 @@ test('device codes: typed loosely, refused quietly, and only for a signed-in dev
   assert.deepEqual(await res.json(), { ok: false });
   assert.equal((await worker.fetch(req('/api/auth/link/start'), env)).status, 401);
 });
+
+test('a body past the limit is refused without being read whole', async () => {
+  let sent = 0;
+  const big = new ReadableStream({ pull(c) { sent++ < 64 ? c.enqueue(new Uint8Array(64 * 1024).fill(32)) : c.close(); } });
+  const res = await worker.fetch(new Request(ORIGIN + '/api/sync', { method: 'POST', duplex: 'half', body: big,
+    headers: { Origin: ORIGIN, Cookie: `upshot_session=${USER}.${TOKEN}` } }), env);
+  assert.equal(res.status, 400);
+  assert.ok(sent <= 4, `stopped at the limit, after ${sent} of 64 pieces`);
+});
+
+test('a code entered by a device removed from that sync joins it again, not "already in it"', async () => {
+  const calls = [];
+  const reader = { checkSession: async () => false, addSession: async (...a) => (calls.push('add'), true), revoke: async () => (calls.push('revoke'), null) };
+  const joinEnv = { READER: { idFromName: n => n, get: () => reader }, CODES: { idFromName: n => n, get: () => ({ take: async () => USER }) } };
+  const res = await worker.fetch(req('/api/auth/link/finish', { cookie: `upshot_session=${USER}.${TOKEN}`, body: '{"code":"K7QF-M2XA"}' }), joinEnv);
+  assert.deepEqual(await res.json(), { ok: true });
+  assert.match(res.headers.getSetCookie()[0], new RegExp(`^upshot_session=${USER}\\.`), 'a new session');
+  assert.deepEqual(calls, ['add', 'revoke']);
+});
