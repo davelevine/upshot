@@ -63,7 +63,7 @@ SCORE_WORKERS = 6     # parallel scoring calls (each is a CLI process)
 UA = "upshot/1.0 (+https://github.com/davelevine/upshot)"
 WORDS_PER_MINUTE = 230
 MIN_ARTICLE_WORDS = 300  # less than this in a feed or page is probably a teaser, not the article
-TRACKING = re.compile(r"^(utm_|ref$|source$|fbclid$|gclid$)")
+TRACKING = re.compile(r"^(utm_|ref$|source$|fbclid$|gclid$)", re.I)
 
 
 def now():
@@ -84,6 +84,14 @@ def normalize_url(url):
     # Kept as written, blank values and bare keys too: `?12345` and `?67890` are different stories.
     query = "&".join(q for q in p.query.split("&") if q and not TRACKING.match(urllib.parse.unquote_plus(q.split("=")[0])))
     return urllib.parse.urlunsplit((p.scheme, p.netloc.lower(), p.path, query, ""))
+
+
+def url_key(url):
+    """What a link goes by in `seen`: its normalized URL less a trailing slash, so /x and /x/ are one story. Only ever a
+    key. A story's link, which is also what the reader fetches and stores it under, stays as its feed gave it: a site
+    may answer only one of the two."""
+    p = urllib.parse.urlsplit(normalize_url(url))
+    return urllib.parse.urlunsplit(p._replace(path=p.path.rstrip("/") or "/"))
 
 
 def clean_text(s, limit=600, tags=True):
@@ -187,7 +195,7 @@ def candidates(publisher, entries, seen, cutoff):
             continue
         when = min(when, datetime.now(timezone.utc))  # an entry dated ahead (an event's date) is news as of now, not a top story for weeks
         url = normalize_url(link)
-        if not url.startswith(("https://", "http://")) or url in seen:  # links render as hrefs
+        if not url.startswith(("https://", "http://")) or url_key(url) in seen:  # links render as hrefs
             continue
         # feedparser decodes a title and says which it is: plain text, where "Vec<T>" and "p99 < 5 ms" are the words, or
         # HTML, where it leaves tags such as <em>.
@@ -1049,7 +1057,9 @@ def main():
     data_path = SITE / "data.json"
     data = json.loads(data_path.read_text()) if data_path.exists() else {"items": [], "weekly": None}
     published = {id(i) for i in data["items"]}  # on the site already: these never give up their place
-    seen = state["seen"]
+    # Re-keyed on every load, so a key url_key would write differently (one with a trailing slash) still matches its
+    # story and nothing is scored twice. Of two keys that become one, the later date stays.
+    seen = {url_key(u): d for u, d in sorted(state["seen"].items(), key=lambda kv: kv[1])}
     feeds = read_opml(ROOT / "feeds.opml")
 
     def safe_fetch(feed):
@@ -1072,8 +1082,8 @@ def main():
                 fetched[feed_url] = None
                 continue
             for c in found:
-                if c["url"] not in urls:
-                    urls.add(c["url"])
+                if url_key(c["url"]) not in urls:
+                    urls.add(url_key(c["url"]))
                     new.append(c)
     dead = update_feed_health(state["failing_since"], {u: r is not None for u, r in fetched.items()}, today)
     print(f"{len(feeds)} feeds, {sum(r is None for r in fetched.values())} failed, {len(new)} new items")
@@ -1088,7 +1098,7 @@ def main():
         r = scores.get(item["url"])
         if not r:  # left unseen, so the next run retries it
             continue
-        seen[item["url"]] = item["date"]
+        seen[url_key(item["url"])] = item["date"]
         item["cves"] = cves(f"{item['title']} {item['excerpt']}")
         if item["cves"] and (out := verified_fix(r, item)) in ("patch", "mitigation"):  # even one that isn't published
             mark_fixed(data["items"], item["cves"], out)
@@ -1104,7 +1114,7 @@ def main():
         except Exception as e:  # unsee them so the next run scores and checks them again
             print(f"::warning::repeat check failed: {e}")
             for item, _ in chunk:
-                seen.pop(item["url"], None)
+                seen.pop(url_key(item["url"]), None)
             continue
         add_chunk(data, chunk, dups, recent, kept, repeated)
 

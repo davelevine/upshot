@@ -13,6 +13,19 @@ def test_normalize_url_strips_tracking():
     assert build.normalize_url("https://Example.com/a?utm_source=x&id=1&ref=hn#top") == "https://example.com/a?id=1"
     assert build.normalize_url("https://e.com/story?12345") != build.normalize_url("https://e.com/story?67890")
     assert build.normalize_url("https://e.com/s?id=&x=a%20b&utm_medium=") == "https://e.com/s?id=&x=a%20b"
+    assert build.normalize_url("https://e.com/s?UTM_SOURCE=x&Ref=hn&ID=1") == "https://e.com/s?ID=1"  # in any case
+
+
+def test_a_trailing_slash_is_the_same_story_but_stays_in_its_link():
+    assert build.url_key("https://e.com/x/") == build.url_key("https://E.com/x?utm_source=rss") == "https://e.com/x"
+    assert build.url_key("https://e.com") == build.url_key("https://e.com/")
+    assert build.url_key("https://e.com/x/?id=1") == "https://e.com/x?id=1" != build.url_key("https://e.com/x/?id=2")
+    assert build.normalize_url("https://e.com/x/") == "https://e.com/x/"  # the link, and what the reader fetches: as the feed gave it
+    now = datetime.now(timezone.utc)
+    entry = lambda link: {"link": link, "title": "T", "published_parsed": now.timetuple()}
+    seen = {"https://e.com/seen": "2026-01-01"}
+    out = build.candidates("P", [entry("https://e.com/seen/"), entry("https://e.com/new/")], seen, now - timedelta(days=3))
+    assert [c["url"] for c in out] == ["https://e.com/new/"]
 
 
 def test_opml_parses():
