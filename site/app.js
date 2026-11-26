@@ -1228,8 +1228,8 @@ let said = null;
 addEventListener('message', e => {
   if (e.source !== parent || !e.data) return;
   if (e.data.tw === 'listen') {
-    said = [...document.querySelectorAll('main :is(h1, h2, h3, h4, h5, h6, p, li, blockquote, dd), .todo')]
-      .filter(n => !n.parentElement.closest('p, li, blockquote, dd, .todo') && !n.closest('.meta, .status') && n.innerText.trim());
+    said = [...document.querySelectorAll('main :is(h1, h2, h3, h4, h5, h6, p, li, blockquote, dt, dd), .todo')]
+      .filter(n => !n.parentElement.closest('p, li, blockquote, dt, dd, .todo') && !n.closest('.meta, .status') && n.innerText.trim());
     said.forEach(n => n.classList.add('sayable'));
     parent.postMessage({ tw: 'sayable', blocks: said.map(n => ({
       text: n.innerText.trim().split('\\n').map(l => l.trim()).filter(Boolean).join('. '),  // the upshot's lines: a pause after each
