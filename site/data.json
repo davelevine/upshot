@@ -65,6 +65,36 @@
   },
   {
    "date": "2026-11-26",
+   "published": "2026-11-26T13:04:06+00:00",
+   "title": "Critical Juniper Session Smart Conductor Flaw Exploited in Attacks",
+   "url": "https://www.securityweek.com/critical-juniper-session-smart-conductor-flaw-exploited-in-attacks/",
+   "publisher": "SecurityWeek",
+   "cves": [
+    "CVE-2026-103406"
+   ],
+   "category": "security",
+   "summary": "Critical flaw CVE-2026-103406 in Juniper Session Smart Conductor lets remote attackers run arbitrary commands as root, and it is being exploited.",
+   "relevance": 8,
+   "added": "2026-11-26T13:28:06+00:00",
+   "exploited": {
+    "kev": [
+     "CVE-2026-103406"
+    ],
+    "at": "2026-11-26T13:28:02+00:00",
+    "kind": "flaw",
+    "quote": "Exploited in Attacks",
+    "fix": "patch"
+   },
+   "minutes": 1,
+   "tldr": [
+    "Juniper and CISA warn that attackers are exploiting critical CVE-2026-103406 in Session Smart Conductor.",
+    "The flaw in the AutomatedProvisioner service could let remote attackers run commands as root via a crafted Salt minion ID.",
+    "Upgrade Session Smart Router and Session Smart Conductor to 7.2.3, 7.1.7, or 7.0.5, which include the fix.",
+    "CISA added the flaw to its KEV catalog, urging federal agencies to patch within three days."
+   ]
+  },
+  {
+   "date": "2026-11-26",
    "published": "2026-11-26T06:59:00+00:00",
    "title": "Mock Service Worker Releases v3.0 with ESM-Only Build, Socket-Based Interception and GraphQL Subs",
    "url": "https://www.infoq.com/news/2026/11/mock-service-worker-v3/",
@@ -6332,7 +6362,7 @@
    }
   ]
  },
- "generated_at": "2026-11-26T12:28:21+00:00",
+ "generated_at": "2026-11-26T13:28:20+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
