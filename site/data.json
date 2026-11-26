@@ -1,6 +1,24 @@
 {
  "items": [
   {
+   "date": "2026-11-26",
+   "published": "2026-11-26T06:59:00+00:00",
+   "title": "Mock Service Worker Releases v3.0 with ESM-Only Build, Socket-Based Interception and GraphQL Subs",
+   "url": "https://www.infoq.com/news/2026/11/mock-service-worker-v3/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Mock Service Worker 3.0 ships ESM-only, requires Node.js 22+, adds GraphQL subscriptions, and intercepts Node.js traffic at the TCP and TLS level.",
+   "relevance": 6,
+   "added": "2026-11-26T07:27:51+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Mock Service Worker v3.0 is ESM-only, drops Node.js v18 and v20 for v22, v24, and v26, and requires TypeScript 5.9 minimum.",
+    "Node.js interception moves down to TCP and TLS wraps, supporting socket protocols like SMTP; Nock also uses the Interceptors library.",
+    "Upgrading may break tests: v3 now intercepts browser OPTIONS preflight requests that v2 ignored. Read the 2.x to 3.x migration guide first."
+   ]
+  },
+  {
    "date": "2026-11-25",
    "published": "2026-11-25T12:19:20+00:00",
    "title": "CVE-2026-123903: Critical VMware Directory Service Authentication Bypass affects vCenter",
@@ -6232,7 +6250,7 @@
    }
   ]
  },
- "generated_at": "2026-11-26T06:27:54+00:00",
+ "generated_at": "2026-11-26T07:28:01+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",

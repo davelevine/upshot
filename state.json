@@ -1,7 +1,5 @@
 {
- "failing_since": {
-  "https://hnrss.org/frontpage?points=300": "2026-11-26"
- },
+ "failing_since": {},
  "seen": {
   "http://groundworkcollaborative.org/news/amazons-decoy-deals-groundwork-investigation-reveals-nearly-1-in-3-black-friday-and-cyber-monday-deals-advertised-by-amazon-offered-no-savings-to-shoppers-nearly-1-in-10-w/": "2026-11-16",
   "http://muratbuffalo.blogspot.com/2026/11/writing-as-thinking-tool.html": "2026-11-08",
@@ -2467,6 +2465,8 @@
   "https://www.infoq.com/news/2026/11/litert-tensor-api/": "2026-11-03",
   "https://www.infoq.com/news/2026/11/logic-apps-local-cli/": "2026-11-12",
   "https://www.infoq.com/news/2026/11/meta-triton-tlx-gpu-compiler/": "2026-11-20",
+  "https://www.infoq.com/news/2026/11/microsoft-ignite-2026-recap/": "2026-11-26",
+  "https://www.infoq.com/news/2026/11/mock-service-worker-v3/": "2026-11-26",
   "https://www.infoq.com/news/2026/11/mongodb-compatible-documentdb/": "2026-11-14",
   "https://www.infoq.com/news/2026/11/netflix-ai-driven-observability/": "2026-11-13",
   "https://www.infoq.com/news/2026/11/netflix-sdlc-ai-coding-agents/": "2026-11-23",
@@ -2803,6 +2803,7 @@
   "https://www.theguardian.com/technology/2026/nov/06/struggling-to-spell-male-chauvinist-pig-apple-grey-list-means-your-iphone-wont-help-you": "2026-11-07",
   "https://www.theregister.com/saas/2026/11/16/microsoft-blames-monster-email-outage-on-software-defect-introduced-in-july-fix/5310026": "2026-11-16",
   "https://www.thestateofai.com/news/goldman-sachs-claude-code-traders-bankers": "2026-11-08",
+  "https://www.theverge.com/ai-artificial-intelligence/1041227/the-new-york-times-warns-photographers-not-to-update-photoshop-over-ai-features": "2026-11-25",
   "https://www.theverge.com/news/1027379/discord-ditching-electron-web-app": "2026-11-05",
   "https://www.volexity.com/blog/2026/10/13/a-series-of-unauthenticated-events-chained-exploitation-of-ivanti-connect-secure-zero-days/": "2026-10-13",
   "https://www.volexity.com/blog/2026/10/16/mind-the-patch-gap-part-3-analysis-with-volexity-volcano-threat-intel-and-mcp/": "2026-10-16",
