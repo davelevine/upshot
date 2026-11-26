@@ -155,7 +155,7 @@ jobs:
           cache: pip
       - run: npm ci
       - run: node --test 'tests/*.test.js'
-      - run: pip install -r requirements.txt pytest pytest-xdist==3.8.0 pytest-timeout==2.4.0 playwright==1.65.2 axe-playwright-python==0.1.8  # no browser download: the tests use the runner's Chrome
+      - run: pip install -r requirements.txt pytest pytest-xdist==3.8.0 pytest-timeout==2.4.0 playwright==1.65.2 axe-playwright-python==0.1.9  # no browser download: the tests use the runner's Chrome
       - run: pytest -q  # the smoke tests skip here, without SMOKE_URL
       - name: Start the site
         run: |
