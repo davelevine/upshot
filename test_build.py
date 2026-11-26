@@ -659,6 +659,24 @@ def test_an_entry_dated_ahead_counts_as_now():
     assert datetime.fromisoformat(c["published"]) <= datetime.now(timezone.utc)
 
 
+def test_a_title_keeps_its_angle_brackets_unless_it_is_html():
+    import feedparser
+    titles = ["Why Vec<T> beats LinkedList<T> in Rust", "Latency: p99 < 5 ms and throughput > 1M rps", "A <em>big</em> day"]
+    want = [titles[0], titles[1], "A big day"]
+    item = lambda n, title: f"<item><title>{title}</title><link>https://x.test/{n}</link><pubDate>Tue, 17 Nov 2026 12:00:00 GMT</pubDate></item>"
+    entry = lambda n, title, kind: (f"<entry><title type='{kind}'>{title}</title><link href='https://x.test/{n}'/>"
+                                    f"<updated>2026-11-17T12:00:00Z</updated></entry>")
+    feeds = {  # both ways RSS carries a < in a title, and Atom, which says which a title is
+        "escaped": "<rss version='2.0'><channel>" + "".join(item(n, build.html.escape(t)) for n, t in enumerate(titles)) + "</channel></rss>",
+        "cdata": "<rss version='2.0'><channel>" + "".join(item(n, f"<![CDATA[{t}]]>") for n, t in enumerate(titles)) + "</channel></rss>",
+        "atom": "<feed xmlns='http://www.w3.org/2005/Atom'>" + "".join(
+            entry(n, build.html.escape(t), "html" if "<em>" in t else "text") for n, t in enumerate(titles)) + "</feed>",
+    }
+    for kind, xml in feeds.items():
+        got = build.candidates("P", feedparser.parse(xml).entries, {}, datetime(2026, 11, 1, tzinfo=timezone.utc))
+        assert [c["title"] for c in sorted(got, key=lambda c: c["url"])] == want, kind
+
+
 def test_bad_output_from_extract_is_a_reader_error_not_a_crash(monkeypatch):
     monkeypatch.setattr(build.subprocess, "run", lambda *a, **k: subprocess.CompletedProcess(a, 0, stdout="not json", stderr=""))
     assert "bad output" in build.add_reading_times([{"url": "u", "title": "t", "publisher": "p"}])

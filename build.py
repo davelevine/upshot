@@ -86,8 +86,9 @@ def normalize_url(url):
     return urllib.parse.urlunsplit((p.scheme, p.netloc.lower(), p.path, query, ""))
 
 
-def clean_text(s, limit=600):
-    s = html.unescape(re.sub(r"<[^>]+>", " ", s or ""))
+def clean_text(s, limit=600, tags=True):
+    """Plain text on one line. `tags`: whether `s` is HTML, whose tags go; in plain text a < or > is the text's own."""
+    s = html.unescape(re.sub(r"<[^>]+>", " ", s or "") if tags else s or "")
     return re.sub(r"\s+", " ", s).strip()[:limit]
 
 
@@ -188,9 +189,12 @@ def candidates(publisher, entries, seen, cutoff):
         url = normalize_url(link)
         if not url.startswith(("https://", "http://")) or url in seen:  # links render as hrefs
             continue
+        # feedparser decodes a title and says which it is: plain text, where "Vec<T>" and "p99 < 5 ms" are the words, or
+        # HTML, where it leaves tags such as <em>.
+        html_title = (e.get("title_detail") or {}).get("type", "text/plain") != "text/plain"
         out.append({
             "url": url,
-            "title": clean_text(e["title"], 300),
+            "title": clean_text(e["title"], 300, tags=html_title),
             "publisher": publisher,
             "date": site_date(when),
             "published": when.isoformat(timespec="seconds"),  # the page shows how long ago, as feed readers do
