@@ -691,7 +691,9 @@ def rss(items, weekly=None, title="Upshot", link="/", description="The week’s 
         f"<item><title>{esc(rss_label(i) + i['title'])}</title><link>{esc(i['url'])}</link><guid>{esc(i['url'])}</guid>"
         f"<description>{esc(rss_body(i, why.get(i['url'])))}</description><category>{i['category']}</category>"
         f"<pubDate>{format_datetime(published(i))}</pubDate></item>"
-        for i in items[:50]
+        # The 50 added last, by the time each is stamped with: the site lists by publish date, where a story added
+        # today with an older date sits below 50 newer-dated ones.
+        for i in sorted(items, key=published, reverse=True)[:50]
     )
     return (f'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>{esc(title)}</title>'
             f"<link>{esc(SITE_URL + link)}</link><description>{esc(description)}</description>"

@@ -55,6 +55,18 @@ def test_rss_dates_use_when_the_story_was_added():
     assert dates == ["Thu, 05 Nov 2026 14:30:00 +0000", "Wed, 04 Nov 2026 00:00:00 +0000"]
 
 
+def test_rss_holds_the_50_added_last_whatever_their_publish_date():
+    item = lambda n, date, added: {"date": date, "added": added, "title": f"T{n}", "url": f"https://x.test/{n}", "summary": "S", "category": "ai"}
+    items = [item(n, "2026-11-20", f"2026-11-20T10:{n:02}:00+00:00") for n in range(55)]
+    items.append(item("late", "2026-11-08", "2026-11-21T09:00:00+00:00"))  # added last, dated before all the others: last on the site
+    before = list(items)
+    links = [e.text for e in ET.fromstring(build.rss(items)).iter("link")][2:]  # after the channel's and its image's
+    assert len(links) == 50 and links[0] == "https://x.test/late" and links[1] == "https://x.test/54"
+    assert items == before  # the site's order is left as it was
+    flagged = [{**i, "exploited": {"kind": "flaw"}} for i in items]
+    assert "https://x.test/late" in build.feeds_for(flagged)["exploited.xml"]  # the section feeds choose the same way
+
+
 def test_og_image_is_a_preview_card_with_or_without_picks():
     from datetime import date
     item = {"url": "https://x.test/a", "title": "A headline " * 20, "publisher": "P", "category": "security"}
