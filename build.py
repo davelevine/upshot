@@ -75,7 +75,12 @@ def read_opml(path):
 
 
 def normalize_url(url):
-    p = urllib.parse.urlsplit(url.strip())
+    """The URL less its fragment and tracking parameters, the host in lower case. "" for a link that can't be parsed
+    (an unclosed IPv6 bracket), which is no story's URL, so every caller passes over it."""
+    try:
+        p = urllib.parse.urlsplit(url.strip())
+    except ValueError:
+        return ""
     # Kept as written, blank values and bare keys too: `?12345` and `?67890` are different stories.
     query = "&".join(q for q in p.query.split("&") if q and not TRACKING.match(urllib.parse.unquote_plus(q.split("=")[0])))
     return urllib.parse.urlunsplit((p.scheme, p.netloc.lower(), p.path, query, ""))
@@ -151,7 +156,10 @@ LOOSE_DATES = ("%b %d, %Y %H:%M:%S%z", "%b %d, %Y")  # "Nov 05, 2026 00:00:00-06
 def entry_time(e):
     t = e.get("published_parsed") or e.get("updated_parsed")
     if t:
-        return datetime(*t[:6], tzinfo=timezone.utc)
+        try:
+            return datetime(*t[:6], tzinfo=timezone.utc)
+        except ValueError:  # a date feedparser read but no calendar has, such as year 0: undated
+            return None
     for raw in (e.get("published"), e.get("updated")):
         for fmt in LOOSE_DATES:
             try:
@@ -760,8 +768,9 @@ def feed_articles(fetched):
     for res in fetched.values():
         for e in (res[1] if res else ()):
             body = max([c.get("value") or "" for c in e.get("content", [])] + [e.get("summary") or ""], key=words_in)
-            if e.get("link") and words_in(body) >= MIN_ARTICLE_WORDS:
-                out[normalize_url(e["link"])] = body
+            url = normalize_url(e.get("link") or "")
+            if url and words_in(body) >= MIN_ARTICLE_WORDS:
+                out[url] = body
     return out
 
 
@@ -1044,16 +1053,21 @@ def main():
 
     with ThreadPoolExecutor(12) as ex:
         fetched = dict(ex.map(safe_fetch, feeds))
-    dead = update_feed_health(state["failing_since"], {u: r is not None for u, r in fetched.items()}, today)
-
     cutoff = now() - timedelta(days=FRESH_DAYS)
     new, urls = [], set()
-    for res in fetched.values():
+    for feed_url, res in fetched.items():
         if res:
-            for c in candidates(*res, seen, cutoff):
+            try:
+                found = candidates(*res, seen, cutoff)
+            except Exception as e:  # entries that can't be read: a failed feed like any other, and only this feed
+                print(f"::warning::feed failed: {feed_url}: {e}")
+                fetched[feed_url] = None
+                continue
+            for c in found:
                 if c["url"] not in urls:
                     urls.add(c["url"])
                     new.append(c)
+    dead = update_feed_health(state["failing_since"], {u: r is not None for u, r in fetched.items()}, today)
     print(f"{len(feeds)} feeds, {sum(r is None for r in fetched.values())} failed, {len(new)} new items")
 
     week_ago = (today - timedelta(days=DEDUPE_DAYS)).isoformat()

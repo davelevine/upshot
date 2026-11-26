@@ -305,6 +305,22 @@ def test_a_failed_repeat_check_leaves_its_stories_unseen(box):
     assert data["items"] == [] and state["seen"] == {}, "unseen, so the next build scores and checks it again"
 
 
+def test_a_feed_whose_entries_cant_be_read_is_skipped_alone(box):
+    today = NOW.astimezone(build.SITE_TZ).date()
+    box.seed()
+    box.feeds = {"Odd Feed": [{"link": "https://oddfeed.test/a", "title": 5, "published_parsed": NOW.timetuple()},  # not text: candidates raises
+                              entry("https://oddfeed.test/b", "Story B")],
+                 "Vendor Blog": [entry("http://[bad/x", "Bad link", excerpt="<p>" + "word " * 690 + "</p>"),
+                                 {**entry("https://vendorblog.test/year-0", "Year 0"), "published_parsed": (-1, 11, 30, 0, 0, 0, 0, 0, 0)},
+                                 entry("https://vendorblog.test/a", "Story A")]}
+    box.scores = {"Story A": score("ai", 9)}
+    data, state = box.run()
+    check_contract(data)
+    assert [i["title"] for i in data["items"]] == ["Story A"]  # the entries around the unreadable ones still publish
+    assert state["failing_since"] == {box.url("Odd Feed"): today.isoformat()}  # recorded like a feed that didn't load
+    assert "1 failed" in (box.root / "summary.md").read_text()
+
+
 def test_every_scoring_call_failing_stops_the_build(box):
     box.seed()
     box.feeds = {"Vendor Blog": [entry("https://vendorblog.test/a", "Story A")]}

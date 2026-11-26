@@ -330,6 +330,18 @@ def test_entry_time_reads_dates_feedparser_cant():
     assert build.entry_time({"published": "sometime soon"}) is None
 
 
+def test_an_entry_with_an_impossible_date_or_link_is_passed_over():
+    assert build.entry_time({"published_parsed": (-1, 11, 30, 0, 0, 0, 0, 0, 0)}) is None  # "0000-00-00T00:00:00Z", as feedparser reads it
+    assert build.normalize_url("http://[bad/x") == ""
+    now = datetime.now(timezone.utc)
+    bad = {"link": "http://[bad/x", "title": "Bad link", "published_parsed": now.timetuple(), "summary": "<p>" + "word " * 690 + "</p>"}
+    good = {"link": "https://x.test/good", "title": "Good", "published_parsed": now.timetuple()}
+    undatable = {"link": "https://x.test/year-0", "title": "Year 0", "published_parsed": (-1, 11, 30, 0, 0, 0, 0, 0, 0)}
+    assert [c["url"] for c in build.candidates("P", [bad, undatable, good], {}, now - timedelta(days=3))] == ["https://x.test/good"]
+    assert build.feed_articles({"f": ("P", [bad])}) == {}
+    assert build.silent_feeds({"f": ("P", [undatable])}, date(2026, 11, 20)) == {"f": "entries have no readable dates, so every story is skipped"}
+
+
 def test_silent_feeds_flags_empty_undated_and_quiet_feeds():
     today = date(2026, 11, 20)
     t = lambda d: time.strptime(d, "%Y-%m-%d")
