@@ -7,7 +7,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { parseHTML } from 'linkedom';
-import { kvClient } from './extract.mjs';
+import { allText, kvClient } from './extract.mjs';
 import { keyFor } from './worker.js';
 
 // The frame's rule (SWIPE_REPORTER in site/app.js): these elements are blocks, except one inside another, which is read
@@ -52,7 +52,7 @@ export function blocksFor({ title, tldr = [], summary = '' }, html) {
     .filter(n => !n.parentElement.closest(INSIDE) && n.textContent.trim())
     .map(n => {
       const kind = n.tagName === 'H1' ? 'title' : /^H[2-6]$/.test(n.tagName) ? 'head' : n.matches('.todo') ? 'upshot' : 'text';
-      return { kind, text: kind === 'upshot' ? ['The upshot.', ...tldr].join(' ') : n.textContent.replace(/\s+/g, ' ').trim() };
+      return { kind, text: kind === 'upshot' ? ['The upshot.', ...tldr].join(' ') : allText(n.innerHTML) };
     });
 }
 

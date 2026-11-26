@@ -76,6 +76,17 @@ test('pages with blocks nested in a paragraph split into the blocks a browser co
   }
 });
 
+test('words either side of a line break or a block inside a block stay apart', async () => {
+  assert.deepEqual(texts('<p>First line<br>second line</p><p>one<br/><br>two</p>'), ['text: First line second line', 'text: one two']);
+  assert.deepEqual(texts('<blockquote><p>One.</p><p>Two.</p></blockquote>'), ['text: One. Two.']);
+  assert.deepEqual(texts('<ul><li>a<ul><li>b</li><li>c</li></ul>d</li></ul>'), ['text: a b c d'], 'where an inner block starts, too');
+  assert.deepEqual(texts('<p>One <b>bo</b>ld, <a href="https://x.test/">link</a>ed &amp; &lt;kept&gt;.</p>'), ['text: One bold, linked & <kept>.'], 'inline markup adds no space');
+  // 13 blocks on the saved pages run words together without this; one page stands for them.
+  const record = await stored('wiz.html', 'https://www.wiz.io/blog/x');
+  const fused = blocksFor(story, record.content).filter(b => /[a-z]\.[A-Z][a-z]+ [A-Z]/.test(b.text));
+  assert.deepEqual(fused, []);
+});
+
 test('storyBlocks reads stored articles, a blocked one as its card, and leaves the unstored waiting', async () => {
   const ok = 'https://x.test/ok', blocked = 'https://x.test/blocked', missing = 'https://x.test/missing';
   const stored = new Map([[await keyFor(ok), { reason: 'ok' }], [await keyFor(blocked), { reason: 'challenge' }]]);

@@ -420,9 +420,10 @@ export function kvClient({ CF_API_TOKEN, CF_ACCOUNT_ID, CF_KV_NAMESPACE_ID }) {
   };
 }
 
-// An article's text, plain: all of it, and capped for the build to summarize.
-const allText = html => (parseHTML(`<!doctype html><html><body>${html
-  .replace(/<\/(p|div|li|h[1-6]|tr|td|th|pre|blockquote|figcaption|section|ul|ol|dd|dt)>/gi, '$& ').replace(/<br\s*\/?>/gi, ' ')}</body></html>`).document.body.textContent || '')
+// An article's text, plain: all of it (audio.mjs reads each block with it), and capped for the build to summarize. A
+// space stands where a block starts or ends and at a line break, as on the page, so the words either side stay apart.
+export const allText = html => (parseHTML(`<!doctype html><html><body>${html
+  .replace(/<\/?(p|div|li|h[1-6]|tr|td|th|pre|blockquote|figcaption|section|ul|ol|dd|dt)\b[^>]*>/gi, ' $& ').replace(/<br\s*\/?>/gi, ' ')}</body></html>`).document.body.textContent || '')
   .replace(/\s+/g, ' ').trim();
 export const plainText = html => allText(html).slice(0, MAX_TEXT);
 
