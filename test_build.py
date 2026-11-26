@@ -495,6 +495,18 @@ def test_the_daily_cap_never_drops_a_flagged_story():
     assert "flagged" in [i["url"] for i in build.cap_per_day(full)]
 
 
+def test_flagged_stories_take_none_of_the_days_slots():
+    day = lambda rel, url, **k: {"date": "2026-11-08", "category": "security", "relevance": rel, "publisher": "P", "url": url, **k}
+    flag = {"kev": [], "at": "t", "quote": "q"}
+    flagged = [day(9, f"f{n}", exploited=flag) for n in range(build.DAILY_MAX)]
+    out = [i["url"] for i in build.cap_per_day(flagged + [day(8, f"new{n}") for n in range(3)])]
+    assert len(out) == build.DAILY_MAX + 3 and {"new0", "new1", "new2"} <= set(out)
+    # Stories published earlier in the day do take slots, flagged ones among them still don't.
+    published = [day(8, f"p{n}") for n in range(build.DAILY_MAX - 2)] + [day(9, "pf", exploited=flag)]
+    out = [i["url"] for i in build.cap_per_day(published + [day(7, f"new{n}") for n in range(5)], published={id(i) for i in published})]
+    assert len(out) == build.DAILY_MAX + 1 and [u for u in out if u.startswith("new")] == ["new0", "new1"]
+
+
 def test_a_late_catalog_listing_tags_a_story_but_keeps_its_dates():
     old = {"title": "T", "url": "a", "added": "2026-11-01T10:00:00+00:00", "cves": ["CVE-2026-5"]}
     plain = {"title": "U", "url": "b", "cves": ["CVE-2026-6"]}

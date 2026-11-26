@@ -728,7 +728,8 @@ def repeats(dup_of, n, covered_ids, recent_titles):
 
 def cap_per_day(items, published=()):
     """Newest day first. Each day keeps every story already on the site (`published`: ids of their dicts) and every
-    flagged one, then the best new ones up to DAILY_MAX. Within a day: most relevant first, the original source ahead of a news outlet."""
+    flagged one, then the best new ones while the day has fewer than DAILY_MAX unflagged stories: a flagged story never
+    takes a slot. Within a day: most relevant first, the original source ahead of a news outlet."""
     rank = lambda i: (-i.get("relevance", 0), i.get("publisher") in NEWS_SOURCES)
     by_day = {}
     for i in items:
@@ -737,7 +738,8 @@ def cap_per_day(items, published=()):
     for day in sorted(by_day, reverse=True):
         keep = lambda i: id(i) in published or bool(i.get("exploited"))
         kept = [i for i in by_day[day] if keep(i)]
-        fresh = sorted((i for i in by_day[day] if not keep(i)), key=rank)[:max(0, DAILY_MAX - len(kept))]
+        slots = DAILY_MAX - sum(1 for i in kept if not i.get("exploited"))
+        fresh = sorted((i for i in by_day[day] if not keep(i)), key=rank)[:max(0, slots)]
         out += sorted(kept + fresh, key=rank)
     return out
 
