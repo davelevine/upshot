@@ -21,15 +21,14 @@ permissions:
   contents: write
   issues: write
 
-# Scheduled and manual builds commit to main, so they share one queue. Each PR gets its own group, so a burst
-# of PRs (Renovate opens several at once) can't cancel one another's checks or hold up the data build.
-concurrency:
-  group: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'build' }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+# Concurrency is set on the build and smoke jobs, not here: a group on the whole workflow would put the gate job in
+# the build queue too, where a scheduled run that is about to skip takes the waiting place of the dispatched build
+# it defers to, cancelling it.
 
 jobs:
-  # Scheduled runs only: skip when the Worker's dispatch already started this hour's build. A fork without the
-  # Worker's token never dispatches, so its schedule always builds.
+  # Scheduled runs only: skip when the Worker's dispatch already started this hour's build, or has one waiting. A
+  # dispatched run that was cancelled built nothing, so it doesn't count. A fork without the Worker's token never
+  # dispatches, so its schedule always builds.
   gate:
     if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
@@ -44,8 +43,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           since=$(date -u -d '-50 minutes' +%Y-%m-%dT%H:%M:%SZ)
-          n=$(gh run list -R "$GITHUB_REPOSITORY" --workflow build.yml --event workflow_dispatch --created ">=$since" --json databaseId --jq length)
-          echo "dispatched builds since $since: $n"
+          n=$(gh run list -R "$GITHUB_REPOSITORY" --workflow build.yml --event workflow_dispatch --created ">=$since" --json conclusion --jq '[.[] | select(.conclusion != "cancelled")] | length')
+          echo "dispatched builds since $since, not cancelled: $n"
           echo "skip=$([ "$n" -gt 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
   # Not on PRs: this job's token can write to the repo and its issues, and a PR's install and test steps run the PR's
@@ -54,6 +53,13 @@ jobs:
   build:
     needs: gate
     if: ${{ !cancelled() && github.event_name != 'pull_request' && needs.gate.outputs.skip != 'true' }}  # runs when the gate was skipped (not a scheduled run)
+    # Scheduled and manual builds commit to main, so they share one queue: one runs, one waits, and neither is cancelled
+    # by a newer one starting (a newer one does replace the one waiting). Only a run that will build joins it. A run
+    # this job skips (a PR's, or a scheduled one the gate turned away) gets a group of its own, so it can't take the
+    # waiting place whether or not GitHub puts a skipped job in its group.
+    concurrency:
+      group: ${{ github.event_name != 'pull_request' && needs.gate.outputs.skip != 'true' && 'build' || format('no-build-{0}', github.run_id) }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 45
     # The secrets that can push to main, score with Claude and write to Cloudflare are in the production environment,
@@ -128,6 +134,11 @@ jobs:
   # it runs the PR's code.
   smoke:
     if: github.event_name == 'pull_request'
+    # Each PR gets its own group, so a burst of PRs (Renovate opens several at once) can't cancel one another's checks
+    # or hold up the data build; a new push to a PR cancels that PR's run in progress.
+    concurrency:
+      group: pr-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
