@@ -391,3 +391,12 @@ Asked to fix how "1 unpatched" looked in the sidebar, I guessed and restyled it 
 **Rules:**
 - When waiting on CI, name it as the user would find it in Actions: workflow name, job name, trigger (`schedule`, `workflow_dispatch`, `pull_request`), and what result counts as success.
 - Before saying I'll watch for something, check how often it actually happens (run history). If it could be hours away, say so and offer how to check it later, instead of holding the user waiting.
+
+## 2026-11-26 — Run the whole suite before pushing a change to app.js
+
+**Mistake:** I pushed a one-line `app.js` fix after running only the browser smoke tests. CI failed on `tests/assets.test.js`: `index.html` loads `app.js?v=<hash>`, and the hash changes with every edit.
+
+**Rules:**
+- Before pushing, run both `node --test 'tests/*.test.js'` and the smoke suite, not just the suite the change seems to touch.
+- After any `app.js` edit, update the `?v=` hash in `site/index.html` to the first 10 hex characters of the file's sha256.
+- When a smoke test fails only in CI, reproduce it with CPU throttling (`Emulation.setCPUThrottlingRate`) before calling it flaky; here that exposed a real cross-tab data-loss race.

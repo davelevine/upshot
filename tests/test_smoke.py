@@ -2260,6 +2260,7 @@ def test_read_later_saves_from_the_reader(browser):
     wait_until_closed(pg)
     pg.locator("#items a.card").first.click()
     pg.wait_for_selector("#reader-body iframe:not(.loading)")
+    assert btn.get_attribute("aria-pressed") == "true", "the bookmark shows the save after a reload"
     pg.keyboard.press("s")  # the shortcut takes it out
     assert not pg.evaluate("u => isSaved(u)", url) and pg.evaluate("localStorage.getItem('later')") == "{}"
     assert pg.locator(f"#items a.card[href='{url}']").count() == 1, "the list holds still while the story is open"

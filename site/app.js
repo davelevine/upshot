@@ -578,6 +578,9 @@ async function syncNow() {
   const fresh = !syncOn;
   if (fresh) signedIn();  // syncing, but nothing stored says so: this browser's storage was cleared
   setSync('ok');
+  // Written back only if this sync changed them. Another tab's write reaches this one's storage a moment late, so loadSync
+  // above can miss it, and writing back unchanged copies would undo it (every open tab syncs when sync turns on).
+  const stash = () => JSON.stringify([marks, [...pending], later, [...laterPending], prefAt, [...prefsPending]]), was = stash();
   for (const [u, m] of Object.entries(sent)) if (marks[u]?.[1] === m[1]) pending.delete(u);  // unless changed again meanwhile
   let changed = false;
   for (const [u, m] of Object.entries(res.data.marks)) {
@@ -590,7 +593,6 @@ async function syncNow() {
       if (laterPending.has(u) || later[u]?.join() === m.join()) continue;
       later[u] = m; changed = true;
     }
-    saveLater();
   }
   if (res.data.prefs) {  // the server's merge, as with marks: it wins unless the setting changed here since. One from before preferences sends none
     for (const [k, p] of Object.entries(sentPrefs)) if (prefAt[k] === p[1]) prefsPending.delete(k);
@@ -598,12 +600,11 @@ async function syncNow() {
       if (!Object.hasOwn(PREFS, k) || prefsPending.has(k) || !PREFS[k].ok(v) || PREFS[k].get() === v) continue;
       PREFS[k].set(v);
     }
-    savePrefs();
   }
   if (res.data.since && (takeSince || !since || res.data.since < since)) { localStorage.setItem('since', since = res.data.since); changed = true; }
   if (takeSince) { takeSince = false; localStorage.removeItem('syncTakeSince'); changed = true; }  // joined: the read list is the sync's, even with nothing in it
   cursor = res.data.cursor; localStorage.setItem('syncCursor', cursor);
-  saveMarks();
+  if (stash() !== was) { saveMarks(); saveLater(); savePrefs(); }
   if (changed) {
     fromMarks();
     renderFilters(); refreshRead();
@@ -1474,6 +1475,7 @@ function openReader(i, { fromHash = false } = {}) {
   findAudio(i.url);
   markRead(i.url);
   syncUnread();
+  syncLater();
   const why = picks.get(i.url);
   const icon = iconFor(i.publisher);
   $('reader-icon').hidden = !icon.has;
