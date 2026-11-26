@@ -2,6 +2,37 @@
  "items": [
   {
    "date": "2026-11-26",
+   "published": "2026-11-26T07:02:34+00:00",
+   "title": "Drupal Warns of New Highly Critical Site Takeover Vulnerability Under Active Exploitation",
+   "url": "https://thehackernews.com/2026/11/drupal-warns-of-new-highly-critical.html",
+   "publisher": "The Hacker News",
+   "cves": [
+    "CVE-2026-132165",
+    "CVE-2026-136716"
+   ],
+   "category": "security",
+   "summary": "Drupal warned of a highly critical Drupal core site takeover flaw, CVE-2026-136716, that is being exploited in the wild.",
+   "relevance": 8,
+   "added": "2026-11-26T08:27:46+00:00",
+   "exploited": {
+    "kev": [
+     "CVE-2026-132165"
+    ],
+    "at": "2026-11-26T08:27:43+00:00",
+    "kind": "flaw",
+    "quote": "has been exploited in the wild",
+    "fix": "patch"
+   },
+   "minutes": 2,
+   "tldr": [
+    "Drupal warns that CVE-2026-136716, a highly critical Drupal core site takeover flaw, is being exploited in the wild.",
+    "Sites that left install.php remotely accessible after the CVE-2026-132165 fix may have been compromised, including production sites.",
+    "Update to Drupal 11.4.14, 11.3.23, or 10.6.23; Drupal 11.0.x to 11.2.x and 10.5.x and below are end-of-life with no fix.",
+    "Check logs for unauthorized access, verify user 1's email is under your control, and consider resetting its password."
+   ]
+  },
+  {
+   "date": "2026-11-26",
    "published": "2026-11-26T06:59:00+00:00",
    "title": "Mock Service Worker Releases v3.0 with ESM-Only Build, Socket-Based Interception and GraphQL Subs",
    "url": "https://www.infoq.com/news/2026/11/mock-service-worker-v3/",
@@ -16,6 +47,25 @@
     "Mock Service Worker v3.0 is ESM-only, drops Node.js v18 and v20 for v22, v24, and v26, and requires TypeScript 5.9 minimum.",
     "Node.js interception moves down to TCP and TLS wraps, supporting socket protocols like SMTP; Nock also uses the Interceptors library.",
     "Upgrading may break tests: v3 now intercepts browser OPTIONS preflight requests that v2 ignored. Read the 2.x to 3.x migration guide first."
+   ]
+  },
+  {
+   "date": "2026-11-26",
+   "published": "2026-11-26T08:00:00+00:00",
+   "title": ".NET MAUI 11 Makes CoreCLR the Default Runtime and Adds Incremental XAML Hot Reload",
+   "url": "https://www.infoq.com/news/2026/11/dotnet-maui-11-coreclr-hotreload/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Microsoft's .NET 11 MAUI update makes CoreCLR the default runtime on all platforms, adds incremental XAML hot reload, and raises minimum Android and Apple versions.",
+   "relevance": 6,
+   "added": "2026-11-26T08:27:46+00:00",
+   "minutes": 3,
+   "tldr": [
+    "Microsoft's .NET 11 release makes CoreCLR the default runtime for .NET MAUI, replacing Mono on all supported platforms.",
+    "Mobile and desktop apps share the runtime used by other .NET workloads; Android minimum API rises to 24 and x86 is dropped.",
+    "On iOS, Appearing now fires before a page is pushed; anyone relying on the old timing should switch to NavigatedTo.",
+    "Microsoft advises thorough testing of navigation, custom handlers and trimmed publishing; the Compatibility package no longer ships."
    ]
   },
   {
@@ -6250,7 +6300,7 @@
    }
   ]
  },
- "generated_at": "2026-11-26T07:28:01+00:00",
+ "generated_at": "2026-11-26T08:27:58+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
