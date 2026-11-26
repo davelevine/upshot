@@ -124,3 +124,8 @@ test("the frame marks the same blocks the audio was timed by", () => {
   assert.equal(/querySelectorAll\('([^']+)'\)/.exec(listen)[1], BLOCKS, 'which elements are blocks');
   assert.equal(/parentElement\.closest\('([^']+)'\)/.exec(listen)[1], INSIDE, 'which are read with the block around them');
 });
+
+test('a definition list reads each term with its definition', () => {
+  assert.deepEqual(texts('<dl><dt>Term</dt><dd>Its definition.</dd><dt><p>Wrapped term</p></dt><dd>Another.</dd></dl>'),
+    ['text: Term', 'text: Its definition.', 'text: Wrapped term', 'text: Another.']);
+});

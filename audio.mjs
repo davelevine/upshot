@@ -12,8 +12,8 @@ import { keyFor } from './worker.js';
 
 // The frame's rule (SWIPE_REPORTER in site/app.js): these elements are blocks, except one inside another, which is read
 // with it, and one with no text.
-export const BLOCKS = 'main :is(h1, h2, h3, h4, h5, h6, p, li, blockquote, dd), .todo';
-export const INSIDE = 'p, li, blockquote, dd, .todo';
+export const BLOCKS = 'main :is(h1, h2, h3, h4, h5, h6, p, li, blockquote, dt, dd), .todo';
+export const INSIDE = 'p, li, blockquote, dt, dd, .todo';
 
 // The frame's page goes through a browser's HTML parser, where one of these start tags closes an open <p> along with
 // everything open inside it, unless one of the SCOPE elements stands between them. linkedom's parser closes the <p>
