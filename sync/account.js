@@ -17,7 +17,7 @@ const USER = /^[A-Za-z0-9_-]{22}$/, TOKEN = /^[A-Za-z0-9_-]{43}$/;
 const MAX_BODY = 128 * 1024, MAX_BATCH = 300, MAX_URL = 256;
 // Rate limited per address. AUTH_LIMIT: what a script could guess at or pile up, new readers and codes entered.
 // SYNC_LIMIT, looser: every other route, which a few devices behind one home address call in bursts. Any of them with a
-// made-up cookie reaches (and creates) a Durable Object, so none can go unlimited.
+// made-up cookie reaches a Durable Object (which stores nothing for it, but the call is billed), so none can go unlimited.
 const LIMITS = { start: 'AUTH_LIMIT', 'link/finish': 'AUTH_LIMIT' };
 
 const CODE_CHARS = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
@@ -79,10 +79,15 @@ const sameSite = request => {
   return [`https://${host}`, `http://${host}`].includes(request.headers.get('Origin'));
 };
 
+// Read a piece at a time and given up on at MAX_BODY bytes, so an oversized body is never held whole.
 async function body(request) {
-  const text = await request.text();
-  if (text.length > MAX_BODY) return null;
-  try { const v = JSON.parse(text); return v && typeof v === 'object' ? v : null; } catch { return null; }
+  const parts = [];
+  let size = 0;
+  for await (const part of request.body ?? []) {
+    if ((size += part.length) > MAX_BODY) return null;
+    parts.push(part);
+  }
+  try { const v = JSON.parse(await new Blob(parts).text()); return v && typeof v === 'object' ? v : null; } catch { return null; }
 }
 
 const isMark = m => Array.isArray(m) && m.length === 3 && (m[0] === 0 || m[0] === 1) && (m[2] === 0 || m[2] === 1)
@@ -136,10 +141,12 @@ const routes = {
     // A wrong code is an ordinary answer, not an error status, which browsers would log. So is a code for a sync whose last
     // device left after making it: that sync is gone.
     if (!user) return json({ ok: false });
-    if (me?.user === user) return json({ ok: true, already: true });  // already in it: the page keeps what it hasn't sent
+    // Already in it: the page keeps what it hasn't sent. Only with a live session: a device removed from this sync whose
+    // cookie hasn't been cleared yet joins like any other.
+    if (me?.user === user && await readerOf(env, user).checkSession(me.hash)) return json({ ok: true, already: true });
     const joined = await startSession(request, env, user, true);
     if (!joined) return json({ ok: false });
-    if (me) await readerOf(env, me.user).removeSession(me.hash);  // left only once the new sync has it
+    if (me) await readerOf(env, me.user).revoke(me.hash, me.hash);  // left only once the new sync has it; a stale cookie leaves nothing
     return json({ ok: true }, 200, joined);
   },
   // This device leaves (Turn off sync on this device), named by its own cookie, so the page needn't have listed the devices
