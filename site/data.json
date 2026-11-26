@@ -33,6 +33,38 @@
   },
   {
    "date": "2026-11-26",
+   "published": "2026-11-26T11:35:25+00:00",
+   "title": "Mitel MiCollab Zero-Days Exploited in Suspected AI-Assisted Attacks",
+   "url": "https://www.securityweek.com/mitel-micollab-zero-days-exploited-in-suspected-ai-assisted-attacks/",
+   "publisher": "SecurityWeek",
+   "cves": [
+    "CVE-2026-133275",
+    "CVE-2026-133303"
+   ],
+   "category": "security",
+   "summary": "Accenture says hackers exploited Mitel MiCollab zero-day flaws before Mitel's advisory, possibly with AI help, in an extortion campaign.",
+   "relevance": 8,
+   "added": "2026-11-26T12:28:05+00:00",
+   "exploited": {
+    "kev": [
+     "CVE-2026-133275",
+     "CVE-2026-133303"
+    ],
+    "at": "2026-11-26T12:28:02+00:00",
+    "kind": "flaw",
+    "quote": "Zero-Days Exploited in Suspected AI-Assisted Attacks",
+    "fix": "patch"
+   },
+   "minutes": 2,
+   "tldr": [
+    "Threat actors exploited several Mitel MiCollab zero-days in a data theft campaign, according to Accenture; CISA added five flaws to KEV.",
+    "Attackers gained root privileges on a MiCollab server within half an hour, then reached internal backup and database servers.",
+    "Mitel has released patches for the five flaws, including CVE-2026-133275 and CVE-2026-133303.",
+    "Check MiCollab servers for indicators of compromise, since attackers may have compromised them before patches were installed."
+   ]
+  },
+  {
+   "date": "2026-11-26",
    "published": "2026-11-26T06:59:00+00:00",
    "title": "Mock Service Worker Releases v3.0 with ESM-Only Build, Socket-Based Interception and GraphQL Subs",
    "url": "https://www.infoq.com/news/2026/11/mock-service-worker-v3/",
@@ -6300,7 +6332,7 @@
    }
   ]
  },
- "generated_at": "2026-11-26T11:27:53+00:00",
+ "generated_at": "2026-11-26T12:28:21+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
