@@ -1,6 +1,50 @@
 {
  "items": [
   {
+   "date": "2026-11-27",
+   "published": "2026-11-27T06:04:20+00:00",
+   "title": "Switzerland Confirms AI-Assisted Cyberattacks Breached Critical Infrastructure Operators",
+   "url": "https://thehackernews.com/2026/11/switzerland-confirms-ai-assisted.html",
+   "publisher": "The Hacker News",
+   "cves": [],
+   "category": "security",
+   "summary": "Swiss cybersecurity agency confirmed AI-agent-assisted attacks breached four of five targeted organizations, including two critical infrastructure operators; no major disruptions reported.",
+   "relevance": 8,
+   "added": "2026-11-27T06:27:51+00:00",
+   "minutes": 3,
+   "tldr": [
+    "Switzerland's cyber agency says AI agents breached four of five organizations in attacks, including two critical infrastructure operators.",
+    "Targets include electricity, drinking water and telecom suppliers, plus small and medium-sized firms, with attacks scanning for known, unpatched weaknesses.",
+    "Swiss guidance: install critical updates on internet-facing systems within 24 hours, and require MFA or passkeys on anything internet-reachable."
+   ]
+  },
+  {
+   "date": "2026-11-27",
+   "published": "2026-11-27T05:48:20+00:00",
+   "title": "Unpatched Cacti Zero-Day Enables RCE in Just Four HTTP Requests via Guest Access",
+   "url": "https://thehackernews.com/2026/11/unpatched-cacti-zero-day-enables-rce-in.html",
+   "publisher": "The Hacker News",
+   "cves": [],
+   "category": "security",
+   "summary": "Unpatched zero-day in open-source Cacti network monitoring tool enables remote code execution via unauthenticated HTTP requests; no CVE assigned yet.",
+   "relevance": 7,
+   "added": "2026-11-27T06:27:51+00:00",
+   "exploited": {
+    "kev": [],
+    "at": "2026-11-27T06:27:49+00:00",
+    "kind": "flaw",
+    "quote": "Unpatched Cacti Zero-Day",
+    "fix": "none"
+   },
+   "minutes": 2,
+   "tldr": [
+    "A proof-of-concept exploit for an unpatched Cacti zero-day, tracked as 4HTTP2SHELL and 4HTTP2ROOT, enables remote code execution in four HTTP requests.",
+    "Cacti Core 1.2.31 is affected when the guest account is enabled, and the attack needs no login or valid API key.",
+    "Until a fix is available, disable the guest account and restrict access to the Cacti web interface.",
+    "Review poller configuration entries for unexpected command values."
+   ]
+  },
+  {
    "date": "2026-11-26",
    "published": "2026-11-26T07:02:34+00:00",
    "title": "Drupal Warns of New Highly Critical Site Takeover Vulnerability Under Active Exploitation",
@@ -6362,7 +6406,7 @@
    }
   ]
  },
- "generated_at": "2026-11-27T05:28:13+00:00",
+ "generated_at": "2026-11-27T06:28:02+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
