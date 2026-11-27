@@ -103,6 +103,24 @@
    ]
   },
   {
+   "date": "2026-11-27",
+   "published": "2026-11-27T11:18:36+00:00",
+   "title": "Microsoft removes WSUS server role in Windows Server 2028",
+   "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-removes-wsus-server-role-in-windows-server-2028/",
+   "publisher": "BleepingComputer",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Microsoft will remove the WSUS server role from Windows Server 2028, its next major server OS release.",
+   "relevance": 6,
+   "added": "2026-11-27T11:27:51+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Microsoft will remove the WSUS server role from Windows Server 2028, confirmed in a recently updated support document.",
+    "Enterprises relying on WSUS to manage updates across many devices are affected; home users and Configuration Manager users are not.",
+    "Microsoft recommends moving to Windows Autopatch, Microsoft Intune, or Azure Update Manager; WSUS stays in Windows Server 2025 for its support lifecycle."
+   ]
+  },
+  {
    "date": "2026-11-26",
    "published": "2026-11-26T07:02:34+00:00",
    "title": "Drupal Warns of New Highly Critical Site Takeover Vulnerability Under Active Exploitation",
@@ -6464,7 +6482,7 @@
    }
   ]
  },
- "generated_at": "2026-11-27T10:28:11+00:00",
+ "generated_at": "2026-11-27T11:27:59+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
