@@ -20,6 +20,46 @@
   },
   {
    "date": "2026-11-27",
+   "published": "2026-11-27T08:06:58+00:00",
+   "title": "New NFS2ROOT Linux flaw can let attackers gain root privileges",
+   "url": "https://www.bleepingcomputer.com/news/security/new-nfs2root-linux-flaw-can-let-attackers-gain-root-privileges/",
+   "publisher": "BleepingComputer",
+   "cves": [
+    "CVE-2026-99362"
+   ],
+   "category": "security",
+   "summary": "A 12-year-old critical Linux kernel NFS server flaw, CVE-2026-99362, lets remote attackers gain root privileges.",
+   "relevance": 8,
+   "added": "2026-11-27T08:28:02+00:00",
+   "minutes": 2,
+   "tldr": [
+    "CVE-2026-99362, dubbed NFS2ROOT, is a heap buffer overflow in the Linux kernel NFS server that lets unprivileged remote attackers gain root.",
+    "Kernels older than 6.12.117, 6.18.61, 7.3.2, or 7.4-rc1 are affected if nfsd v4.1 or 4.2 is loaded and TCP 2049 is internet-reachable.",
+    "Apply the latest kernel update from your distribution vendor and reboot. If patching is delayed, restrict TCP 2049 to trusted clients or networks.",
+    "If NFS sharing is not required, stop and disable the nfs-server service."
+   ]
+  },
+  {
+   "date": "2026-11-27",
+   "published": "2026-11-27T07:36:14+00:00",
+   "title": "SAP Confirms Cyberattack, Source Code Reportedly Compromised",
+   "url": "https://www.securityweek.com/sap-confirms-cyberattack-source-code-reportedly-compromised/",
+   "publisher": "SecurityWeek",
+   "cves": [],
+   "category": "security",
+   "summary": "SAP confirmed a cyberattack after detecting suspicious GitHub activity, where attackers reportedly used stolen employee tokens to copy and alter source code.",
+   "relevance": 8,
+   "added": "2026-11-27T08:28:02+00:00",
+   "minutes": 1,
+   "tldr": [
+    "SAP confirmed it is investigating a cybersecurity incident after reports that threat actors targeted its development infrastructure on GitHub.",
+    "Reports say hackers obtained employee authentication tokens and could copy and alter source code, though it is unclear whether proprietary code was accessed.",
+    "SAP says it found no evidence of unauthorized access to customer business data, and no reports indicate tampered code reached customer software.",
+    "Per Handelsblatt, SAP replaced signing keys, limited GitHub access, and suspended automated development operations."
+   ]
+  },
+  {
+   "date": "2026-11-27",
    "published": "2026-11-27T05:48:20+00:00",
    "title": "Unpatched Cacti Zero-Day Enables RCE in Just Four HTTP Requests via Guest Access",
    "url": "https://thehackernews.com/2026/11/unpatched-cacti-zero-day-enables-rce-in.html",
@@ -6406,7 +6446,7 @@
    }
   ]
  },
- "generated_at": "2026-11-27T07:27:44+00:00",
+ "generated_at": "2026-11-27T08:28:14+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
