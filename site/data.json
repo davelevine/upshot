@@ -6345,24 +6345,24 @@
   }
  ],
  "weekly": {
-  "window_start": "2026-11-20",
-  "window_end": "2026-11-26",
+  "window_start": "2026-11-21",
+  "window_end": "2026-11-27",
   "items": [
    {
+    "url": "https://thehackernews.com/2026/11/drupal-warns-of-new-highly-critical.html",
+    "why": "Patch Drupal core now; the site takeover flaw is already being exploited."
+   },
+   {
     "url": "https://www.rapid7.com/blog/post/etr-cve-2026-123903-critical-vmware-directory-service-authentication-bypass-affects-vcenter",
-    "why": "Patch vCenter now; unauthenticated CVSS 9.8 bypass, following prior zero-day exploitation."
+    "why": "Patch vCenter now; unauthenticated directory-service bypass lets attackers take over management."
    },
    {
-    "url": "https://thehackernews.com/2026/11/drupal-fail2install-exploit-details.html",
-    "why": "Patch Drupal core now; CISA-listed KEV flaw under active exploitation."
-   },
-   {
-    "url": "https://www.securityweek.com/palo-alto-networks-patches-fragnesia-flaw-used-to-root-firewalls/",
-    "why": "Patch PAN-OS and take management interfaces off the internet immediately."
+    "url": "https://thehackernews.com/2026/11/hackers-exploited-cvss-100-hexpm-rce.html",
+    "why": "Patch Hex.pm-related systems now; audit recent package publishes for tampering."
    }
   ]
  },
- "generated_at": "2026-11-27T04:27:50+00:00",
+ "generated_at": "2026-11-27T05:28:13+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
