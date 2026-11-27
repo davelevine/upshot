@@ -121,6 +121,43 @@
    ]
   },
   {
+   "date": "2026-11-27",
+   "published": "2026-11-27T14:36:00+00:00",
+   "title": "Meta Brings Code Review Auto-Approval More Mainstream with PyTorch GreenLight",
+   "url": "https://www.infoq.com/news/2026/11/uber-agent-spend-steady/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "engineering",
+   "summary": "PyTorch now lets an AI reviewer auto-approve maintainers' pull requests via GreenLight, an open-source take on Meta's RADAR system, using risk scores and LLM review.",
+   "relevance": 6,
+   "added": "2026-11-27T15:28:01+00:00",
+   "minutes": 4,
+   "tldr": [
+    "PyTorch's GreenLight now lets an AI reviewer auto-approve pull requests, an open-source version of Meta's RADAR system.",
+    "Only PRs whose authors are named in PyTorch's merge rules get real verdicts; everyone else is shadow-reviewed and never approved.",
+    "Read the GreenLight source and the RADAR paper (arXiv 2605.30208) to see its safety gates before relying on automated approvals."
+   ]
+  },
+  {
+   "date": "2026-11-27",
+   "published": "2026-11-27T14:35:00+00:00",
+   "title": "Netflix Builds Quasar to Measure the Blast Radius of Library API Changes",
+   "url": "https://www.infoq.com/news/2026/11/netflix-quasar-api-impact/",
+   "publisher": "InfoQ",
+   "cves": [],
+   "category": "engineering",
+   "summary": "Netflix built Quasar, an internal tool using semantic code indexing and API comparison to find downstream consumers affected by library changes, and is exploring agent-assisted migrations.",
+   "relevance": 6,
+   "added": "2026-11-27T15:28:01+00:00",
+   "minutes": 2,
+   "tldr": [
+    "Netflix built Quasar, an internal tool that finds which repositories use specific library API symbols before changes ship.",
+    "It indexes symbol definitions and references with SCIP during CI and queries them through Amazon Athena, across Java, Go, Python, JavaScript/TypeScript, and Rust.",
+    "Missing references don't prove an API is unused; reflection, dynamic loading, and stale indexes create blind spots.",
+    "Netflix plans to move impact analysis earlier, letting coding agents check public API changes before pull requests are opened."
+   ]
+  },
+  {
    "date": "2026-11-26",
    "published": "2026-11-26T07:02:34+00:00",
    "title": "Drupal Warns of New Highly Critical Site Takeover Vulnerability Under Active Exploitation",
@@ -6482,7 +6519,7 @@
    }
   ]
  },
- "generated_at": "2026-11-27T14:27:59+00:00",
+ "generated_at": "2026-11-27T15:28:12+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
