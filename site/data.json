@@ -85,6 +85,24 @@
    ]
   },
   {
+   "date": "2026-11-27",
+   "published": "2026-11-27T09:08:16+00:00",
+   "title": "Microsoft pushes emergency hotpatch to fix Windows Server crashes",
+   "url": "https://www.bleepingcomputer.com/news/microsoft/new-out-of-band-oob-emergency-hotpatch-fixes-windows-server-2025-crashes/",
+   "publisher": "BleepingComputer",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Microsoft released an emergency hotpatch fixing Windows Server 2025 crashes that followed installing the month's KB5131077 security hotpatch.",
+   "relevance": 7,
+   "added": "2026-11-27T09:28:02+00:00",
+   "minutes": 1,
+   "tldr": [
+    "Microsoft released out-of-band update KB5138318 to fix Windows Server 2025 crashes after the November 2026 security hotpatch (KB5131077).",
+    "Affected servers with Router Advertisement enabled that receive time-bound IPv6 routes can stop with stop error 0x139 when a route timer expires.",
+    "KB5138318 downloads and installs automatically via Windows Update for hotpatch-enrolled devices, without requiring a restart."
+   ]
+  },
+  {
    "date": "2026-11-26",
    "published": "2026-11-26T07:02:34+00:00",
    "title": "Drupal Warns of New Highly Critical Site Takeover Vulnerability Under Active Exploitation",
@@ -6446,7 +6464,7 @@
    }
   ]
  },
- "generated_at": "2026-11-27T08:28:14+00:00",
+ "generated_at": "2026-11-27T09:28:11+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
