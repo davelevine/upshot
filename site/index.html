@@ -383,7 +383,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
     .stale { left: 0; height: calc(56px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); }  /* a phone's bottom bar */
     /* A list's toolbar, as in Feedbin's app. It fades with the list's header as the pages slide, and the late bar sits on it. */
     .list-bar { right: 0; width: auto; height: calc(60px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);
-      opacity: calc(1 - var(--pd, 0)); transition: opacity var(--slide-in) var(--ease-in); }
+      opacity: calc(1 - var(--pd, 0)); transition: opacity var(--slide) var(--ease); }
     body.home .list-bar { opacity: calc(1 - var(--pd, 1)); }
     body.paging .list-bar { transition: none; }
     #bar-top { display: flex; } #bar-keys, #top { display: none !important; }  /* Back to top lives in the bar here */
@@ -411,7 +411,6 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
     /* The list it's searching: tap it to search every story instead. In place of the magnifier, as Feedbin's token is. */
     .search-chip { display: inline-flex; align-items: center; gap: 6px; flex: none; max-width: 45%; height: 36px; padding: 0 6px 0 10px; border: 0; border-radius: var(--radius-sm);
       background: var(--bg-card); color: var(--text); font: inherit; font-size: .9375rem; cursor: pointer; }
-    .search-chip[hidden] { display: none; }
     .search-chip:not([hidden]) + .sd-ico { display: none; }
     .chip-name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
     .search-chip > svg { flex: none; width: 16px; height: 16px; color: var(--text-muted); }
@@ -421,7 +420,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
     .ticker { max-width: calc(100vw - 100px); }
     /* The header crossfades with the pages, on the same --pd as their slide: the list's chevron and name fade out drifting right
        with it, and the wordmark fades in from the left with the topics; on a swipe, under the finger. */
-    .logo-h, .list-back, .list-name, .search-btn { transition: opacity var(--slide-in) var(--ease-in), transform var(--slide-in) var(--ease-in); }
+    .logo-h, .list-back, .list-name, .search-btn { transition: opacity var(--slide) var(--ease), transform var(--slide) var(--ease); }
     .search-btn { opacity: calc(1 - var(--pd, 0)); }  /* search is for lists, as in Feedbin: the topics are for choosing one */
     body.home .search-btn { opacity: calc(1 - var(--pd, 1)); }
     .logo-h { opacity: var(--pd, 0); transform: translateX(calc(-24px * (1 - var(--pd, 0)))); }
@@ -451,16 +450,16 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
     .palette-close kbd { display: none; } .palette-close span { display: inline; }
   }
   /* The reader's slide: the same both ways, moving at once and settling. Phones travel less, so take less time. */
-  :root { --slide-in: .32s; --slide-out: .32s; --ease-in: cubic-bezier(.25, .6, .25, 1); --ease-out: cubic-bezier(.25, .6, .25, 1); }
-  @media (max-width: 640px) { :root { --slide-in: .28s; --slide-out: .28s; } }
-  .reader-backdrop { position: fixed; inset: 0; z-index: 200; background: rgba(0, 0, 0, .45); opacity: 0; pointer-events: none; transition: opacity var(--slide-out) ease; }
+  :root { --slide: .32s; --ease: cubic-bezier(.25, .6, .25, 1); }
+  @media (max-width: 640px) { :root { --slide: .28s; } }
+  .reader-backdrop { position: fixed; inset: 0; z-index: 200; background: rgba(0, 0, 0, .45); opacity: 0; pointer-events: none; transition: opacity var(--slide) ease; }
   .reader { position: fixed; top: 0; right: 0; bottom: 0; z-index: 201; width: min(820px, 100vw); display: flex; flex-direction: column;
     background: var(--bg); border-left: 1px solid var(--border); box-shadow: 0 24px 64px rgba(0, 0, 0, .3); transform: translateX(100%); visibility: hidden;
     pointer-events: none;  /* sliding away after a close, it mustn't catch a click meant for the page under it */
-    transition: transform var(--slide-out) var(--ease-out), visibility 0s var(--slide-out); }
+    transition: transform var(--slide) var(--ease), visibility 0s var(--slide); }
   body.reading { overflow: hidden; }
-  body.reading .reader-backdrop { opacity: calc(1 - var(--drag, 0)); pointer-events: auto; transition: opacity var(--slide-in) ease; }
-  body.reading .reader { transform: translateX(calc(var(--drag, 0) * 100%)); visibility: visible; pointer-events: auto; transition: transform var(--slide-in) var(--ease-in); }
+  body.reading .reader-backdrop { opacity: calc(1 - var(--drag, 0)); pointer-events: auto; transition: opacity var(--slide) ease; }
+  body.reading .reader { transform: translateX(calc(var(--drag, 0) * 100%)); visibility: visible; pointer-events: auto; transition: transform var(--slide) var(--ease); }
   body.dragging .reader, body.dragging .reader-backdrop, body.dragging .feed { transition: none !important; }
   /* Phones: the feed slides aside under the reader and follows a swipe back, like a native back gesture. */
   @media (max-width: 640px) {
@@ -468,17 +467,17 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
     .reader-icon { margin-left: 2px; }  /* sits close to the chevron, as Feedbin's does */
     .reader .reader-nav { display: flex; }
     .reader-nav .icon-btn, .reader-bar .icon-btn, .listen-bar .icon-btn { width: 44px; height: 44px; }
-    .feed { transition: transform var(--slide-out) var(--ease-out); }
-    body.reading .feed { transform: translateX(calc(-25% * (1 - var(--drag, 0)))); transition: transform var(--slide-in) var(--ease-in); }
+    .feed { transition: transform var(--slide) var(--ease); }
+    body.reading .feed { transform: translateX(calc(-25% * (1 - var(--drag, 0)))); transition: transform var(--slide) var(--ease); }
     /* The topics and a list are pages the same way: the list slides over the topics, which ease a quarter aside, following a
        swipe (--pd: 0 is the list, 1 the topics) or on a tap, back or the chevron. The window scrolls the list; the topics scroll themselves. */
     .shell { overflow-x: clip; }
     .side { position: fixed; inset: 52px 0 0; z-index: 1; height: auto; align-self: stretch;  /* desktop's start would shrink it to its content */ padding: 0; border: 0; overflow-y: auto; }
     body.reading .side { transform: none; }  /* its search sits in the header; the list moving aside under a story is enough */
-    .side > nav { transform: translateX(calc(-25% * (1 - var(--pd, 0)))); transition: transform var(--slide-in) var(--ease-in); }
+    .side > nav { transform: translateX(calc(-25% * (1 - var(--pd, 0)))); transition: transform var(--slide) var(--ease); }
     body.home .side > nav { transform: translateX(calc(-25% * (1 - var(--pd, 1)))); }
     .col { position: relative; z-index: 2; min-height: calc(100dvh - 52px); background: var(--bg); box-shadow: -12px 0 24px rgba(0, 0, 0, .18);
-      transform: translateX(calc(var(--pd, 0) * 100%)); transition: transform var(--slide-in) var(--ease-in), box-shadow var(--slide-in) var(--ease-in); }
+      transform: translateX(calc(var(--pd, 0) * 100%)); transition: transform var(--slide) var(--ease), box-shadow var(--slide) var(--ease); }
     body.home .col { transform: translateX(calc(var(--pd, 1) * 100%)); }
     html:has(body.home) { overflow: hidden; }  /* the list keeps its place, off to the right */
     body.home:not(.paging) .col { box-shadow: none; }  /* parked off the right edge, its shadow showed as a gray strip over the topics */
@@ -569,9 +568,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   .format-sizes button:hover { background: var(--bg-card-hover); color: var(--text); }
   .format-sizes button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
   .format-sizes [data-size="0"] { font-size: 13px; } .format-sizes [data-size="1"] { font-size: 16px; } .format-sizes [data-size="2"] { font-size: 20px; } .format-sizes [data-size="3"] { font-size: 24px; }
-  .send-pop > .format-sizes:hover, .send-pop > .fmt-themes:hover, .send-pop > .fmt-fonts:hover, .send-pop > .fmt-head:hover, .send-pop > .fmt-hint:hover { background: none; cursor: default; }
-  .send-pop > .fmt-hint { min-height: 0; margin: -6px 0 0; padding: 0 12px 8px 42px; color: var(--text-muted); font-size: .8125rem; }  /* under Fluid width, aligned with its label */
-  .send-pop > .fmt-hint[hidden] { display: none; }  /* rows of buttons: the buttons are the targets */
+  .send-pop > .format-sizes:hover, .send-pop > .fmt-themes:hover, .send-pop > .fmt-fonts:hover, .send-pop > .fmt-head:hover { background: none; cursor: default; }
   .send-pop > .fmt-head { min-height: 0; margin: 0; padding: 16px 12px 8px; color: var(--text-muted); font-size: .8125rem; font-weight: 600; }  /* as the sidebar's Topics */
   .send-pop > .fmt-head:first-child { padding-top: 6px; }
   /* The theme as swatches, after Feedbin's, each captioned. Their colors are the themes' own --bg (in :root and
@@ -623,7 +620,6 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
   .reader-body iframe.loading { visibility: hidden; }
   /* Listen: the player, a row of its own under the article. */
   .listen-bar { display: flex; flex: 0 0 auto; align-items: center; gap: 4px; height: 60px; padding: 0 10px; border-top: 1px solid var(--border); background: var(--bg); }
-  .listen-bar[hidden] { display: none; }
   .listen-bar .icon-btn:disabled { opacity: .35; cursor: default; }
   .listen-bar .listen-play, .listen-bar .listen-play:hover { border-radius: 50%; border-color: transparent; background: var(--accent); color: var(--accent-contrast); }
   .listen-play svg { fill: currentColor; stroke: none; }
@@ -652,11 +648,11 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
      reader, so it's moved back by the reader's offset to hold still, on the same --drag, so a swipe moves it with the finger. */
   @media (max-width: 640px) {
     .reader .reader-bar { position: relative; z-index: 1; background: var(--bg); transform: translateX(-100%); opacity: 0;
-      transition: transform var(--slide-out) var(--ease-out), opacity var(--slide-out) var(--ease-out); }
+      transition: transform var(--slide) var(--ease), opacity var(--slide) var(--ease); }
     body.reading .reader .reader-bar { transform: translateX(calc(var(--drag, 0) * -100%)); opacity: calc(1 - var(--drag, 0));
-      transition: transform var(--slide-in) var(--ease-in), opacity var(--slide-in) var(--ease-in); }
-    header.feed { transition: transform var(--slide-out) var(--ease-out), opacity var(--slide-out) var(--ease-out); }
-    body.reading header.feed { transform: none; opacity: var(--drag, 0); transition: opacity var(--slide-in) var(--ease-in); }
+      transition: transform var(--slide) var(--ease), opacity var(--slide) var(--ease); }
+    header.feed { transition: transform var(--slide) var(--ease), opacity var(--slide) var(--ease); }
+    body.reading header.feed { transform: none; opacity: var(--drag, 0); transition: opacity var(--slide) var(--ease); }
     body.dragging .reader .reader-bar, body.dragging header.feed { transition: none !important; }
     .reader-source { display: none; }  /* the icon says who it's from; the name stays for wider screens */
   }
@@ -774,8 +770,7 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
         <div class="format-sizes" role="group" aria-labelledby="fmt-size-h"><button type="button" data-size="0" aria-label="Small" title="Small">A</button><button type="button" data-size="1" aria-label="Medium" title="Medium">A</button><button type="button" data-size="2" aria-label="Large" title="Large">A</button><button type="button" data-size="3" aria-label="Larger" title="Larger">A</button></div>
         <h3 class="fmt-head fmt-wide">Display</h3>
         <button type="button" class="fmt-row fmt-wide" id="format-full" role="switch" aria-checked="false" aria-keyshortcuts="Shift+F"><svg class="send-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M16 21h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>Full screen<kbd aria-hidden="true">⇧F</kbd><span class="switch" aria-hidden="true"></span></button>
-        <button type="button" class="fmt-row fmt-wide" id="format-fluid" role="switch" aria-checked="false" aria-describedby="fluid-hint"><svg class="send-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 8-4 4 4 4M17 8l4 4-4 4M3 12h18"/></svg>Fluid width<span class="switch" aria-hidden="true"></span></button>
-        <p class="fmt-hint fmt-wide" id="fluid-hint" hidden>Needs a wider reader pane</p>
+        <button type="button" class="fmt-row fmt-wide" id="format-fluid" role="switch" aria-checked="false"><svg class="send-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 8-4 4 4 4M17 8l4 4-4 4M3 12h18"/></svg>Fluid width<span class="switch" aria-hidden="true"></span></button>
       </div>
     </div>
   </div>
@@ -886,6 +881,6 @@ window.firstData = fetch('/data.json');  // the stories, on their way before app
 </dialog>
 <button class="back-to-top" id="top" type="button" aria-label="Scroll to the top" title="Scroll to the top" hidden><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <!-- Versioned by its contents (tests/assets.test.js), so browsers keep it for a year. -->
-<script src="/app.js?v=ea9cbffecc"></script>
+<script src="/app.js?v=df3e5464a8"></script>
 </body>
 </html>

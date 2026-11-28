@@ -58,11 +58,7 @@ const unpatched = () => items.filter(i => listed(i) && i.exploited.kind !== 'com
 
 // Today in the site's time zone (data.json's tz), not the device's: some browsers report UTC for privacy, which
 // turned the evening's stories into a day old.
-function isoDay(d = new Date()) {
-  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' })
-    .formatToParts(d).map(x => [x.type, x.value]));
-  return `${p.year}-${p.month}-${p.day}`;
-}
+function isoDay(d = new Date()) { return d.toLocaleDateString('en-CA', { timeZone: tz }); }  // en-CA writes YYYY-MM-DD
 const dayNumber = iso => Date.UTC(...iso.split('-').map((n, k) => +n - (k === 1))) / 864e5;
 // How long ago it was published, as Feedbin shows it: 21m, 5h, 3d, then the date. A calmer list than a count per day.
 // Stories from before the build kept the exact time only have a date: whole days, counted in the site's time zone,
@@ -209,11 +205,10 @@ function renderPage(from = 0) {
   }
 }
 
-// "Nov 3–9", or "Oct 29 – Nov 4": the picks come from a rolling seven days, not a calendar week.
+// "Nov 3 – 9" or "Oct 29 – Nov 4": the picks come from a rolling seven days, not a calendar week.
 function weekRange(w) {
-  const md = iso => new Date(iso + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
-  const [a, b] = [md(w.window_start), md(w.window_end)];
-  return a.split(' ')[0] === b.split(' ')[0] ? `${a}–${b.split(' ')[1]}` : `${a} – ${b}`;
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+    .formatRange(new Date(w.window_start + 'T12:00:00Z'), new Date(w.window_end + 'T12:00:00Z'));
 }
 // The week's essentials: their own entry in the topics, and marked where they appear in the feed.
 function setPicks(weekly) {
@@ -520,9 +515,8 @@ function showSync() {
   nameSheet();
   for (const n of document.querySelectorAll('.later-note')) n.hidden = syncOn;
 }
-$('menu').addEventListener('toggle', e => { if (e.newState === 'open') showSync(); });  // "Synced 2m ago" as of now
-// RSS feeds: the list under its row starts shut each time the menu opens.
-$('menu').addEventListener('toggle', e => { if (e.newState === 'closed') $('feeds').open = false; });
+// Opening shows "Synced 2m ago" as of now; closing shuts the RSS feeds list under its row, so it starts shut next time.
+$('menu').addEventListener('toggle', e => { if (e.newState === 'open') showSync(); else $('feeds').open = false; });
 // The menu item and its sheet: an invitation while this device doesn't sync, and once it does, where its devices and codes
 // are kept, as a browser's "Sign in" becomes its account.
 function nameSheet() {
@@ -624,7 +618,6 @@ let live = null, liveWait = 1, liveTimer, liveTry = 0;
 async function connectLive() {
   clearTimeout(liveTimer);
   if (live || document.hidden || !maySync()) return;
-  if (!window.WebSocket) return syncNow();  // no live updates here: syncs on load, change and return still work
   const attempt = ++liveTry;
   await syncNow();
   if (attempt !== liveTry || live || !syncOn || document.hidden) return;  // superseded, or no longer syncing
@@ -1017,12 +1010,11 @@ function stopListening() {
   listen = null;
   player.pause();
   toFrame({ tw: 'said', n: -1 });
-  if ('mediaSession' in navigator) { navigator.mediaSession.playbackState = 'none'; navigator.mediaSession.metadata = null; }  // off the lock screen
+  navigator.mediaSession.playbackState = 'none'; navigator.mediaSession.metadata = null;  // off the lock screen
   $('listen-rates').hidePopover();
   drawListen();
 }
 function setMediaSession() {
-  if (!('mediaSession' in navigator)) return;
   const i = items.find(x => x.url === listen.url);
   navigator.mediaSession.metadata = new MediaMetadata({ title: i?.title || '', artist: i ? source(i) : '', album: 'Upshot',
     artwork: [{ src: new URL('/icon-512.png', location.href).href, sizes: '512x512', type: 'image/png' }] });
@@ -1044,7 +1036,7 @@ function drawListen() {
   const playing = !player.paused, { d, t, full } = l.meta, at = Math.max(0, l.at);
   $('listen-bar').classList.toggle('playing', playing);
   $('listen-play').title = $('listen-play').ariaLabel = playing ? 'Pause' : 'Play';
-  if ('mediaSession' in navigator) navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
+  navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
   $('listen-prev').disabled = l.marks ? at === 0 : player.currentTime < 1;
   $('listen-next').disabled = l.marks && at === t.length - 1;
   // Where it is: the upshot, or the heading above (the story's own title before its first).
@@ -1549,16 +1541,6 @@ markFont();
 const markSize = () => $('format-pop').querySelectorAll('[data-size]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.size === textSize)));
 markSize();
 $('format-fluid').setAttribute('aria-checked', String(!!fluid));
-// Fluid width has nothing to fill when the reader pane is no wider than the article's column: the menu says so rather than
-// leaving a switch that seems to do nothing. The numbers are the article frame's (articleDoc): its text sizes in px, the
-// 35.5em column, padding 18px up to 600px wide and 24px above, and fluid margins of max(padding, 6% - 20px).
-const FRAME_PX = [17, 18, 20, 22];
-function fluidGain(w = $('reader-body').clientWidth) {
-  const pad = w <= 600 ? 18 : 24, column = 35.5 * FRAME_PX[textSize];
-  return (w - 2 * Math.max(pad, 0.06 * w - 20)) - Math.min(column, w - 2 * pad);
-}
-const syncFluidHint = () => { $('fluid-hint').hidden = fluidGain() >= 8; };
-addEventListener('resize', () => { if (!$('format-pop').hidden) syncFluidHint(); });
 const closeFormat = () => { $('format-pop').hidden = true; $('reader-format').setAttribute('aria-expanded', 'false'); };
 $('reader-format').onclick = e => {
   e.stopPropagation();
@@ -1566,7 +1548,6 @@ $('reader-format').onclick = e => {
   closeMenus();  // one menu at a time: these clicks don't reach the page-wide close
   $('format-pop').hidden = !open;
   $('reader-format').setAttribute('aria-expanded', String(open));
-  if (open) syncFluidHint();
   if (open) $('format-pop').querySelector('[aria-pressed="true"]').focus({ preventScroll: true });  // the theme, at the top
 };
 $('format-pop').onclick = e => {
@@ -1579,7 +1560,6 @@ $('format-pop').onclick = e => {
     localStorage.setItem('textSize', textSize);
     markSize();
     $('status').textContent = `Text size ${SIZES[textSize]}`;
-    syncFluidHint();  // a bigger size needs a wider column
     toFrame({ tw: 'size', size: String(textSize) });
   } else if (b?.id === 'format-full') setFull(!document.body.classList.contains('full'));
   else if (b?.id === 'format-fluid') {
@@ -1684,8 +1664,8 @@ $('reader').addEventListener('touchmove', e => {
   if (!touch.ax && Math.hypot(dx, dy) > 10) { touch.ax = dx > Math.abs(dy) ? 'x' : 'y'; if (touch.ax === 'x') dragStart(touch.x); }
   if (touch.ax === 'x') { e.preventDefault(); dragMove(t.screenX); }
 }, { passive: false });
-$('reader').addEventListener('touchend', () => { if (touch?.ax === 'x') dragEnd(); touch = null; });
-$('reader').addEventListener('touchcancel', () => { if (touch?.ax === 'x') dragEnd(); touch = null; });
+const touchEnd = () => { if (touch?.ax === 'x') dragEnd(); touch = null; };
+$('reader').addEventListener('touchend', touchEnd); $('reader').addEventListener('touchcancel', touchEnd);
 // Swipes inside the article frame arrive as messages from the swipe reporter.
 addEventListener('message', e => {
   // The loading one too, but only article frames: a framed original page is the publisher's code, not the relay.
@@ -1761,7 +1741,6 @@ function step(dir) {
 }
 // Space: the article scrolls a screen at a time (in its frame, which reports back when it's at the end); then the next
 // unread story in the list, after the one open or focused, as Feedbin's Space does.
-const pageArticle = up => toFrame({ tw: 'page', up });
 function nextUnread() {
   const from = shown.findIndex(i => i.url === (readerFor ?? document.activeElement?.closest('a.card')?.getAttribute('href')));
   const at = shown.findIndex((i, n) => n > from && isUnread(i));
@@ -1772,7 +1751,6 @@ function nextUnread() {
 // Full screen (Shift F, or the display options): the reader takes the whole window, the topics and the list hidden.
 function setFull(on) {
   document.body.classList.toggle('full', on);
-  syncFluidHint();
   $('format-full').setAttribute('aria-checked', String(on));
   setInert();
 }
@@ -1805,7 +1783,7 @@ function onKey(key, mod, e) {
   else if (key === 's' && reading) { e?.preventDefault(); toggleLater(); }
   else if (key === 'l' && reading) { e?.preventDefault(); toggleListen(); }
   else if (key === 'a' && e?.shiftKey) { e.preventDefault(); confirmReadAll(); }  // Feedbin's: the list's Read button
-  else if (key === ' ' && (reading || !e?.shiftKey)) { e?.preventDefault(); if (reading) pageArticle(e?.shiftKey); else nextUnread(); }  // Shift Space on the list scrolls it, as usual
+  else if (key === ' ' && (reading || !e?.shiftKey)) { e?.preventDefault(); if (reading) toFrame({ tw: 'page', up: e?.shiftKey }); else nextUnread(); }  // Shift Space on the list scrolls it, as usual
   else if (key === 'v' && url) { e?.preventDefault(); window.open(url, '_blank', 'noopener'); }
   else if (key === 'c' && e?.shiftKey && url) { e.preventDefault(); copyLink(url); }
   else if (key === 'f' && e?.shiftKey && reading && docked.matches) { e.preventDefault(); setFull(!document.body.classList.contains('full')); }

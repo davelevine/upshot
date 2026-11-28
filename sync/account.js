@@ -18,7 +18,6 @@ const MAX_BODY = 128 * 1024, MAX_BATCH = 300, MAX_URL = 256;
 // Rate limited per address. AUTH_LIMIT: what a script could guess at or pile up, new readers and codes entered.
 // SYNC_LIMIT, looser: every other route, which a few devices behind one home address call in bursts. Any of them with a
 // made-up cookie reaches a Durable Object (which stores nothing for it, but the call is billed), so none can go unlimited.
-const LIMITS = { start: 'AUTH_LIMIT', 'link/finish': 'AUTH_LIMIT' };
 
 const CODE_CHARS = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 // What a reader types: any case, with or without the dash, O for 0 and I or L for 1.
@@ -90,21 +89,21 @@ async function body(request) {
   try { const v = JSON.parse(await new Blob(parts).text()); return v && typeof v === 'object' ? v : null; } catch { return null; }
 }
 
-const isMark = m => Array.isArray(m) && m.length === 3 && (m[0] === 0 || m[0] === 1) && (m[2] === 0 || m[2] === 1)
-  && Number.isSafeInteger(m[1]) && m[1] >= 0;
+const bit = v => v === 0 || v === 1, when = v => Number.isSafeInteger(v) && v >= 0;
+const isObj = v => !!v && typeof v === 'object' && !Array.isArray(v);
+const isMark = m => Array.isArray(m) && m.length === 3 && bit(m[0]) && when(m[1]) && bit(m[2]);
 // A story saved for later: [saved, when]. Unsaving is sent too, as [0, when], so it reaches the other devices.
-const isSave = m => Array.isArray(m) && m.length === 2 && (m[0] === 0 || m[0] === 1) && Number.isSafeInteger(m[1]) && m[1] >= 0;
-const validMap = ok => map => !!map && typeof map === 'object' && !Array.isArray(map)
-  && Object.keys(map).length <= MAX_BATCH
+const isSave = m => Array.isArray(m) && m.length === 2 && bit(m[0]) && when(m[1]);
+const validMap = ok => map => isObj(map) && Object.keys(map).length <= MAX_BATCH
   && Object.entries(map).every(([u, m]) => u.length <= MAX_URL && /^https?:\/\//.test(u) && ok(m));
 export const validMarks = validMap(isMark);
 export const validLater = later => later === undefined || validMap(isSave)(later);  // a page from before Read later sends none
 // Display preferences: {key: [value, when]}. Any short key and value, so a new setting on the page needs no change here
 // (sync/ deploys only from main); the page ignores what it doesn't know.
 const MAX_PREFS = 8;
-export const validPrefs = prefs => prefs === undefined || (!!prefs && typeof prefs === 'object' && !Array.isArray(prefs)
+export const validPrefs = prefs => prefs === undefined || (isObj(prefs)
   && Object.keys(prefs).length <= MAX_PREFS && Object.entries(prefs).every(([k, p]) => /^[a-zA-Z]{1,16}$/.test(k) && Array.isArray(p)
-  && p.length === 2 && typeof p[0] === 'string' && /^[a-z0-9-]{1,24}$/.test(p[0]) && Number.isSafeInteger(p[1]) && p[1] >= 0));  // a page from before preferences sends none
+  && p.length === 2 && typeof p[0] === 'string' && /^[a-z0-9-]{1,24}$/.test(p[0]) && when(p[1])));  // a page from before preferences sends none
 
 const routes = {
   // Turning sync on: a new reader, with this device as its first.
@@ -207,7 +206,7 @@ export async function account(request, env) {
   // everything) and tests would otherwise share one key and trip a limit meant for one person; Cloudflare never reports a
   // loopback address for a real visitor, so those, and requests with none, aren't limited.
   const ip = request.headers.get('CF-Connecting-IP');
-  const limit = env[Object.hasOwn(LIMITS, name) ? LIMITS[name] : 'SYNC_LIMIT'];
+  const limit = env[name === 'start' || name === 'link/finish' ? 'AUTH_LIMIT' : 'SYNC_LIMIT'];
   if (limit && ip && !/^(127\.|::1$)/.test(ip)) {
     const { success } = await limit.limit({ key: ip });
     if (!success) return fail(429, 'too many requests');

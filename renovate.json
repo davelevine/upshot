@@ -10,9 +10,6 @@
   "commitMessageTopic": "{{depName}}",
   "commitMessageExtra": "to {{newVersion}}",
   "timezone": "America/New_York",
-  "dependencyDashboard": {
-    "enabled": true
-  },
   "prHourlyLimit": 0,
   "minimumReleaseAge": "3 days",
   "commitBodyTable": true,
