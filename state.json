@@ -1,7 +1,5 @@
 {
- "failing_since": {
-  "https://hnrss.org/frontpage?points=300": "2026-11-28"
- },
+ "failing_since": {},
  "seen": {
   "http://groundworkcollaborative.org/news/amazons-decoy-deals-groundwork-investigation-reveals-nearly-1-in-3-black-friday-and-cyber-monday-deals-advertised-by-amazon-offered-no-savings-to-shoppers-nearly-1-in-10-w": "2026-11-16",
   "http://muratbuffalo.blogspot.com/2026/11/writing-as-thinking-tool.html": "2026-11-08",
@@ -926,6 +924,7 @@
   "https://github.com/anthropics/formal-math/tree/main/vp-vnp": "2026-11-23",
   "https://github.com/antonpictures/youtube-punisher": "2026-11-26",
   "https://github.com/aws/aws-emulator": "2026-11-11",
+  "https://github.com/convex/convex-backend-skill/issues/64": "2026-11-27",
   "https://github.com/ggml-org/ggml/releases/tag/v1.0.0": "2026-11-13",
   "https://github.com/glushchenko/fsnotes/discussions/2056": "2026-11-23",
   "https://github.com/google-research/google-research/tree/master/cogentic_research_papers": "2026-11-25",
@@ -1921,6 +1920,7 @@
   "https://unit42.paloaltonetworks.com/u42-threat-intelligence-highlights-oct-2026": "2026-11-02",
   "https://unit42.paloaltonetworks.com/unwrapping-retail-cyber-threats": "2026-10-28",
   "https://unit42.paloaltonetworks.com/web3-cloud-supply-chain-attacks": "2026-10-07",
+  "https://unkernel.dev/": "2026-11-27",
   "https://verialabs.com/ruby2shell": "2026-11-19",
   "https://violetpixel.com/blog/2026-11-17-we-need-smart-people-who-give-a-shit": "2026-11-18",
   "https://worksinprogress.co/issue/the-greatest-architect-youve-never-heard-of-is-in-pakistan": "2026-11-26",

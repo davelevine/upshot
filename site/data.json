@@ -104,6 +104,19 @@
   },
   {
    "date": "2026-11-27",
+   "published": "2026-11-28T03:19:20+00:00",
+   "title": "Unkernel: Real Linux kernel, compiled to WebAssembly",
+   "url": "https://unkernel.dev",
+   "publisher": "Hacker News 300+",
+   "cves": [],
+   "category": "infrastructure",
+   "summary": "Unkernel is a project that compiles a real Linux kernel to WebAssembly.",
+   "relevance": 6,
+   "added": "2026-11-28T11:27:54+00:00",
+   "minutes": 0
+  },
+  {
+   "date": "2026-11-27",
    "published": "2026-11-27T11:18:36+00:00",
    "title": "Microsoft removes WSUS server role in Windows Server 2028",
    "url": "https://www.bleepingcomputer.com/news/microsoft/microsoft-removes-wsus-server-role-in-windows-server-2028/",
@@ -6527,7 +6540,7 @@
    }
   ]
  },
- "generated_at": "2026-11-28T10:27:54+00:00",
+ "generated_at": "2026-11-28T11:27:57+00:00",
  "icons": [
   "aikido",
   "anthropic-community-feed",
