@@ -5,6 +5,7 @@ Runs after each build (.github/workflows/audio.yml); the bucket and its domain a
 Env: AUDIO_URL (unset: nothing to do), CF_API_TOKEN, CF_ACCOUNT_ID and CF_KV_NAMESPACE_ID (the stored articles, and
 R2 through wrangler), AUDIO_BUDGET_MIN (overrides BUDGET_MIN, for a backfill), AUDIO_DRY_RUN (voice a couple of stories
 and upload nothing, as a pull request does, reading articles from SITE_URL's public reader rather than KV)."""
+import functools
 import hashlib
 import json
 import os
@@ -55,12 +56,10 @@ def put(name, path, content_type, cache):
 
 
 def put_json(name, value, cache):
-    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete_on_close=False) as f:
         json.dump(value, f, separators=(",", ":"))
-    try:
+        f.close()
         put(name, f.name, "application/json", cache)
-    finally:
-        os.unlink(f.name)
 
 
 def audio_name(key, r=0):
@@ -103,25 +102,24 @@ def what_to_read(item, story):
     return blocks, True
 
 
-_kokoro = None
+@functools.cache
+def kokoro():
+    import onnxruntime as ort  # only the audio job installs these (requirements-audio.txt)
+    from kokoro_onnx import Kokoro
+    return Kokoro.from_session(ort.InferenceSession(str(MODEL), providers=["CPUExecutionProvider"]), str(VOICES))
 
 
 def voice(blocks):
     """The blocks read aloud, as float samples, and the second each starts. A block with no letters is silent but still
     has a start, so the timings stay one per block on the page."""
-    global _kokoro
     import numpy as np  # only the audio job installs these (requirements-audio.txt)
-    if _kokoro is None:
-        import onnxruntime as ort
-        from kokoro_onnx import Kokoro
-        _kokoro = Kokoro.from_session(ort.InferenceSession(str(MODEL), providers=["CPUExecutionProvider"]), str(VOICES))
     parts, starts, at = [], [], 0
     gap = np.zeros(int(PAUSE * RATE), dtype=np.float32)
     for b in blocks:
         starts.append(round(at / RATE, 2))
         if any(c.isalnum() for c in b["text"]):  # Kokoro raises on text with nothing to say (a lone zero-width joiner)
             text = b["text"] if b["kind"] in ("text", "upshot") or b["text"][-1:] in ".!?:;" else b["text"] + "."  # a pause after a heading
-            samples, _ = _kokoro.create(text, voice=VOICE, speed=1.0, lang="en-us")
+            samples, _ = kokoro().create(text, voice=VOICE, speed=1.0, lang="en-us")
             parts.append(samples.astype(np.float32))
             at += len(samples)
         parts.append(gap)

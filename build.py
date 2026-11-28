@@ -231,6 +231,9 @@ def llm(system, user, schema, whole=False):
     return out["structured_output"] if whole else next(iter(out["structured_output"].values()))  # an object holding one list
 
 
+# The fix values, one wording for every prompt that asks for them.
+FIX_VALUES = '''"patch" (a vendor patch, update or fixed version), "mitigation" (only a mitigation or workaround, no patch yet),
+"none" (it says there is no patch or fix yet), else "unknown"'''
 CLASSIFY_PROMPT = f"""You curate a tech news digest for a senior infrastructure/platform engineer
 interested in AI, security, infrastructure, software engineering and tech regulation.
 For each item return:
@@ -263,9 +266,7 @@ For each item return:
   compromised accounts pushing code), else "flaw".
 - evidence: when exploited is true, the words from the title or excerpt that say it's being exploited or attacked,
   copied exactly (the title, if it says so); else "".
-- fix: for an exploited flaw, what the item says is out: "patch" (a vendor patch, update or fixed version),
-  "mitigation" (only a mitigation or workaround, no patch yet), "none" (it says there is no patch or fix yet),
-  else "unknown". For a compromise, "unknown".
+- fix: for an exploited flaw, what the item says is out: {FIX_VALUES}. For a compromise, "unknown".
 - fix_evidence: when fix isn't "unknown", the words from the title or excerpt that say so, copied exactly; else "".
 Return JSON: {{"items": [{{"id", "category", "relevance", "summary", "exploited", "kind", "evidence", "fix", "fix_evidence"}}, ...]}} covering every input id."""
 
@@ -426,8 +427,9 @@ def tag_kev(items, kev):
         old = i.get("exploited")
         if hits and (not old or set(hits) - set(old["kev"])):
             new = (old or {"at": now().isoformat(timespec="seconds")}) | {"kind": "flaw", "kev": sorted(set((old or {}).get("kev", [])) | set(hits))}
-            new.pop("fix", None)
-            i["exploited"] = new | ({"fix": f} if (f := kev_fix((old or {}).get("fix"))) else {})  # listed: never "no patch yet"
+            if new.get("fix") == "none":
+                del new["fix"]  # listed: never "no patch yet"
+            i["exploited"] = new
 
 
 def mark_fixed(items, cve_ids, status):
@@ -540,13 +542,13 @@ def og_image(data, today):
     picks = (data.get("weekly") or {}).get("items") or []
     by_url = {i["url"]: i for i in data.get("items", [])}
     top = by_url.get(picks[0]["url"]) if picks else None
+    d.text((x, 550), SITE_URL.split("//")[-1], font=small, fill=c["muted"])
     if not top:
         y = 230
         for line in wrap("The week’s tech news, minus the noise.", og_font(56, 700), right - x, 3):
             d.text((x, y), line, font=og_font(56, 700), fill=c["text"])
             y += 70
         d.text((x, y + 20), "Five weekly essentials, each with what to do.", font=og_font(30, 400), fill=c["muted"])
-        d.text((x, 550), SITE_URL.split("//")[-1], font=small, fill=c["muted"])
         return img
 
     y = 184
@@ -568,7 +570,6 @@ def og_image(data, today):
         for n, line in enumerate(note_lines):
             d.text((x + 28, top_y + n * 42), line, font=note, fill=c["muted"])
         d.rectangle((x, top_y + 2, x + 3, top_y + 42 * len(note_lines) - 4), fill=c["accent"])
-    d.text((x, 550), SITE_URL.split("//")[-1], font=small, fill=c["muted"])
     d.text((right, 550), f"{top['publisher']}  ·  {len(picks)} essential{'s' if len(picks) != 1 else ''}, last 7 days", font=small, fill=c["muted"], anchor="ra")
     return img
 
@@ -592,16 +593,22 @@ def slug(name):
     return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
+def link_tags(page_html):
+    """Each <link> tag in a page that has an href, with the href unescaped."""
+    for tag in re.findall(r"<link\b[^>]*>", page_html, re.I):
+        if href := re.search(r'href=["\']([^"\']+)', tag, re.I):
+            yield tag, html.unescape(href[1])
+
+
 def icon_candidates(page_html, base):
     """Icon URLs to try for a site, best first: apple-touch-icon, then the largest declared icon, then the usual paths."""
     found = []
-    for tag in re.findall(r"<link\b[^>]*>", page_html, re.I):
+    for tag, href in link_tags(page_html):
         rel = (re.search(r'rel=["\']([^"\']+)', tag, re.I) or [None, ""])[1].lower()
-        href = re.search(r'href=["\']([^"\']+)', tag, re.I)
-        if not href or "icon" not in rel or "mask" in rel or href[1].lower().split("?")[0].endswith(".svg"):
+        if "icon" not in rel or "mask" in rel or href.lower().split("?")[0].endswith(".svg"):
             continue
         size = max((int(n) for n in re.findall(r"(\d+)x\d+", tag)), default=180 if "apple" in rel else 16)
-        found.append((("apple" in rel), size, urllib.parse.urljoin(base, html.unescape(href[1]))))
+        found.append((("apple" in rel), size, urllib.parse.urljoin(base, href)))
     ranked = [u for _, _, u in sorted(found, key=lambda f: (f[0], f[1]), reverse=True)]
     return list(dict.fromkeys(ranked + [urllib.parse.urljoin(base, "/apple-touch-icon.png"), urllib.parse.urljoin(base, "/favicon.ico")]))
 
@@ -665,7 +672,6 @@ def write_og(data, today):
     updated = re.sub(r'(<meta property="og:image" content=")[^"]*(")', rf"\g<1>{SITE_URL}/og.png?v={version}\g<2>", html_text, count=1)
     if updated != html_text:
         page.write_text(updated)
-    return version
 
 
 def published(item):
@@ -834,19 +840,16 @@ number, date or name that isn't in the text, and copy any you use exactly. No hy
 BULLETS = {"type": "array", "items": STR, "minItems": 2, "maxItems": 4}
 TLDR_SCHEMA = obj(bullets=BULLETS)
 # For an exploited flaw, the same call says whether its fix is out: the whole article knows what a feed's excerpt may not.
-TLDR_FIX = """
-Also say what the article says is out for the exploited flaw: fix is "patch" (a vendor patch, update or fixed version),
-"mitigation" (only a mitigation or workaround, no patch yet), "none" (it says there is no patch or fix yet), else
-"unknown"; fix_evidence is the words from the article that say so, copied exactly, else ""."""
+TLDR_FIX = f"""
+Also say what the article says is out for the exploited flaw: fix is {FIX_VALUES}; fix_evidence is the words from the article that say so, copied exactly, else ""."""
 TLDR_FIX_SCHEMA = obj(bullets=BULLETS, fix=FIX, fix_evidence=STR)
 
 
 # A flaw flagged after it was published (CISA listed it later, or it predates the flag) never went through the checks that
 # read its remedy: those run when a story is scored and summarized. Its upshot, written and checked from the whole article,
 # usually says: read it there, once.
-UPSHOT_FIX_PROMPT = """You read the summary of a news story about an exploited security flaw. Say what it says is out for the
-flaw: fix is "patch" (a vendor patch, update or fixed version), "mitigation" (only a mitigation or workaround, no patch
-yet), "none" (it says there is no patch or fix yet), else "unknown"; fix_evidence is the words from the summary that say
+UPSHOT_FIX_PROMPT = f"""You read the summary of a news story about an exploited security flaw. Say what it says is out for the
+flaw: fix is {FIX_VALUES}; fix_evidence is the words from the summary that say
 so, copied exactly, else ""."""
 UPSHOT_FIX_SCHEMA = obj(fix=FIX, fix_evidence=STR)
 LATE_FIX_LIMIT = 20  # upshots read per build: the first build after this shipped has a backlog; later ones, a stray listing
@@ -985,12 +988,8 @@ def silent_feeds(fetched, today):
 
 def feed_links(page_html, base):
     """Feeds a page advertises with <link rel="alternate" type="application/rss+xml"> (or atom)."""
-    found = []
-    for tag in re.findall(r"<link\b[^>]*>", page_html, re.I):
-        kind = re.search(r'type=["\']application/(rss|atom)\+xml', tag, re.I)
-        href = re.search(r'href=["\']([^"\']+)', tag, re.I)
-        if kind and href and "alternate" in tag.lower():
-            found.append(urllib.parse.urljoin(base, html.unescape(href[1])))
+    found = [urllib.parse.urljoin(base, href) for tag, href in link_tags(page_html)
+             if "alternate" in tag.lower() and re.search(r'type=["\']application/(rss|atom)\+xml', tag, re.I)]
     return list(dict.fromkeys(found))
 
 
@@ -1086,7 +1085,8 @@ def main():
                     urls.add(url_key(c["url"]))
                     new.append(c)
     dead = update_feed_health(state["failing_since"], {u: r is not None for u, r in fetched.items()}, today)
-    print(f"{len(feeds)} feeds, {sum(r is None for r in fetched.values())} failed, {len(new)} new items")
+    feeds_failed = sum(r is None for r in fetched.values())
+    print(f"{len(feeds)} feeds, {feeds_failed} failed, {len(new)} new items")
 
     week_ago = (today - timedelta(days=DEDUPE_DAYS)).isoformat()
     recent = [i["title"] for i in data["items"] if i["date"] >= week_ago]
@@ -1136,15 +1136,13 @@ def main():
     print(f"TL;DRs written: {add_tldrs(data['items'], texts)}")
     for i in data["items"]:  # the upshot is written from the whole article, so it names the CVEs an excerpt cuts off
         i["cves"] = own_cves(i)
-    if kev:
-        tag_kev(data["items"], kev)
+    tag_kev(data["items"], kev)
     gone = retracted()
     for i in data["items"]:
         if i["url"] in gone:
             i.pop("exploited", None)  # retracted by hand: not-exploited.txt
     print(f"Remedies read from upshots: {add_late_fixes(data['items'])}")  # flaws flagged after they were published
     data["generated_at"] = now().isoformat(timespec="seconds")
-    SITE.mkdir(exist_ok=True)
     data["tz"] = SITE_TZ.key
     data["audio"] = AUDIO_URL
     data["icons"] = fetch_icons({i["publisher"] for i in data["items"]} | set(SITE_LINKS))
@@ -1164,7 +1162,7 @@ def main():
 
     if path := os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(path, "a") as f:
-            f.write(run_summary(len(feeds), sum(r is None for r in fetched.values()), new, scores, kept, repeated, health))
+            f.write(run_summary(len(feeds), feeds_failed, new, scores, kept, repeated, health))
 
     if new and failed == len(new):
         sys.exit("every scoring call failed; check CLAUDE_CODE_OAUTH_TOKEN and the Claude Code CLI")

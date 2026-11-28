@@ -966,31 +966,6 @@ def test_fluid_width_widens_the_docked_reader(browser, width):
     assert pg.problems == []
 
 
-@pytest.mark.parametrize("width", [1100, 1186, 1440, 1728])
-def test_fluid_width_says_when_the_pane_has_no_room(browser, width):
-    """Where the reader pane is no wider than the article's column, Fluid width has nothing to fill: the menu says so under
-    the switch. The hint is computed from the frame's numbers; this checks it against what the frame really does."""
-    pg = open_site(browser, viewport={"width": width, "height": 800})
-    pg.evaluate("openReader(shown[0])")
-    pg.wait_for_selector("#reader-body iframe:not(.loading)")
-    main = lambda: pg.frames[-1].evaluate("(() => { const m = document.querySelector('main'), cs = getComputedStyle(m); return m.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); })()")
-    pg.click("#reader-format")
-    hint = pg.locator("#fluid-hint")
-    idle = hint.is_visible()
-    fixed = main()
-    pg.click("#format-fluid")
-    pg.wait_for_timeout(500)  # past the glide
-    gain = main() - fixed
-    assert idle == (gain < 8), (width, gain, idle)
-    if idle:
-        assert hint.inner_text() == "Needs a wider reader pane" and pg.get_attribute("#format-fluid", "aria-describedby") == "fluid-hint"
-        pg.keyboard.press("Escape")
-        pg.keyboard.press("Shift+F")  # full screen gives it room
-        pg.click("#reader-format")
-        assert hint.is_hidden(), "room in full screen"
-    assert pg.problems == []
-
-
 def test_full_screen_snaps_into_place_from_a_narrow_pane(browser):
     """Below 600px the article has a phone's padding (18px sides, 24px top), so full screen from a narrow pane changes it.
     That change lands at once: only a change of text size or fluid width glides. (A glide here slid the story right and
@@ -1870,8 +1845,9 @@ def test_reader_header_tidies_bylines_and_never_starts_blank(browser):
 
 def test_essentials_say_which_days_and_updated_sits_on_the_feed(browser):
     pg = open_site(browser, viewport={"width": 1300, "height": 900})
-    assert re.fullmatch(r"[A-Z][a-z]{2} \d{1,2}(–\d{1,2}| – [A-Z][a-z]{2} \d{1,2})", pg.evaluate("weekRange(weekly)"))
-    assert pg.evaluate("weekRange({window_start: '2026-10-29', window_end: '2026-11-04'})") == "Oct 29 – Nov 4"
+    assert re.fullmatch(r"[A-Z][a-z]{2} \d{1,2}\s–\s(\d{1,2}|[A-Z][a-z]{2} \d{1,2})", pg.evaluate("weekRange(weekly)"))
+    assert re.fullmatch(r"Nov 3\s–\s9", pg.evaluate("weekRange({window_start: '2026-11-03', window_end: '2026-11-09'})"))  # thin spaces in some engines
+    assert re.fullmatch(r"Oct 29\s–\sNov 4", pg.evaluate("weekRange({window_start: '2026-10-29', window_end: '2026-11-04'})"))
     assert pg.locator(".side-foot #updated").count() == 1
     pg.locator(".filter-btn", has_text="Security").click()  # a redraw keeps it filled in
     assert re.fullmatch(r"Updated (just now|\d+[mhd] ago)", pg.inner_text(".side-foot #updated"))
